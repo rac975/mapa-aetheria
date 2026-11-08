@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaScroll } from 'react-icons/fa';
+import { supabase } from '../../services/supabase';
 import './CronicasPage.css';
 
 export default function CronicasPage({ isMestre }) {
-  // Carrega do localStorage ou inicia com um exemplo padrão
-  const [cronicas, setCronicas] = useState(() => {
-    const salvo = localStorage.getItem('aetheria_cronicas');
-    return salvo ? JSON.parse(salvo) : [
-      {
-        id: 1,
-        sessao: "Sessão 01",
-        titulo: "O Despertar na Névoa",
-        data: "10/05/2026",
-        conteudo: "Os heróis se conheceram no Titã 3 (Centro de Diplomacia) durante um tenso banquete político. Um atentado iminente forçou o grupo a fugir em direção ao território de Kunlun-Nuvem."
-      }
-    ];
-  });
+  const [cronicas, setCronicas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [cronicaEditando, setCronicaEditando] = useState(null);
@@ -25,52 +15,93 @@ export default function CronicasPage({ isMestre }) {
   const [titulo, setTitulo] = useState('');
   const [data, setData] = useState('');
   const [conteudo, setConteudo] = useState('');
+  const [tags, setTags] = useState('');
 
+  // Buscar crônicas do Supabase ao carregar a página
   useEffect(() => {
-    localStorage.setItem('aetheria_cronicas', JSON.stringify(cronicas));
-  }, [cronicas]);
+    buscarCronicas();
+  }, []);
+
+  const buscarCronicas = async () => {
+    try {
+      setCarregando(true);
+      const { data, error } = await supabase
+        .from('cronicas')
+        .select('*')
+        .order('data', { ascending: false }); // Já ordena pelas mais recentes por causa do tipo 'date'!
+
+      if (error) throw error;
+      setCronicas(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar crônicas:', error.message);
+    } finally {
+      setCarregando(false);
+    }
+  };
 
   const abrirModalCriacao = () => {
     setCronicaEditando(null);
     setSessao('');
     setTitulo('');
-    setData('');
+    setData(new Date().toISOString().split('T')[0]); // Data atual no formato YYYY-MM-DD
     setConteudo('');
+    setTags('');
     setModalAberto(true);
   };
 
   const abrirModalEdicao = (cronica) => {
     setCronicaEditando(cronica.id);
-    setSessao(cronica.sessao);
-    setTitulo(cronica.titulo);
-    setData(cronica.data);
-    setConteudo(cronica.conteudo);
+    setSessao(cronica.sessao || '');
+    setTitulo(cronica.titulo || '');
+    setData(cronica.data || '');
+    setConteudo(cronica.conteudo || '');
+    setTags(cronica.tags || '');
     setModalAberto(true);
   };
 
-  const salvarCronica = (e) => {
+  const salvarCronica = async (e) => {
     e.preventDefault();
     if (!sessao || !titulo || !conteudo) return;
 
-    if (cronicaEditando) {
-      setCronicas(cronicas.map(c => c.id === cronicaEditando ? { ...c, sessao, titulo, data, conteudo } : c));
-    } else {
-      const nova = {
-        id: Date.now(),
-        sessao,
-        titulo,
-        data: data || new Date().toLocaleDateString(),
-        conteudo
-      };
-      setCronicas([nova, ...cronicas]);
-    }
+    try {
+      if (cronicaEditando) {
+        // Atualizar crônica existente
+        const { error } = await supabase
+          .from('cronicas')
+          .update({ sessao, titulo, data, conteudo, tags })
+          .eq('id', cronicaEditando);
 
-    setModalAberto(false);
+        if (error) throw error;
+      } else {
+        // Criar nova crônica
+        const { error } = await supabase
+          .from('cronicas')
+          .insert([{ sessao, titulo, data, conteudo, tags }]);
+
+        if (error) throw error;
+      }
+
+      setModalAberto(false);
+      buscarCronicas(); // Recarrega a lista do banco
+    } catch (error) {
+      console.error('Erro ao salvar crônica:', error.message);
+      alert('Erro ao salvar no banco de dados.');
+    }
   };
 
-  const excluirCronica = (id) => {
+  const excluirCronica = async (id) => {
     if (window.confirm("Deseja realmente apagar esta crônica dos anjos?")) {
-      setCronicas(cronicas.filter(c => c.id !== id));
+      try {
+        const { error } = await supabase
+          .from('cronicas')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        buscarCronicas();
+      } catch (error) {
+        console.error('Erro ao excluir:', error.message);
+      }
     }
   };
 
@@ -79,7 +110,7 @@ export default function CronicasPage({ isMestre }) {
       <header className="cronicas-header">
         <div>
           <h1><FaScroll /> Crônicas de Aetheria</h1>
-          <p>Os registros oficiais das campanhas, memórias e segredos desvendados pelos heróis.</p>
+          <p>Os registros oficiais das campanhas na nuvem de Aetheria.</p>
         </div>
         {isMestre && (
           <button className="btn-nova-cronica" onClick={abrirModalCriacao}>
@@ -89,17 +120,20 @@ export default function CronicasPage({ isMestre }) {
       </header>
 
       <div className="cronicas-list">
-        {cronicas.length === 0 ? (
+        {carregando ? (
+          <p className="sem-cronicas">Carregando crônicas da nuvem...</p>
+        ) : cronicas.length === 0 ? (
           <p className="sem-cronicas">Nenhuma crônica registrada até o momento.</p>
         ) : (
           cronicas.map((cronica) => (
             <div key={cronica.id} className="cronica-card">
               <div className="cronica-card-header">
                 <span className="cronica-sessao">{cronica.sessao}</span>
-                <span className="cronica-data">{cronica.data}</span>
+                <span className="cronica-data">{cronica.data ? new Date(cronica.data).toLocaleDateString('pt-BR') : ''}</span>
               </div>
               <h2>{cronica.titulo}</h2>
               <p className="cronica-texto">{cronica.conteudo}</p>
+              {cronica.tags && <span className="cronica-tag-badge">#{cronica.tags}</span>}
 
               {isMestre && (
                 <div className="cronica-actions">
@@ -131,7 +165,7 @@ export default function CronicasPage({ isMestre }) {
                 </div>
                 <div className="form-group">
                   <label>Data</label>
-                  <input type="text" value={data} onChange={e => setData(e.target.value)} placeholder="DD/MM/AAAA" />
+                  <input type="date" value={data} onChange={e => setData(e.target.value)} required />
                 </div>
               </div>
 
@@ -145,7 +179,12 @@ export default function CronicasPage({ isMestre }) {
                 <textarea rows="6" value={conteudo} onChange={e => setConteudo(e.target.value)} required placeholder="Descreva os acontecimentos..." />
               </div>
 
-              <button type="submit" className="btn-salvar-cronica">Salvar nos Registros</button>
+              <div className="form-group">
+                <label>Tag (ex: politica, combate)</label>
+                <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="tag principal" />
+              </div>
+
+              <button type="submit" className="btn-salvar-cronica">Salvar na Nuvem</button>
             </form>
           </div>
         </div>
