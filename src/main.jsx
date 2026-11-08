@@ -6,7 +6,7 @@ import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter basename="/rpg-manager">
+    <BrowserRouter basename="/aetheria-map">
       <App />
     </BrowserRouter>
   </StrictMode>,
