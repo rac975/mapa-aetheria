@@ -10,7 +10,6 @@
   overflow: hidden;
 }
 
-/* Container Externo preenche o espaço flexível */
 .mapa-container-externo {
   position: relative;
   width: 100%;
@@ -59,7 +58,6 @@
   transition: max-height 0.2s ease, max-width 0.2s ease;
 }
 
-/* Camada individual dos Titãs sobre o mapa */
 .tita-overlay-item {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -74,7 +72,6 @@
   display: block;
 }
 
-/* Efeito ao passar o mouse por cima do Titã */
 .tita-overlay-item:hover {
   transform: translate(-50%, -50%) scale(1.15);
   z-index: 50;
@@ -84,7 +81,6 @@
   filter: drop-shadow(0 0 12px #d4af37) drop-shadow(0 0 6px rgba(0, 0, 0, 0.9));
 }
 
-/* Botões flutuantes de Zoom (z-index alto para garantir clique) */
 .zoom-controls {
   position: absolute;
   top: 15px;
@@ -123,7 +119,6 @@
   transform: scale(1.05);
 }
 
-/* Modal de Informações */
 .modal-overlay {
   position: fixed;
   top: 0;
