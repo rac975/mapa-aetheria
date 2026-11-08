@@ -2,8 +2,7 @@ import { useState, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { localizacoesMapa } from '../../data/mapData';
 import './MapPage.css';
-import mapaJxl from '../../assets/imagens/mapa-aetheria.jxl';
-import mapaJpg from '../../assets/imagens/mapa-aetheria.jpg';
+import mapaWebP from '../../assets/imagens/mapa-aetheria.webp';
 import { FaSyncAlt } from "react-icons/fa";
 
 const imagensTitans = import.meta.glob('../../assets/imagens/Titãs/*.png', {
@@ -99,13 +98,9 @@ function MapPage() {
                       className="mapa-camada-paralaxe"
                     >
                       <picture>
-                        <source
-                          srcSet={mapaJxl}
-                          type="image/jxl"
-                        />
-
+                        <source srcSet={mapaWebP} type="image/webp" />
                         <img
-                          src={mapaJpg}
+                          src={mapaWebP}
                           alt="Mapa de Aetheria"
                           className="mapa-imagem"
                           width="12800"
