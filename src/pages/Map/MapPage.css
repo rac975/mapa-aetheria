@@ -1,8 +1,8 @@
 .mapa-wrapper {
   background-color: #0d0f18;
   color: #f0f0f0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -14,6 +14,7 @@
   position: relative;
   width: 100%;
   flex: 1;
+  min-width: 0;
   min-height: 0;
   border-radius: 8px;
   overflow: hidden;
@@ -27,15 +28,24 @@
 .mapa-container {
   width: 100%;
   height: 100%;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
-.react-transform-wrapper,
+.react-transform-wrapper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .react-transform-component {
   width: 100% !important;
   height: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
 .mapa-conteudo-interno {
@@ -51,11 +61,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  max-width: var(--map-max-width, 100%);
-  max-height: var(--map-max-height, calc(100vh - 24px));
   object-fit: contain;
-  margin: auto;
-  transition: max-height 0.2s ease, max-width 0.2s ease;
 }
 
 .tita-overlay-item {
@@ -183,11 +189,14 @@
 
 .mapa-base {
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
+  display: inline-block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--map-max-height, calc(100vh - 40px));
+  aspect-ratio: 12800 / 8533.3;
+  margin: auto;
+  transition: max-height 0.2s ease, max-width 0.2s ease;
 }
 
 .mapa-camada-paralaxe {
