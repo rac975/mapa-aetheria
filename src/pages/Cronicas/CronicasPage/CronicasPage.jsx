@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaScroll } from 'react-icons/fa';
-import { supabase } from '../../services/supabase';
+import { FaPlus, FaScroll } from 'react-icons/fa';
+import { supabase } from '../../../services/supabase';
+import CronicaCard from '../CronicasCard/CronicasCard';
+import CronicaBusca from '../CronicasBusca/CronicasBusca';
 import './CronicasPage.css';
 
 export default function CronicasPage({ isMestre }) {
   const [cronicas, setCronicas] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [termoBusca, setTermoBusca] = useState('');
+  const [tagsDisponiveis, setTagsDisponiveis] = useState([]);
 
   const [modalAberto, setModalAberto] = useState(false);
   const [cronicaEditando, setCronicaEditando] = useState(null);
@@ -17,7 +21,6 @@ export default function CronicasPage({ isMestre }) {
   const [conteudo, setConteudo] = useState('');
   const [tags, setTags] = useState('');
 
-  // Buscar crônicas do Supabase ao carregar a página
   useEffect(() => {
     buscarCronicas();
   }, []);
@@ -28,10 +31,21 @@ export default function CronicasPage({ isMestre }) {
       const { data, error } = await supabase
         .from('cronicas')
         .select('*')
-        .order('data', { ascending: false }); // Já ordena pelas mais recentes por causa do tipo 'date'!
+        .order('data', { ascending: false });
 
       if (error) throw error;
-      setCronicas(data || []);
+      
+      const lista = data || [];
+      setCronicas(lista);
+
+      // Extrai tags únicas para reuso
+      const todasTags = lista
+        .map(c => c.tags)
+        .filter(Boolean)
+        .flatMap(t => t.split(',').map(tag => tag.trim()))
+        .filter(t => t.length > 0);
+      
+      setTagsDisponiveis([...new Set(todasTags)]);
     } catch (error) {
       console.error('Erro ao buscar crônicas:', error.message);
     } finally {
@@ -43,7 +57,13 @@ export default function CronicasPage({ isMestre }) {
     setCronicaEditando(null);
     setSessao('');
     setTitulo('');
-    setData(new Date().toISOString().split('T')[0]); // Data atual no formato YYYY-MM-DD
+    
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    
+    setData(`${ano}-${mes}-${dia}`);
     setConteudo('');
     setTags('');
     setModalAberto(true);
@@ -65,24 +85,20 @@ export default function CronicasPage({ isMestre }) {
 
     try {
       if (cronicaEditando) {
-        // Atualizar crônica existente
         const { error } = await supabase
           .from('cronicas')
           .update({ sessao, titulo, data, conteudo, tags })
           .eq('id', cronicaEditando);
-
         if (error) throw error;
       } else {
-        // Criar nova crônica
         const { error } = await supabase
           .from('cronicas')
           .insert([{ sessao, titulo, data, conteudo, tags }]);
-
         if (error) throw error;
       }
 
       setModalAberto(false);
-      buscarCronicas(); // Recarrega a lista do banco
+      buscarCronicas();
     } catch (error) {
       console.error('Erro ao salvar crônica:', error.message);
       alert('Erro ao salvar no banco de dados.');
@@ -92,11 +108,7 @@ export default function CronicasPage({ isMestre }) {
   const excluirCronica = async (id) => {
     if (window.confirm("Deseja realmente apagar esta crônica dos anjos?")) {
       try {
-        const { error } = await supabase
-          .from('cronicas')
-          .delete()
-          .eq('id', id);
-
+        const { error } = await supabase.from('cronicas').delete().eq('id', id);
         if (error) throw error;
         buscarCronicas();
       } catch (error) {
@@ -104,6 +116,16 @@ export default function CronicasPage({ isMestre }) {
       }
     }
   };
+
+  const cronicasFiltradas = cronicas.filter((cronica) => {
+    const termo = termoBusca.toLowerCase();
+    return (
+      cronica.titulo?.toLowerCase().includes(termo) ||
+      cronica.conteudo?.toLowerCase().includes(termo) ||
+      cronica.sessao?.toLowerCase().includes(termo) ||
+      cronica.tags?.toLowerCase().includes(termo)
+    );
+  });
 
   return (
     <div className="cronicas-wrapper">
@@ -119,38 +141,27 @@ export default function CronicasPage({ isMestre }) {
         )}
       </header>
 
+      <CronicaBusca termoBusca={termoBusca} setTermoBusca={setTermoBusca} />
+
       <div className="cronicas-list">
         {carregando ? (
           <p className="sem-cronicas">Carregando crônicas da nuvem...</p>
-        ) : cronicas.length === 0 ? (
-          <p className="sem-cronicas">Nenhuma crônica registrada até o momento.</p>
+        ) : cronicasFiltradas.length === 0 ? (
+          <p className="sem-cronicas">Nenhuma crônica encontrada.</p>
         ) : (
-          cronicas.map((cronica) => (
-            <div key={cronica.id} className="cronica-card">
-              <div className="cronica-card-header">
-                <span className="cronica-sessao">{cronica.sessao}</span>
-                <span className="cronica-data">{cronica.data ? new Date(cronica.data).toLocaleDateString('pt-BR') : ''}</span>
-              </div>
-              <h2>{cronica.titulo}</h2>
-              <p className="cronica-texto">{cronica.conteudo}</p>
-              {cronica.tags && <span className="cronica-tag-badge">#{cronica.tags}</span>}
-
-              {isMestre && (
-                <div className="cronica-actions">
-                  <button onClick={() => abrirModalEdicao(cronica)} title="Editar Crônica">
-                    <FaEdit /> Editar
-                  </button>
-                  <button className="btn-delete" onClick={() => excluirCronica(cronica.id)} title="Excluir Crônica">
-                    <FaTrash /> Excluir
-                  </button>
-                </div>
-              )}
-            </div>
+          cronicasFiltradas.map((cronica) => (
+            <CronicaCard
+              key={cronica.id}
+              cronica={cronica}
+              isMestre={isMestre}
+              onEditar={abrirModalEdicao}
+              onExcluir={excluirCronica}
+            />
           ))
         )}
       </div>
 
-      {/* Modal de Criar / Editar Crônica */}
+      {/* Modal */}
       {modalAberto && (
         <div className="modal-overlay" onClick={() => setModalAberto(false)}>
           <div className="modal-content cronica-modal" onClick={(e) => e.stopPropagation()}>
@@ -180,8 +191,31 @@ export default function CronicasPage({ isMestre }) {
               </div>
 
               <div className="form-group">
-                <label>Tag (ex: politica, combate)</label>
-                <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="tag principal" />
+                <label>Tags (separadas por vírgula)</label>
+                <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="ex: combate, lore, missao" />
+                
+                {tagsDisponiveis.length > 0 && (
+                  <div className="tags-sugestoes">
+                    <small>Tags existentes (clique para adicionar):</small>
+                    <div className="tags-chips">
+                      {tagsDisponiveis.map((tagExistente, idx) => (
+                        <button
+                          type="button"
+                          key={idx}
+                          className="tag-chip"
+                          onClick={() => {
+                            const atuais = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                            if (!atuais.includes(tagExistente)) {
+                              setTags([...atuais, tagExistente].join(', '));
+                            }
+                          }}
+                        >
+                          +{tagExistente}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button type="submit" className="btn-salvar-cronica">Salvar na Nuvem</button>

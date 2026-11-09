@@ -1,0 +1,95 @@
+.cronica-card {
+  background: linear-gradient(135deg, #161b22, #1f2937);
+  border: 1px solid #332914;
+  border-left: 4px solid #d4af37;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.cronica-card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.cronica-sessao {
+  color: #d4af37;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.cronica-data {
+  color: #9ca3af;
+}
+
+.cronica-card h2 {
+  color: #f3f4f6;
+  font-family: serif;
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
+
+.cronica-texto {
+  color: #d1d5db;
+  line-height: 1.6;
+  margin: 0 0 15px 0;
+  white-space: pre-wrap;
+}
+
+/* Tags no card */
+.cronica-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.cronica-tag-badge {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Ações do Mestre no Card */
+.cronica-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cronica-actions button {
+  background: #0d0f18;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.cronica-actions button:hover {
+  background: #d4af37;
+  color: #0d0f18;
+}
+
+.cronica-actions button.btn-delete {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.cronica-actions button.btn-delete:hover {
+  background: #ef4444;
+  color: #fff;
+}

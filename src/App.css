@@ -12,3 +12,19 @@
   height: 100vh;
   overflow: hidden;
 }
+
+/* Container que abriga as páginas/visões */
+.view-transition {
+  animation: pageTransition 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageTransition {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,36 @@
+.cronicas-busca-container {
+  max-width: 900px;
+  margin: 0 auto 25px auto;
+}
+
+.busca-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.busca-icon {
+  position: absolute;
+  left: 15px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.cronicas-busca-input {
+  width: 100%;
+  padding: 12px 15px 12px 42px;
+  background: #161b22;
+  border: 1px solid #332914;
+  color: #fff;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.cronicas-busca-input:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+}
