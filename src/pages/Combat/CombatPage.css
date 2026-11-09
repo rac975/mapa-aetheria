@@ -1,0 +1,48 @@
+.combat-page {
+  background-color: #0d0f18;
+  color: #f0f0f0;
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+}
+
+.combat-header {
+  border-bottom: 2px solid #332914;
+  padding-bottom: 18px;
+}
+
+.combat-header h1 {
+  color: #d4af37;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
+}
+
+.combat-header p {
+  color: #9da3af;
+  margin: 0;
+  font-size: 14px;
+}
+
+.combat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr; /* Dá um pouco mais de espaço para os relógios */
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .combat-grid {
+    grid-template-columns: 1fr;
+  }
+}

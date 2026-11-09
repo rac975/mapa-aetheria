@@ -1,0 +1,69 @@
+.form-create-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  background: #161b22;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #332914;
+}
+
+.form-create-clock input, 
+.form-create-clock select {
+  background: #0d0f18;
+  color: #f0f0f0;
+  border: 1px solid #332914;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-create-clock input:focus, 
+.form-create-clock select:focus {
+  border-color: #d4af37;
+}
+
+.form-create-clock .form-row-inline {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.form-create-clock .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #d0d0d0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.form-create-clock button {
+  background: #d4af37;
+  color: #0d0f18;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.form-create-clock button:hover {
+  opacity: 0.9;
+}
+
+.clocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding-right: 4px;
+}

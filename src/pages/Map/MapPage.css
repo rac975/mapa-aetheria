@@ -8,6 +8,12 @@
   box-sizing: border-box;
   padding: 10px;
   overflow: hidden;
+  transition: padding-right 0.3s ease;
+}
+
+/* Quando a sidebar de detalhes estiver ativa na direita, ajusta o padding */
+.mapa-wrapper.sidebar-ativa {
+  padding-right: 430px; /* Dá espaço para a sidebar não tampar o mapa */
 }
 
 .mapa-container-externo {
@@ -91,7 +97,7 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  z-index: 9999;
+  z-index: 99;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -125,87 +131,73 @@
   transform: scale(1.05);
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.75);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  background: linear-gradient(135deg, #161b22, #1f2937);
-  border: 2px solid #d4af37;
-  padding: 25px;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 85vh;
-  overflow-y: auto;
-  color: #f3f4f6;
-  position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
-}
-
-.modal-close {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  color: #d4af37;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.modal-faccao {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #9ca3af;
-  background: rgba(212, 175, 55, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
-  margin-bottom: 10px;
-}
-
-.modal-content h2 {
-  color: #d4af37;
-  margin-bottom: 15px;
-  font-family: serif;
-}
-
-.modal-content p {
-  margin-bottom: 10px;
-  line-height: 1.6;
-}
-
 .mapa-base {
   position: relative;
   display: inline-block;
   width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: var(--map-max-height, calc(100vh - 40px));
   aspect-ratio: 12800 / 8533.3;
   margin: auto;
-  transition: max-height 0.2s ease, max-width 0.2s ease;
 }
 
-.mapa-camada-paralaxe {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.08s linear;
-  will-change: transform;
+/* --- INDICADORES DE STATUS GEOPOLÍTICO --- */
+
+.titan-status-dot {
+  position: absolute;
+  top: 4px;
+  right: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #0d0f18;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Cores e efeitos visuais dos status */
+.status-pacifico {
+  background-color: #2ecc71;
+  color: #05060a;
+  box-shadow: 0 0 6px rgba(46, 204, 113, 0.6);
+}
+
+.status-perigo {
+  background-color: #e74c3c;
+  color: #ffffff;
+  animation: pulse-perigo 1.4s infinite;
+}
+
+.status-corrompido {
+  background-color: #9b59b6;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(155, 89, 182, 0.8);
+}
+
+.status-caido {
+  background-color: #34495e;
+  color: #bdc3c7;
+}
+
+/* Efeito visual quando um Titã é derrubado/destruído na campanha */
+.titan-destruido img {
+  filter: grayscale(100%) opacity(0.4) !important;
+}
+
+/* Animação pulsante para territórios sob perigo/guerra */
+@keyframes pulse-perigo {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.8);
+  }
+
+  70% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 8px rgba(231, 76, 60, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+  }
 }

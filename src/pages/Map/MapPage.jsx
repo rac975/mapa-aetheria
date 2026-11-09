@@ -1,54 +1,152 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { localizacoesMapa } from '../../data/mapData';
+import { supabase } from '../../services/supabase';
+import TitanDetailSidebar from '../../components/TitanSidebar/TitanDetailSidebar';
 import './MapPage.css';
 import { FaSyncAlt } from "react-icons/fa";
 
-function MapPage() {
+function MapPage({ isMestre }) {
   const [localSelecionado, setLocalSelecionado] = useState(null);
-  const paralaxeRef = useRef(null);
+  const [localizacoesMapa, setLocalizacoesMapa] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Garante que o caminho base respeite a configuração do projeto no Vite
+  const transformRef = useRef(null);
+  const controlsRef = useRef(null);
+  const titanRefs = useRef({});
+
   const baseUrl = import.meta.env.BASE_URL;
 
-  const handleMouseMove = (e) => {
-    if (!paralaxeRef.current) return;
-    const { clientX, clientY } = e;
-    const x = (clientX / window.innerWidth - 0.5) * 8;
-    const y = (clientY / window.innerHeight - 0.5) * 8;
-    paralaxeRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  // 1. Carregar dados do Supabase
+  useEffect(() => {
+    async function fetchTitans() {
+      try {
+        const { data, error } = await supabase.from('titans').select('*').order('id', { ascending: true });
+        if (error) throw error;
+        if (data) setLocalizacoesMapa(data);
+      } catch (err) {
+        console.error("Erro ao carregar titãs do Supabase:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTitans();
+  }, []);
+
+  // 2. Focar no item selecionado com tratamento seguro
+  useEffect(() => {
+    if (!localSelecionado || !transformRef.current) return;
+
+    const elementoTitan = titanRefs.current[localSelecionado.id];
+    if (!elementoTitan) return;
+
+    const timer = setTimeout(() => {
+      requestAnimationFrame(() => {
+        try {
+          transformRef.current.zoomToElement(
+            elementoTitan,
+            2.5,
+            400,
+            "easeOut"
+          );
+        } catch (e) {
+          console.error("Erro ao dar zoom no elemento:", e);
+        }
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localSelecionado]);
+
+  const focarNoTita = useCallback((local) => {
+    setLocalSelecionado(local);
+  }, []);
+
+  // Fechar sidebar de forma fluida usando o reset nativo e aguardando o layout do CSS
+  const fecharSidebar = useCallback(() => {
+    setLocalSelecionado(null);
+    
+    // Aguarda o CSS do wrapper (.mapa-wrapper) terminar a transição da sidebar (300ms)
+    setTimeout(() => {
+      if (controlsRef.current) {
+        controlsRef.current.resetTransform(400, "easeOut");
+      }
+    }, 300);
+  }, []);
+
+  const handleStatusChange = async (id, novoStatus) => {
+    try {
+      const { error } = await supabase
+        .from('titans')
+        .update({ status: novoStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setLocalizacoesMapa(prev =>
+        prev.map(t => t.id === id ? { ...t, status: novoStatus } : t)
+      );
+
+      if (localSelecionado && localSelecionado.id === id) {
+        setLocalSelecionado(prev => ({ ...prev, status: novoStatus }));
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar status no Supabase:", err.message);
+      alert("Erro ao salvar alteração. Verifique se você está logado como Mestre.");
+    }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'pacifico': return { label: '🟢 Pacífico / Comércio Ativo', class: 'status-pacifico' };
+      case 'perigo': return { label: '🔴 Sob Cerco / Perigo Iminente', class: 'status-perigo' };
+      case 'corrompido': return { label: '🟣 Corrompido / Magia Arcana', class: 'status-corrompido' };
+      case 'caido': return { label: '⚫ Caído / Destruído', class: 'status-caido' };
+      default: return { label: '🟢 Pacífico / Comércio Ativo', class: 'status-pacifico' };
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="mapa-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d4af37', height: '100vh' }}>
+        Carregando mapa de Aetheria...
+      </div>
+    );
+  }
+
   return (
-    <div className="mapa-wrapper">
+    <div className={`mapa-wrapper ${localSelecionado ? 'sidebar-ativa' : ''}`}>
       <div className="mapa-container-externo">
         <TransformWrapper
+          ref={transformRef}
           initialScale={1}
           minScale={1}
           maxScale={8}
           centerOnInit
           centerZoomedOut
-          wheel={{ step: 0.01, smoothStep: 0.001, wheelDisabled: false, touchPadDisabled: false }}
-          onTransformed={(ref) => {
-            const isZoomed = ref.state.scale > 1.01;
-            document.documentElement.style.setProperty('--map-max-height', isZoomed ? '100%' : 'calc(100vh - 24px)');
-            document.documentElement.style.setProperty('--map-max-width', isZoomed ? '100%' : '100%');
-          }}
+          wheel={{ step: 0.05, smoothStep: 0.005 }}
         >
-          {({ zoomIn, zoomOut, resetTransform }) => (
-            <>
-              <div className="zoom-controls">
-                <button type="button" onClick={() => zoomIn(0.2)} title="Aproximar">+</button>
-                <button type="button" onClick={() => zoomOut(0.2)} title="Afastar">-</button>
-                <button type="button" onClick={() => resetTransform()} title="Resetar Visão"><FaSyncAlt /></button>
-              </div>
+          {(controls) => {
+            controlsRef.current = controls;
 
-              <div className="mapa-container" onMouseMove={handleMouseMove}>
-                <TransformComponent>
-                  <div className='mapa-base'>
-                    <div ref={paralaxeRef} className="mapa-camada-paralaxe">
-                      
-                      {/* Mapa principal */}
+            return (
+              <>
+                <div className="zoom-controls">
+                  <button type="button" onClick={() => controls.zoomIn(0.2)} title="Aproximar">+</button>
+                  <button type="button" onClick={() => controls.zoomOut(0.2)} title="Afastar">-</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fecharSidebar();
+                    }}
+                    title="Resetar Visão"
+                  >
+                    <FaSyncAlt />
+                  </button>
+                </div>
+
+                <div className="mapa-container">
+                  <TransformComponent>
+                    <div className="mapa-base">
                       <picture>
                         <source srcSet={`${baseUrl}assets/imagens/mapa-aetheria.webp`} type="image/webp" />
                         <img
@@ -57,64 +155,49 @@ function MapPage() {
                           className="mapa-imagem"
                           width="12800"
                           height="8533.3"
-                          onError={(e) => console.error("ERRO AO CARREGAR O MAPA:", e.target.src)}
                         />
                       </picture>
 
-                      {/* Titãs do mapa */}
                       {localizacoesMapa.map((local) => {
                         const imgUrl = `${baseUrl}assets/imagens/titans/${local.id}.png`;
+                        const statusAtual = local.status || 'pacifico';
+                        const statusInfo = getStatusBadge(statusAtual);
 
                         return (
                           <div
                             key={local.id}
-                            className="tita-overlay-item map-titan"
+                            ref={(el) => (titanRefs.current[local.id] = el)}
+                            className={`tita-overlay-item map-titan ${statusAtual === 'caido' ? 'titan-destruido' : ''}`}
                             style={{
                               top: local.top,
-                              left: local.left,
+                              left: local.left_pos || local.left,
                               width: local.width
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLocalSelecionado(local);
+                              focarNoTita(local);
                             }}
                           >
-                            <img
-                              src={imgUrl}
-                              alt={local.titulo}
-                              onError={(e) => {
-                                console.error(`ERRO AO CARREGAR O TITÃ ID ${local.id} em:`, e.target.src);
-                                e.target.style.display = 'none';
-                              }}
-                            />
+                            <img src={imgUrl} alt={local.titulo} />
+                            <span className={`titan-status-dot ${statusInfo.class}`} title={statusInfo.label} />
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                </TransformComponent>
-              </div>
-            </>
-          )}
+                  </TransformComponent>
+                </div>
+              </>
+            );
+          }}
         </TransformWrapper>
       </div>
 
-      {/* Modal de Detalhes */}
-      {localSelecionado && (
-        <div className="modal-overlay" onClick={() => setLocalSelecionado(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setLocalSelecionado(null)}>&times;</button>
-            <span className="modal-faccao">{localSelecionado.faccao}</span>
-            <h2>{localSelecionado.titulo}</h2>
-            <p><strong>Descrição:</strong> {localSelecionado.descricao}</p>
-            {localSelecionado.industria && <p><strong>Indústria/Ambiente:</strong> {localSelecionado.industria}</p>}
-            {localSelecionado.habitantes && <p><strong>Habitantes/Sociedade:</strong> {localSelecionado.habitantes}</p>}
-            {localSelecionado.funcao && <p><strong>Função:</strong> {localSelecionado.funcao}</p>}
-            {localSelecionado.seguranca && <p><strong>Segurança:</strong> {localSelecionado.seguranca}</p>}
-            {localSelecionado.destaque && <p><strong>Destaque:</strong> {localSelecionado.destaque}</p>}
-          </div>
-        </div>
-      )}
+      <TitanDetailSidebar
+        titan={localSelecionado}
+        isMestre={isMestre}
+        onClose={fecharSidebar}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 }

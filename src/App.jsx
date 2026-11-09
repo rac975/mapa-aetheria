@@ -6,6 +6,8 @@ import Sidebar from './components/Sidebar/Sidebar';
 import LoginModal from './components/LoginModal/LoginModal';
 import MapPage from './pages/Map/MapPage';
 import CronicasPage from './pages/Cronicas/CronicasPage/CronicasPage';
+import JournalPage from './pages/Journal/JournalPage';
+import CombatPage from './pages/Combat/CombatPage';
 import AudioController from './components/AudioController/AudioController';
 import './App.css';
 
@@ -48,8 +50,10 @@ function App() {
           {/* 3. Adicionamos a key={location.pathname} para disparar a animação ao mudar de rota */}
           <main className="main-content view-transition" key={location.pathname}>
             <Routes location={location}>
-              <Route path="/" element={<MapPage />} />
+              <Route path="/" element={<MapPage isMestre={isMestre} />} />
               <Route path="/cronicas" element={<CronicasPage isMestre={isMestre} />} />
+              <Route path="/journal" element={<JournalPage/>} />
+              <Route path="/combate" element={<CombatPage isMestre={isMestre}/>} />
             </Routes>
           </main>
 

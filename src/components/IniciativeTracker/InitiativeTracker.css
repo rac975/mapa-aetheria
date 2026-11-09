@@ -1,0 +1,739 @@
+/* =====================================================
+   CONTAINER PRINCIPAL
+===================================================== */
+
+.combat-box {
+    background: linear-gradient(180deg,
+            #161b22 0%,
+            #10141d 100%);
+    border: 1px solid #332914;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(212, 175, 55, 0.05);
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   HEADER & HINTS
+===================================================== */
+
+.box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #222a38;
+    padding-bottom: 14px;
+    position: relative;
+}
+
+.box-header::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 120px;
+    height: 2px;
+    background: #d4af37;
+}
+
+.box-header h2 {
+    margin: 0;
+    color: #d4af37;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.box-hint {
+    margin: 0;
+    font-size: 13px;
+    color: #9da3af;
+    line-height: 1.5;
+}
+
+/* =====================================================
+   BOTÕES GERAIS
+===================================================== */
+
+.btn-reset {
+    background: #161b22;
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-reset:hover {
+    background: #d4af37;
+    color: #0d0f18;
+    transform: translateY(-1px);
+}
+
+/* =====================================================
+   LISTA & SCROLLBAR
+===================================================== */
+
+.participantes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: none;
+    /* max-height: 420px; */
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.participantes-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.participantes-list::-webkit-scrollbar-track {
+    background: #0d1117;
+    border-radius: 999px;
+}
+
+.participantes-list::-webkit-scrollbar-thumb {
+    background: #d4af37;
+    border-radius: 999px;
+}
+
+/* =====================================================
+   CARD DO PARTICIPANTE & ESTADOS
+===================================================== */
+
+.participante-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    background: #161b22;
+    border: 1px solid #332914;
+    padding: 14px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    overflow: hidden;
+}
+
+.participante-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 100%;
+}
+
+.participante-item.heroi::before {
+    background: #2ecc71;
+}
+
+.participante-item.inimigo::before {
+    background: #e74c3c;
+}
+
+.participante-item:hover {
+    background: #1b2230;
+    border-color: #d4af37;
+}
+
+.participante-item:not(.turn-completed) {
+    box-shadow:
+        0 0 0 1px rgba(212, 175, 55, 0.08),
+        0 0 16px rgba(212, 175, 55, 0.05);
+}
+
+.participante-item.turn-completed {
+    opacity: 0.45;
+    background: #0d0f18;
+    text-decoration: line-through;
+    filter: grayscale(0.4);
+}
+
+.participante-item.turn-completed::before {
+    background: #555;
+}
+
+.participante-item.is-defeated {
+    opacity: 0.5;
+    border-color: #555;
+    filter: grayscale(0.5);
+}
+
+.item-main-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+    /* Permite que os elementos quebrem a linha se faltar espaço */
+}
+
+.participante-item .nome {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f4f4f4;
+}
+
+/* =====================================================
+   CHECKBOX
+===================================================== */
+
+.participante-item input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border: 2px solid #d4af37;
+    border-radius: 6px;
+    background: #0d0f18;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.participante-item input[type="checkbox"]:hover {
+    border-color: #f1c95b;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+}
+
+.participante-item input[type="checkbox"]::after {
+    content: "✓";
+    color: #0d0f18;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+}
+
+.participante-item input[type="checkbox"]:checked {
+    background: #d4af37;
+    border-color: #d4af37;
+}
+
+.participante-item input[type="checkbox"]:checked::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* =====================================================
+   BADGES (TIPO, CRISE, DERROTADO E RECURSOS PÚBLICOS)
+===================================================== */
+
+.participante-item .badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.participante-item.heroi .badge {
+    background: rgba(46, 204, 113, 0.12);
+    color: #44e088;
+    border-color: rgba(46, 204, 113, 0.35);
+}
+
+.participante-item.inimigo .badge {
+    background: rgba(231, 76, 60, 0.12);
+    color: #ff8d80;
+    border-color: rgba(231, 76, 60, 0.35);
+}
+
+.badge-crise {
+    background: rgba(231, 76, 60, 0.2);
+    color: #ff5c5c;
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulse-crise 1.5s infinite;
+}
+
+@keyframes pulse-crise {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.97);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.badge-derrotado {
+    background: rgba(149, 165, 166, 0.2);
+    color: #bdc3c7;
+    border: 1px solid #7f8c8d;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-badges-public {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.badge-info {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hp-badge {
+    background: rgba(46, 204, 113, 0.12);
+    color: #44e088;
+    border-color: rgba(46, 204, 113, 0.35);
+}
+
+.mp-badge,
+.ip-badge {
+    background: rgba(52, 152, 219, 0.12);
+    color: #5dade2;
+    border-color: rgba(52, 152, 219, 0.35);
+}
+
+.fabula-badge {
+    background: rgba(155, 89, 182, 0.12);
+    color: #bb8fce;
+    border-color: rgba(155, 89, 182, 0.35);
+}
+
+.dano-badge {
+    background: rgba(231, 76, 60, 0.12);
+    color: #ff8d80;
+    border-color: rgba(231, 76, 60, 0.35);
+}
+
+/* =====================================================
+   CONDIÇÕES (BADGES E SELETOR)
+===================================================== */
+
+/* .condicoes-container {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: 4px 0;
+}
+
+.badge-condicao {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f39c12;
+    border: 1px solid rgba(241, 196, 15, 0.4);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    white-space: nowrap; /* Impede que o texto da condição quebre ao meio 
+} */
+
+.condicoes-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.condicao-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    border: 1px solid transparent;
+
+    white-space: nowrap;
+}
+
+.cond-envenenado {
+    background: rgba(39, 174, 96, .15);
+    color: #58d68d;
+    border-color: rgba(39, 174, 96, .35);
+}
+
+.cond-atordoado {
+    background: rgba(241, 196, 15, .15);
+    color: #f7dc6f;
+    border-color: rgba(241, 196, 15, .35);
+}
+
+.cond-vulneravel {
+    background: rgba(231, 76, 60, .15);
+    color: #ff8d80;
+    border-color: rgba(231, 76, 60, .35);
+}
+
+.cond-lento {
+    background: rgba(52, 152, 219, .15);
+    color: #85c1e9;
+    border-color: rgba(52, 152, 219, .35);
+}
+
+.cond-fraco {
+    background: rgba(149, 165, 166, .15);
+    color: #d5dbdb;
+    border-color: rgba(149, 165, 166, .35);
+}
+
+.cond-dominado {
+    background: rgba(155, 89, 182, .15);
+    color: #d2b4de;
+    border-color: rgba(155, 89, 182, .35);
+}
+
+.condicoes-selector-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid #222a38;
+    padding-top: 10px;
+    margin-top: 6px;
+    box-sizing: border-box;
+}
+
+.condicoes-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+}
+
+.cond-btn {
+    min-height: 64px;
+    min-width: 64px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    background: #161b22;
+    border: 1px solid #332914;
+    border-radius: 10px;
+
+    color: #9da3af;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    padding: 8px;
+}
+
+.cond-btn:hover {
+    border-color: #d4af37;
+    transform: translateY(-2px);
+}
+
+.cond-btn.active {
+    background: rgba(243, 156, 18, 0.15);
+    border-color: #f39c12;
+    color: #f1c40f;
+
+    box-shadow:
+        0 0 12px rgba(243, 156, 18, 0.3);
+}
+
+.cond-btn svg {
+    font-size: 20px;
+}
+
+.cond-btn span {
+    font-size: 10px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* =====================================================
+   PAINEL DE RECURSOS DO MESTRE & CONDIÇÕES
+===================================================== */
+
+.mestre-stats-bar {
+    display: flex;
+    flex-direction: column;
+    /* Organiza os blocos em coluna para caber tudo perfeitamente */
+    gap: 12px;
+    margin-top: 8px;
+    background: #0d0f18;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #222a38;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+/* Linha superior com HP, MP, IP/Fábula ou Última */
+.mestre-stats-bar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.stat-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-label {
+    color: #d4af37;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    min-width: 75px;
+}
+
+.mestre-stats-bar button {
+    background: #161b22;
+    border: 1px solid #332914;
+    color: #d4af37;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.mestre-stats-bar button:hover {
+    background: #d4af37;
+    color: #0d0f18;
+    transform: scale(1.05);
+}
+
+/* Seletor de Condições dentro do Painel do Mestre */
+.condicoes-selector-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px solid #222a38;
+    padding-top: 10px;
+    box-sizing: border-box;
+}
+
+.condicoes-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cond-btn {
+    background: #161b22;
+    border: 1px solid #332914;
+    color: #9da3af;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.cond-btn:hover {
+    border-color: #d4af37;
+    color: #f4f4f4;
+}
+
+.cond-btn.active {
+    background: #f39c12;
+    color: #0d0f18;
+    border-color: #f1c40f;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+}
+
+/* =====================================================
+   CONTROLES DE ORDEM E EXCLUSÃO
+===================================================== */
+
+.item-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.item-controls button {
+    background: #1a2230;
+    border: 1px solid #332914;
+    color: #d4af37;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-controls button:hover:not(:disabled) {
+    background: #d4af37;
+    color: #0d0f18;
+    transform: scale(1.05);
+}
+
+.item-controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-delete-part {
+    color: #e74c3c !important;
+    border-color: rgba(231, 76, 60, 0.3) !important;
+}
+
+.btn-delete-part:hover:not(:disabled) {
+    background: #e74c3c !important;
+    color: #fff !important;
+}
+
+/* =====================================================
+   FORMULÁRIO DE ADIÇÃO
+===================================================== */
+
+.form-add-part {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    background: linear-gradient(180deg, #1a2230, #141a24);
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #332914;
+}
+
+.form-row-inline {
+    display: flex;
+    gap: 10px;
+}
+
+.form-add-part input,
+.form-add-part select {
+    flex: 1;
+    background: #0d0f18;
+    color: #f0f0f0;
+    border: 1px solid #332914;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-add-part input[type="number"] {
+    max-width: 90px;
+}
+
+.form-add-part input:focus,
+.form-add-part select:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.form-add-part button {
+    background: #d4af37;
+    color: #0d0f18;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-add-part button:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+
+/* =====================================================
+   ESTADOS VAZIOS
+===================================================== */
+
+.empty-text {
+    text-align: center;
+    color: #7b8392;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* =====================================================
+   RESPONSIVO
+===================================================== */
+
+@media (max-width: 768px) {
+    .box-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .form-row-inline {
+        flex-direction: column;
+    }
+
+    .participante-item {
+        flex-wrap: wrap;
+    }
+
+    .item-controls {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

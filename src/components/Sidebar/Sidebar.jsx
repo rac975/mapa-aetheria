@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaMapMarkedAlt, FaBookOpen, FaKey, FaShieldAlt } from 'react-icons/fa';
+import { FaMapMarkedAlt, FaBookOpen, FaKey, FaShieldAlt, FaJournalWhills } from 'react-icons/fa';
+import { LuSwords } from "react-icons/lu";
 import './Sidebar.css';
 
 export default function Sidebar({ isMestre, onOpenLogin, onLogout }) {
@@ -23,6 +24,18 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout }) {
           className={`sidebar-link ${location.pathname === '/cronicas' ? 'active' : ''}`}
         >
           <FaBookOpen /> <span>Crônicas</span>
+        </Link>
+        <Link 
+          to="/journal" 
+          className={`sidebar-link ${location.pathname === '/journal' ? 'active' : ''}`}
+        >
+          <FaJournalWhills /> <span>Journal</span>
+        </Link>
+        <Link 
+          to="/combate" 
+          className={`sidebar-link ${location.pathname === '/combate' ? 'active' : ''}`}
+        >
+          <LuSwords /> <span>Conflito & Relógios</span>
         </Link>
       </nav>
 
