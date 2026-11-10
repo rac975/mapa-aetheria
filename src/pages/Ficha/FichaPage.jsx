@@ -23,6 +23,7 @@ export default function FichaPage({ isMestre }) {
 
     useEffect(() => {
         const tokenAtual = localStorage.getItem('aetheria_jogador_token');
+        // Se NÃO tem ID na URL E NÃO tem token salvo, aí sim redireciona para o login
         if (!id && !tokenAtual) {
             navigate('/ficha/login', { replace: true });
         }
@@ -53,15 +54,15 @@ export default function FichaPage({ isMestre }) {
                 const tokenAtual = localStorage.getItem('aetheria_jogador_token');
                 let query = supabase.from('fichas_personagens').select('*');
 
-                // Se tem ID na URL (ex: /ficha/uuid ou /mestre/editar/uuid), o Mestre/Outro está abrindo uma ficha específica
+                // Se tem ID na URL (ex: via QR Code ou rota do mestre), busca diretamente por ele
                 if (id) {
                     query = query.eq('id', id).single();
                 }
-                // Se NÃO tem ID na URL, mas tem o token salvo, é o Jogador logado no dispositivo
+                // Se NÃO tem ID na URL, mas tem o token salvo, busca pelo token do jogador logado
                 else if (tokenAtual) {
                     query = query.eq('jogador_token', tokenAtual).single();
                 }
-                // Caso contrário, redireciona obrigatoriamente para a tela dedicada de login/crachá
+                // Caso contrário, redireciona para a tela dedicada de login/crachá
                 else {
                     navigate('/ficha/login', { replace: true });
                     return;
@@ -70,8 +71,7 @@ export default function FichaPage({ isMestre }) {
                 const { data: fichaData, error: fichaError } = await query;
 
                 if (fichaError || !fichaData) {
-                    localStorage.removeItem('aetheria_jogador_token');
-                    navigate('/ficha/login', { replace: true });
+                    setErro('Ficha não encontrada ou ID inválido.');
                     return;
                 }
 
