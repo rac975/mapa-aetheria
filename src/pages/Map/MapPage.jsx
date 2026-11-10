@@ -2,13 +2,20 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { supabase } from '../../services/supabase';
 import TitanDetailSidebar from '../../components/TitanSidebar/TitanDetailSidebar';
+import AnimatedShipRoute from '../../components/Map/AnimatedShipRoute/AnimatedShipRoute';
+import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import './MapPage.css';
-import { FaSyncAlt } from "react-icons/fa";
+import { FaSyncAlt, FaRoute } from "react-icons/fa";
 
 function MapPage({ isMestre }) {
   const [localSelecionado, setLocalSelecionado] = useState(null);
   const [localizacoesMapa, setLocalizacoesMapa] = useState([]);
+  const [rotas, setRotas] = useState([]);
+  const [mostrarRotas, setMostrarRotas] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  // Estado para o alerta customizado
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
 
   const transformRef = useRef(null);
   const controlsRef = useRef(null);
@@ -16,23 +23,26 @@ function MapPage({ isMestre }) {
 
   const baseUrl = import.meta.env.BASE_URL;
 
-  // 1. Carregar dados do Supabase
   useEffect(() => {
-    async function fetchTitans() {
+    async function fetchData() {
       try {
-        const { data, error } = await supabase.from('titans').select('*').order('id', { ascending: true });
-        if (error) throw error;
-        if (data) setLocalizacoesMapa(data);
+        const [resTitans, resRotas] = await Promise.all([
+          supabase.from('titans').select('*').order('id', { ascending: true }),
+          supabase.from('rotas_titas').select('*')
+        ]);
+
+        if (resTitans.error) throw resTitans.error;
+        if (resTitans.data) setLocalizacoesMapa(resTitans.data);
+        if (resRotas.data) setRotas(resRotas.data);
       } catch (err) {
-        console.error("Erro ao carregar titãs do Supabase:", err.message);
+        console.error("Erro ao carregar dados do mapa:", err.message);
       } finally {
         setLoading(false);
       }
     }
-    fetchTitans();
+    fetchData();
   }, []);
 
-  // 2. Focar no item selecionado com tratamento seguro
   useEffect(() => {
     if (!localSelecionado || !transformRef.current) return;
 
@@ -61,11 +71,9 @@ function MapPage({ isMestre }) {
     setLocalSelecionado(local);
   }, []);
 
-  // Fechar sidebar de forma fluida usando o reset nativo e aguardando o layout do CSS
   const fecharSidebar = useCallback(() => {
     setLocalSelecionado(null);
-    
-    // Aguarda o CSS do wrapper (.mapa-wrapper) terminar a transição da sidebar (300ms)
+
     setTimeout(() => {
       if (controlsRef.current) {
         controlsRef.current.resetTransform(400, "easeOut");
@@ -91,7 +99,11 @@ function MapPage({ isMestre }) {
       }
     } catch (err) {
       console.error("Erro ao atualizar status no Supabase:", err.message);
-      alert("Erro ao salvar alteração. Verifique se você está logado como Mestre.");
+      setAlerta({
+        isOpen: true,
+        title: 'Erro de Permissão',
+        message: 'Erro ao salvar alteração. Verifique se você está logado como Mestre.'
+      });
     }
   };
 
@@ -142,6 +154,14 @@ function MapPage({ isMestre }) {
                   >
                     <FaSyncAlt />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarRotas(prev => !prev)}
+                    title={mostrarRotas ? "Ocultar Rotas no Mapa" : "Mostrar Rotas no Mapa"}
+                    style={{ background: mostrarRotas ? '#d4af37' : '#161b22', color: mostrarRotas ? '#0d0f18' : '#d4af37' }}
+                  >
+                    <FaRoute />
+                  </button>
                 </div>
 
                 <div className="mapa-container">
@@ -155,9 +175,19 @@ function MapPage({ isMestre }) {
                           className="mapa-imagem"
                           width="12800"
                           height="8533.3"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </picture>
 
+                      {mostrarRotas && (
+                        <AnimatedShipRoute
+                          rotas={rotas}
+                          localizacoesMapa={localizacoesMapa}
+                        />
+                      )}
+
+                      {/* MARCADORES DOS TITÃS */}
                       {localizacoesMapa.map((local) => {
                         const imgUrl = `${baseUrl}assets/imagens/titans/${local.id}.png`;
                         const statusAtual = local.status || 'pacifico';
@@ -178,7 +208,7 @@ function MapPage({ isMestre }) {
                               focarNoTita(local);
                             }}
                           >
-                            <img src={imgUrl} alt={local.titulo} />
+                            <img src={imgUrl} alt={local.titulo} loading="lazy" decoding="async" />
                             <span className={`titan-status-dot ${statusInfo.class}`} title={statusInfo.label} />
                           </div>
                         );
@@ -197,6 +227,13 @@ function MapPage({ isMestre }) {
         isMestre={isMestre}
         onClose={fecharSidebar}
         onStatusChange={handleStatusChange}
+      />
+
+      <CustomAlert 
+        isOpen={alerta.isOpen}
+        title={alerta.title}
+        message={alerta.message}
+        onClose={() => setAlerta({ ...alerta, isOpen: false })}
       />
     </div>
   );

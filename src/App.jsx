@@ -4,18 +4,22 @@ import { supabase } from './services/supabase';
 import BootScreen from './components/BootScreen/BootScreen';
 import Sidebar from './components/Sidebar/Sidebar';
 import LoginModal from './components/LoginModal/LoginModal';
+import SettingsPage from './pages/Settings/SettingsPage';
 import MapPage from './pages/Map/MapPage';
-import CronicasPage from './pages/Cronicas/CronicasPage/CronicasPage';
+import CronicasPage from './pages/Cronicas/CronicasPage';
 import JournalPage from './pages/Journal/JournalPage';
 import CombatPage from './pages/Combat/CombatPage';
-import AudioController from './components/AudioController/AudioController';
+import FichaPage from './pages/Ficha/FichaPage';
+import MestreFichasPage from './pages/Mestre/MestreFichasPage';
+import FichaLoginPage from './pages/Ficha/FichaLoginPage';
 import './App.css';
 
 function App() {
   const [iniciado, setIniciado] = useState(false);
   const [session, setSession] = useState(null);
   const [modalLoginAberto, setModalLoginAberto] = useState(false);
-  
+  const [modalSettingsAberto, setModalSettingsAberto] = useState(false); // Estado para o modal de Configurações
+
   const location = useLocation();
 
   useEffect(() => {
@@ -45,15 +49,20 @@ function App() {
             isMestre={isMestre}
             onOpenLogin={() => setModalLoginAberto(true)}
             onLogout={handleLogout}
+            onOpenSettings={() => setModalSettingsAberto(true)} // Abre as configurações ao clicar no botão da sidebar
           />
 
-          {/* 3. Adicionamos a key={location.pathname} para disparar a animação ao mudar de rota */}
           <main className="main-content view-transition" key={location.pathname}>
             <Routes location={location}>
               <Route path="/" element={<MapPage isMestre={isMestre} />} />
               <Route path="/cronicas" element={<CronicasPage isMestre={isMestre} />} />
-              <Route path="/journal" element={<JournalPage/>} />
-              <Route path="/combate" element={<CombatPage isMestre={isMestre}/>} />
+              <Route path="/journal" element={<JournalPage />} />
+              <Route path="/combate" element={<CombatPage isMestre={isMestre} />} />
+              <Route path="/mestre/fichas" element={<MestreFichasPage isMestre={isMestre} />} />
+              <Route path="/mestre/editar/:id" element={<FichaPage isMestre={isMestre} />} />
+              <Route path="/ficha/login" element={<FichaLoginPage />} /> {/* Opcional para separar */}
+              <Route path="/ficha" element={<FichaPage isMestre={isMestre} />} />
+              <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} />} />
             </Routes>
           </main>
 
@@ -61,7 +70,11 @@ function App() {
             isOpen={modalLoginAberto}
             onClose={() => setModalLoginAberto(false)}
           />
-          <AudioController/>
+
+          {/* Renderiza o modal de Configurações / Som quando acionado */}
+          {modalSettingsAberto && (
+            <SettingsPage onClose={() => setModalSettingsAberto(false)} />
+          )}
         </div>
       </div>
     </>

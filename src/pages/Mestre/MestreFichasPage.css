@@ -1,0 +1,349 @@
+.mestre-fichas-page {
+  background-color: #0d0f18;
+  color: #f0f0f0;
+  width: 100%;
+  min-height: 100vh;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow-y: auto;
+}
+
+.mestre-header {
+  border-bottom: 2px solid #332914;
+  padding-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.mestre-header h1 {
+  color: #d4af37;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px 0;
+  letter-spacing: 0.5px;
+  font-family: serif;
+}
+
+.mestre-header p {
+  color: #9da3af;
+  margin: 0;
+  font-size: 14px;
+}
+
+.btn-novo {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-novo:hover {
+  background: #d4af37;
+  color: #0d0f18;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+
+.carregando-txt {
+  color: #9da3af;
+  text-align: center;
+  font-style: italic;
+  margin-top: 40px;
+}
+
+/* GRID DE CARDS */
+.mestre-grid-fichas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mestre-ficha-card {
+  background: #161b22;
+  border: 1px solid #332914;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mestre-ficha-card:hover {
+  border-color: #d4af37;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.12);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.card-top h3 {
+  margin: 0 0 4px 0;
+  color: #f0f0f0;
+  font-size: 18px;
+  font-family: serif;
+}
+
+.jogador-sub {
+  font-size: 12px;
+  color: #9da3af;
+  display: block;
+}
+
+.jogador-sub strong {
+  color: #f0f0f0;
+}
+
+.token-tag-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(212, 175, 55, 0.08);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.identidade-txt {
+  color: #9da3af;
+  font-size: 13px;
+  margin: 0 0 16px 0;
+  border-left: 2px solid #332914;
+  padding-left: 8px;
+}
+
+/* BARRA DE STATUS */
+.status-bars-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d0f18;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #21262d;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.status-bars-preview span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nivel-tag {
+  color: #d4af37;
+  font-weight: bold;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #21262d;
+  padding-top: 12px;
+}
+
+.btn-del {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-del:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+}
+
+/* MODAL DE CADASTRO */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(13, 15, 24, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: #161b22;
+  border: 1px solid #332914;
+  width: 90%;
+  max-width: 440px;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+}
+
+.modal-box h2 {
+  margin-top: 0;
+  color: #d4af37;
+  font-size: 20px;
+  font-family: serif;
+  border-bottom: 1px solid #332914;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #9da3af;
+  font-weight: 500;
+}
+
+.modal-box input {
+  background: #0d0f18;
+  border: 1px solid #332914;
+  color: #f0f0f0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.modal-box input:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+.input-with-action {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-action input {
+  flex: 1;
+}
+
+.btn-reroll {
+  background: #0d0f18;
+  border: 1px solid #332914;
+  color: #d4af37;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-reroll:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn-secundario {
+  background: transparent;
+  border: 1px solid #332914;
+  color: #9da3af;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secundario:hover {
+  color: #f0f0f0;
+  border-color: #9da3af;
+}
+
+.btn-primario {
+  background: #d4af37;
+  border: none;
+  color: #0d0f18;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn-primario:hover {
+  background: #f1c40f;
+}
+
+/* BLOQUEIO DE MESTRE */
+.mestre-bloqueado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  color: #9da3af;
+  padding: 20px;
+}
+
+.icon-lock {
+  font-size: 40px;
+  color: #ef4444;
+  margin-bottom: 14px;
+}
+
+.mestre-bloqueado h2 {
+  color: #f0f0f0;
+  font-family: serif;
+  margin-bottom: 6px;
+  font-size: 22px;
+}
+
+.mestre-ficha-card.clickable {
+  cursor: pointer;
+}

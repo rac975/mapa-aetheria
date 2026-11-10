@@ -1,25 +1,35 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import {
-  FaChevronUp, FaChevronDown, FaTrash, FaShieldAlt, FaSkull, FaPlus, FaMinus, FaExclamationTriangle, FaSkullCrossbones,
-  FaSpider,
-  FaBolt,
-  FaWeightHanging,
-  FaHeartBroken,
-  FaEyeSlash
+  FaChevronUp, FaChevronDown, FaTrash, FaShieldAlt, FaSkull, FaPlus, FaMinus, FaExclamationTriangle,
+  FaSpider, FaBolt, FaWeightHanging, FaHeartBroken, FaEyeSlash, FaEdit, FaCheck, FaTimes
 } from 'react-icons/fa';
+import UndoToast from '../UndoToast/UndoToast';
+import CustomAlert from '../CustomAlert/CustomAlert'; // <-- 1. Importando o Alerta Personalizado
 import './InitiativeTracker.css';
 
 export default function InitiativeTracker({ isMestre }) {
   const [participantes, setParticipantes] = useState([]);
-  const [novoNome, setNovoNome] = useState('');
+  const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
+  
   const [novoTipo, setNovoTipo] = useState('heroi');
+  const [fichaSelecionadaId, setFichaSelecionadaId] = useState('');
+  
+  const [nomeInimigo, setNomeInimigo] = useState('');
   const [hpMaxInput, setHpMaxInput] = useState(30);
   const [mpMaxInput, setMpMaxInput] = useState(20);
-  const [ipInput, setIpInput] = useState(6);
-  const [fabulaInput, setFabulaInput] = useState(3);
 
-  // Lista de condições oficiais de Fabula Ultima
+  // --- 2. Estado para controlar o Alerta Personalizado ---
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+
+  const [itemParaExcluir, setItemParaExcluir] = useState(null);
+  const [mostrarToast, setMostrarToast] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null);
+  const [progressoKey, setProgressoKey] = useState(0);
+
+  const [editandoId, setEditandoId] = useState(null);
+  const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
+
   const CONDICOES_DISPONIVEIS = [
     { id: 'envenenado', label: 'Envenenado' },
     { id: 'atordoado', label: 'Atordoado' },
@@ -31,50 +41,42 @@ export default function InitiativeTracker({ isMestre }) {
 
   const getCondicaoIcon = (id) => {
     switch (id) {
-      case 'envenenado':
-        return <FaSpider />;
-
-      case 'atordoado':
-        return <FaBolt />;
-
-      case 'vulneravel':
-        return <FaHeartBroken />;
-
-      case 'lento':
-        return <FaWeightHanging />;
-
-      case 'fraco':
-        return <FaSkull />;
-
-      case 'dominado':
-        return <FaEyeSlash />;
-
-      default:
-        return <FaExclamationTriangle />;
+      case 'envenenado': return <FaSpider />;
+      case 'atordoado': return <FaBolt />;
+      case 'vulneravel': return <FaHeartBroken />;
+      case 'lento': return <FaWeightHanging />;
+      case 'fraco': return <FaSkull />;
+      case 'dominado': return <FaEyeSlash />;
+      default: return <FaExclamationTriangle />;
     }
   };
 
   useEffect(() => {
-    async function fetchIniciativa() {
-      const { data, error } = await supabase.from('iniciativa_combate').select('*').order('ordem', { ascending: true });
-      if (!error && data) setParticipantes(data);
+    async function carregarDadosIniciais() {
+      const { data: iniciativaData } = await supabase.from('iniciativa_combate').select('*').order('ordem', { ascending: true });
+      if (iniciativaData) setParticipantes(iniciativaData);
+
+      const { data: fichasData } = await supabase.from('fichas_personagens').select('id, nome_personagem, hp_max, mp_max, ip_max, fabula');
+      if (fichasData) {
+        setFichasDisponiveis(fichasData);
+        if (fichasData.length > 0) setFichaSelecionadaId(fichasData[0].id);
+      }
     }
-    fetchIniciativa();
+    carregarDadosIniciais();
 
     const channel = supabase
       .channel('realtime_iniciativa')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'iniciativa_combate' },
-        () => {
-          fetchIniciativa();
+        async () => {
+          const { data } = await supabase.from('iniciativa_combate').select('*').order('ordem', { ascending: true });
+          if (data) setParticipantes(data);
         }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const toggleTurno = async (id, statusAtual) => {
@@ -92,26 +94,126 @@ export default function InitiativeTracker({ isMestre }) {
 
   const addParticipante = async (e) => {
     e.preventDefault();
-    if (!novoNome.trim() || !isMestre) return;
+    if (!isMestre) return;
 
+    let novoCombatente = {};
     const novaOrdem = participantes.length > 0 ? participantes[participantes.length - 1].ordem + 1 : 0;
-    const novoCombatente = {
-      nome: novoNome,
-      tipo: novoTipo,
-      agiu: false,
-      ordem: novaOrdem,
-      hp_atual: Number(hpMaxInput),
-      hp_max: Number(hpMaxInput),
-      mp_atual: Number(mpMaxInput),
-      mp_max: Number(mpMaxInput),
-      ip: novoTipo === 'heroi' ? Number(ipInput) : 0,
-      pontos_fabula: novoTipo === 'heroi' ? Number(fabulaInput) : 0,
-      pontos_ultima: novoTipo === 'inimigo' ? 3 : 0,
-      condicoes: [] // Array para guardar as condições ativas
+
+    if (novoTipo === 'heroi') {
+      const fichaEncontrada = fichasDisponiveis.find(f => f.id === fichaSelecionadaId);
+      if (!fichaEncontrada) {
+        // --- 3. Substituindo alert por CustomAlert ---
+        setAlerta({ isOpen: true, title: 'Atenção', message: 'Selecione uma ficha válida.' });
+        return;
+      }
+
+      // --- VERIFICAÇÃO DE DUPLICIDADE ---
+      const jaExiste = participantes.some(p => p.nome.toLowerCase() === fichaEncontrada.nome_personagem.toLowerCase());
+      if (jaExiste) {
+        setAlerta({ 
+          isOpen: true, 
+          title: 'Herói Duplicado', 
+          message: `O herói "${fichaEncontrada.nome_personagem}" já está na ordem de combate!` 
+        });
+        return;
+      }
+
+      novoCombatente = {
+        nome: fichaEncontrada.nome_personagem,
+        tipo: 'heroi',
+        agiu: false,
+        ordem: novaOrdem,
+        hp_atual: fichaEncontrada.hp_max || 40,
+        hp_max: fichaEncontrada.hp_max || 40,
+        mp_atual: fichaEncontrada.mp_max || 40,
+        mp_max: fichaEncontrada.mp_max || 40,
+        ip: fichaEncontrada.ip_max || 6,
+        pontos_fabula: fichaEncontrada.fabula || 3,
+        pontos_ultima: 0,
+        dano_acumulado: 0,
+        condicoes: []
+      };
+    } else {
+      if (!nomeInimigo.trim()) {
+        setAlerta({ isOpen: true, title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
+        return;
+      }
+      
+      novoCombatente = {
+        nome: nomeInimigo.trim(),
+        tipo: 'inimigo',
+        agiu: false,
+        ordem: novaOrdem,
+        hp_atual: Number(hpMaxInput),
+        hp_max: Number(hpMaxInput),
+        mp_atual: Number(mpMaxInput),
+        mp_max: Number(mpMaxInput),
+        ip: 0,
+        pontos_fabula: 0,
+        pontos_ultima: 3,
+        dano_acumulado: 0,
+        condicoes: []
+      };
+    }
+
+    const { data, error } = await supabase.from('iniciativa_combate').insert([novoCombatente]).select();
+    if (!error && data) {
+      setParticipantes(prev => [...prev, data[0]]);
+    }
+    setNomeInimigo('');
+  };
+
+  const iniciarExclusao = (p) => {
+    if (!isMestre) return;
+    if (timeoutId) clearTimeout(timeoutId);
+
+    setParticipantes(prev => prev.filter(item => item.id !== p.id));
+    setItemParaExcluir(p);
+    setMostrarToast(true);
+    setProgressoKey(prev => prev + 1);
+
+    const timer = setTimeout(async () => {
+      await supabase.from('iniciativa_combate').delete().eq('id', p.id);
+      setMostrarToast(false);
+      setItemParaExcluir(null);
+    }, 6000);
+
+    setTimeoutId(timer);
+  };
+
+  const desfazerExclusao = () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (itemParaExcluir) {
+      setParticipantes(prev => [...prev, itemParaExcluir].sort((a, b) => a.ordem - b.ordem));
+    }
+    setMostrarToast(false);
+    setItemParaExcluir(null);
+  };
+
+  const iniciarEdicao = (p) => {
+    setEditandoId(p.id);
+    setEditForm({
+      nome: p.nome,
+      hp_max: p.hp_max,
+      mp_max: p.mp_max,
+      ip: p.ip,
+      pontos_fabula: p.pontos_fabula
+    });
+  };
+
+  const salvarEdicao = async (id) => {
+    const payload = {
+      nome: editForm.nome,
+      hp_max: Number(editForm.hp_max),
+      mp_max: Number(editForm.mp_max),
+      ip: Number(editForm.ip),
+      pontos_fabula: Number(editForm.pontos_fabula)
     };
 
-    await supabase.from('iniciativa_combate').insert([novoCombatente]);
-    setNovoNome('');
+    setParticipantes(prev => prev.map(p => p.id === id ? { ...p, ...payload } : p));
+    setEditandoId(null);
+
+    await supabase.from('iniciativa_combate').update(payload).eq('id', id);
   };
 
   const alterarRecurso = async (id, campo, valorAtual, delta, maximo = null) => {
@@ -122,7 +224,20 @@ export default function InitiativeTracker({ isMestre }) {
     } else {
       novoValor = Math.max(0, novoValor);
     }
+
+    setParticipantes(prev => prev.map(p => p.id === id ? { ...p, [campo]: novoValor } : p));
     await supabase.from('iniciativa_combate').update({ [campo]: novoValor }).eq('id', id);
+
+    const participanteAtual = participantes.find(p => p.id === id);
+    if (participanteAtual && participanteAtual.tipo === 'heroi') {
+      let campoFicha = campo;
+      if (campo === 'pontos_fabula') campoFicha = 'fabula';
+
+      await supabase
+        .from('fichas_personagens')
+        .update({ [campoFicha]: novoValor })
+        .eq('nome_personagem', participanteAtual.nome);
+    }
   };
 
   const toggleCondicao = async (p, condicaoId) => {
@@ -133,6 +248,7 @@ export default function InitiativeTracker({ isMestre }) {
     } else {
       atuais = [...atuais, condicaoId];
     }
+    setParticipantes(prev => prev.map(item => item.id === p.id ? { ...item, condicoes: atuais } : item));
     await supabase.from('iniciativa_combate').update({ condicoes: atuais }).eq('id', p.id);
   };
 
@@ -147,14 +263,11 @@ export default function InitiativeTracker({ isMestre }) {
     novaLista[index] = novaLista[targetIndex];
     novaLista[targetIndex] = temp;
 
+    setParticipantes(novaLista);
+
     for (let idx = 0; idx < novaLista.length; idx++) {
       await supabase.from('iniciativa_combate').update({ ordem: idx }).eq('id', novaLista[idx].id);
     }
-  };
-
-  const deletarParticipante = async (id) => {
-    if (!isMestre) return;
-    await supabase.from('iniciativa_combate').delete().eq('id', id);
   };
 
   return (
@@ -177,27 +290,36 @@ export default function InitiativeTracker({ isMestre }) {
             const emCrise = !estaDerrotado && p.hp_atual <= p.hp_max / 2;
             const danoInimigo = p.hp_max - p.hp_atual;
             const condicoesAtivas = p.condicoes || [];
+            const isEditando = editandoId === p.id;
 
             return (
               <div
                 key={p.id}
                 className={`participante-item ${p.tipo} ${p.agiu ? 'turn-completed' : ''} ${estaDerrotado ? 'is-defeated' : ''}`}
-                onClick={() => toggleTurno(p.id, p.agiu)}
+                onClick={() => !isEditando && toggleTurno(p.id, p.agiu)}
               >
                 <div className="item-main-row">
                   <input type="checkbox" checked={p.agiu} readOnly />
-                  <span className="nome">{p.nome}</span>
 
-                  {/* Status de Estado (Derrotado / Crise) */}
+                  {isEditando ? (
+                    <input
+                      type="text"
+                      value={editForm.nome}
+                      onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ background: '#161b22', border: '1px solid #d4af37', color: '#fff', padding: '2px 6px', borderRadius: '4px' }}
+                    />
+                  ) : (
+                    <span className="nome">{p.nome}</span>
+                  )}
+
                   {estaDerrotado && <span className="badge-derrotado">CAÍDO / DERROTADO</span>}
                   {emCrise && <span className="badge-crise">CRISE</span>}
 
-                  {/* Badges de Condições Ativas visíveis para todos */}
-                  {condicoesAtivas.length > 0 && (
+                  {condicoesAtivas.length > 0 && !isEditando && (
                     <div className="condicoes-strip">
                       {condicoesAtivas.map(cId => {
                         const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
-
                         return (
                           <span key={cId} className={`condicao-chip cond-${cId}`}>
                             {getCondicaoIcon(cId)}
@@ -208,8 +330,7 @@ export default function InitiativeTracker({ isMestre }) {
                     </div>
                   )}
 
-                  {/* Informações Públicas do Herói */}
-                  {p.tipo === 'heroi' && (
+                  {!isEditando && p.tipo === 'heroi' && (
                     <div className="stats-badges-public">
                       <span className="badge-info hp-badge">❤️ {p.hp_atual}/{p.hp_max}</span>
                       <span className="badge-info mp-badge">💧 {p.mp_atual}/{p.mp_max}</span>
@@ -218,8 +339,7 @@ export default function InitiativeTracker({ isMestre }) {
                     </div>
                   )}
 
-                  {/* Informações Públicas do Inimigo */}
-                  {p.tipo === 'inimigo' && (
+                  {!isEditando && p.tipo === 'inimigo' && (
                     <div className="stats-badges-public">
                       <span className="badge-info dano-badge">💥 Dano: {danoInimigo}</span>
                     </div>
@@ -231,16 +351,24 @@ export default function InitiativeTracker({ isMestre }) {
 
                   {isMestre && (
                     <div className="item-controls" onClick={(e) => e.stopPropagation()}>
-                      <button disabled={index === 0} onClick={() => moverItem(index, 'cima')} title="Subir"><FaChevronUp /></button>
-                      <button disabled={index === participantes.length - 1} onClick={() => moverItem(index, 'baixo')} title="Descer"><FaChevronDown /></button>
-                      <button className="btn-delete-part" onClick={() => deletarParticipante(p.id)} title="Remover"><FaTrash /></button>
+                      {isEditando ? (
+                        <>
+                          <button className="btn-save-edit" onClick={() => salvarEdicao(p.id)} title="Salvar"><FaCheck /></button>
+                          <button className="btn-cancel-edit" onClick={() => setEditandoId(null)} title="Cancelar"><FaTimes /></button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => iniciarEdicao(p)} title="Editar Cartão"><FaEdit /></button>
+                          <button disabled={index === 0} onClick={() => moverItem(index, 'cima')} title="Subir"><FaChevronUp /></button>
+                          <button disabled={index === participantes.length - 1} onClick={() => moverItem(index, 'baixo')} title="Descer"><FaChevronDown /></button>
+                          <button className="btn-delete-part" onClick={() => iniciarExclusao(p)} title="Remover"><FaTrash /></button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {/* PAINEL DE CONTROLE DO MESTRE (HP, MP, Recursos e Condições) */}
-                {/* PAINEL DE CONTROLE DO MESTRE */}
-                {isMestre && (
+                {isMestre && !isEditando && (
                   <div className="mestre-stats-bar" onClick={(e) => e.stopPropagation()}>
                     <div className="mestre-stats-bar-row">
                       <div className="stat-group">
@@ -271,17 +399,8 @@ export default function InitiativeTracker({ isMestre }) {
                           </div>
                         </>
                       )}
-
-                      {p.tipo === 'inimigo' && (
-                        <div className="stat-group ultima">
-                          <span className="stat-label">⚡ Última: {p.pontos_ultima}</span>
-                          <button onClick={() => alterarRecurso(p.id, 'pontos_ultima', p.pontos_ultima, -1)}><FaMinus /></button>
-                          <button onClick={() => alterarRecurso(p.id, 'pontos_ultima', p.pontos_ultima, 1)}><FaPlus /></button>
-                        </div>
-                      )}
                     </div>
 
-                    {/* SELETOR DE CONDIÇÕES DO MESTRE */}
                     <div className="condicoes-selector-group">
                       <span className="stat-label">Condições:</span>
                       <div className="condicoes-buttons">
@@ -311,30 +430,57 @@ export default function InitiativeTracker({ isMestre }) {
 
       {isMestre && (
         <form onSubmit={addParticipante} className="form-add-part">
-          <input
-            type="text"
-            placeholder="Nome do Herói ou Inimigo"
-            value={novoNome}
-            onChange={(e) => setNovoNome(e.target.value)}
-            required
-          />
           <div className="form-row-inline">
             <select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value)}>
-              <option value="heroi">Herói / Aliado</option>
+              <option value="heroi">Herói (Selecionar Ficha)</option>
               <option value="inimigo">Inimigo / NPC</option>
             </select>
-            <input type="number" placeholder="HP Máx" value={hpMaxInput} onChange={(e) => setHpMaxInput(e.target.value)} />
-            <input type="number" placeholder="MP Máx" value={mpMaxInput} onChange={(e) => setMpMaxInput(e.target.value)} />
-            {novoTipo === 'heroi' && (
+
+            {novoTipo === 'heroi' ? (
+              <select 
+                value={fichaSelecionadaId} 
+                onChange={(e) => setFichaSelecionadaId(e.target.value)}
+                style={{ flex: 2 }}
+              >
+                {fichasDisponiveis.map(f => (
+                  <option key={f.id} value={f.id}>{f.nome_personagem}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                placeholder="Nome do Inimigo / NPC"
+                value={nomeInimigo}
+                onChange={(e) => setNomeInimigo(e.target.value)}
+              />
+            )}
+
+            {novoTipo === 'inimigo' && (
               <>
-                <input type="number" placeholder="IP (Inventário)" value={ipInput} onChange={(e) => setIpInput(e.target.value)} />
-                <input type="number" placeholder="Fábula" value={fabulaInput} onChange={(e) => setFabulaInput(e.target.value)} />
+                <input type="number" placeholder="HP Máx" value={hpMaxInput} onChange={(e) => setHpMaxInput(e.target.value)} />
+                <input type="number" placeholder="MP Máx" value={mpMaxInput} onChange={(e) => setMpMaxInput(e.target.value)} />
               </>
             )}
-            <button type="submit">Adicionar</button>
+
+            <button type="submit">Adicionar à Cena</button>
           </div>
         </form>
       )}
+
+      {/* Componente do Alerta Customizado renderizado no fim */}
+      <CustomAlert 
+        isOpen={alerta.isOpen}
+        title={alerta.title}
+        message={alerta.message}
+        onClose={() => setAlerta({ ...alerta, isOpen: false })}
+      />
+
+      <UndoToast
+        mostrar={mostrarToast}
+        mensagem={<><strong>{itemParaExcluir?.nome}</strong> foi removido.</>}
+        progressoKey={progressoKey}
+        onUndo={desfazerExclusao}
+      />
     </div>
   );
 }

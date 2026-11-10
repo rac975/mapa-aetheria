@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import ClockWidget from '../ClockWidget/ClockWidget';
+import UndoToast from '../UndoToast/UndoToast';
 import './ClockManager.css';
 
 export default function ClocksManager({ isMestre }) {
@@ -8,6 +9,12 @@ export default function ClocksManager({ isMestre }) {
   const [tituloRelogio, setTituloRelogio] = useState('');
   const [fatiasTotal, setFatiasTotal] = useState(4);
   const [visivel, setVisivel] = useState(true);
+
+  // Estados de Delete Frio
+  const [itemParaExcluir, setItemParaExcluir] = useState(null);
+  const [mostrarToast, setMostrarToast] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null);
+  const [progressoKey, setProgressoKey] = useState(0);
 
   useEffect(() => {
     async function fetchRelogios() {
@@ -41,11 +48,31 @@ export default function ClocksManager({ isMestre }) {
     }
   };
 
-  const deletarRelogio = async (id) => {
-    const { error } = await supabase.from('relogios').delete().eq('id', id);
-    if (!error) {
-      setRelogios(prev => prev.filter(r => r.id !== id));
+  const iniciarExclusao = (r) => {
+    if (!isMestre) return;
+    if (timeoutId) clearTimeout(timeoutId);
+
+    setRelogios(prev => prev.filter(item => item.id !== r.id));
+    setItemParaExcluir(r);
+    setMostrarToast(true);
+    setProgressoKey(prev => prev + 1);
+
+    const timer = setTimeout(async () => {
+      await supabase.from('relogios').delete().eq('id', r.id);
+      setMostrarToast(false);
+      setItemParaExcluir(null);
+    }, 6000);
+
+    setTimeoutId(timer);
+  };
+
+  const desfazerExclusao = () => {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (itemParaExcluir) {
+      setRelogios(prev => [...prev, itemParaExcluir]);
     }
+    setMostrarToast(false);
+    setItemParaExcluir(null);
   };
 
   return (
@@ -94,12 +121,20 @@ export default function ClocksManager({ isMestre }) {
                 visivel={r.visivel}
                 isMestre={isMestre}
                 onUpdate={(val) => atualizarRelogio(r.id, val)}
-                onDelete={() => deletarRelogio(r.id)}
+                onDelete={() => iniciarExclusao(r)}
               />
             );
           })
         )}
       </div>
+
+      {/* Componente Genérico de Delete Frio */}
+      <UndoToast
+        mostrar={mostrarToast}
+        mensagem={<>Relógio <strong>{itemParaExcluir?.titulo}</strong> foi removido.</>}
+        progressoKey={progressoKey}
+        onUndo={desfazerExclusao}
+      />
     </div>
   );
 }

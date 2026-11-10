@@ -1,0 +1,122 @@
+.custom-alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(13, 15, 24, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.custom-alert-box {
+  background: linear-gradient(180deg, #161b22 0%, #10141d 100%);
+  border: 1px solid #332914;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 420px;
+  padding: 20px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(212, 175, 55, 0.1);
+  animation: scaleUp 0.2s ease-in-out;
+}
+
+.custom-alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222a38;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.alert-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alert-icon {
+  color: #d4af37;
+  font-size: 1.2rem;
+}
+
+.custom-alert-header h3 {
+  margin: 0;
+  color: #d4af37;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alert-close-btn {
+  background: transparent;
+  border: none;
+  color: #9da3af;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.alert-close-btn:hover {
+  color: #f0f6fc;
+}
+
+.custom-alert-body p {
+  color: #c9d1d9;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.custom-alert-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-alert-confirm {
+  background: #d4af37;
+  color: #0d0f18;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-alert-confirm:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-alert-cancel {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-alert-cancel:hover {
+  background: #30363d;
+  color: #f0f6fc;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

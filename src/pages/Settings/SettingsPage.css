@@ -1,0 +1,221 @@
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(5, 7, 12, 0.85);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.settings-modal {
+    background: #0d0f18;
+    border: 1px solid #d4af37;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    color: #e0e0e0;
+    font-family: inherit;
+}
+
+.settings-header {
+    padding: 20px;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    margin: 0;
+    color: #d4af37;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-fechar {
+    background: transparent;
+    border: none;
+    color: #8b949e;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.btn-fechar:hover {
+    color: #fff;
+}
+
+.settings-body {
+    padding: 20px;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.settings-section {
+    margin-bottom: 25px;
+}
+
+.settings-section h3 {
+    font-size: 1.1rem;
+    color: #d4af37;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px dashed #30363d;
+    padding-bottom: 8px;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.setting-item label {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+}
+
+.setting-item input[type="range"] {
+    accent-color: #d4af37;
+    cursor: pointer;
+}
+
+.checkbox-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.checkbox-row label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.setting-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #161b22;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.status-online {
+    color: #3fb950;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-acao-mestre {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-acao-mestre:hover {
+    background: #30363d;
+    border-color: #d4af37;
+    color: #fff;
+}
+
+.settings-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #21262d;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-salvar {
+    background: #d4af37;
+    color: #0d0f18;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-salvar:hover {
+    opacity: 0.9;
+}
+
+.setting-item-row {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.btn-music-toggle {
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+/* Efeito de Hover comum */
+.btn-music-toggle:hover {
+    background: #21262d;
+    color: #fff;
+    border-color: #8b949e;
+}
+
+/* Estado Ativo (Música Ligada) */
+.btn-music-toggle.ativo {
+    background: rgba(212, 175, 55, 0.1); /* Fundo dourado translúcido */
+    color: #d4af37;                      /* Texto dourado */
+    border-color: #d4af37;               /* Borda dourado */
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2); /* Brilho suave */
+    font-weight: bold;
+}
+
+/* Hover quando o botão já está ativo */
+.btn-music-toggle.ativo:hover {
+    background: rgba(212, 175, 55, 0.18);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.35);
+}
+
+/* Animação simples para o ícone de música quando ativo */
+.btn-music-toggle.ativo svg {
+    animation: pulseIcon 2s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}

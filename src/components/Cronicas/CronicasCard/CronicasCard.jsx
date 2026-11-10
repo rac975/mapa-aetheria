@@ -26,7 +26,7 @@ export default function CronicaCard({ cronica, isMestre, onEditar, onExcluir }) 
           <button onClick={() => onEditar(cronica)} title="Editar Crônica">
             <FaEdit /> Editar
           </button>
-          <button className="btn-delete" onClick={() => onExcluir(cronica.id)} title="Excluir Crônica">
+          <button className="btn-delete" onClick={() => onExcluir(cronica)} title="Excluir Crônica">
             <FaTrash /> Excluir
           </button>
         </div>

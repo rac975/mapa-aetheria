@@ -39,6 +39,10 @@
   font-weight: 500;
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
 }
 
 .sidebar-link:hover {
@@ -57,6 +61,32 @@
 .sidebar-footer {
   border-top: 1px solid rgba(212, 175, 55, 0.2);
   padding-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-config-sidebar {
+  width: 100%;
+  background: #161b22;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-config-sidebar:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: #d4af37;
+  color: #d4af37;
 }
 
 .btn-login-mestre {

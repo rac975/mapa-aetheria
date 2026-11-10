@@ -1,0 +1,132 @@
+/* --- ESTILOS DO GERENCIADOR DE ROTAS --- */
+
+.mural-contratos-section {
+  margin-top: 20px;
+  color: #f0f6fc;
+}
+
+.contratos-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.contratos-header-row h3 {
+  font-size: 15px;
+  color: #d4af37;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+/* Botão de Adicionar / Novo */
+.btn-add-contrato {
+  background: #21262d;
+  color: #5dade2;
+  border: 1px solid #30363d;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-add-contrato:hover {
+  background: #30363d;
+  border-color: #5dade2;
+}
+
+/* Formulário de Nova Rota */
+.form-novo-contrato {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-novo-contrato input,
+.form-novo-contrato select,
+.form-novo-contrato textarea {
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #f0f6fc;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-novo-contrato input:focus,
+.form-novo-contrato select:focus,
+.form-novo-contrato textarea:focus {
+  border-color: #5dade2;
+}
+
+.form-novo-contrato textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Botão de Salvar Rota */
+.btn-salvar-contrato {
+  background: #238636;
+  color: #ffffff;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-salvar-contrato:hover {
+  background: #2ea043;
+}
+
+/* Listagem de Rotas */
+.contratos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Cards de Rota (com variações por tipo) */
+.contrato-card {
+  padding: 12px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.contrato-card:hover {
+  border-color: #8b949e;
+}
+
+/* Estilos de borda ou destaque lateral baseados no tipo de rota (opcional) */
+.contrato-card.tipo-comercial { border-left: 3px solid #5dade2; }
+.contrato-card.tipo-contrabando { border-left: 3px solid #e74c3c; }
+.contrato-card.tipo-secreta { border-left: 3px solid #9b59b6; }
+.contrato-card.tipo-tradicional { border-left: 3px solid #f1c40f; }
+.contrato-card.tipo-corrompida { border-left: 3px solid #e67e22; }
+
+/* Textos de Estado */
+.loading-text, .sem-contratos {
+  font-size: 12px;
+  color: #8b949e;
+  text-align: center;
+  padding: 10px 0;
+  margin: 0;
+}

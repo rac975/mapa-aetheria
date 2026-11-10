@@ -1,0 +1,64 @@
+.undo-toast-container {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #161b22;
+  border: 1px solid #d4af37;
+  color: #f0f6fc;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+  z-index: 9999;
+  overflow: hidden;
+  min-width: 320px;
+  animation: slideInUp 0.3s ease;
+}
+
+.undo-toast-content {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+}
+
+.undo-toast-content strong {
+  color: #d4af37;
+}
+
+.btn-undo {
+  background: #d4af37;
+  color: #0d0f18;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-undo:hover {
+  background: #f1c40f;
+  transform: scale(1.05);
+}
+
+.undo-progress-bar {
+  height: 4px;
+  background-color: #d4af37;
+  width: 100%;
+  animation: shrinkProgress 6s linear forwards;
+}
+
+@keyframes shrinkProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes slideInUp {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}

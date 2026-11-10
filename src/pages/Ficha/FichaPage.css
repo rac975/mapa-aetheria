@@ -1,0 +1,591 @@
+/* =====================================================
+00. VARIÁVEIS DE TEMA (DESIGN TOKENS)
+===================================================== */
+:root {
+  --color-bg-main: #0d0f18;
+  --color-bg-card: rgba(22, 27, 34, 0.95);
+  --color-bg-card-alt: rgba(15, 18, 25, 0.95);
+  --color-border: #30363d;
+  --color-gold: #d4af37;
+  --color-gold-glow: rgba(212, 175, 55, 0.25);
+  --color-text-main: #f0f6fc;
+  --color-text-muted: #8b949e;
+  --color-danger: #f85149;
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =====================================================
+1. LAYOUT GERAL E ESTRUTURA PRINCIPAL
+===================================================== */
+.main-content {
+  background: radial-gradient(ellipse at top center, rgba(212, 175, 55, 0.08), transparent 50%), var(--color-bg-main);
+  color: var(--color-text-main);
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto !important;
+  /* Garante que o scroll principal da página funciona */
+  height: auto !important;
+  /* Impede que a tela fique travada numa altura fixa */
+}
+
+.ficha-page-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 16px 80px 16px;
+  color: #c9d1d9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+  overflow: visible !important;
+  /* Garante que nada dentro da ficha seja cortado */
+  height: auto !important;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+/* =====================================================
+02. HEADER DA FICHA E AVATAR
+===================================================== */
+.ficha-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: linear-gradient(135deg, #1b2029 0%, #141922 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+.header-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.ficha-page-header h1 {
+  font-size: 1.75rem;
+  color: var(--color-text-main);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: -0.01em;
+}
+
+.badge-nivel {
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--color-gold);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.ficha-avatar-container {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 3px solid var(--color-gold);
+  background: var(--color-bg-main);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.06), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.ficha-avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.ficha-avatar-container svg,
+.ficha-avatar-container i {
+  font-size: 2rem;
+  color: var(--color-text-muted);
+}
+
+.ficha-avatar-container:hover img {
+  transform: scale(1.05);
+}
+
+/* =====================================================
+03. BARRA DE RECURSOS RÁPIDOS (HP, MP, IP)
+===================================================== */
+.recursos-quick-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.quick-card {
+  background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: var(--transition-smooth);
+}
+
+.quick-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-gold-glow);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.05);
+}
+
+.quick-card.hp {
+  border-top: 4px solid var(--color-danger);
+}
+
+.quick-card.mp {
+  border-top: 4px solid #58a6ff;
+}
+
+.quick-card.ip {
+  border-top: 4px solid var(--color-gold);
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-text-main);
+}
+
+.card-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-main);
+  border-radius: 8px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.card-controls button {
+  background: #21262d;
+  color: var(--color-text-main);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.card-controls button:hover {
+  background: var(--color-border);
+  color: var(--color-gold);
+}
+
+.card-controls .valor {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text-main);
+}
+
+/* =====================================================
+04. SEÇÕES, CARDS E ATRIBUTOS
+===================================================== */
+.ficha-card-section,
+.form-section-box {
+  background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: var(--transition-smooth);
+}
+
+.ficha-card-section:hover,
+.form-section-box:hover {
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+.ficha-card-section h3,
+.form-section-box h3 {
+  font-size: 1.1rem;
+  color: var(--color-gold);
+  margin-top: 0;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+}
+
+.traco-row {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+  font-size: 0.95rem;
+}
+
+.traco-row:last-child {
+  border-bottom: none;
+}
+
+.atrib-box {
+  background: linear-gradient(180deg, #111723, #0d1118);
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 10px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.atrib-box:hover {
+  border-color: var(--color-gold-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.atrib-box span {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.atrib-box strong {
+  font-size: 1.2rem;
+  color: var(--color-gold);
+}
+
+/* =====================================================
+05. FORMULÁRIOS E INPUTS
+===================================================== */
+.ficha-form-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding-bottom: 60px; /* Espaço extra para o botão de salvar */
+}
+
+.ficha-form-edit .form-section-box {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.ficha-page-container input:not([type="checkbox"]),
+.ficha-page-container textarea,
+.ficha-page-container select {
+  background-color: var(--color-bg-main) !important;
+  color: var(--color-text-main) !important;
+  border: 1px solid var(--color-border) !important;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--transition-smooth);
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-text-fill-color: var(--color-text-main) !important;
+}
+
+.ficha-page-container input:not([type="checkbox"]):focus,
+.ficha-page-container textarea:focus,
+.ficha-page-container select:focus {
+  border-color: var(--color-gold) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #c9d1d9;
+  cursor: pointer;
+  background: var(--color-bg-main);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  transition: var(--transition-smooth);
+}
+
+.checkbox-grid label:hover {
+  border-color: rgba(212, 175, 55, 0.25);
+  background: rgba(22, 27, 34, 0.5);
+}
+
+.checkbox-grid input[type="checkbox"] {
+  accent-color: var(--color-gold);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* =====================================================
+06. BOTÕES
+===================================================== */
+.btn-toggle-edit {
+  background: #21262d;
+  color: var(--color-gold);
+  border: 1px solid var(--color-gold);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+}
+
+.btn-toggle-edit:hover {
+  background: var(--color-gold);
+  color: var(--color-bg-main);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.25);
+}
+
+.btn-toggle-edit.cancel {
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.btn-toggle-edit.cancel:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-secundario {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid var(--color-border);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition-smooth);
+}
+
+.btn-secundario:hover {
+  background: var(--color-border);
+  color: var(--color-text-main);
+}
+
+.btn-del {
+  background: rgba(248, 81, 73, 0.08);
+  color: var(--color-danger);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: var(--transition-smooth);
+}
+
+.btn-del:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.btn-salvar-ficha {
+  background: var(--color-gold);
+  color: var(--color-bg-main);
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+  margin-top: 10px;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+.btn-salvar-ficha:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.35);
+}
+
+/* =====================================================
+07. LOADER E AVISOS
+===================================================== */
+.loader-box,
+.badge-warning-card {
+  text-align: center;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  padding: 32px;
+  border-radius: 14px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+}
+
+.icon-spin {
+  font-size: 2.2rem;
+  color: var(--color-gold);
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 12px;
+}
+
+.icon-warning {
+  font-size: 2.8rem;
+  color: var(--color-danger);
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================
+08. SCROLLBARS PERSONALIZADAS
+===================================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 999px;
+}
+
+/* =====================================================
+09. RESPONSIVIDADE (MOBILE / TABLET)
+===================================================== */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px;
+  }
+
+  .ficha-page-container {
+    padding: 4px;
+  }
+
+  .ficha-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .header-info-wrapper {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .form-grid-2,
+  .form-grid-3,
+  .form-grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-toggle-edit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.placeholder_transparent {
+  opacity: 0.35;
+}

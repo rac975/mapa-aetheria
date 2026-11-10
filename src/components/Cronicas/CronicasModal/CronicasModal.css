@@ -1,0 +1,173 @@
+/* Fundo escuro translúcido cobrindo a tela */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(13, 15, 24, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+/* Caixa principal do modal */
+.modal-content.cronica-modal {
+  background: #161b22;
+  border: 1px solid #d4af37;
+  color: #f0f6fc;
+  border-radius: 12px;
+  width: 100%;
+  margin-right: 15%;
+  max-width: 600px;
+  padding: 30px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+  position: relative;
+  animation: scaleUpModal 0.25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Botão de fechar (X) */
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #d4af37;
+}
+
+.cronica-modal h2 {
+  color: #d4af37;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 10px;
+}
+
+/* Formulário e campos */
+.cronica-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-group-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.cronica-modal input[type="text"],
+.cronica-modal input[type="date"],
+.cronica-modal textarea {
+  background: #0d0f18;
+  border: 1px solid #30363d;
+  color: #f0f6fc;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.cronica-modal input:focus,
+.cronica-modal textarea:focus {
+  border-color: #d4af37;
+  outline: none;
+}
+
+.cronica-modal textarea {
+  resize: vertical;
+}
+
+/* Sugestões de Tags / Chips */
+.tags-sugestoes {
+  margin-top: 6px;
+}
+
+.tags-sugestoes small {
+  color: #8b949e;
+  font-size: 11px;
+}
+
+.tags-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag-chip {
+  background: #0d0f18;
+  border: 1px solid #30363d;
+  color: #d4af37;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag-chip:hover {
+  background: #d4af37;
+  color: #0d0f18;
+  border-color: #d4af37;
+}
+
+/* Botão de Salvar */
+.btn-salvar-cronica {
+  background: #d4af37;
+  color: #0d0f18;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 10px;
+}
+
+.btn-salvar-cronica:hover {
+  background: #f1c40f;
+  transform: translateY(-1px);
+}
+
+@keyframes scaleUpModal {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
