@@ -92,7 +92,7 @@ export default function JournalPage({ isMestre }) {
   return (
     <div className="journal-wrapper">
       <header className="journal-header">
-        <h1><FaScroll /> Diário de Missões (Journal)</h1>
+        <h1><FaScroll /> Diário de Missões</h1>
         <p>Acompanhe todas as missões, contratos e oportunidades espalhadas pelos Titãs de Aetheria.</p>
       </header>
 

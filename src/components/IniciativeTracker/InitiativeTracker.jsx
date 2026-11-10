@@ -2,24 +2,32 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import {
   FaChevronUp, FaChevronDown, FaTrash, FaShieldAlt, FaSkull, FaPlus, FaMinus, FaExclamationTriangle,
-  FaSpider, FaBolt, FaWeightHanging, FaHeartBroken, FaEyeSlash, FaEdit, FaCheck, FaTimes
+  FaSpider, FaBolt, FaWeightHanging, FaHeartBroken, FaEyeSlash, FaEdit, FaCheck, FaTimes, FaUndoAlt
 } from 'react-icons/fa';
 import UndoToast from '../UndoToast/UndoToast';
-import CustomAlert from '../CustomAlert/CustomAlert'; // <-- 1. Importando o Alerta Personalizado
+import CustomAlert from '../CustomAlert/CustomAlert';
 import './InitiativeTracker.css';
+
+const CONDICOES_DISPONIVEIS = [
+  { id: 'envenenado', label: 'Envenenado', icon: <FaSpider /> },
+  { id: 'atordoado', label: 'Atordoado', icon: <FaBolt /> },
+  { id: 'vulneravel', label: 'Vulnerável', icon: <FaHeartBroken /> },
+  { id: 'lento', label: 'Lento', icon: <FaWeightHanging /> },
+  { id: 'fraco', label: 'Fraco', icon: <FaSkull /> },
+  { id: 'dominado', label: 'Dominado', icon: <FaEyeSlash /> }
+];
 
 export default function InitiativeTracker({ isMestre }) {
   const [participantes, setParticipantes] = useState([]);
   const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
-  
+
   const [novoTipo, setNovoTipo] = useState('heroi');
   const [fichaSelecionadaId, setFichaSelecionadaId] = useState('');
-  
+
   const [nomeInimigo, setNomeInimigo] = useState('');
   const [hpMaxInput, setHpMaxInput] = useState(30);
   const [mpMaxInput, setMpMaxInput] = useState(20);
 
-  // --- 2. Estado para controlar o Alerta Personalizado ---
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
 
   const [itemParaExcluir, setItemParaExcluir] = useState(null);
@@ -30,36 +38,26 @@ export default function InitiativeTracker({ isMestre }) {
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
 
-  const CONDICOES_DISPONIVEIS = [
-    { id: 'envenenado', label: 'Envenenado' },
-    { id: 'atordoado', label: 'Atordoado' },
-    { id: 'vulneravel', label: 'Vulnerável' },
-    { id: 'lento', label: 'Lento' },
-    { id: 'fraco', label: 'Fraco' },
-    { id: 'dominado', label: 'Dominado' }
-  ];
-
   const getCondicaoIcon = (id) => {
-    switch (id) {
-      case 'envenenado': return <FaSpider />;
-      case 'atordoado': return <FaBolt />;
-      case 'vulneravel': return <FaHeartBroken />;
-      case 'lento': return <FaWeightHanging />;
-      case 'fraco': return <FaSkull />;
-      case 'dominado': return <FaEyeSlash />;
-      default: return <FaExclamationTriangle />;
-    }
+    const cond = CONDICOES_DISPONIVEIS.find(c => c.id === id);
+    return cond ? cond.icon : <FaExclamationTriangle />;
   };
 
   useEffect(() => {
     async function carregarDadosIniciais() {
-      const { data: iniciativaData } = await supabase.from('iniciativa_combate').select('*').order('ordem', { ascending: true });
-      if (iniciativaData) setParticipantes(iniciativaData);
-
-      const { data: fichasData } = await supabase.from('fichas_personagens').select('id, nome_personagem, hp_max, mp_max, ip_max, fabula');
+      // Busca fichas primeiro para cruzar dados visuais se necessário
+      const { data: fichasData } = await supabase
+        .from('fichas_personagens')
+        .select('id, nome_personagem, hp_max, mp_max, ip_max, fabula, avatar_url, defesa, mdef');
+      
       if (fichasData) {
         setFichasDisponiveis(fichasData);
         if (fichasData.length > 0) setFichaSelecionadaId(fichasData[0].id);
+      }
+
+      const { data: iniciativaData } = await supabase.from('iniciativa_combate').select('*').order('ordem', { ascending: true });
+      if (iniciativaData) {
+        setParticipantes(iniciativaData);
       }
     }
     carregarDadosIniciais();
@@ -92,6 +90,27 @@ export default function InitiativeTracker({ isMestre }) {
     }
   };
 
+  const restaurarTudoCena = async () => {
+    if (!isMestre) return;
+
+    const atualizados = participantes.map(p => ({
+      ...p,
+      agiu: false,
+      hp_atual: p.hp_max,
+      mp_atual: p.mp_max
+    }));
+
+    setParticipantes(atualizados);
+
+    for (const p of atualizados) {
+      await supabase.from('iniciativa_combate').update({
+        agiu: false,
+        hp_atual: p.hp_max,
+        mp_atual: p.mp_max
+      }).eq('id', p.id);
+    }
+  };
+
   const addParticipante = async (e) => {
     e.preventDefault();
     if (!isMestre) return;
@@ -102,22 +121,21 @@ export default function InitiativeTracker({ isMestre }) {
     if (novoTipo === 'heroi') {
       const fichaEncontrada = fichasDisponiveis.find(f => f.id === fichaSelecionadaId);
       if (!fichaEncontrada) {
-        // --- 3. Substituindo alert por CustomAlert ---
         setAlerta({ isOpen: true, title: 'Atenção', message: 'Selecione uma ficha válida.' });
         return;
       }
 
-      // --- VERIFICAÇÃO DE DUPLICIDADE ---
       const jaExiste = participantes.some(p => p.nome.toLowerCase() === fichaEncontrada.nome_personagem.toLowerCase());
       if (jaExiste) {
-        setAlerta({ 
-          isOpen: true, 
-          title: 'Herói Duplicado', 
-          message: `O herói "${fichaEncontrada.nome_personagem}" já está na ordem de combate!` 
+        setAlerta({
+          isOpen: true,
+          title: 'Herói Duplicado',
+          message: `O herói "${fichaEncontrada.nome_personagem}" já está na ordem de combate!`
         });
         return;
       }
 
+      // Objeto limpo compatível estritamente com as colunas da sua tabela iniciativa_combate
       novoCombatente = {
         nome: fichaEncontrada.nome_personagem,
         tipo: 'heroi',
@@ -131,14 +149,15 @@ export default function InitiativeTracker({ isMestre }) {
         pontos_fabula: fichaEncontrada.fabula || 3,
         pontos_ultima: 0,
         dano_acumulado: 0,
-        condicoes: []
+        condicoes: [],
+        ficha_id: fichaEncontrada.id
       };
     } else {
       if (!nomeInimigo.trim()) {
         setAlerta({ isOpen: true, title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
         return;
       }
-      
+
       novoCombatente = {
         nome: nomeInimigo.trim(),
         tipo: 'inimigo',
@@ -152,7 +171,8 @@ export default function InitiativeTracker({ isMestre }) {
         pontos_fabula: 0,
         pontos_ultima: 3,
         dano_acumulado: 0,
-        condicoes: []
+        condicoes: [],
+        ficha_id: null
       };
     }
 
@@ -219,20 +239,14 @@ export default function InitiativeTracker({ isMestre }) {
   const alterarRecurso = async (id, campo, valorAtual, delta, maximo = null) => {
     if (!isMestre) return;
     let novoValor = valorAtual + delta;
-    if (maximo !== null) {
-      novoValor = Math.max(0, Math.min(maximo, novoValor));
-    } else {
-      novoValor = Math.max(0, novoValor);
-    }
+    novoValor = maximo !== null ? Math.max(0, Math.min(maximo, novoValor)) : Math.max(0, novoValor);
 
     setParticipantes(prev => prev.map(p => p.id === id ? { ...p, [campo]: novoValor } : p));
     await supabase.from('iniciativa_combate').update({ [campo]: novoValor }).eq('id', id);
 
     const participanteAtual = participantes.find(p => p.id === id);
     if (participanteAtual && participanteAtual.tipo === 'heroi') {
-      let campoFicha = campo;
-      if (campo === 'pontos_fabula') campoFicha = 'fabula';
-
+      let campoFicha = campo === 'pontos_fabula' ? 'fabula' : campo;
       await supabase
         .from('fichas_personagens')
         .update({ [campoFicha]: novoValor })
@@ -243,11 +257,8 @@ export default function InitiativeTracker({ isMestre }) {
   const toggleCondicao = async (p, condicaoId) => {
     if (!isMestre) return;
     let atuais = p.condicoes || [];
-    if (atuais.includes(condicaoId)) {
-      atuais = atuais.filter(c => c !== condicaoId);
-    } else {
-      atuais = [...atuais, condicaoId];
-    }
+    atuais = atuais.includes(condicaoId) ? atuais.filter(c => c !== condicaoId) : [...atuais, condicaoId];
+
     setParticipantes(prev => prev.map(item => item.id === p.id ? { ...item, condicoes: atuais } : item));
     await supabase.from('iniciativa_combate').update({ condicoes: atuais }).eq('id', p.id);
   };
@@ -274,7 +285,14 @@ export default function InitiativeTracker({ isMestre }) {
     <div className="combat-box">
       <div className="box-header">
         <h2>Ordem de Ação & Combate</h2>
-        {isMestre && <button className="btn-reset" onClick={resetRodada}>Nova Rodada</button>}
+        {isMestre && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn-reset" onClick={restaurarTudoCena} title="Cura total e limpa turnos">
+              <FaUndoAlt /> Restaurar Cena
+            </button>
+            <button className="btn-reset" onClick={resetRodada}>Nova Rodada</button>
+          </div>
+        )}
       </div>
 
       <p className="box-hint">
@@ -292,6 +310,12 @@ export default function InitiativeTracker({ isMestre }) {
             const condicoesAtivas = p.condicoes || [];
             const isEditando = editandoId === p.id;
 
+            // Busca os dados da ficha correspondente (avatar e defesas) dinamicamente
+            const fichaCorrespondente = fichasDisponiveis.find(f => f.id === p.ficha_id || f.nome_personagem.toLowerCase() === p.nome.toLowerCase());
+            const avatarUrl = fichaCorrespondente?.avatar_url;
+            const defesaHeroi = fichaCorrespondente?.defesa || 10;
+            const mdefHeroi = fichaCorrespondente?.mdef || 10;
+
             return (
               <div
                 key={p.id}
@@ -300,6 +324,19 @@ export default function InitiativeTracker({ isMestre }) {
               >
                 <div className="item-main-row">
                   <input type="checkbox" checked={p.agiu} readOnly />
+
+                  {/* Exibição do Avatar do Herói / Ícone */}
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={p.nome}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #d4af37', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1a2230', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', flexShrink: 0, border: '1px solid #332914' }}>
+                      {p.tipo === 'heroi' ? <FaShieldAlt size={14} /> : <FaSkull size={14} />}
+                    </div>
+                  )}
 
                   {isEditando ? (
                     <input
@@ -335,6 +372,12 @@ export default function InitiativeTracker({ isMestre }) {
                       <span className="badge-info hp-badge">❤️ {p.hp_atual}/{p.hp_max}</span>
                       <span className="badge-info mp-badge">💧 {p.mp_atual}/{p.mp_max}</span>
                       <span className="badge-info ip-badge">📦 IP: {p.ip}</span>
+                      <span className="badge-info" style={{ background: 'rgba(212, 175, 55, 0.12)', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.35)' }}>
+                        🛡️ DEF: {defesaHeroi}
+                      </span>
+                      <span className="badge-info" style={{ background: 'rgba(155, 89, 182, 0.12)', color: '#d5b8ff', borderColor: 'rgba(155, 89, 182, 0.35)' }}>
+                        🔮 M.DEF: {mdefHeroi}
+                      </span>
                       <span className="badge-info fabula-badge">✨ Fábula: {p.pontos_fabula}</span>
                     </div>
                   )}
@@ -381,8 +424,10 @@ export default function InitiativeTracker({ isMestre }) {
 
                       <div className="stat-group">
                         <span className="stat-label">MP: {p.mp_atual}/{p.mp_max}</span>
+                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
                         <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
                         <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
+                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
                       </div>
 
                       {p.tipo === 'heroi' && (
@@ -413,7 +458,7 @@ export default function InitiativeTracker({ isMestre }) {
                               className={`cond-btn ${ativo ? 'active' : ''}`}
                               onClick={() => toggleCondicao(p, c.id)}
                             >
-                              {getCondicaoIcon(c.id)}
+                              {c.icon}
                               <span>{c.label}</span>
                             </button>
                           );
@@ -437,8 +482,8 @@ export default function InitiativeTracker({ isMestre }) {
             </select>
 
             {novoTipo === 'heroi' ? (
-              <select 
-                value={fichaSelecionadaId} 
+              <select
+                value={fichaSelecionadaId}
                 onChange={(e) => setFichaSelecionadaId(e.target.value)}
                 style={{ flex: 2 }}
               >
@@ -467,8 +512,7 @@ export default function InitiativeTracker({ isMestre }) {
         </form>
       )}
 
-      {/* Componente do Alerta Customizado renderizado no fim */}
-      <CustomAlert 
+      <CustomAlert
         isOpen={alerta.isOpen}
         title={alerta.title}
         message={alerta.message}

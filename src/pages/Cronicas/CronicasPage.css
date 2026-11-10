@@ -159,3 +159,57 @@
   color: #0d0f18;
   border-style: solid;
 }
+
+/* ================= RESPONSIVIDADE PARA SMARTPHONES ================= */
+@media (max-width: 800px) {
+
+  /* Reduz o padding geral da página para não espremer o conteúdo */
+  .cronicas-wrapper {
+    padding: 15px !important;
+  }
+
+  /* Transforma o cabeçalho em coluna (Título em cima, botão embaixo) */
+  .cronicas-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  .cronicas-header h1 {
+    color: #d4af37;
+    font-size: 24px;
+    /* Ligeiramente menor para não quebrar a tela */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 6px 10%;
+  }
+
+  /* Faz o botão de nova crônica ocupar uma largura confortável ou total */
+  .btn-nova-cronica {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  /* Garante que listagens e textos fiquem 100% fluidos */
+  .cronicas-list {
+    width: 100%;
+  }
+
+  /* Empilha os inputs que estavam lado a lado no formulário */
+  .form-group-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Ajustes gerais de espaçamento em modais ou caixas internas */
+  .cronica-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 15px !important;
+    box-sizing: border-box;
+  }
+}

@@ -347,3 +347,30 @@
 .mestre-ficha-card.clickable {
   cursor: pointer;
 }
+
+@media (max-width: 800px) {
+
+  .mestre-header h1 {
+    width: 260px;
+    text-align: center;
+  }
+
+  .mestre-header svg {
+    display: none;
+  }
+
+  .btn-novo {
+    display: grid;
+    place-items: center;
+    width: 300px;
+  }
+
+  .mestre-ficha-card {
+    width: 250px;
+  }
+
+  .jogador-sub {
+    width: 100px;
+  }
+
+}

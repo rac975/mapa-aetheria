@@ -445,6 +445,16 @@
     gap: 8px;
 }
 
+.btn-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-reset svg{
+    margin-right: 5px;
+}
+
 .cond-btn {
     min-height: 64px;
     min-width: 64px;

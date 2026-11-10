@@ -417,7 +417,7 @@ export default function FichaPage({ isMestre }) {
                     {/* Rituais */}
                     <div className="form-section-box">
                         <h3>Rituais que Pode Realizar</h3>
-                        <div className="checkbox-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                        <div className="checkbox-grid grid_mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                             {rituaisDisponiveis.map(rit => {
                                 const rituaisAtuais = formData.rituais || [];
                                 const marcado = rituaisAtuais.includes(rit);

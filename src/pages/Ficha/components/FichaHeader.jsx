@@ -27,17 +27,14 @@ export default function FichaHeader({
     navigate('/ficha/login', { replace: true });
   };
 
-  // Se por acaso a ficha ainda for null, evita qualquer erro de leitura
   if (!ficha) return null;
 
   return (
     <header className="ficha-page-header">
       <div className="header-info-wrapper">
-
-        {/* BOTÃO 1: Painel do Mestre 
-            Só aparece se o usuário atual for Mestre (isMestre) E estiver navegando por ID */}
+        {/* BOTÃO: Painel do Mestre */}
         {isMestre && id && (
-          <button type="button" onClick={() => navigate('/mestre/fichas')} className="btn-secundario" style={{ marginRight: '12px' }}>
+          <button type="button" onClick={() => navigate('/mestre/fichas')} className="btn-secundario">
             <FaArrowLeft /> Painel do Mestre
           </button>
         )}
@@ -49,18 +46,27 @@ export default function FichaHeader({
             <FaUser size={28} color="#d4af37" />
           )}
         </div>
-        <div>
-          <h1>{ficha?.nome_personagem || 'Carregando...'}</h1>
-          <span className="badge-nivel">
-            Nível {editando ? calcularNivelTotal(formClasses) : (ficha?.nivel || 1)} •
-            Zênite: {editando ? (formData?.zenit || 0) : (ficha?.zenit || 0)}z •
-            EXP: {editando ? (formData?.exp || 0) : (formData?.exp || 0)}/10 •
-            Fábula: {editando ? (formData?.fabula || 3) : (ficha?.fabula || 3)}
-          </span>
+
+        <div className="ficha-header-text-group">
+          <h1 className="nome_personagem_text">{ficha?.nome_personagem || 'Carregando...'}</h1>
+          <div className="badge-nivel-wrapper">
+            <span className="badge-nivel">
+              Nível {editando ? calcularNivelTotal(formClasses) : (ficha?.nivel || 1)}
+            </span>
+            <span className="badge-nivel-meta">
+              Zênite: {editando ? (formData?.zenit || 0) : (ficha?.zenit || 0)}z
+            </span>
+            <span className="badge-nivel-meta">
+              EXP: {editando ? (formData?.exp || 0) : (formData?.exp || 0)}/10
+            </span>
+            <span className="badge-nivel-meta">
+              Fábula: {editando ? (formData?.fabula || 3) : (ficha?.fabula || 3)}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      <div className="header-actions-group">
         <button
           type="button"
           className={`btn-toggle-edit ${editando ? 'cancel' : ''}`}
@@ -75,8 +81,6 @@ export default function FichaHeader({
           {editando ? <><FaTimes /> Cancelar</> : <><FaEdit /> Editar Ficha</>}
         </button>
 
-        {/* BOTÃO 2: Botão de Sair (Logout do Jogador)
-            Só aparece se for estritamente o Jogador logado pelo crachá */}
         {ehJogadorLogado && !editando && (
           <button
             type="button"

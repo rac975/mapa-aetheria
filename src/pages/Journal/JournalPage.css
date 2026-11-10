@@ -90,7 +90,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   transition: transform 0.2s, border-color 0.2s;
 }
 
@@ -200,4 +200,223 @@
   padding: 50px;
   color: #888;
   font-style: italic;
+}
+
+/* ================= RESPONSIVIDADE PARA SMARTPHONES ================= */
+@media (max-width: 800px) {
+  .journal-wrapper {
+    background-color: #0d0f18;
+    color: #f0f0f0;
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px 15px;
+    /* Padding menor e mais confortável nas bordas */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .journal-header {
+    border-bottom: 2px solid #332914;
+    padding-bottom: 15px;
+  }
+
+  .journal-header h1 {
+    color: #d4af37;
+    font-size: 24px;
+    /* Ligeiramente menor para não quebrar a tela */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 6px 10%;
+  }
+
+  .journal-header p {
+    color: #a0a0a0;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* Barra de Filtros Reformulada */
+  .journal-filters-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #121620;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #332914;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    /* Garante largura total */
+  }
+
+  .filter-group label {
+    font-size: 11px;
+    color: #d4af37;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* O "milagre" para os selects não vazarem */
+  .filter-group select {
+    background: #161b22;
+    color: #f0f0f0;
+    border: 1px solid #332914;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    /* Força ocupar todo o espaço da caixa */
+    box-sizing: border-box;
+    /* Impede que o padding aumente a largura real */
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .filter-group select:focus {
+    border-color: #d4af37;
+  }
+
+  /* Grid de Cards */
+  .journal-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .journal-card {
+    background: #121620;
+    border: 1px solid #332914;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .journal-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .journal-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+  }
+
+  .journal-badge.disponivel {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+  }
+
+  .journal-badge.em_andamento {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+  }
+
+  .journal-badge.concluido {
+    background: rgba(52, 73, 94, 0.3);
+    color: #95a5a6;
+    border: 1px solid rgba(52, 73, 94, 0.5);
+  }
+
+  .journal-recompensa {
+    color: #d4af37;
+    font-weight: bold;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .journal-card h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  /* Bloco de Localização Empilhado (Evita o bug visual do print) */
+  .journal-titan-location {
+    font-size: 12px;
+    color: #a0a0a0;
+    background: #161b22;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #222a38;
+    display: flex;
+    flex-direction: column;
+    /* Empilha local e facção de forma limpa */
+    gap: 4px;
+  }
+
+  .journal-titan-location span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #d0d0d0;
+  }
+
+  .faccao-tag {
+    font-style: italic;
+    color: #888;
+    font-size: 11px;
+  }
+
+  .journal-descricao {
+    font-size: 13px;
+    color: #c0c0c0;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .journal-card-footer {
+    border-top: 1px solid #222a38;
+    padding-top: 10px;
+    margin-top: 2px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-journal-action {
+    background: #161b22;
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    /* Botão cheio no mobile facilita o toque */
+    text-align: center;
+  }
 }

@@ -131,3 +131,60 @@
   border-color: #ef4444;
   color: #ef4444;
 }
+
+/* Botão Hambúrguer (Invisível no Desktop) */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: #161b22;
+  color: #d4af37;
+  border: 1px solid #332914;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Overlay de fundo escuro para celulares */
+.sidebar-overlay {
+  display: none;
+}
+
+/* Regras exclusivas para Smartphones (telas menores que 768px) */
+@media (max-width: 800px) {
+  
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px; /* Esconde a sidebar totalmente para a esquerda */
+    height: 100vh;
+    width: 260px;
+    z-index: 1050;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Quando ativada pelo estado no React, desliza para dentro */
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 1040;
+  }
+}
