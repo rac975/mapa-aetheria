@@ -1,43 +1,62 @@
 /* Modern Reset - Aplicado a todo o App */
 
-/* 1. Garante que padding e border não aumentem o tamanho fixo dos elementos */
+/* 1. Configurações de tipografia raiz e renderização no HTML */
+html {
+  /* Define a família de fontes do sistema e a 'Inter' como base global */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Impede o iOS de mudar o tamanho do texto ao girar a tela */
+  -webkit-text-size-adjust: 100%;
+  
+  /* Define o tamanho base padrão do navegador (16px) e permite zoom de acessibilidade */
+  font-size: 100%;
+}
+
+/* 2. Garante que padding e border não aumentem o tamanho fixo dos elementos */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* 2. Remove margens padrão que o navegador coloca (o "espaço em branco" em volta do site) */
+/* 3. Remove margens padrão que o navegador coloca */
 * {
   margin: 0;
   padding: 0;
 }
 
-/* 3. Garante que o corpo da página ocupe toda a altura e tenha uma fonte legível */
+/* 4. Garante que o corpo da página ocupe toda a altura e tenha uma fonte legível */
 body {
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased; /* Melhora renderização no Safari/macOS */
+  -moz-osx-font-smoothing: grayscale; /* Melhora renderização no Firefox/macOS */
+  text-rendering: optimizeLegibility; /* Dá prioridade à legibilidade do texto */
   min-height: 100vh;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #000; /* Já deixando no clima de RPG */
+  background-color: #000; /* Clima de RPG */
   color: #ffffff;
 }
 
-/* 4. Melhora a renderização de imagens e mídia */
+/* 5. Escala Tipográfica Inicial (Normalização de títulos) */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700; /* Deixa os títulos em negrito por padrão */
+  line-height: 1.2; /* Títulos grandes precisam de menos espaçamento entre linhas */
+}
+
+/* 6. Melhora a renderização de imagens e mídia */
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
 }
 
-/* 5. Remove estilos padrões de inputs e botões para você poder estilizar do zero */
+/* 7. Remove estilos padrões de inputs e botões (e herda as fontes do HTML/Body) */
 input, button, textarea, select {
   font: inherit;
 }
 
-/* 6. Evita que textos longos quebrem o layout */
+/* 8. Evita que textos longos quebrem o layout */
 p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
 
-/* 7. Remove o sublinhado padrão de links */
+/* 9. Remove o sublinhado padrão de links */
 a {
   text-decoration: none;
   color: inherit;

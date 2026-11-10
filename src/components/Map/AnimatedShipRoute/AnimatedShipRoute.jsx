@@ -1,6 +1,16 @@
+import { useMemo } from 'react';
 import { getTipoRotaInfo } from '../../../utils/rotasUtils';
-import { FaShip } from 'react-icons/fa';
 import './AnimatedShipRoute.css';
+
+// Função isolada fora do componente para evitar recriação a cada render
+const parseCoord = (val, maxVal) => {
+  if (!val) return 0;
+  const num = parseFloat(String(val).replace('%', '').trim());
+  if (String(val).includes('%') || num <= 100) {
+    return (num / 100) * maxVal;
+  }
+  return num;
+};
 
 export default function AnimatedShipRoute({
   rotas,
@@ -8,6 +18,11 @@ export default function AnimatedShipRoute({
 }) {
   const MAP_WIDTH = 12800;
   const MAP_HEIGHT = 8533.3;
+
+  // Pré-processa as localizações em um Map para busca O(1) instantânea no mobile
+  const locationsMap = useMemo(() => {
+    return new Map(localizacoesMapa.map(t => [Number(t.id), t]));
+  }, [localizacoesMapa]);
 
   return (
     <svg
@@ -20,28 +35,15 @@ export default function AnimatedShipRoute({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 10
+        zIndex: 10,
+        willChange: 'transform'
       }}
     >
       {rotas.map((r, index) => {
-        const origem = localizacoesMapa.find(
-          t => Number(t.id) === Number(r.tita_origem_id)
-        );
-
-        const destino = localizacoesMapa.find(
-          t => Number(t.id) === Number(r.tita_destino_id)
-        );
+        const origem = locationsMap.get(Number(r.tita_origem_id));
+        const destino = locationsMap.get(Number(r.tita_destino_id));
 
         if (!origem || !destino) return null;
-
-        const parseCoord = (val, maxVal) => {
-          if (!val) return 0;
-          const num = parseFloat(String(val).replace('%', '').trim());
-          if (String(val).includes('%') || num <= 100) {
-            return (num / 100) * maxVal;
-          }
-          return num;
-        };
 
         const x1 = parseCoord(origem.left_pos || origem.left, MAP_WIDTH);
         const y1 = parseCoord(origem.top, MAP_HEIGHT);
@@ -75,9 +77,9 @@ export default function AnimatedShipRoute({
               strokeOpacity="0.15"
             />
 
-            {/* Trilha e Navio consolidados em um único grupo leve */}
+            {/* Trilha e Navio em elementos vetoriais puros (100% acelerados por GPU) */}
             <g className="combo-navio">
-              {/* Trilha luminosa em linha contínua (substitui dezenas de elipses) */}
+              {/* Trilha luminosa em linha contínua */}
               <line
                 x1="-350"
                 y1="0"
@@ -89,23 +91,14 @@ export default function AnimatedShipRoute({
                 strokeLinecap="round"
               />
 
-              {/* Ícone do Barco */}
-              <foreignObject x="-35" y="-35" width="70" height="70">
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    color: corRota,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '36px',
-                    filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.8))'
-                  }}
-                >
-                  <FaShip />
-                </div>
-              </foreignObject>
+              {/* Ícone do Barco em Vetor Nativo (substitui o foreignObject pesado) */}
+              <path
+                d="M -25 -12 L 25 0 L -25 12 L -15 0 Z"
+                fill={corRota}
+                stroke="#0d0f18"
+                strokeWidth="3"
+                transform="rotate(90)"
+              />
 
               <animateMotion
                 path={pathLoop}

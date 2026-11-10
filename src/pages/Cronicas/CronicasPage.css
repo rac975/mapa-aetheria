@@ -21,7 +21,6 @@
 
 .cronicas-header h1 {
   color: #d4af37;
-  font-family: serif;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -100,7 +99,6 @@
   color: #fff;
   border-radius: 6px;
   box-sizing: border-box;
-  font-family: inherit;
   outline: none;
 }
 

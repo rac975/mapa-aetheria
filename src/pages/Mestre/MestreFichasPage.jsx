@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaShieldAlt, FaUserPlus, FaTrash, FaHeart, FaMagic, FaDice, FaIdBadge } from 'react-icons/fa';
+import { FaShieldAlt, FaUserPlus, FaTrash, FaHeart, FaMagic, FaDice, FaIdBadge, FaDownload, FaUser, FaEdit } from 'react-icons/fa';
 import { LuUsers, LuSparkles } from 'react-icons/lu';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../../services/supabase';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import './MestreFichasPage.css';
@@ -15,10 +16,11 @@ export default function MestreFichasPage({ isMestre }) {
     const [nomePersonagem, setNomePersonagem] = useState('');
     const [registroId, setRegistroId] = useState('');
 
-    // Estado para o alerta customizado
     const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
-
     const navigate = useNavigate();
+
+    // Referências para capturar os QR Codes para download
+    const qrRefs = useRef({});
 
     useEffect(() => {
         carregarTodasFichas();
@@ -28,7 +30,13 @@ export default function MestreFichasPage({ isMestre }) {
         try {
             const { data, error } = await supabase
                 .from('fichas_personagens')
-                .select('*')
+                .select(`
+                    *,
+                    fichas_classes (
+                        nome_classe,
+                        nivel
+                    )
+                `)
                 .order('nome_personagem', { ascending: true });
 
             if (!error) setFichas(data || []);
@@ -84,10 +92,47 @@ export default function MestreFichasPage({ isMestre }) {
     };
 
     const handleDeletarFicha = async (id, e) => {
-        e.stopPropagation(); // Evita navegar ao clicar no botão de excluir
+        e.stopPropagation();
         if (confirm('Tem certeza que deseja apagar esta ficha e revogar o crachá?')) {
             await supabase.from('fichas_personagens').delete().eq('id', id);
             carregarTodasFichas();
+        }
+    };
+
+    // Função para baixar o QR Code diretamente como arquivo SVG (sem erro de Canvas/CORS)
+    const baixarQRCode = (personagemNome, fichaId) => {
+        const svgElement = qrRefs.current[fichaId];
+        if (!svgElement) {
+            console.error("Elemento SVG do QR Code não encontrado para o ID:", fichaId);
+            return;
+        }
+
+        try {
+            // Serializa o elemento SVG para texto/string XML
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+
+            // Cria um Blob com o conteúdo do SVG
+            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            // Cria o link temporário de download
+            const downloadLink = document.createElement('a');
+            downloadLink.href = url;
+            downloadLink.download = `QRCode_${personagemNome.replace(/\s+/g, '_')}.svg`;
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+
+            // Limpa os recursos da memória
+            document.body.removeChild(downloadLink);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Erro ao gerar o download do QR Code:", error);
+            setAlerta({
+                isOpen: true,
+                title: 'Erro no Download',
+                message: 'Não foi possível baixar o QR Code. Tente novamente.'
+            });
         }
     };
 
@@ -108,7 +153,7 @@ export default function MestreFichasPage({ isMestre }) {
             <div className="mestre-header">
                 <div>
                     <h1><LuUsers /> Gestão de Fichas e Crachás</h1>
-                    <p>Clique em qualquer cartão para abrir a página completa de edição da ficha do herói.</p>
+                    <p>Visualize os dados dos heróis, baixe os QR Codes para os crachás e gerencie a mesa.</p>
                 </div>
                 <button type="button" className="btn-novo" onClick={() => setModalCriarAberto(true)}>
                     <FaUserPlus /> Cadastrar Novo Crachá
@@ -119,38 +164,128 @@ export default function MestreFichasPage({ isMestre }) {
                 <p className="carregando-txt">Carregando fichas da mesa...</p>
             ) : (
                 <div className="mestre-grid-fichas">
-                    {fichas.map((f) => (
-                        <div
-                            key={f.id}
-                            className="mestre-ficha-card clickable"
-                            onClick={() => navigate(`/mestre/editar/${f.id}`)}
-                            title="Abrir ficha completa"
-                        >
-                            <div className="card-top">
-                                <div>
-                                    <h3>{f.nome_personagem}</h3>
-                                    <span className="jogador-sub">Jogador: <strong>{f.nome_jogador || 'Não informado'}</strong></span>
-                                </div>
-                                <div className="token-tag-container">
-                                    <FaIdBadge />
-                                    <span className="token-tag"> ID: #{f.jogador_token}</span>
-                                </div>
-                            </div>
-                            <p className="identidade-txt"><em>{f.identidade || 'Sem identidade'}</em></p>
+                    {fichas.map((f) => {
+                        const urlFicha = `${window.location.origin}${window.location.pathname}#/ficha/${f.id}`;
 
-                            <div className="status-bars-preview">
-                                <span><FaHeart color="#f85149" /> HP: {f.hp_atual}/{f.hp_max}</span>
-                                <span><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{f.mp_max}</span>
-                                <span className="nivel-tag">Nível {f.nivel || 1}</span>
-                            </div>
+                        return (
+                            <div
+                                key={f.id}
+                                className="mestre-ficha-card clickable"
+                                onClick={() => navigate(`/mestre/editar/${f.id}`)}
+                                title="Abrir ficha completa"
+                            >
+                                {/* Cabeçalho do Card: Avatar + Nome + Jogador + ID */}
+                                <div className="card-top" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                    <div className="card-avatar" style={{ width: '54px', height: '54px', borderRadius: '50%', border: '2px solid #d4af37', overflow: 'hidden', background: '#0d0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        {f.avatar_url ? (
+                                            <img src={f.avatar_url} alt={f.nome_personagem} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <FaUser size={22} color="#d4af37" />
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#f0f6fc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {f.nome_personagem}
+                                        </h3>
+                                        <span className="jogador-sub" style={{ fontSize: '0.85rem', color: '#8b949e' }}>
+                                            Jogador: <strong>{f.nome_jogador || 'Não informado'}</strong>
+                                        </span>
+                                    </div>
+                                    <div className="token-tag-container" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(212, 175, 55, 0.1)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+                                        <FaIdBadge color="#d4af37" size={12} />
+                                        <span className="token-tag" style={{ fontSize: '0.75rem', color: '#d4af37', fontWeight: 'bold' }}>#{f.jogador_token}</span>
+                                    </div>
+                                </div>
 
-                            <div className="card-actions">
-                                <button type="button" className="btn-del" onClick={(e) => handleDeletarFicha(f.id, e)}>
-                                    <FaTrash /> Excluir Ficha
-                                </button>
+                                {/* Informações de Classes com Níveis, Peculiaridade/Identidade */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '12px 0', fontSize: '0.85rem' }}>
+                                    <p className="identidade-txt" style={{ margin: 0, color: '#c9d1d9' }}>
+                                        <em>{f.identidade || 'Sem peculiaridade informada'}</em>
+                                    </p>
+
+                                    <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '6px 10px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#8b949e', textTransform: 'uppercase', fontWeight: 'bold' }}>Classes:</span>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {f.fichas_classes && f.fichas_classes.length > 0 ? (
+                                                f.fichas_classes.map((c, idx) => (
+                                                    <span key={idx} style={{ background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                                        {c.nome_classe} ({c.nivel}v)
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span style={{ color: '#8b949e', fontStyle: 'italic', fontSize: '0.75rem' }}>Nenhuma classe informada</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Barras de Status, IP, Fábula e Nível Geral */}
+                                <div className="status-bars-preview" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', background: 'rgba(13, 17, 23, 0.5)', padding: '10px 12px', borderRadius: '8px', border: '1px solid #30363d', fontSize: '0.85rem' }}>
+                                    <span title="Pontos de Vida"><FaHeart color="#f85149" /> HP: {f.hp_atual}/{f.hp_max}</span>
+                                    <span title="Pontos de Mana"><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{f.mp_max}</span>
+                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {f.ip_atual}/{f.ip_max}</span>
+                                    <span title="Pontos de Fábula"><strong style={{ color: '#d5b8ff' }}>✨ Fábula:</strong> {f.fabula ?? 3}</span>
+
+                                    <span className="nivel-tag" style={{ marginLeft: 'auto', background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                        Nível {f.nivel || 1}
+                                    </span>
+                                </div>
+
+                                {/* Área do QR Code com Botão de Download integrado */}
+                                <div
+                                    className="card-qrcode-container"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '8px 12px', background: 'rgba(13, 17, 23, 0.8)', borderRadius: '8px', border: '1px solid #30363d' }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div style={{ background: '#fff', padding: '4px', borderRadius: '6px', display: 'flex' }}>
+                                            <div ref={(el) => { if (el) qrRefs.current[f.id] = el; }}>
+                                                <QRCodeSVG
+                                                    value={urlFicha}
+                                                    size={54}
+                                                    fgColor="#0d0f18"
+                                                    bgColor="#ffffff"
+                                                    level="M"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            <span style={{ fontSize: '11px', color: '#d4af37', fontWeight: 'bold' }}>QR Code do Crachá</span>
+                                            <span style={{ fontSize: '10px', color: '#8b949e', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {f.jogador_token}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="btn-secundario"
+                                        onClick={(e) => baixarQRCode(f.nome_personagem, f.id, e)}
+                                        title="Baixar imagem do QR Code para impressão"
+                                        style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#21262d', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.4)', cursor: 'pointer', zIndex: 5, position: 'relative' }}
+                                    >
+                                        <FaDownload /> Baixar QR
+                                    </button>
+                                </div>
+
+                                {/* Ações do Card (Editar + Excluir) */}
+                                <div className="card-actions" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        type="button"
+                                        className="btn-secundario"
+                                        onClick={() => navigate(`/mestre/editar/${f.id}`)}
+                                        style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#21262d', color: '#58a6ff', borderColor: 'rgba(88, 166, 255, 0.4)', cursor: 'pointer' }}
+                                    >
+                                        <FaEdit /> Editar Ficha
+                                    </button>
+
+                                    <button type="button" className="btn-del" onClick={(e) => handleDeletarFicha(f.id, e)} style={{ cursor: 'pointer' }}>
+                                        <FaTrash /> Excluir Ficha
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
