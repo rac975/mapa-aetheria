@@ -49,7 +49,7 @@ export default function InitiativeTracker({ isMestre }) {
       const { data: fichasData } = await supabase
         .from('fichas_personagens')
         .select('id, nome_personagem, hp_max, mp_max, ip_max, fabula, avatar_url, defesa, mdef');
-      
+
       if (fichasData) {
         setFichasDisponiveis(fichasData);
         if (fichasData.length > 0) setFichaSelecionadaId(fichasData[0].id);
@@ -368,17 +368,47 @@ export default function InitiativeTracker({ isMestre }) {
                   )}
 
                   {!isEditando && p.tipo === 'heroi' && (
-                    <div className="stats-badges-public">
-                      <span className="badge-info hp-badge">❤️ {p.hp_atual}/{p.hp_max}</span>
-                      <span className="badge-info mp-badge">💧 {p.mp_atual}/{p.mp_max}</span>
-                      <span className="badge-info ip-badge">📦 IP: {p.ip}</span>
-                      <span className="badge-info" style={{ background: 'rgba(212, 175, 55, 0.12)', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.35)' }}>
-                        🛡️ DEF: {defesaHeroi}
-                      </span>
-                      <span className="badge-info" style={{ background: 'rgba(155, 89, 182, 0.12)', color: '#d5b8ff', borderColor: 'rgba(155, 89, 182, 0.35)' }}>
-                        🔮 M.DEF: {mdefHeroi}
-                      </span>
-                      <span className="badge-info fabula-badge">✨ Fábula: {p.pontos_fabula}</span>
+                    <div className="stats-badges-public" style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', maxWidth: '220px' }}>
+
+                      {/* BARRA DE HP VISÍVEL PARA TODOS */}
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#8b949e', marginBottom: '2px' }}>
+                          <span>❤️ HP</span>
+                          <span>{p.hp_atual}/{p.hp_max}</span>
+                        </div>
+                        <div className="barra-container" style={{ height: '6px' }}>
+                          <div
+                            className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
+                            style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* BARRA DE MP VISÍVEL PARA TODOS */}
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#8b949e', marginBottom: '2px' }}>
+                          <span>💧 MP</span>
+                          <span>{p.mp_atual}/{p.mp_max}</span>
+                        </div>
+                        <div className="barra-container" style={{ height: '6px' }}>
+                          <div
+                            className="barra-mp-fill"
+                            style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Demais badges (IP, Defesas, Fábula) continuam logo abaixo */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
+                        <span className="badge-info ip-badge">📦 IP: {p.ip}</span>
+                        <span className="badge-info" style={{ background: 'rgba(212, 175, 55, 0.12)', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.35)' }}>
+                          🛡️ DEF: {defesaHeroi}
+                        </span>
+                        <span className="badge-info" style={{ background: 'rgba(155, 89, 182, 0.12)', color: '#d5b8ff', borderColor: 'rgba(155, 89, 182, 0.35)' }}>
+                          🔮 M.DEF: {mdefHeroi}
+                        </span>
+                        <span className="badge-info fabula-badge">✨ Fábula: {p.pontos_fabula}</span>
+                      </div>
                     </div>
                   )}
 
@@ -414,22 +444,43 @@ export default function InitiativeTracker({ isMestre }) {
                 {isMestre && !isEditando && (
                   <div className="mestre-stats-bar" onClick={(e) => e.stopPropagation()}>
                     <div className="mestre-stats-bar-row">
-                      <div className="stat-group">
-                        <span className="stat-label">HP: {p.hp_atual}/{p.hp_max}</span>
-                        <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
-                        <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
-                        <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
-                        <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
+                      {/* Bloco HP com barra */}
+                      <div className="stat-group-barra">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8b949e' }}>
+                          <span>HP: {p.hp_atual}/{p.hp_max}</span>
+                        </div>
+                        <div className="barra-container">
+                          <div
+                            className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
+                            style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
+                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
+                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
+                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
+                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
+                        </div>
                       </div>
 
-                      <div className="stat-group">
-                        <span className="stat-label">MP: {p.mp_atual}/{p.mp_max}</span>
-                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
-                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
-                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
-                        <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
+                      {/* Bloco MP com barra */}
+                      <div className="stat-group-barra">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8b949e' }}>
+                          <span>MP: {p.mp_atual}/{p.mp_max}</span>
+                        </div>
+                        <div className="barra-container">
+                          <div
+                            className="barra-mp-fill"
+                            style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
+                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
+                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
+                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
+                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
+                        </div>
                       </div>
-
                       {p.tipo === 'heroi' && (
                         <>
                           <div className="stat-group">

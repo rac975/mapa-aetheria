@@ -723,6 +723,53 @@
     padding: 20px;
 }
 
+
+/* =====================================================
+   BARRAS
+===================================================== */
+
+/* ContContainer das barras */
+.barra-container {
+    width: 100%;
+    background-color: #0d0f18;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 8px;
+    border: 1px solid #30363d;
+    margin-top: 4px;
+    position: relative;
+}
+
+/* Preenchimento dinâmico da barra de HP */
+.barra-hp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #238636, #2ea043);
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.barra-hp-fill.em-crise {
+    background: linear-gradient(90deg, #9e6a03, #d29922);
+}
+
+.barra-hp-fill.derrotado {
+    background: linear-gradient(90deg, #da3633, #f85149);
+}
+
+/* Preenchimento dinâmico da barra de MP */
+.barra-mp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1f6feb, #388bfd);
+    transition: width 0.3s ease;
+}
+
+/* Ajuste sutil para acomodar a barrinha nos blocos de status */
+.stat-group-barra {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 110px;
+}
+
 /* =====================================================
    RESPONSIVO
 ===================================================== */

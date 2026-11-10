@@ -75,6 +75,11 @@ export default function FichaPage({ isMestre }) {
                     return;
                 }
 
+                if (fichaData.jogador_token) {
+                    localStorage.setItem('aetheria_jogador_token', fichaData.jogador_token);
+                }
+                localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
+
                 setFicha(fichaData);
                 setFormData(fichaData);
                 setFormEquipamentos(fichaData.equipamentos || []);

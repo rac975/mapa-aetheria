@@ -165,7 +165,7 @@ export default function MestreFichasPage({ isMestre }) {
             ) : (
                 <div className="mestre-grid-fichas">
                     {fichas.map((f) => {
-                        const urlFicha = `https://rac975.github.io/mapa-aetheria/ficha/${f.id}`;
+                        const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
 
                         return (
                             <div
@@ -242,7 +242,7 @@ export default function MestreFichasPage({ isMestre }) {
                                             <div ref={(el) => { if (el) qrRefs.current[f.id] = el; }}>
                                                 <QRCodeSVG
                                                     value={urlFicha}
-                                                    size={54}
+                                                    size={100}
                                                     fgColor="#0d0f18"
                                                     bgColor="#ffffff"
                                                     level="M"
