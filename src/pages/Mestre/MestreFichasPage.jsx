@@ -165,7 +165,9 @@ export default function MestreFichasPage({ isMestre }) {
             ) : (
                 <div className="mestre-grid-fichas">
                     {fichas.map((f) => {
-                        const urlFicha = `${window.location.origin}${window.location.pathname}#/ficha/${f.id}`;
+                        // Pega o caminho base do repositório (ex: https://rac975.github.io/mapa-aetheria/)
+                        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+                        const urlFicha = `${baseUrl}#/ficha/${f.id}`;
 
                         return (
                             <div
