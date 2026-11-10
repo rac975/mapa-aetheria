@@ -165,7 +165,7 @@ export default function MestreFichasPage({ isMestre }) {
             ) : (
                 <div className="mestre-grid-fichas">
                     {fichas.map((f) => {
-                        const urlFicha = `https://rac975.github.io/mapa-aetheria/ficha/#/${f.id}`;
+                        const urlFicha = `https://rac975.github.io/mapa-aetheria/ficha/${f.id}`;
 
                         return (
                             <div
