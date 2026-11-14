@@ -18,7 +18,7 @@
 1. LAYOUT GERAL E ESTRUTURA PRINCIPAL
 ===================================================== */
 .main-content {
-  background: radial-gradient(ellipse at top center, rgba(212, 175, 55, 0.08), transparent 50%), var(--color-bg-main);
+  background: #0d0f18;
   color: var(--color-text-main);
   width: 100%;
   min-height: 100vh;
@@ -27,9 +27,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto !important;
-  /* Garante que o scroll principal da página funciona */
   height: auto !important;
-  /* Impede que a tela fique travada numa altura fixa */
 }
 
 .ficha-page-container {
@@ -43,7 +41,6 @@
   gap: 20px;
   box-sizing: border-box;
   overflow: visible !important;
-  /* Garante que nada dentro da ficha seja cortado */
   height: auto !important;
 }
 
@@ -125,6 +122,19 @@
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.badge-crise {
+  background: rgba(231, 76, 60, 0.22);
+  color: #ff5c5c;
+  border: 1px solid rgba(231, 76, 60, 0.45);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse-crise 1.5s infinite;
 }
 
 .ficha-avatar-container {
@@ -325,7 +335,6 @@
   box-sizing: border-box;
   margin-top: 10px;
   padding-bottom: 60px;
-  /* Espaço extra para o botão de salvar */
 }
 
 .ficha-form-edit .form-section-box {
@@ -580,7 +589,6 @@
 09. RESPONSIVIDADE (MOBILE / TABLET)
 ===================================================== */
 @media (max-width: 800px) {
-
   .grid_mobile {
     grid-template-columns: repeat(2, 1fr) !important;
   }
@@ -590,32 +598,14 @@
     margin: auto;
   }
 
+  .ficha-page-container{
+    padding-bottom: 30px;
+  }
+
   .ficha-avatar-container {
     margin: auto;
   }
 
-  .ficha-avatar-container h1 {
-    justify-content: center !important;
-  }
-
-  /* Seleciona a div pai que contém o seu botão */
-  div:has(> button.btn-secundario) {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 12px !important;
-  }
-
-  /* Ajusta o botão para ocupar a largura total no mobile */
-  button.btn-secundario {
-    width: 100% !important;
-    justify-content: center !important;
-    padding: 12px 16px !important;
-    white-space: nowrap !important;
-  }
-}
-
-/* Ajustes Específicos para Mobile / Telas Menores */
-@media (max-width: 800px) {
   .ficha-page-header {
     flex-direction: column;
     align-items: stretch;
@@ -655,37 +645,16 @@
     justify-content: center !important;
     padding: 12px !important;
   }
-}
 
-.main-content {
-  padding: 12px;
-}
+  .form-grid-2,
+  .form-grid-3,
+  .form-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
 
-.ficha-page-container {
-  padding: 4px;
-}
-
-.ficha-page-header {
-  flex-direction: column;
-  align-items: stretch;
-  text-align: center;
-}
-
-.header-info-wrapper {
-  flex-direction: column;
-  text-align: center;
-  justify-content: center;
-}
-
-.form-grid-2,
-.form-grid-3,
-.form-grid-4 {
-  grid-template-columns: 1fr;
-}
-
-.btn-toggle-edit {
-  width: 100%;
-  justify-content: center;
+  div:has(> .atrib-box) {
+    grid-template-columns: repeat(2, 2fr) !important;
+  }
 }
 
 .placeholder_transparent {

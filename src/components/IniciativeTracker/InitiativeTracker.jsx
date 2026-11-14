@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
-import {
-  FaChevronUp, FaChevronDown, FaTrash, FaShieldAlt, FaSkull, FaPlus, FaMinus, FaExclamationTriangle,
-  FaSpider, FaBolt, FaWeightHanging, FaHeartBroken, FaEyeSlash, FaEdit, FaCheck, FaTimes, FaUndoAlt
-} from 'react-icons/fa';
+import { FaUndoAlt } from 'react-icons/fa';
 import UndoToast from '../UndoToast/UndoToast';
 import CustomAlert from '../CustomAlert/CustomAlert';
+import CombatantItem from './CombatantItem';
+import AddParticipantForm from './AddPArticipantForm';
 import './InitiativeTracker.css';
-
-const CONDICOES_DISPONIVEIS = [
-  { id: 'envenenado', label: 'Envenenado', icon: <FaSpider /> },
-  { id: 'atordoado', label: 'Atordoado', icon: <FaBolt /> },
-  { id: 'vulneravel', label: 'Vulnerável', icon: <FaHeartBroken /> },
-  { id: 'lento', label: 'Lento', icon: <FaWeightHanging /> },
-  { id: 'fraco', label: 'Fraco', icon: <FaSkull /> },
-  { id: 'dominado', label: 'Dominado', icon: <FaEyeSlash /> }
-];
 
 export default function InitiativeTracker({ isMestre }) {
   const [participantes, setParticipantes] = useState([]);
@@ -38,17 +28,11 @@ export default function InitiativeTracker({ isMestre }) {
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
 
-  const getCondicaoIcon = (id) => {
-    const cond = CONDICOES_DISPONIVEIS.find(c => c.id === id);
-    return cond ? cond.icon : <FaExclamationTriangle />;
-  };
-
   useEffect(() => {
     async function carregarDadosIniciais() {
-      // Busca fichas primeiro para cruzar dados visuais se necessário
       const { data: fichasData } = await supabase
         .from('fichas_personagens')
-        .select('id, nome_personagem, hp_max, mp_max, ip_max, fabula, avatar_url, defesa, mdef');
+        .select('id, nome_personagem, hp_max, mp_max, pi_max, fabula, avatar_url, defesa, mdef');
 
       if (fichasData) {
         setFichasDisponiveis(fichasData);
@@ -135,7 +119,6 @@ export default function InitiativeTracker({ isMestre }) {
         return;
       }
 
-      // Objeto limpo compatível estritamente com as colunas da sua tabela iniciativa_combate
       novoCombatente = {
         nome: fichaEncontrada.nome_personagem,
         tipo: 'heroi',
@@ -145,7 +128,7 @@ export default function InitiativeTracker({ isMestre }) {
         hp_max: fichaEncontrada.hp_max || 40,
         mp_atual: fichaEncontrada.mp_max || 40,
         mp_max: fichaEncontrada.mp_max || 40,
-        ip: fichaEncontrada.ip_max || 6,
+        ip: fichaEncontrada.pi_max || 6,
         pontos_fabula: fichaEncontrada.fabula || 3,
         pontos_ultima: 0,
         dano_acumulado: 0,
@@ -210,16 +193,16 @@ export default function InitiativeTracker({ isMestre }) {
     setItemParaExcluir(null);
   };
 
-  const iniciarEdicao = (p) => {
-    setEditandoId(p.id);
-    setEditForm({
-      nome: p.nome,
-      hp_max: p.hp_max,
-      mp_max: p.mp_max,
-      ip: p.ip,
-      pontos_fabula: p.pontos_fabula
-    });
-  };
+  // const iniciarEdicao = (p) => {
+  //   setEditandoId(p.id);
+  //   setEditForm({
+  //     nome: p.nome,
+  //     hp_max: p.hp_max,
+  //     mp_max: p.mp_max,
+  //     ip: p.ip,
+  //     pontos_fabula: p.pontos_fabula
+  //   });
+  // };
 
   const salvarEdicao = async (id) => {
     const payload = {
@@ -245,12 +228,14 @@ export default function InitiativeTracker({ isMestre }) {
     await supabase.from('iniciativa_combate').update({ [campo]: novoValor }).eq('id', id);
 
     const participanteAtual = participantes.find(p => p.id === id);
-    if (participanteAtual && participanteAtual.tipo === 'heroi') {
-      let campoFicha = campo === 'pontos_fabula' ? 'fabula' : campo;
+    if (participanteAtual && participanteAtual.tipo === 'heroi' && participanteAtual.ficha_id) {
+      let campoFicha = campo;
+      if (campo === 'pontos_fabula') campoFicha = 'fabula';
+
       await supabase
         .from('fichas_personagens')
         .update({ [campoFicha]: novoValor })
-        .eq('nome_personagem', participanteAtual.nome);
+        .eq('id', participanteAtual.ficha_id);
     }
   };
 
@@ -260,7 +245,15 @@ export default function InitiativeTracker({ isMestre }) {
     atuais = atuais.includes(condicaoId) ? atuais.filter(c => c !== condicaoId) : [...atuais, condicaoId];
 
     setParticipantes(prev => prev.map(item => item.id === p.id ? { ...item, condicoes: atuais } : item));
-    await supabase.from('iniciativa_combate').update({ condicoes: atuais }).eq('id', p.id);
+
+    const { error } = await supabase
+      .from('iniciativa_combate')
+      .update({ condicoes: atuais })
+      .eq('id', p.id);
+
+    if (error) {
+      console.error("Erro ao atualizar condições no Supabase:", error.message);
+    }
   };
 
   const moverItem = async (index, direcao) => {
@@ -303,264 +296,45 @@ export default function InitiativeTracker({ isMestre }) {
         {participantes.length === 0 ? (
           <p className="empty-text">Nenhum combatente na cena.</p>
         ) : (
-          participantes.map((p, index) => {
-            const estaDerrotado = p.hp_atual === 0;
-            const emCrise = !estaDerrotado && p.hp_atual <= p.hp_max / 2;
-            const danoInimigo = p.hp_max - p.hp_atual;
-            const condicoesAtivas = p.condicoes || [];
-            const isEditando = editandoId === p.id;
-
-            // Busca os dados da ficha correspondente (avatar e defesas) dinamicamente
-            const fichaCorrespondente = fichasDisponiveis.find(f => f.id === p.ficha_id || f.nome_personagem.toLowerCase() === p.nome.toLowerCase());
-            const avatarUrl = fichaCorrespondente?.avatar_url;
-            const defesaHeroi = fichaCorrespondente?.defesa || 10;
-            const mdefHeroi = fichaCorrespondente?.mdef || 10;
-
-            return (
-              <div
-                key={p.id}
-                className={`participante-item ${p.tipo} ${p.agiu ? 'turn-completed' : ''} ${estaDerrotado ? 'is-defeated' : ''}`}
-                onClick={() => !isEditando && toggleTurno(p.id, p.agiu)}
-              >
-                <div className="item-main-row">
-                  <input type="checkbox" checked={p.agiu} readOnly />
-
-                  {/* Exibição do Avatar do Herói / Ícone */}
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={p.nome}
-                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #d4af37', flexShrink: 0 }}
-                    />
-                  ) : (
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#1a2230', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', flexShrink: 0, border: '1px solid #332914' }}>
-                      {p.tipo === 'heroi' ? <FaShieldAlt size={14} /> : <FaSkull size={14} />}
-                    </div>
-                  )}
-
-                  {isEditando ? (
-                    <input
-                      type="text"
-                      value={editForm.nome}
-                      onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ background: '#161b22', border: '1px solid #d4af37', color: '#fff', padding: '2px 6px', borderRadius: '4px' }}
-                    />
-                  ) : (
-                    <span className="nome">{p.nome}</span>
-                  )}
-
-                  {estaDerrotado && <span className="badge-derrotado">CAÍDO / DERROTADO</span>}
-                  {emCrise && <span className="badge-crise">CRISE</span>}
-
-                  {condicoesAtivas.length > 0 && !isEditando && (
-                    <div className="condicoes-strip">
-                      {condicoesAtivas.map(cId => {
-                        const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
-                        return (
-                          <span key={cId} className={`condicao-chip cond-${cId}`}>
-                            {getCondicaoIcon(cId)}
-                            <span>{condObj?.label}</span>
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {!isEditando && p.tipo === 'heroi' && (
-                    <div className="stats-badges-public" style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', maxWidth: '220px' }}>
-
-                      {/* BARRA DE HP VISÍVEL PARA TODOS */}
-                      <div style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#8b949e', marginBottom: '2px' }}>
-                          <span>❤️ HP</span>
-                          <span>{p.hp_atual}/{p.hp_max}</span>
-                        </div>
-                        <div className="barra-container" style={{ height: '6px' }}>
-                          <div
-                            className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
-                            style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* BARRA DE MP VISÍVEL PARA TODOS */}
-                      <div style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#8b949e', marginBottom: '2px' }}>
-                          <span>💧 MP</span>
-                          <span>{p.mp_atual}/{p.mp_max}</span>
-                        </div>
-                        <div className="barra-container" style={{ height: '6px' }}>
-                          <div
-                            className="barra-mp-fill"
-                            style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Demais badges (IP, Defesas, Fábula) continuam logo abaixo */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
-                        <span className="badge-info ip-badge">📦 IP: {p.ip}</span>
-                        <span className="badge-info" style={{ background: 'rgba(212, 175, 55, 0.12)', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.35)' }}>
-                          🛡️ DEF: {defesaHeroi}
-                        </span>
-                        <span className="badge-info" style={{ background: 'rgba(155, 89, 182, 0.12)', color: '#d5b8ff', borderColor: 'rgba(155, 89, 182, 0.35)' }}>
-                          🔮 M.DEF: {mdefHeroi}
-                        </span>
-                        <span className="badge-info fabula-badge">✨ Fábula: {p.pontos_fabula}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {!isEditando && p.tipo === 'inimigo' && (
-                    <div className="stats-badges-public">
-                      <span className="badge-info dano-badge">💥 Dano: {danoInimigo}</span>
-                    </div>
-                  )}
-
-                  <span className="badge">
-                    {p.tipo === 'heroi' ? <><FaShieldAlt /> Herói</> : <><FaSkull /> Inimigo</>}
-                  </span>
-
-                  {isMestre && (
-                    <div className="item-controls" onClick={(e) => e.stopPropagation()}>
-                      {isEditando ? (
-                        <>
-                          <button className="btn-save-edit" onClick={() => salvarEdicao(p.id)} title="Salvar"><FaCheck /></button>
-                          <button className="btn-cancel-edit" onClick={() => setEditandoId(null)} title="Cancelar"><FaTimes /></button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => iniciarEdicao(p)} title="Editar Cartão"><FaEdit /></button>
-                          <button disabled={index === 0} onClick={() => moverItem(index, 'cima')} title="Subir"><FaChevronUp /></button>
-                          <button disabled={index === participantes.length - 1} onClick={() => moverItem(index, 'baixo')} title="Descer"><FaChevronDown /></button>
-                          <button className="btn-delete-part" onClick={() => iniciarExclusao(p)} title="Remover"><FaTrash /></button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {isMestre && !isEditando && (
-                  <div className="mestre-stats-bar" onClick={(e) => e.stopPropagation()}>
-                    <div className="mestre-stats-bar-row">
-                      {/* Bloco HP com barra */}
-                      <div className="stat-group-barra">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8b949e' }}>
-                          <span>HP: {p.hp_atual}/{p.hp_max}</span>
-                        </div>
-                        <div className="barra-container">
-                          <div
-                            className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
-                            style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
-                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
-                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
-                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
-                          <button onClick={() => alterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
-                        </div>
-                      </div>
-
-                      {/* Bloco MP com barra */}
-                      <div className="stat-group-barra">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#8b949e' }}>
-                          <span>MP: {p.mp_atual}/{p.mp_max}</span>
-                        </div>
-                        <div className="barra-container">
-                          <div
-                            className="barra-mp-fill"
-                            style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
-                          />
-                        </div>
-                        <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
-                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
-                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
-                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
-                          <button onClick={() => alterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
-                        </div>
-                      </div>
-                      {p.tipo === 'heroi' && (
-                        <>
-                          <div className="stat-group">
-                            <span className="stat-label">IP: {p.ip}</span>
-                            <button onClick={() => alterarRecurso(p.id, 'ip', p.ip, -1)}><FaMinus /></button>
-                            <button onClick={() => alterarRecurso(p.id, 'ip', p.ip, 1)}><FaPlus /></button>
-                          </div>
-                          <div className="stat-group">
-                            <span className="stat-label">✨ Fábula: {p.pontos_fabula}</span>
-                            <button onClick={() => alterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, -1)}><FaMinus /></button>
-                            <button onClick={() => alterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, 1)}><FaPlus /></button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="condicoes-selector-group">
-                      <span className="stat-label">Condições:</span>
-                      <div className="condicoes-buttons">
-                        {CONDICOES_DISPONIVEIS.map(c => {
-                          const ativo = condicoesAtivas.includes(c.id);
-                          return (
-                            <button
-                              key={c.id}
-                              type="button"
-                              className={`cond-btn ${ativo ? 'active' : ''}`}
-                              onClick={() => toggleCondicao(p, c.id)}
-                            >
-                              {c.icon}
-                              <span>{c.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
+          participantes.map((p, index) => (
+            <CombatantItem
+              key={p.id}
+              p={p}
+              index={index}
+              totalParticipantes={participantes.length}
+              isMestre={isMestre}
+              isEditando={editandoId === p.id}
+              editForm={editForm}
+              setEditForm={setEditForm}
+              fichasDisponiveis={fichasDisponiveis}
+              onToggleTurno={toggleTurno}
+              // onIniciarEdicao={iniciarEdicao}
+              onSalvarEdicao={salvarEdicao}
+              onCancelarEdicao={() => setEditandoId(null)}
+              onMoverItem={moverItem}
+              onIniciarExclusao={iniciarExclusao}
+              onAlterarRecurso={alterarRecurso}
+              onToggleCondicao={toggleCondicao}
+            />
+          ))
         )}
       </div>
 
       {isMestre && (
-        <form onSubmit={addParticipante} className="form-add-part">
-          <div className="form-row-inline">
-            <select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value)}>
-              <option value="heroi">Herói (Selecionar Ficha)</option>
-              <option value="inimigo">Inimigo / NPC</option>
-            </select>
-
-            {novoTipo === 'heroi' ? (
-              <select
-                value={fichaSelecionadaId}
-                onChange={(e) => setFichaSelecionadaId(e.target.value)}
-                style={{ flex: 2 }}
-              >
-                {fichasDisponiveis.map(f => (
-                  <option key={f.id} value={f.id}>{f.nome_personagem}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type="text"
-                placeholder="Nome do Inimigo / NPC"
-                value={nomeInimigo}
-                onChange={(e) => setNomeInimigo(e.target.value)}
-              />
-            )}
-
-            {novoTipo === 'inimigo' && (
-              <>
-                <input type="number" placeholder="HP Máx" value={hpMaxInput} onChange={(e) => setHpMaxInput(e.target.value)} />
-                <input type="number" placeholder="MP Máx" value={mpMaxInput} onChange={(e) => setMpMaxInput(e.target.value)} />
-              </>
-            )}
-
-            <button type="submit">Adicionar à Cena</button>
-          </div>
-        </form>
+        <AddParticipantForm
+          novoTipo={novoTipo}
+          setNovoTipo={setNovoTipo}
+          fichaSelecionadaId={fichaSelecionadaId}
+          setFichaSelecionadaId={setFichaSelecionadaId}
+          fichasDisponiveis={fichasDisponiveis}
+          nomeInimigo={nomeInimigo}
+          setNomeInimigo={setNomeInimigo}
+          hpMaxInput={hpMaxInput}
+          setHpMaxInput={setHpMaxInput}
+          mpMaxInput={mpMaxInput}
+          setMpMaxInput={setMpMaxInput}
+          onAddParticipante={addParticipante}
+        />
       )}
 
       <CustomAlert

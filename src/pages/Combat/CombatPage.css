@@ -11,7 +11,6 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
-  overflow-y: auto;
 }
 
 /* =====================================================
@@ -43,31 +42,22 @@
 ===================================================== */
 .combat-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr; /* Mais espaço para os relógios */
+  grid-template-columns: 1fr 1.2fr;
+  /* Mais espaço para os relógios */
   gap: 28px;
   align-items: start;
   width: 100%;
   box-sizing: border-box;
 }
 
-@media (max-width: 1200px) {
-  .combat-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ==========================================================================
    RESPONSIVIDADE GERAL PARA SMARTPHONES (MAX-WIDTH: 800px) - COMBAT PAGE
    ========================================================================== */
 @media (max-width: 800px) {
-
-  /* Força a página de combate a não ultrapassar o limite da tela do celular */
-  /* Libera a altura do body e da página para o conteúdo fluir naturalmente, 
-     eliminando a barra vertical externa da janela */
   html,
   body {
-    height: auto !important;
-    overflow-y: auto !important;
+    height: 100% !important;
+    overflow: hidden !important;
   }
 
   .combat-header h1 {
@@ -81,28 +71,21 @@
   .combat-page {
     width: 100% !important;
     max-width: 100% !important;
-    padding: 12px 10px !important;
-    /* Reduz e equaliza as margens laterais */
+    padding: 0 0 25px 0 !important; /* Remove o padding interno excessivo, pois o .main-content já gerencia */
     margin: 0 auto !important;
-    /* Centraliza o bloco perfeitamente */
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    /* Garante que os filhos fiquem centralizados */
     height: auto !important;
-    min-height: 100vh;
+    min-height: auto !important;
     overflow-y: visible !important;
     box-sizing: border-box !important;
   }
 
-  /* Se a barra amarela for o trilho decorativo de fundo de algum container pai, escondemos ela no celular */
-  .combat-page::-webkit-scrollbar,
-  body::-webkit-scrollbar {
+  .combat-page::-webkit-scrollbar {
     display: none !important;
-    /* Esconde a barra de rolagem externa do navegador no mobile */
   }
 
-  /* Zera qualquer largura fixa que force expansão lateral */
   .combat-grid,
   .combat-box,
   .participante-item,
@@ -117,30 +100,19 @@
     margin-right: 0 !important;
   }
 
-  /* Garante que a lista de participantes e os relógios fiquem contidos */
-  .participantes-list,
-  .clocks-grid {
+  .participantes-list {
     width: 100% !important;
     max-width: 100% !important;
     padding-right: 0 !important;
     overflow-x: hidden !important;
   }
 
-  /* Ajusta o card do relógio para nunca estourar */
   .clock-card {
     min-width: 0 !important;
   }
 
-  .combat-grid,
-  .combat-box {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  .condicoes-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr) !important;
+  .combat-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 }

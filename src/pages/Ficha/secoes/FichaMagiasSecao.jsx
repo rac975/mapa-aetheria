@@ -5,7 +5,7 @@ export default function FichaMagiasSecao({ magias }) {
 
   return (
     <section className="ficha-card-section">
-      <h3><FaMagic /> Magias</h3>
+      <h3><FaMagic /> Magias/Arcanas</h3>
       {magias.map((m, i) => (
         <div key={i} className="traco-row" style={{ marginBottom: '8px' }}>
           <strong>{m.nome}</strong> (MP: {m.custo_mp} | Alvos: {m.alvos} | Duração: {m.duracao})

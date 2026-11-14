@@ -23,8 +23,81 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 800px) {
+
+  /* 1. Trava a janela do navegador e oculta a scrollbar lateral global */
+  html,
+  body {
+    height: 100% !important;
+    overflow: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scrollbar-width: none !important;
+    /* Firefox */
+    -ms-overflow-style: none !important;
+    /* Internet Explorer e Edge antigo */
+  }
+
+  /* Chrome, Safari, Edge moderno e Opera */
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 2. Container principal unificado para TODAS as páginas */
+  .main-content {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    /* 65px (barra inferior) + 20px (respiro ideal) = 85px embaixo */
+    padding: 16px 16px 85px 16px !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+
+    /* Oculta a scrollbar no mobile em todas as páginas */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .main-content::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* 3. Painel Lateral (Titan Sidebar / Drawer) no Mobile */
+  .titan-sidebar {
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    width: 100vw !important;
+  }
+
+  .titan-sidebar-content {
+    padding: 20px 20px 100px 20px !important;
+    overflow-y: auto !important;
+    scrollbar-width: none !important;
+  }
+
+  .titan-sidebar-content::-webkit-scrollbar {
+    display: none !important;
   }
 }

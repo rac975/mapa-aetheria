@@ -1,3 +1,9 @@
+/* Oculta a barra inferior no desktop por padrão */
+.mobile-bottom-nav {
+  display: none;
+}
+
+/* --- ESTILOS PADRÃO DA SIDEBAR (DESKTOP) --- */
 .sidebar {
   width: 260px;
   background: linear-gradient(180deg, #161b22 0%, #0d0f18 100%);
@@ -8,7 +14,9 @@
   padding: 20px;
   box-sizing: border-box;
   color: #f3f4f6;
-  z-index: 100;
+  height: 100vh;
+  position: sticky;
+  top: 0;
 }
 
 .sidebar-logo h2 {
@@ -39,23 +47,12 @@
   font-weight: 500;
   transition: all 0.2s ease;
   border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
 }
 
-.sidebar-link:hover {
-  background: rgba(212, 175, 55, 0.05);
-  color: #d4af37;
-  border-color: rgba(212, 175, 55, 0.2);
-}
-
-.sidebar-link.active {
+.sidebar-link:hover, .sidebar-link.active {
   background: rgba(212, 175, 55, 0.12);
   color: #d4af37;
   border-color: #d4af37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
 }
 
 .sidebar-footer {
@@ -66,11 +63,8 @@
   gap: 10px;
 }
 
-.btn-config-sidebar {
+.btn-config-sidebar, .btn-login-mestre, .mestre-badge-container {
   width: 100%;
-  background: #161b22;
-  color: #c9d1d9;
-  border: 1px solid #30363d;
   padding: 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -80,111 +74,66 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
+  background: #161b22;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
   transition: all 0.2s ease;
 }
 
-.btn-config-sidebar:hover {
-  background: rgba(212, 175, 55, 0.1);
+.btn-login-mestre, .mestre-badge-container {
+  color: #d4af37;
   border-color: #d4af37;
-  color: #d4af37;
 }
 
-.btn-login-mestre {
-  width: 100%;
-  background: #161b22;
-  color: #d4af37;
-  border: 1px solid #d4af37;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.btn-login-mestre:hover {
-  background: #d4af37;
-  color: #0d0f18;
-}
-
-.mestre-badge-container {
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid #d4af37;
-  padding: 10px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #d4af37;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: bold;
-  transition: all 0.2s ease;
-}
-
-.mestre-badge-container:hover {
-  background: rgba(220, 38, 38, 0.2);
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
-/* Botão Hambúrguer (Invisível no Desktop) */
-.mobile-menu-toggle {
-  display: none;
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  z-index: 1100;
-  background: #161b22;
-  color: #d4af37;
-  border: 1px solid #332914;
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-/* Overlay de fundo escuro para celulares */
-.sidebar-overlay {
-  display: none;
-}
-
-/* Regras exclusivas para Smartphones (telas menores que 768px) */
+/* --- REGRAS PARA SMARTPHONES (Telas menores que 800px) --- */
 @media (max-width: 800px) {
-  
-  .mobile-menu-toggle {
+  /* Esconde completamente a sidebar lateral antiga */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Exibe a Bottom Navigation Bar */
+  .mobile-bottom-nav {
     display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: #0d0f18;
+    border-top: 2px solid #332914;
+    z-index: 1200;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 5px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+  }
+
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    height: 100%;
+    transition: color 0.2s ease;
   }
 
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -280px; /* Esconde a sidebar totalmente para a esquerda */
-    height: 100vh;
-    width: 260px;
-    z-index: 1050;
-    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.8);
+  .bottom-nav-item svg {
+    font-size: 1.25rem;
   }
 
-  /* Quando ativada pelo estado no React, desliza para dentro */
-  .sidebar.open {
-    left: 0;
-  }
-
-  .sidebar-overlay {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(2px);
-    z-index: 1040;
+  .bottom-nav-item:hover, 
+  .bottom-nav-item.active {
+    color: #d4af37;
   }
 }

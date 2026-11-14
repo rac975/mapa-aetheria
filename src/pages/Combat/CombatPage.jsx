@@ -11,13 +11,8 @@ export default function CombatPage({ isMestre }) {
         <p>Gerencie a ordem de iniciativa dos turnos e acompanhe os relógios de tensão e perigo da cena.</p>
       </header>
 
-      <div className="combat-grid">
-        {/* Módulo de Iniciativa e Turnos */}
-        <InitiativeTracker isMestre={isMestre} />
-
-        {/* Módulo de Relógios (Clocks) */}
-        <ClockManager isMestre={isMestre} />
-      </div>
+      <ClockManager isMestre={isMestre} />
+      <InitiativeTracker isMestre={isMestre} />
     </div>
   );
 }

@@ -72,7 +72,7 @@ export default function MestreFichasPage({ isMestre }) {
                 tema: 'Aventura',
                 hp_atual: 30, hp_max: 30,
                 mp_atual: 20, mp_max: 20,
-                ip_atual: 6, ip_max: 6,
+                ip_atual: 6, pi_max: 6,
                 nivel: 1
             }]);
 
@@ -223,7 +223,7 @@ export default function MestreFichasPage({ isMestre }) {
                                 <div className="status-bars-preview" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', background: 'rgba(13, 17, 23, 0.5)', padding: '10px 12px', borderRadius: '8px', border: '1px solid #30363d', fontSize: '0.85rem' }}>
                                     <span title="Pontos de Vida"><FaHeart color="#f85149" /> HP: {f.hp_atual}/{f.hp_max}</span>
                                     <span title="Pontos de Mana"><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{f.mp_max}</span>
-                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {f.ip_atual}/{f.ip_max}</span>
+                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {f.ip_atual}/{f.pi_max}</span>
                                     <span title="Pontos de Fábula"><strong style={{ color: '#d5b8ff' }}>✨ Fábula:</strong> {f.fabula ?? 3}</span>
 
                                     <span className="nivel-tag" style={{ marginLeft: 'auto', background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
@@ -279,7 +279,7 @@ export default function MestreFichasPage({ isMestre }) {
                                         <FaEdit /> Editar Ficha
                                     </button>
 
-                                    <button type="button" className="btn-del" onClick={(e) => handleDeletarFicha(f.id, e)} style={{ cursor: 'pointer' }}>
+                                    <button type="button" className="btn-del" onClick={(e) => handleDeletarFicha(f.id, e)}>
                                         <FaTrash /> Excluir Ficha
                                     </button>
                                 </div>

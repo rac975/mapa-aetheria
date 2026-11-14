@@ -3,7 +3,7 @@ import { FaVolumeUp, FaVolumeMute, FaMusic, FaDatabase, FaServer, FaSync, FaCog 
 import { audioService } from '../../services/audioService';
 import './SettingsPage.css';
 
-export default function SettingsPage({ onClose }) {
+export default function SettingsPage({ isMestre, onClose }) {
   const [state, setState] = useState(() => audioService.getState());
   const [dbStatus] = useState('Conectado');
 
@@ -25,7 +25,7 @@ export default function SettingsPage({ onClose }) {
         </div>
 
         <div className="settings-body">
-          {/* Seção de Áudio */}
+          {/* Seção de Áudio (Visível para todos) */}
           <div className="settings-section">
             <h3><FaVolumeUp /> Controles de Áudio & Trilha Sonora</h3>
             
@@ -76,21 +76,23 @@ export default function SettingsPage({ onClose }) {
             </div>
           </div>
 
-          {/* Seção de Dados e Sistema (Mestre) */}
-          <div className="settings-section">
-            <h3><FaDatabase /> Dados & Ferramentas de Mestre</h3>
-            
-            <div className="setting-info-row">
-              <span>Status do Banco (Supabase):</span>
-              <strong className="status-online"><FaServer /> {dbStatus}</strong>
-            </div>
+          {/* Seção de Dados e Sistema (Visível APENAS se isMestre for true) */}
+          {isMestre && (
+            <div className="settings-section">
+              <h3><FaDatabase /> Dados & Ferramentas de Mestre</h3>
+              
+              <div className="setting-info-row">
+                <span>Status do Banco (Supabase):</span>
+                <strong className="status-online"><FaServer /> {dbStatus}</strong>
+              </div>
 
-            <div className="setting-actions">
-              <button type="button" className="btn-acao-mestre" onClick={handleForcarAtualizacao}>
-                <FaSync /> Recarregar Dados do Mapa / Cache
-              </button>
+              <div className="setting-actions">
+                <button type="button" className="btn-acao-mestre" onClick={handleForcarAtualizacao}>
+                  <FaSync /> Recarregar Dados do Mapa / Cache
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="settings-footer">

@@ -1,69 +1,265 @@
+/* =====================================================
+FORMULÁRIO DE CRIAÇÃO (ALINHAMENTO EM LINHA)
+===================================================== */
 .form-create-clock {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 10px;
-  background: #161b22;
+  background: linear-gradient(135deg, #161c2d 0%, #111622 100%);
   padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #332914;
+  border-radius: 12px;
+  border: 1px solid #2a374e;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.form-create-clock input, 
-.form-create-clock select {
+.form-main-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.form-create-clock input[type="text"] {
+  flex: 2;
+  min-width: 220px;
   background: #0d0f18;
-  color: #f0f0f0;
-  border: 1px solid #332914;
+  color: #f0f4f8;
+  border: 1px solid #212b3d;
   padding: 10px 14px;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
   outline: none;
-  width: 100%;
-  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
-.form-create-clock input:focus, 
+.form-create-clock select {
+  flex: 1;
+  min-width: 150px;
+  background: #0d0f18;
+  color: #f0f4f8;
+  border: 1px solid #212b3d;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-create-clock input:focus,
 .form-create-clock select:focus {
   border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
 
-.form-create-clock .form-row-inline {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.form-create-clock .checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #d0d0d0;
+/* Botão de alternar visibilidade (👁) */
+.visibility-toggle-btn {
+  background: #161b22;
+  border: 1px solid #2a374e;
+  color: #8b949e;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.form-create-clock button {
+.visibility-toggle-btn.is-visible {
+  background: rgba(46, 204, 113, 0.12);
+  color: #44e088;
+  border-color: rgba(46, 204, 113, 0.3);
+}
+
+.visibility-toggle-btn:hover {
+  border-color: #d4af37;
+  color: #f0f4f8;
+}
+
+/* Botão de Criar */
+.btn-submit-clock {
   background: #d4af37;
   color: #0d0f18;
   border: none;
-  padding: 10px;
-  border-radius: 6px;
-  font-weight: bold;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.form-create-clock button:hover {
-  opacity: 0.9;
+.btn-submit-clock:hover {
+  transform: translateY(-1px);
+  background: #e5c158;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
 }
 
+.btn-submit-clock:active {
+  transform: translateY(1px);
+}
+
+/* =====================================================
+CONTAINER DE RELÓGIOS COM SCROLL HORIZONTAL
+===================================================== */
+.clocks-container-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  /* Ativa a scrollbar horizontal quando passarem do limite */
+  padding-bottom: 8px;
+  /* Espaço para a scrollbar não colar nos cards */
+  margin-top: 4px;
+}
+
+/* Estilização da Scrollbar Horizontal no tema */
+.clocks-container-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.clocks-container-wrapper::-webkit-scrollbar-track {
+  background: #090b10;
+  border-radius: 999px;
+}
+
+.clocks-container-wrapper::-webkit-scrollbar-thumb {
+  background: #2a374e;
+  border-radius: 999px;
+}
+
+.clocks-container-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Os relógios ficam dispostos em linha reta lado a lado */
 .clocks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  max-height: 400px;
-  overflow-y: auto;
-  margin-top: 10px;
-  padding-right: 4px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: nowrap;
+  /* Impede que quebrem para a linha de baixo */
+  align-items: stretch;
+  width: max-content;
+  /* Permite que o container cresça lateralmente conforme adiciona relógios */
+  min-width: 100%;
+}
+
+/* =====================================================
+ANIMAÇÃO DE RECOLHER / EXPANDIR (COLLAPSE)
+===================================================== */
+.combat-content-body {
+  max-height: 800px;
+  /* Altura máxima estimada suficiente para o conteúdo */
+  opacity: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.combat-box.collapsed {
+  gap: 0;
+  padding-bottom: 16px;
+}
+
+.combat-box.collapsed .box-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.combat-box.collapsed .box-header::after {
+  display: none;
+  /* Remove a linha decorativa inferior quando recolhido */
+}
+
+.combat-box.collapsed .combat-content-body {
+  max-height: 0;
+  opacity: 0;
+  gap: 0;
+  margin-top: 0;
+  pointer-events: none;
+  /* Impede interações nos elementos ocultos */
+}
+
+/* Estilo do botão de recolher no cabeçalho */
+.collapse-btn {
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #d4af37;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.collapse-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  transform: scale(1.08);
+}
+
+.collapse-btn:active {
+  transform: scale(0.95);
+}
+
+/* =====================================================
+RESPONSIVO
+===================================================== */
+@media (max-width: 800px) {
+  .form-main-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-create-clock input[type="text"],
+  .form-create-clock select,
+  .visibility-toggle-btn,
+  .btn-submit-clock {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .combat-box,
+  .combat-content-body {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .clocks-container-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+    /* Permite rolar a página para cima/baixo, mas entrega o arrasto lateral ao JS */
+  }
+
+  .clocks-container-wrapper:active {
+    cursor: grabbing;
+  }
+
+  .clocks-grid {
+    display: flex !important;
+    gap: 14px !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+  }
+
+  .clocks-grid>* {
+    flex: 0 0 250px !important;
+    min-width: 250px !important;
+  }
+
 }

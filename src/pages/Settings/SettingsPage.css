@@ -1,3 +1,6 @@
+/* =====================================================
+   00. OVERLAY E ESTRUTURA GERAL DO MODAL
+===================================================== */
 .settings-overlay {
     position: fixed;
     top: 0;
@@ -91,18 +94,82 @@
     cursor: pointer;
 }
 
-.checkbox-row {
+/* =====================================================
+   ESTILO MODERNO PARA O CHECKBOX DE MUTE GERAL
+===================================================== */
+.setting-item.checkbox-row {
+    margin-top: 20px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
     flex-direction: row;
     align-items: center;
+}
+
+.setting-item.checkbox-row:hover {
+    border-color: rgba(212, 175, 55, 0.4);
+    background: #1a212c;
 }
 
 .checkbox-row label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     cursor: pointer;
+    font-size: 0.95rem;
+    color: #c9d1d9;
+    font-weight: 500;
+    width: 100%;
+    user-select: none;
 }
 
+/* Customização do Input Checkbox Nativo */
+.checkbox-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background-color: #0d0f18;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Ícone de marcação (Check) dourado quando ativado */
+.checkbox-row input[type="checkbox"]::before {
+    content: "";
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid #0d0f18;
+    border-bottom: 2px solid #0d0f18;
+    transform: scale(0) rotate(-45deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+.checkbox-row input[type="checkbox"]:checked {
+    background-color: #d4af37;
+    border-color: #d4af37;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.checkbox-row input[type="checkbox"]:checked::before {
+    transform: scale(1) rotate(-45deg);
+}
+
+.checkbox-row svg {
+    font-size: 1.1rem;
+    color: #d4af37;
+}
+
+/* =====================================================
+   INFORMAÇÕES E BOTÕES DE AÇÃO
+===================================================== */
 .setting-info-row {
     display: flex;
     justify-content: space-between;
@@ -170,6 +237,9 @@
     margin-bottom: 15px;
 }
 
+/* =====================================================
+   BOTÃO DE TOGGLE DA MÚSICA
+===================================================== */
 .btn-music-toggle {
     background: #161b22;
     color: #8b949e;
@@ -187,29 +257,25 @@
     transition: all 0.3s ease;
 }
 
-/* Efeito de Hover comum */
 .btn-music-toggle:hover {
     background: #21262d;
     color: #fff;
     border-color: #8b949e;
 }
 
-/* Estado Ativo (Música Ligada) */
 .btn-music-toggle.ativo {
-    background: rgba(212, 175, 55, 0.1); /* Fundo dourado translúcido */
-    color: #d4af37;                      /* Texto dourado */
-    border-color: #d4af37;               /* Borda dourado */
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2); /* Brilho suave */
+    background: rgba(212, 175, 55, 0.1);
+    color: #d4af37;
+    border-color: #d4af37;
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
     font-weight: bold;
 }
 
-/* Hover quando o botão já está ativo */
 .btn-music-toggle.ativo:hover {
     background: rgba(212, 175, 55, 0.18);
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.35);
 }
 
-/* Animação simples para o ícone de música quando ativo */
 .btn-music-toggle.ativo svg {
     animation: pulseIcon 2s infinite ease-in-out;
 }
@@ -217,4 +283,59 @@
 @keyframes pulseIcon {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.15); }
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE PARA SMARTPHONES (MAX-WIDTH: 800px) - SETTINGS MODAL
+   ========================================================================== */
+@media (max-width: 800px) {
+  .settings-overlay {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    background: rgba(5, 7, 12, 0.8) !important;
+  }
+
+  .settings-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 82vh !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 20px !important;
+    border-top-right-radius: 20px !important;
+    border-bottom: none !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.9) !important;
+    animation: slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .settings-body {
+    max-height: 52vh !important;
+    overflow-y: auto !important;
+    padding: 16px !important;
+  }
+
+  .settings-header {
+    padding: 16px !important;
+  }
+
+  .settings-footer {
+    padding: 14px 16px !important;
+  }
+
+  .btn-salvar {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+}
+
+@keyframes slideUpModal {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
