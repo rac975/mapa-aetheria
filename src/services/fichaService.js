@@ -6,6 +6,9 @@ import { supabase } from './supabase.js';
  * Regra Arquitetural: Proibido chamar supabase.from() ou supabase.channel() fora de src/services/.
  */
 export const fichaService = {
+  _catalogoPoderesCache: null,
+  _catalogoPeculiaridadesCache: null,
+
   /**
    * Busca todas as fichas com classes e itens para exibição pelo Mestre
    * @returns {Promise<Array<any>>}
@@ -231,10 +234,110 @@ export const fichaService = {
       .single();
 
     if (error) {
+      // Fallback caso alguma coluna opcional JSONB (ex: peculiaridade) ainda não exista no schema do banco
+      if (error.code === 'PGRST204' && dados && typeof dados === 'object') {
+        const dadosCompat = { ...dados };
+        delete dadosCompat.peculiaridade;
+        const retry = await supabase
+          .from('fichas_personagens')
+          .update(dadosCompat)
+          .eq('id', fichaId)
+          .select()
+          .single();
+
+        if (!retry.error) {
+          return retry.data;
+        }
+      }
       console.error('Erro ao atualizar ficha:', error);
       throw error;
     }
     return data;
+  },
+
+  /**
+   * Salva a lista de Poderes Heróicos adquiridos na tabela fichas_personagens
+   * @param {string|number} fichaId
+   * @param {Array} poderesHeroicos
+   * @returns {Promise<any>}
+   */
+  async salvarPoderesHeroicos(fichaId, poderesHeroicos = []) {
+    if (!fichaId) throw new Error('fichaId é obrigatório para salvar Poderes Heróicos.');
+    const listaNormalizada = Array.isArray(poderesHeroicos) ? poderesHeroicos : [];
+    return await this.atualizarFicha(fichaId, {
+      poderes_heroicos: listaNormalizada
+    });
+  },
+
+  /**
+   * Salva os dados de Peculiaridade (Quirk) na tabela fichas_personagens
+   * mantendo compatibilidade com titulo_pecularidade e descricao_pecularidade
+   * @param {string|number} fichaId
+   * @param {Object} dadosPeculiaridade
+   * @returns {Promise<any>}
+   */
+  async salvarPeculiaridade(fichaId, dadosPeculiaridade = {}) {
+    if (!fichaId) throw new Error('fichaId é obrigatório para salvar Peculiaridade.');
+    const payload = {
+      titulo_pecularidade: dadosPeculiaridade.titulo_pecularidade || '',
+      descricao_pecularidade: dadosPeculiaridade.descricao_pecularidade || ''
+    };
+    if (dadosPeculiaridade.peculiaridade !== undefined) {
+      payload.peculiaridade = dadosPeculiaridade.peculiaridade;
+    }
+    return await this.atualizarFicha(fichaId, payload);
+  },
+
+  /**
+   * Busca o catálogo oficial de Poderes Heróicos diretamente da tabela catalogo_poderes_heroicos
+   * @param {string} [fonte] Filtro opcional por manual/fonte
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoPoderesHeroicos(fonte = null) {
+    if (!this._catalogoPoderesCache) {
+      const { data, error } = await supabase
+        .from('catalogo_poderes_heroicos')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_poderes_heroicos no Supabase:', error);
+        throw error;
+      }
+      this._catalogoPoderesCache = data || [];
+    }
+
+    if (fonte) {
+      return this._catalogoPoderesCache.filter((p) => p.fonte === fonte);
+    }
+    return this._catalogoPoderesCache;
+  },
+
+  /**
+   * Busca o catálogo oficial de Peculiaridades diretamente da tabela catalogo_peculiaridades
+   * @param {string} [categoria] Filtro opcional por categoria ou fonte
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoPeculiaridades(categoria = null) {
+    if (!this._catalogoPeculiaridadesCache) {
+      const { data, error } = await supabase
+        .from('catalogo_peculiaridades')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_peculiaridades no Supabase:', error);
+        throw error;
+      }
+      this._catalogoPeculiaridadesCache = data || [];
+    }
+
+    if (categoria && categoria !== 'todas') {
+      return this._catalogoPeculiaridadesCache.filter(
+        (q) => q.categoria === categoria || q.fonte === categoria
+      );
+    }
+    return this._catalogoPeculiaridadesCache;
   },
 
   /**

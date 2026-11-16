@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Modal.module.css';
 
 /**
@@ -37,7 +38,7 @@ export default function Modal({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
       <div
         className={`${styles.modalWindow} ${styles[size] || styles.md} ${className}`}
@@ -67,6 +68,7 @@ export default function Modal({
 
         {footer && <footer className={styles.footer}>{footer}</footer>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

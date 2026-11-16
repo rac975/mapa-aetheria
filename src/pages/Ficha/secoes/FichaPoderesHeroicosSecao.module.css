@@ -1,0 +1,340 @@
+/* =====================================================
+   FICHA PODERES HERÓICOS SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.summaryBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.masteredClassesGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.summaryLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.passiveBonusesStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(var(--color-core-green-rgb), 0.08);
+  border: 1px solid rgba(var(--color-core-green-rgb), 0.25);
+  border-radius: var(--radius-md);
+}
+
+.emptyBox {
+  background: var(--color-bg-elevated);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.emptyTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-border-gold-bright);
+  margin: 0;
+}
+
+.emptyText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.skillsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-3);
+}
+
+.skillCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.skillCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.skillCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.skillTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.skillName {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.skillOriginalName {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.skillDescription {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  margin: var(--space-1) 0 0 0;
+}
+
+.skillReqs {
+  font-size: var(--font-size-xs);
+  color: var(--color-ether-cyan);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: var(--space-2);
+  margin-top: auto;
+}
+
+.feedbackBanner {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background: rgba(var(--color-core-green-rgb), 0.14);
+  border: 1px solid var(--color-core-green);
+  color: var(--color-core-green);
+}
+
+/* --- ESTILOS DO MODAL DE CATÁLOGO --- */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modalTopInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.modalFiltersRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sourceTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tabBtn {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tabBtn:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-main);
+}
+
+.tabBtnActive {
+  background: rgba(var(--color-ether-cyan-rgb), 0.18);
+  border-color: var(--color-ether-cyan);
+  color: var(--color-ether-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.catalogList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: var(--space-3);
+  max-height: 56vh;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.catalogCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.catalogCard:hover {
+  border-color: var(--color-ether-cyan);
+  background: var(--color-bg-surface-hover);
+}
+
+.catalogCardAcquired {
+  border-color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.08);
+}
+
+.catalogCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 10px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .headerRow {
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .sectionHeader,
+  .skillName,
+  .emptyTitle,
+  .summaryLabel {
+    color: #000000 !important;
+  }
+
+  .summaryBar,
+  .passiveBonusesStrip,
+  .emptyBox {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+  }
+
+  .skillCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .skillDescription,
+  .skillOriginalName,
+  .skillReqs,
+  .emptyText {
+    color: #111111 !important;
+  }
+
+  .noPrint {
+    display: none !important;
+  }
+}

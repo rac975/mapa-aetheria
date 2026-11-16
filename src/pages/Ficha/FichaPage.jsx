@@ -19,10 +19,11 @@ import FichaEstatisticasSecao from './secoes/FichaEstatisticasSecao';
 import FichaPericiasSecao from './secoes/FichaPericiaSecao';
 import FichaPIComponent from './components/FichaPIComponent';
 import FichaProficienciasSecao from './secoes/FichaProficienciasSecao';
+import FichaPoderesHeroicosSecao from './secoes/FichaPoderesHeroicosSecao';
 
 // Importação dos subcomponentes de formulário (Edição)
 import FichaFormGeral from './forms/FichaFormGeral';
-import FichaFormPeculiaridade from './forms/FichaFormPeculiaridades';
+import FichaFormPeculiaridade, { ExibirPeculiaridadeFicha } from './forms/FichaFormPeculiaridades';
 import FichaFormAtributos from './forms/FichaFormAtributos';
 import FichaFormClasses from './forms/FichaFormClasses';
 import FichaFormLacos from './forms/FichaFormLacos';
@@ -175,6 +176,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         statusFicha={statusFicha}
                         handleAjustarRecurso={ajustarRecurso}
                     />
+                    <ExibirPeculiaridadeFicha ficha={ficha} />
                     <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
                     <FichaEstatisticasSecao statusFicha={statusFicha} />
                     <FichaPIComponent ficha={ficha} setFicha={setFicha} piMaxCalculado={statusFicha.piMax} />
@@ -197,6 +199,12 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                             setOpcoesGolpeAtivo(opcoes);
                             setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
                         }}
+                    />
+                    <FichaPoderesHeroicosSecao
+                        fichaId={id || ficha?.id}
+                        ficha={ficha}
+                        setFicha={setFicha}
+                        classes={classes}
                     />
                     <FichaProficienciasSecao classes={classes} />
                     <FichaEquipamentosSecao

@@ -1,14 +1,15 @@
 import { FaDice, FaPlus, FaMinus } from 'react-icons/fa';
 import { LuDot } from 'react-icons/lu';
-import { Card } from '../../../components/ui';
+import { Card, Badge } from '../../../components/ui';
+import { calcularBonusPassivosPoderesHeroicos } from '../../../domain/fabula/heroicAndQuirksRules';
 import styles from './FichaAtributosSecao.module.css';
 
 export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, setModificadoresTemporarios, onRolarDado }) {
-    const atributosBase = {
-        destreza: ficha?.destreza || 8,
-        astucia: ficha?.astucia || 8,
-        vigor: ficha?.vigor || 8,
-        vontade: ficha?.vontade || 8,
+    const atributosBaseBrutos = {
+        destreza: Number(ficha?.destreza) || 8,
+        astucia: Number(ficha?.astucia) || 8,
+        vigor: Number(ficha?.vigor) || 8,
+        vontade: Number(ficha?.vontade) || 8,
     };
 
     const siglas = {
@@ -18,11 +19,21 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
         vontade: 'VON'
     };
 
-    // Nova progressão solicitada incluindo o d20
+    // Progressão oficial de dados incluindo d20
     const progressao = [6, 8, 10, 12, 20];
+    const bonusHeroicos = calcularBonusPassivosPoderesHeroicos(ficha?.poderes_heroicos || [], ficha?.nivel || 5);
+
+    const getAtributoBaseEfetivo = (nome) => {
+        const baseBruto = atributosBaseBrutos[nome];
+        const idxBruto = Math.max(0, progressao.indexOf(baseBruto));
+        const passosHeroicos = bonusHeroicos.aumentosAtributo?.[nome] || 0;
+        // Poderes Heróicos de Atributo Aprimorado têm teto em d12 (índice 3)
+        const idxEfetivo = Math.min(3, idxBruto + passosHeroicos);
+        return progressao[idxEfetivo];
+    };
 
     const getAtributoAtual = (nome) => {
-        const base = atributosBase[nome];
+        const base = getAtributoBaseEfetivo(nome);
         const mod = modificadoresTemporarios[nome] || 0;
         const idxBase = progressao.indexOf(base);
         const idxFinal = Math.max(0, Math.min(progressao.length - 1, idxBase + mod));
@@ -57,12 +68,14 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
                 <FaDice /> Atributos e Modificadores Temporários
             </h3>
             <div className={styles.gridAtributos}>
-                {Object.keys(atributosBase).map((key) => {
-                    const base = atributosBase[key];
+                {Object.keys(atributosBaseBrutos).map((key) => {
+                    const baseBruto = atributosBaseBrutos[key];
+                    const base = getAtributoBaseEfetivo(key);
                     const valorFinal = getAtributoAtual(key);
                     const sigla = siglas[key];
+                    const temAprimoramentoHeroico = (bonusHeroicos.aumentosAtributo?.[key] || 0) > 0;
 
-                    const ehBuff = valorFinal > base;
+                    const ehBuff = valorFinal > baseBruto;
                     const ehDebuff = valorFinal < base;
 
                     let classeValor = styles.valNormal;
@@ -94,6 +107,11 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
                             <strong className={`${styles.valorDado} ${classeValor}`}>
                                 d{valorFinal}
                             </strong>
+                            {temAprimoramentoHeroico && (
+                                <Badge variant="core" size="sm">
+                                    ★ Aprimorado
+                                </Badge>
+                            )}
 
                             {/* Controles de Aumentar / Diminuir sem números, apenas botões */}
                             <div className={styles.controlesBox} onClick={(e) => e.stopPropagation()}>

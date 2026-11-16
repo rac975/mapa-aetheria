@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fichaService } from '../services/fichaService';
 import { calcularStatusPersonagem } from '../utils/calculosFicha';
 import { calcularNivelTotal } from '../domain/fabula/characterProgression';
+import {
+  calcularBonusPassivosPoderesHeroicos,
+  prepararHeroicAndQuirksParaBanco
+} from '../domain/fabula/heroicAndQuirksRules';
 
 const PROGRESSAO_DADOS = [6, 8, 10, 12, 20];
 
@@ -159,23 +163,35 @@ export function useCharacterSheet(id, navigate) {
   const temArpaktida = terioformasAtivasLista.includes('arpaktida');
   const temDynamotheria = terioformasAtivasLista.includes('dynamotheria');
 
-  // 3. Cálculo de atributos dinâmicos com modificadores temporários e Terioformas
-  const getAtributoAtualValor = useCallback((nomeAtributo, valorBase) => {
-    let mod = modificadoresTemporarios[nomeAtributo] || 0;
-    if (nomeAtributo === 'destreza' && temTachytheria) mod += 1;
-    if (nomeAtributo === 'astucia' && temArpaktida) mod += 1;
-    if (nomeAtributo === 'vigor' && temDynamotheria) mod += 1;
+  const nivelTotalPersonagem = useMemo(() => calcularNivelTotal(classes) || 5, [classes]);
+  const bonusHeroicosPassivos = useMemo(
+    () => calcularBonusPassivosPoderesHeroicos(ficha?.poderes_heroicos || [], nivelTotalPersonagem),
+    [ficha?.poderes_heroicos, nivelTotalPersonagem]
+  );
 
-    const idxBase = PROGRESSAO_DADOS.indexOf(valorBase || 8);
-    const idxFinal = Math.max(0, Math.min(PROGRESSAO_DADOS.length - 1, idxBase + mod));
+  // 3. Cálculo de atributos dinâmicos com Poderes Heróicos, Terioformas e modificadores temporários
+  const getAtributoAtualValor = useCallback((nomeAtributo, valorBase) => {
+    const idxBaseBruto = Math.max(0, PROGRESSAO_DADOS.indexOf(Number(valorBase) || 8));
+    let bonusPermanenteOuForma = bonusHeroicosPassivos.aumentosAtributo?.[nomeAtributo] || 0;
+    if (nomeAtributo === 'destreza' && temTachytheria) bonusPermanenteOuForma += 1;
+    if (nomeAtributo === 'astucia' && temArpaktida) bonusPermanenteOuForma += 1;
+    if (nomeAtributo === 'vigor' && temDynamotheria) bonusPermanenteOuForma += 1;
+
+    // Aumentos permanentes de Poderes Heróicos e Terioformas têm teto em d12 (índice 3)
+    const idxComAprimoramento = Math.min(3, idxBaseBruto + bonusPermanenteOuForma);
+
+    const modTemp = modificadoresTemporarios[nomeAtributo] || 0;
+    const idxFinal = Math.max(0, Math.min(PROGRESSAO_DADOS.length - 1, idxComAprimoramento + modTemp));
     return PROGRESSAO_DADOS[idxFinal];
-  }, [modificadoresTemporarios, temTachytheria, temArpaktida, temDynamotheria]);
+  }, [modificadoresTemporarios, bonusHeroicosPassivos, temTachytheria, temArpaktida, temDynamotheria]);
 
   const atributosAtuaisParaCalculo = useMemo(() => ({
     destreza: getAtributoAtualValor('destreza', ficha?.destreza),
     astucia: getAtributoAtualValor('astucia', ficha?.astucia),
     vigor: getAtributoAtualValor('vigor', ficha?.vigor),
-    vontade: getAtributoAtualValor('vontade', ficha?.vontade)
+    vontade: getAtributoAtualValor('vontade', ficha?.vontade),
+    _jaAplicouHeroicos: true,
+    _jaAplicouTerioformas: true
   }), [ficha?.destreza, ficha?.astucia, ficha?.vigor, ficha?.vontade, getAtributoAtualValor]);
 
   const itensEquipados = useMemo(() => {
@@ -213,7 +229,7 @@ export function useCharacterSheet(id, navigate) {
     });
   }, []);
 
-  // 4. Status globais calculados (HP Máx, MP Máx, Defesas, Iniciativa)
+  // 4. Status globais calculados (HP Máx, MP Máx, PI Máx, Defesas, Iniciativa)
   const statusFicha = useMemo(() => {
     return calcularStatusPersonagem(
       atributosAtuaisParaCalculo,
@@ -227,28 +243,35 @@ export function useCharacterSheet(id, navigate) {
   const hpAtualNum = Number(ficha?.hp_atual ?? statusFicha.pvMax);
   const emCriseGlobal = statusFicha?.pvMax ? hpAtualNum <= Math.floor(statusFicha.pvMax / 2) : false;
 
-  // 5. Sincronização automática dos tetos de HP/MP com o Supabase quando mudarem
+  // 5. Sincronização automática dos tetos de HP/MP/PI com o Supabase quando mudarem
   useEffect(() => {
     if (!ficha?.id || !statusFicha?.pvMax || !statusFicha?.mpMax) return;
 
     const pvCalculado = statusFicha.pvMax;
     const mpCalculado = statusFicha.mpMax;
+    const piCalculado = statusFicha.piMax;
 
-    if (Number(ficha.hp_max) !== Number(pvCalculado) || Number(ficha.mp_max) !== Number(mpCalculado)) {
+    if (
+      Number(ficha.hp_max) !== Number(pvCalculado) ||
+      Number(ficha.mp_max) !== Number(mpCalculado) ||
+      (ficha.pi_max !== undefined && Number(ficha.pi_max) !== Number(piCalculado))
+    ) {
       fichaService.atualizarFicha(ficha.id, {
         hp_max: pvCalculado,
-        mp_max: mpCalculado
+        mp_max: mpCalculado,
+        pi_max: piCalculado
       }).then(() => {
         setFicha(prev => ({
           ...prev,
           hp_max: pvCalculado,
-          mp_max: mpCalculado
+          mp_max: mpCalculado,
+          pi_max: piCalculado
         }));
       }).catch(err => {
         console.error('Erro ao sincronizar tetos máximos:', err);
       });
     }
-  }, [ficha?.id, ficha?.hp_max, ficha?.mp_max, statusFicha?.pvMax, statusFicha?.mpMax]);
+  }, [ficha?.id, ficha?.hp_max, ficha?.mp_max, ficha?.pi_max, statusFicha?.pvMax, statusFicha?.mpMax, statusFicha?.piMax]);
 
   // 6. Manipulação de Recursos (HP, MP, IP)
   const ajustarRecurso = useCallback(async (campo, valor) => {
@@ -283,17 +306,27 @@ export function useCharacterSheet(id, navigate) {
 
     try {
       const nivelCalculado = calcularNivelTotal(formClasses);
+      const camposHeroicQuirks = prepararHeroicAndQuirksParaBanco(formData);
+      const atributosForm = {
+        destreza: formData.destreza ?? ficha.destreza ?? 8,
+        astucia: formData.astucia ?? ficha.astucia ?? 8,
+        vigor: formData.vigor ?? ficha.vigor ?? 8,
+        vontade: formData.vontade ?? ficha.vontade ?? 8
+      };
       const statusCalculados = calcularStatusPersonagem(
-        atributosAtuaisParaCalculo,
+        atributosForm,
         formClasses,
-        itensEquipados
+        itensEquipados,
+        { ...formData, ...camposHeroicQuirks }
       );
 
       const dadosParaSalvar = {
         ...formData,
+        ...camposHeroicQuirks,
         nivel: nivelCalculado,
         hp_max: statusCalculados.pvMax,
-        mp_max: statusCalculados.mpMax
+        mp_max: statusCalculados.mpMax,
+        pi_max: statusCalculados.piMax
       };
 
       await fichaService.atualizarFicha(ficha.id, dadosParaSalvar);
@@ -305,7 +338,7 @@ export function useCharacterSheet(id, navigate) {
     } finally {
       setSalvando(false);
     }
-  }, [ficha?.id, atributosAtuaisParaCalculo, itensEquipados]);
+  }, [ficha, itensEquipados]);
 
   return {
     ficha,

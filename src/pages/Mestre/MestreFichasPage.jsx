@@ -32,7 +32,7 @@ function processarFicha(ficha) {
     vontade: ficha.vontade || 8
   };
 
-  const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
+  const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados, ficha);
 
   return {
     ...ficha,

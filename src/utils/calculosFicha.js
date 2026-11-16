@@ -4,6 +4,10 @@ import {
   aplicarPsicocinesePrecisao
 } from '../domain/fabula/technoFantasyRules.js';
 import { aumentarPassoDado } from '../domain/fabula/equipmentRules.js';
+import {
+  calcularBonusPassivosPoderesHeroicos,
+  extrairHeroicAndQuirksDaFicha
+} from '../domain/fabula/heroicAndQuirksRules.js';
 
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
@@ -39,9 +43,25 @@ export function calcularStatusPersonagem(
   classes = [],
   itensEquipados = [],
   ficha = null,
+  poderesHeroicosParam = null,
 ) {
   const nivelTotal =
     classes.reduce((acc, c) => acc + (parseInt(c.nivel) || 0), 0) || 5;
+
+  // Extrai e normaliza Poderes Heróicos e Peculiaridades da ficha
+  const dadosHeroicosExtraidos = extrairHeroicAndQuirksDaFicha(
+    ficha || (Array.isArray(poderesHeroicosParam) ? { poderes_heroicos: poderesHeroicosParam } : {})
+  );
+  const listaPoderesHeroicos = Array.isArray(poderesHeroicosParam)
+    ? poderesHeroicosParam
+    : Array.isArray(atributos?.poderes_heroicos)
+      ? atributos.poderes_heroicos
+      : dadosHeroicosExtraidos.poderes_heroicos;
+
+  const bonusHeroicos = calcularBonusPassivosPoderesHeroicos(
+    listaPoderesHeroicos,
+    nivelTotal
+  );
 
   const converterAtributoParaNumero = (valorAttr) => {
     if (!valorAttr) return 8;
@@ -84,19 +104,34 @@ export function calcularStatusPersonagem(
   let vig = converterAtributoParaNumero(atributos.vigor);
   let von = converterAtributoParaNumero(atributos.vontade);
 
+  // Aplica Atributos Aprimorados dos Poderes Heróicos (aumento de passo até d12)
+  if (!atributos._jaAplicouHeroicos) {
+    const incDes = bonusHeroicos.aumentosAtributo?.destreza || 0;
+    const incAst = bonusHeroicos.aumentosAtributo?.astucia || 0;
+    const incVig = bonusHeroicos.aumentosAtributo?.vigor || 0;
+    const incVon = bonusHeroicos.aumentosAtributo?.vontade || 0;
+
+    for (let i = 0; i < incDes; i++) des = aumentarPassoDado(des, 12);
+    for (let i = 0; i < incAst; i++) ast = aumentarPassoDado(ast, 12);
+    for (let i = 0; i < incVig; i++) vig = aumentarPassoDado(vig, 12);
+    for (let i = 0; i < incVon; i++) von = aumentarPassoDado(von, 12);
+  }
+
   // Aplica Terioformas ativas que aumentam passos de atributo (máximo d12)
   const temTachytheria = terioformasAtivas.includes('tachytheria');
   const temArpaktida = terioformasAtivas.includes('arpaktida');
   const temDynamotheria = terioformasAtivas.includes('dynamotheria');
 
-  if (temTachytheria) {
-    des = aumentarPassoDado(des);
-  }
-  if (temArpaktida) {
-    ast = aumentarPassoDado(ast);
-  }
-  if (temDynamotheria) {
-    vig = aumentarPassoDado(vig);
+  if (!atributos._jaAplicouTerioformas) {
+    if (temTachytheria) {
+      des = aumentarPassoDado(des);
+    }
+    if (temArpaktida) {
+      ast = aumentarPassoDado(ast);
+    }
+    if (temDynamotheria) {
+      vig = aumentarPassoDado(vig);
+    }
   }
 
   const mapaAtributos = {
@@ -183,9 +218,9 @@ export function calcularStatusPersonagem(
   //   pvMaxCalculadoFinal: vig * 5 + nivelTotal + bonusHpPorClasse,
   // });
 
-  const pvMax = vig * 5 + nivelTotal + bonusHpPorClasse;
-  const mpMax = von * 5 + nivelTotal + bonusMpPorClasse;
-  const piMax = 6 + bonusIpPorClasse;
+  const pvMax = vig * 5 + nivelTotal + bonusHpPorClasse + (bonusHeroicos.bonusPvMax || 0);
+  const mpMax = von * 5 + nivelTotal + bonusMpPorClasse + (bonusHeroicos.bonusPmMax || 0);
+  const piMax = 6 + bonusIpPorClasse + (bonusHeroicos.bonusPiMax || 0);
 
   // 2. Identificar itens nos slots equipados
   const itemMaoDom = itensEquipados.find(
@@ -265,7 +300,7 @@ export function calcularStatusPersonagem(
 
   let defesaTotal = defesaBase + bonusDefesaItens + bonusEsquivaLadino;
 
-  // 🛡️ VERIFICAÇÃO DE "MAESTRIA DEFENSIVA" DO GUARDIÃO (Redução de Dano)
+  // 🛡️ VERIFICAÇÃO DE "MAESTRIA DEFENSIVA" DO GUARDIÃO E PODER HERÓICO "BASTIÃO INABALÁVEL" (Redução de Dano)
   let reducaoDano = 0;
   if (temEscudoEquipado || temArmaduraMarcial) {
     classes.forEach((c) => {
@@ -277,6 +312,7 @@ export function calcularStatusPersonagem(
         }
       });
     });
+    reducaoDano += bonusHeroicos.reducaoDanoExtraEscudoOuMarcial || 0;
   }
 
   // 4. Cálculo de Defesa Mágica (MDef)
@@ -309,8 +345,8 @@ export function calcularStatusPersonagem(
 
   let mdefTotal = mdefBase + bonusMDefItens;
 
-  // 5. Cálculo de Iniciativa Base
-  let iniciativaTotal = 0;
+  // 5. Cálculo de Iniciativa Base (+ bônus de Poderes Heróicos como Alta Velocidade)
+  let iniciativaTotal = bonusHeroicos.bonusIniciativa || 0;
   [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
     if (item) {
       const stats = item.stats_personalizados || {};
@@ -472,6 +508,16 @@ export function calcularStatusPersonagem(
     iniciativaTotal: Number(iniciativaTotal) || 0,
     precisaoBonus: Number(precisaoBonus) || 0,
     reducaoDano: Number(reducaoDano) || 0,
+    reducaoCustoPi: Number(bonusHeroicos.reducaoCustoPi) || 0,
+    atributosCalculados: {
+      destreza: des,
+      astucia: ast,
+      vigor: vig,
+      vontade: von
+    },
+    bonusHeroicos,
+    poderesHeroicosAtivos: dadosHeroicosExtraidos.poderes_heroicos,
+    peculiaridadeAtiva: dadosHeroicosExtraidos.peculiaridade,
     temDoisEscudos,
     temProficienciaArmasMarciais,
     veiculoAtivo,
