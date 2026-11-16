@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaShieldAlt, FaUserPlus, FaTrash, FaHeart, FaMagic, FaDice, FaIdBadge, FaDownload, FaUser, FaEdit } from 'react-icons/fa';
 import { LuUsers, LuSparkles } from 'react-icons/lu';
 import { QRCodeSVG } from 'qrcode.react';
-import { supabase } from '../../services/supabase';
+import { fichaService } from '../../services/fichaService';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
 import './MestreFichasPage.css';
@@ -29,60 +29,37 @@ export default function MestreFichasPage({ isMestre }) {
 
     async function carregarTodasFichas() {
         try {
-            // Busca as fichas, suas classes e também os itens para calcular o IP correto
-            const { data: fichasData, error } = await supabase
-                .from('fichas_personagens')
-                .select(`
-                    *,
-                    fichas_classes (
-                        nome_classe,
-                        nivel,
-                        habilidades
-                    )
-                `)
-                .order('nome_personagem', { ascending: true });
+            const fichasData = await fichaService.getFichasCompletasMestre();
 
-            if (error || !fichasData) {
-                setFichas([]);
-                return;
-            }
+            // Para cada ficha, calcula os stats e IP reais
+            const fichasCompletas = fichasData.map((ficha) => {
+                const itens = ficha.itens || [];
+                const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
 
-            // Para cada ficha, busca os itens equipados para calcular o Inventário de Peso (IP) real
-            const fichasCompletas = await Promise.all(
-                fichasData.map(async (ficha) => {
-                    const { data: itensData } = await supabase
-                        .from('itens_personagem')
-                        .select('*')
-                        .eq('ficha_id', ficha.id);
+                // Calcula os atributos atuais da ficha
+                const atributos = {
+                    destreza: ficha.destreza || 8,
+                    astucia: ficha.astucia || 8,
+                    vigor: ficha.vigor || 8,
+                    vontade: ficha.vontade || 8
+                };
 
-                    const itens = itensData || [];
-                    const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
+                // Usa a engine oficial de cálculo de status de Fabula Ultima
+                const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
 
-                    // Calcula os atributos atuais da ficha
-                    const atributos = {
-                        destreza: ficha.destreza || 8,
-                        astucia: ficha.astucia || 8,
-                        vigor: ficha.vigor || 8,
-                        vontade: ficha.vontade || 8
-                    };
+                // Calcula o IP atual somando o custo/peso dos itens equipados ou na mochila
+                const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
+                    return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
+                }, 0);
 
-                    // Usa a engine oficial de cálculo de status de Fabula Ultima
-                    const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
-
-                    // Calcula o IP atual somando o custo/peso dos itens equipados ou na mochila (conforme regra do seu projeto)
-                    const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
-                        return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
-                    }, 0);
-
-                    return {
-                        ...ficha,
-                        hp_max_real: statusCalc.pvMax,
-                        mp_max_real: statusCalc.mpMax,
-                        ip_max_real: statusCalc.piMax,
-                        ip_atual_calculado: ipAtualCalculado
-                    };
-                })
-            );
+                return {
+                    ...ficha,
+                    hp_max_real: statusCalc.pvMax,
+                    mp_max_real: statusCalc.mpMax,
+                    ip_max_real: statusCalc.piMax,
+                    ip_atual_calculado: ipAtualCalculado
+                };
+            });
 
             setFichas(fichasCompletas);
         } finally {
@@ -107,19 +84,17 @@ export default function MestreFichasPage({ isMestre }) {
         e.preventDefault();
         if (!nomeJogador || !nomePersonagem || !registroId) return;
 
-        const { error } = await supabase
-            .from('fichas_personagens')
-            .insert([{
-                nome_jogador: nomeJogador.trim(),
-                nome_personagem: nomePersonagem.trim(),
-                jogador_token: registroId.trim(),
-                identidade: 'Herói de Aetheria',
-                tema: 'Aventura',
-                hp_atual: 30, hp_max: 30,
-                mp_atual: 20, mp_max: 20,
-                ip_atual: 0, pi_max: 6,
-                nivel: 1
-            }]);
+        const { error } = await fichaService.criarFicha({
+            nome_jogador: nomeJogador.trim(),
+            nome_personagem: nomePersonagem.trim(),
+            jogador_token: registroId.trim(),
+            identidade: 'Herói de Aetheria',
+            tema: 'Aventura',
+            hp_atual: 30, hp_max: 30,
+            mp_atual: 20, mp_max: 20,
+            ip_atual: 0, pi_max: 6,
+            nivel: 1
+        });
 
         if (!error) {
             setNomeJogador('');
@@ -139,7 +114,7 @@ export default function MestreFichasPage({ isMestre }) {
     const handleDeletarFicha = async (id, e) => {
         e.stopPropagation();
         if (confirm('Tem certeza que deseja apagar esta ficha e revogar o crachá?')) {
-            await supabase.from('fichas_personagens').delete().eq('id', id);
+            await fichaService.deletarFicha(id);
             carregarTodasFichas();
         }
     };

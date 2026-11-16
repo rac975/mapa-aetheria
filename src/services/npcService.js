@@ -2,6 +2,8 @@ import { supabase } from './supabase.js';
 
 /**
  * Service para operações com NPCs e Adversários (npcs_mestre)
+ * e catálogos de criação de NPCs (catalogo_especies, catalogo_feiticos, catalogo_poderes_npc).
+ * Regra: Chamadas ao supabase devem residir exclusivamente nesta camada.
  */
 export const npcService = {
   /**
@@ -25,5 +27,71 @@ export const npcService = {
       .select('*')
       .eq('id', id)
       .single();
+  },
+
+  /**
+   * Atualiza os dados de um NPC
+   * @param {string|number} id 
+   * @param {Object} npcData 
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async updateNpc(id, npcData) {
+    return await supabase
+      .from('npcs_mestre')
+      .update(npcData)
+      .eq('id', id);
+  },
+
+  /**
+   * Deleta um NPC por ID
+   * @param {string|number} id 
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async deleteNpc(id) {
+    return await supabase
+      .from('npcs_mestre')
+      .delete()
+      .eq('id', id);
+  },
+
+  /**
+   * Cria um novo NPC
+   * @param {Object} npcData 
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async createNpc(npcData) {
+    return await supabase
+      .from('npcs_mestre')
+      .insert([npcData]);
+  },
+
+  /**
+   * Busca o catálogo completo de espécies de criaturas
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoEspecies() {
+    return await supabase
+      .from('catalogo_especies')
+      .select('*');
+  },
+
+  /**
+   * Busca o catálogo de feitiços/magias
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoFeiticos() {
+    return await supabase
+      .from('catalogo_feiticos')
+      .select('*');
+  },
+
+  /**
+   * Busca o catálogo de poderes de NPCs
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoPoderesNpc() {
+    return await supabase
+      .from('catalogo_poderes_npc')
+      .select('*');
   }
 };

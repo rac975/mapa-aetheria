@@ -1,121 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../../services/supabase';
+import { npcService } from '../../../../services/npcService';
+import { 
+  dadoParaNumero, 
+  calcularPoderesPermitidos, 
+  recalcularEstatisticasNpc,
+  extrairBonusPoderes,
+  calcularPvMaxNpc,
+  calcularPmMaxNpc,
+  calcularIniciativaNpc,
+  calcularDefesaNpc,
+  calcularDefesaMagicaNpc
+} from '../../../../domain/fabula/npcRules';
 
 export default function NPCEditor({ 
     npc, 
     onUpdate, 
-    catalogoFeiticos, 
-    catalogoPoderes, 
+    catalogoFeiticos = [], 
+    catalogoPoderes = [], 
+    catalogoEspecies: catalogoEspeciesProp,
     isCompanheiro = false, 
     nivelNP = 5, 
     nivelPersonagem = 1 
 }) {
-  const [catalogoEspecies, setCatalogoEspecies] = useState([]);
+  const [catalogoEspeciesLocal, setCatalogoEspeciesLocal] = useState([]);
 
-  // Carrega o catálogo de espécies do Supabase
+  // Se não foi passado via props (ex: uso fora de FichaNPCPage), carrega uma única vez
   useEffect(() => {
+    if (catalogoEspeciesProp && catalogoEspeciesProp.length > 0) return;
+
+    let ativo = true;
     async function carregarEspecies() {
-      const { data, error } = await supabase.from('catalogo_especies').select('*');
-      if (!error && data) {
-        setCatalogoEspecies(data);
-      } else {
+      const { data, error } = await npcService.getCatalogoEspecies();
+      if (!error && data && ativo) {
+        setCatalogoEspeciesLocal(data);
+      } else if (error) {
         console.error("❌ Erro ao carregar espécies:", error);
       }
     }
     carregarEspecies();
-  }, []);
+    return () => { ativo = false; };
+  }, [catalogoEspeciesProp]);
 
-  // Função auxiliar para converter o valor do dado (ex: 'd8') em número (8)
-  const dadoParaNumero = (dado) => {
-    if (!dado) return 8;
-    return parseInt(String(dado).replace('d', '').replace('D', ''), 10) || 8;
-  };
+  const catalogoEspecies = (catalogoEspeciesProp && catalogoEspeciesProp.length > 0)
+    ? catalogoEspeciesProp
+    : catalogoEspeciesLocal;
 
   // Encontra a espécie atual no catálogo carregado (Fallback para 'fera' caso não venha nada)
   const especieAtualObj = catalogoEspecies.find(e => e.id === (npc.especie || 'fera')) || {};
   const poderesIniciaisEspecie = especieAtualObj.poderes_iniciais || 2;
   const afinidadesPadraoEspecie = especieAtualObj.afinidades_padrao || {};
 
-  // Calcula quantos poderes extras o NPC ganhou por ter vulnerabilidades adicionais
-  const calcularPoderesExtrasPorVulnerabilidade = () => {
-    const afinidadesAtuais = npc.afinidades || {};
-    let contadorExtras = 0;
+  // Calcula quantos poderes extras o NPC ganhou por ter vulnerabilidades adicionais via domain
+  const { extrasPorVulnerabilidade: poderesExtrasVulnerabilidade, totalPermitido: totalPoderesPermitidos } =
+    calcularPoderesPermitidos(npc.afinidades || {}, afinidadesPadraoEspecie, poderesIniciaisEspecie);
 
-    Object.keys(afinidadesAtuais).forEach((tipoDano) => {
-      const valorAtual = afinidadesAtuais[tipoDano];
-      const valorPadrao = afinidadesPadraoEspecie[tipoDano] || '';
-
-      if (valorAtual === 'vul' && valorPadrao !== 'vul') {
-        contadorExtras += 2; // Cada vulnerabilidade extra concede 2 poderes especiais
-      }
-    });
-
-    return contadorExtras;
-  };
-
-  const poderesExtrasVulnerabilidade = calcularPoderesExtrasPorVulnerabilidade();
-  const totalPoderesPermitidos = poderesIniciaisEspecie + poderesExtrasVulnerabilidade;
-
-  // Função para recalcular as estatísticas baseadas nas regras do Fabula Ultima e na Patente (Rank)
+  // Recalcular as estatísticas baseadas nas regras do Fabula Ultima e na Patente (Rank)
   function recalcularEstatisticas(novosAtributos, novoNivel, novoRank, novaQtdSoldados) {
-    const nivel = isCompanheiro ? 5 : (novoNivel !== undefined ? novoNivel : (npc.nivel || 5));
-    const atributos = novosAtributos || npc.atributos || { des: 'd8', ast: 'd6', vig: 'd10', von: 'd8' };
-    const rank = isCompanheiro ? 'soldado' : (novoRank !== undefined ? novoRank : (npc.rank || 'soldado'));
-    const qtdSoldados = novaQtdSoldados !== undefined ? novaQtdSoldados : (npc.quantidade_soldados || 2);
-
-    const desNum = dadoParaNumero(atributos.des);
-    const astNum = dadoParaNumero(atributos.ast);
-    const vigNum = dadoParaNumero(atributos.vig);
-    const vonNum = dadoParaNumero(atributos.von);
-
-    let pvBase = 0;
-    let pmBase = 0;
-    let iniciativaBase = isCompanheiro ? 0 : Math.floor((desNum + astNum) / 2);
-    let defesaBase = desNum;
-    let defMagicaBase = astNum;
-
-    if (isCompanheiro) {
-      const np = nivelNP || 1;
-      pvBase = (np * vigNum) + Math.floor((nivelPersonagem || 1) / 2);
-      pmBase = 20; 
-      iniciativaBase = 0;
-    } else {
-      pvBase = (2 * nivel) + (5 * vigNum);
-      pmBase = nivel + (5 * vonNum);
-
-      if (rank === 'elite') {
-        pvBase = pvBase * 2;                     
-        iniciativaBase += 2;                
-      } else if (rank === 'campeao') {
-        pvBase = pvBase * qtdSoldados;      
-        pmBase = pmBase * 2;                     
-        iniciativaBase += qtdSoldados;      
-      }
-    }
-
-    // Soma bônus automáticos vindos de poderes especiais cadastrados na tabela
-    let bonusPvPoderes = 0;
-    let bonusIniciativaPoderes = 0;
-
-    (npc.poderes || []).forEach(p => {
-      if (p.tipo_mecanica === 'stat_bonus' && p.config_mecanica) {
-        if (p.config_mecanica.pv_max) bonusPvPoderes += Number(p.config_mecanica.pv_max);
-        if (p.config_mecanica.iniciativa) bonusIniciativaPoderes += Number(p.config_mecanica.iniciativa);
-      }
+    return recalcularEstatisticasNpc({
+      npc,
+      novosAtributos,
+      novoNivel,
+      novoRank,
+      novaQtdSoldados,
+      isCompanheiro,
+      nivelNP,
+      nivelPersonagem
     });
-
-    return {
-      ...npc,
-      nivel,
-      atributos,
-      rank,
-      quantidade_soldados: qtdSoldados,
-      pv_max: Math.max(0, pvBase + bonusPvPoderes),
-      pm_max: Math.max(0, pmBase),
-      iniciativa: isCompanheiro ? 0 : Math.max(0, iniciativaBase + bonusIniciativaPoderes),
-      defesa: Math.max(0, defesaBase),
-      defesa_magica: Math.max(0, defMagicaBase),
-    };
   }
 
   function handleChange(campo, valor) {
@@ -189,7 +139,12 @@ export default function NPCEditor({
     const npcTemporario = { ...npc, poderes: novosPoderes };
     
     // Recalcula as estatísticas considerando o novo poder adicionado
-    const npcAtualizado = recalcularEstatisticas(npcTemporario.atributos, npcTemporario.nivel, npcTemporario.rank, npcTemporario.quantidade_soldados);
+    const npcAtualizado = recalcularEstatisticasNpc({
+      npc: npcTemporario,
+      isCompanheiro,
+      nivelNP,
+      nivelPersonagem
+    });
     onUpdate({ ...npcAtualizado, poderes: novosPoderes });
   }
 
@@ -197,7 +152,12 @@ export default function NPCEditor({
     const novosPoderes = (npc.poderes || []).filter((_, i) => i !== index);
     const npcTemporario = { ...npc, poderes: novosPoderes };
     
-    const npcAtualizado = recalcularEstatisticas(npcTemporario.atributos, npcTemporario.nivel, npcTemporario.rank, npcTemporario.quantidade_soldados);
+    const npcAtualizado = recalcularEstatisticasNpc({
+      npc: npcTemporario,
+      isCompanheiro,
+      nivelNP,
+      nivelPersonagem
+    });
     onUpdate({ ...npcAtualizado, poderes: novosPoderes });
   }
 
@@ -227,37 +187,36 @@ export default function NPCEditor({
   const rankAtual = npc.rank || 'soldado';
   const qtdSoldadosAtual = npc.quantidade_soldados || 2;
 
-  let minPv = 0;
-  let minPm = 0;
-  let minDefesa = desNum;
-  let minDefMagica = astNum;
+  const { bonusPv: bonusPvMin, bonusIniciativa: bonusIniciativaMin } = extrairBonusPoderes(npc.poderes || []);
 
-  if (isCompanheiro) {
-    minPv = (nivelNP * vigNum) + Math.floor(nivelPersonagem / 2);
-    minPm = 20;
-  } else {
-    minPv = (2 * nivelAtual) + (5 * vigNum);
-    minPm = nivelAtual + (5 * vonNum);
-
-    if (rankAtual === 'elite') {
-      minPv *= 2;
-    } else if (rankAtual === 'campeao') {
-      minPv *= qtdSoldadosAtual;
-      minPm *= 2;
-    }
-  }
-
-  // Soma bônus dos poderes para exibir os mínimos corretos nos inputs
-  let bonusPvMin = 0;
-  let bonusIniciativaMin = 0;
-  (npc.poderes || []).forEach(p => {
-    if (p.tipo_mecanica === 'stat_bonus' && p.config_mecanica) {
-      if (p.config_mecanica.pv_max) bonusPvMin += Number(p.config_mecanica.pv_max);
-      if (p.config_mecanica.iniciativa) bonusIniciativaMin += Number(p.config_mecanica.iniciativa);
-    }
+  const minPv = calcularPvMaxNpc({
+    nivel: nivelAtual,
+    vigNum,
+    rank: rankAtual,
+    quantidadeSoldados: qtdSoldadosAtual,
+    isCompanheiro,
+    nivelNP,
+    nivelPersonagem,
+    bonusPoderes: bonusPvMin
   });
-  minPv += bonusPvMin;
-  const minIniciativa = isCompanheiro ? 0 : Math.floor((desNum + astNum) / 2) + bonusIniciativaMin;
+
+  const minPm = calcularPmMaxNpc({
+    nivel: nivelAtual,
+    vonNum,
+    rank: rankAtual,
+    isCompanheiro
+  });
+
+  const minDefesa = calcularDefesaNpc(desNum);
+  const minDefMagica = calcularDefesaMagicaNpc(astNum);
+  const minIniciativa = calcularIniciativaNpc({
+    desNum,
+    astNum,
+    rank: rankAtual,
+    quantidadeSoldados: qtdSoldadosAtual,
+    isCompanheiro,
+    bonusPoderes: bonusIniciativaMin
+  });
 
   const afinidadesSeguras = npc.afinidades || {};
   const especiesPermitidas = isCompanheiro
