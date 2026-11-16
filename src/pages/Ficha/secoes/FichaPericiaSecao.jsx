@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { FaDice } from 'react-icons/fa';
+import { Card, Button } from '../../../components/ui';
+import styles from './FichaPericiaSecao.module.css';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
@@ -61,23 +63,19 @@ export default function FichaPericiasSecao({ atributos = {} }) {
     };
 
     return (
-        <div className="form-section-box" style={{ marginTop: '16px', padding: '12px 16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                
+        <Card variant="default" className={styles.container}>
+            <div className={styles.innerFlex}>
                 {/* Título Compacto */}
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#f0f6fc', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                    <FaDice color="#d4af37" /> Testes Frequentes
+                <h3 className={styles.title}>
+                    <FaDice className={styles.titleIcon} /> Testes Frequentes
                 </h3>
 
                 {/* Combobox + Botão de Rolar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, maxWidth: '500px' }}>
+                <div className={styles.controlsWrapper}>
                     <select
                         value={periciaSelecionada}
                         onChange={(e) => setPericiaSelecionada(e.target.value)}
-                        style={{
-                            width: '100%', background: '#0d1117', border: '1px solid #30363d',
-                            color: '#c9d1d9', padding: '6px 10px', borderRadius: '6px', fontSize: '0.85rem', outline: 'none', cursor: 'pointer'
-                        }}
+                        className={styles.selectCircunstancia}
                     >
                         <option value="">Selecione uma circunstância...</option>
                         {periciasComuns.map((grupo, gIdx) => (
@@ -91,46 +89,33 @@ export default function FichaPericiasSecao({ atributos = {} }) {
                         ))}
                     </select>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="primary"
+                        size="sm"
                         onClick={executarRolagem}
                         disabled={!periciaSelecionada}
-                        style={{
-                            background: periciaSelecionada ? '#238636' : '#21262d',
-                            border: '1px solid #30363d',
-                            color: periciaSelecionada ? '#fff' : '#8b949e',
-                            padding: '6px 14px',
-                            borderRadius: '6px',
-                            fontSize: '0.85rem',
-                            fontWeight: 'bold',
-                            cursor: periciaSelecionada ? 'pointer' : 'not-allowed',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            whiteSpace: 'nowrap',
-                            transition: 'background 0.15s'
-                        }}
                     >
                         <FaDice /> Rolar
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Barrinha Simples de Resultado Inline */}
                 {ultimaRolagem ? (
-                    <div style={{ background: 'rgba(212, 175, 55, 0.1)', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '4px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#d4af37', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={ultimaRolagem.titulo}>
+                    <div className={styles.resultadoBox}>
+                        <span className={styles.resultadoTitulo} title={ultimaRolagem.titulo}>
                             {ultimaRolagem.titulo}
                         </span>
-                        <span style={{ fontSize: '0.85rem', color: '#f0f6fc' }}>
-                            {ultimaRolagem.res1} + {ultimaRolagem.res2} = <strong>{ultimaRolagem.total}</strong>
+                        <span className={styles.resultadoValores}>
+                            {ultimaRolagem.res1} + {ultimaRolagem.res2} = <strong className={styles.resultadoTotal}>{ultimaRolagem.total}</strong>
                         </span>
                     </div>
                 ) : (
-                    <div style={{ fontSize: '0.75rem', color: '#8b949e', fontStyle: 'italic' }}>
+                    <div className={styles.resultadoVazio}>
                         Nenhum teste realizado
                     </div>
                 )}
             </div>
-        </div>
+        </Card>
     );
 }

@@ -14,11 +14,12 @@ import {
 import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
 import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
 import FichaFormMagiasClasse from './FichaFormMagiasClasse';
+import { Button, Badge } from '../../../components/ui';
+import styles from './FichaFormClasses.module.css';
 
 export default function FichaFormClasses({ fichaId, formClasses = [], setFormClasses, formData, setFormData }) {
     const [catalogoClasses, setCatalogoClasses] = useState([]);
 
-    // Carrega o catálogo de classes via Service Layer (Clean Architecture)
     useEffect(() => {
         let isMounted = true;
         async function carregarCatalogo() {
@@ -39,7 +40,6 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
         const nomeSelecionado = e.target.value;
         if (!nomeSelecionado) return;
 
-        // Validação de regras de Fabula Ultima via Domain Pure Logic
         const validacao = podeAdicionarClasse(formClasses, nomeSelecionado);
         if (!validacao.permitido) {
             alert(validacao.motivo);
@@ -79,14 +79,14 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
     };
 
     return (
-        <div className="form-section-box">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-                <h3>Classes do Personagem</h3>
+        <div className={styles.container}>
+            <div className={styles.headerRow}>
+                <h3 className={styles.headerTitle}>Classes do Personagem</h3>
 
                 <select
                     onChange={adicionarClasseDoCatalogo}
                     defaultValue=""
-                    style={{ padding: '8px', background: '#161b22', color: '#c9d1d9', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer' }}
+                    className={styles.selectClasse}
                 >
                     <option value="" disabled>+ Adicionar Classe do Manual</option>
                     {catalogoClasses.map((cat) => {
@@ -101,158 +101,167 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
             </div>
 
             {formClasses.length === 0 ? (
-                <p style={{ color: '#8b949e', fontSize: '0.85rem', fontStyle: 'italic', textAlign: 'center', padding: '10px' }}>
+                <p className={styles.emptyClassesText}>
                     Nenhuma classe adicionada. Selecione uma classe no menu acima para começar.
                 </p>
             ) : (
-                formClasses.map((c, index) => {
-                    const nivelClasse = parseInt(c.nivel, 10) || 1;
-                    const statusHab = validarDistribuicaoHabilidades(nivelClasse, c.habilidades);
-                    const classeConcluida = isClasseDominada(nivelClasse);
-                    const aceitaMagia = classeAceitaMagia(c.nome_classe);
+                <div className={styles.classList}>
+                    {formClasses.map((c, index) => {
+                        const nivelClasse = parseInt(c.nivel, 10) || 1;
+                        const statusHab = validarDistribuicaoHabilidades(nivelClasse, c.habilidades);
+                        const classeConcluida = isClasseDominada(nivelClasse);
+                        const aceitaMagia = classeAceitaMagia(c.nome_classe);
+                        const classeCatalogoOficial = catalogoClasses.find(cat => cat.nome_classe === c.nome_classe);
 
-                    // 🔍 Localiza a classe correspondente no repositório oficial (catalogo_classes)
-                    const classeCatalogoOficial = catalogoClasses.find(cat => cat.nome_classe === c.nome_classe);
+                        return (
+                            <div
+                                key={index}
+                                className={`${styles.classItemCard} ${classeConcluida ? styles.classItemCardDominada : ''}`}
+                            >
+                                <div className={styles.classHeaderGrid}>
+                                    <div className={styles.classNameInputWrapper}>
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={c.nome_classe}
+                                            className={styles.classNameReadOnly}
+                                        />
+                                        {classeConcluida && (
+                                            <Badge variant="gold" size="sm" title="Classe Concluída / Dominada">
+                                                ★ Nv. 10
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={NIVEL_MAXIMO_CLASSE}
+                                        placeholder="Nível"
+                                        value={c.nivel}
+                                        onChange={(e) => {
+                                            const val = sanitizarNivelClasse(e.target.value);
+                                            const atual = [...formClasses];
+                                            atual[index].nivel = val;
+                                            setFormClasses(atual);
+                                            setFormData({ ...formData, nivel: calcularNivelTotal(atual) });
+                                        }}
+                                        className={styles.nivelInput}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="danger"
+                                        size="sm"
+                                        onClick={() => removerClasse(index)}
+                                        title="Remover classe"
+                                    >
+                                        <FaTrash />
+                                    </Button>
+                                </div>
 
-                    return (
-                        <div key={index} style={{ border: classeConcluida ? '1px solid #d4af37' : '1px solid #30363d', padding: '14px', marginTop: '14px', borderRadius: '8px', background: '#0d0f18' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr auto', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {/* Benefícios */}
+                                <div>
                                     <input
                                         type="text"
                                         readOnly
-                                        value={c.nome_classe}
-                                        style={{ background: '#161b22', color: '#d4af37', fontWeight: 'bold', width: '100%' }}
+                                        value={c.beneficios || ''}
+                                        className={styles.beneficiosInput}
                                     />
-                                    {classeConcluida && (
-                                        <span style={{ fontSize: '0.75rem', background: '#d4af37', color: '#0d0f18', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }} title="Classe Concluída / Dominada">
-                                            ★ Nv. 10
-                                        </span>
-                                    )}
-                                </div>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max={NIVEL_MAXIMO_CLASSE}
-                                    placeholder="Nível"
-                                    value={c.nivel}
-                                    onChange={(e) => {
-                                        const val = sanitizarNivelClasse(e.target.value);
-                                        const atual = [...formClasses];
-                                        atual[index].nivel = val;
-                                        setFormClasses(atual);
-                                        setFormData({ ...formData, nivel: calcularNivelTotal(atual) });
-                                    }}
-                                />
-                                <button type="button" className="btn-del" onClick={() => removerClasse(index)} style={{ padding: '8px', height: '100%', background: '#da3633', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                                    <FaTrash />
-                                </button>
-                            </div>
-
-                            {/* Benefícios */}
-                            <div style={{ marginBottom: '10px' }}>
-                                <input
-                                    type="text"
-                                    readOnly
-                                    value={c.beneficios || ''}
-                                    style={{ background: '#161b22', color: '#3fb950', fontSize: '0.85rem' }}
-                                />
-                            </div>
-
-                            {/* Habilidades Oficiais */}
-                            <div style={{ borderTop: '1px solid #30363d', paddingTop: '10px', marginTop: '10px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                    <span style={{ fontSize: '0.85rem', color: statusHab.excedeNivel ? '#f85149' : (statusHab.incompleto ? '#d4af37' : '#3fb950'), fontWeight: 'bold' }}>
-                                        Habilidades Distribuídas: {statusHab.pontosGastos} / {statusHab.pontosMaximos} nível(is) da classe
-                                        {statusHab.excedeNivel && ' ⚠️ Excede o nível!'}
-                                        {statusHab.incompleto && !statusHab.excedeNivel && ' ℹ️ Há pontos livres.'}
-                                    </span>
                                 </div>
 
-                                {(c.habilidades || []).map((h, hIndex) => {
-                                    const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
-                                    const ehEngenhocas = (h.nome || '').toLowerCase().includes('engenhocas');
-                                    const nivelHab = parseInt(h.nivel, 10) || 0;
+                                {/* Habilidades Oficiais */}
+                                <div className={styles.habilidadesArea}>
+                                    <div className={styles.habilidadesStatusRow}>
+                                        <Badge
+                                            variant={statusHab.excedeNivel ? 'crise' : (statusHab.incompleto ? 'gold' : 'core')}
+                                            size="sm"
+                                        >
+                                            Habilidades: {statusHab.pontosGastos} / {statusHab.pontosMaximos}
+                                            {statusHab.excedeNivel && ' ⚠️ Excede o nível!'}
+                                            {statusHab.incompleto && !statusHab.excedeNivel && ' ℹ️ Há pontos livres'}
+                                        </Badge>
+                                    </div>
 
-                                    // 🎯 Busca o teto máximo diretamente no catálogo oficial usando o nome da habilidade
-                                    const habCatalogoOficial = (classeCatalogoOficial?.habilidades_padrao || []).find(
-                                        hp => hp.nome.trim().toLowerCase() === h.nome.trim().toLowerCase()
-                                    );
-                                    
-                                    const limiteMaximoHab = habCatalogoOficial?.nivel_maximo ?? NIVEL_MAXIMO_HABILIDADE_PADRAO;
+                                    {(c.habilidades || []).map((h, hIndex) => {
+                                        const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
+                                        const ehEngenhocas = (h.nome || '').toLowerCase().includes('engenhocas');
+                                        const nivelHab = parseInt(h.nivel, 10) || 0;
 
-                                    return (
-                                        <div key={hIndex} style={{ background: '#161b22', padding: '10px', borderRadius: '6px', marginTop: '8px' }}>
-                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                <div style={{ flex: 2.5 }}>
-                                                    <strong style={{ color: '#f0f6fc', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                        {h.nome} <span style={{ fontSize: '0.75rem', color: '#8b949e' }}>(Máx: {limiteMaximoHab})</span> {ehCompanheiroFiel && <FaPaw color="#d4af37" />}
-                                                    </strong>
-                                                    <div style={{ color: '#8b949e', fontSize: '0.75rem', marginTop: '2px' }}>{h.descricao}</div>
+                                        const habCatalogoOficial = (classeCatalogoOficial?.habilidades_padrao || []).find(
+                                            hp => hp.nome.trim().toLowerCase() === h.nome.trim().toLowerCase()
+                                        );
+                                        const limiteMaximoHab = habCatalogoOficial?.nivel_maximo ?? NIVEL_MAXIMO_HABILIDADE_PADRAO;
+
+                                        return (
+                                            <div key={hIndex} className={styles.habilidadeRow}>
+                                                <div className={styles.habilidadeRowTop}>
+                                                    <div className={styles.habilidadeInfo}>
+                                                        <div className={styles.habilidadeTitle}>
+                                                            <span>{h.nome}</span>
+                                                            <span className={styles.habilidadeTetoText}>(Máx: {limiteMaximoHab})</span>
+                                                            {ehCompanheiroFiel && <FaPaw />}
+                                                        </div>
+                                                        <div className={styles.habilidadeDescricao}>{h.descricao}</div>
+                                                    </div>
+                                                    <div className={styles.habilidadeInputGroup}>
+                                                        <span className={styles.nivelLabel}>Nv.</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max={limiteMaximoHab}
+                                                            value={h.nivel || 0}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value, 10) || 0;
+                                                                if (val > limiteMaximoHab) {
+                                                                    alert(`⛔ Esta habilidade pode ter no máximo ${limiteMaximoHab} ponto(s)!`);
+                                                                    return;
+                                                                }
+                                                                const atual = [...formClasses];
+                                                                atual[index].habilidades[hIndex].nivel = val;
+                                                                setFormClasses(atual);
+                                                            }}
+                                                            className={styles.habilidadeNivelInput}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                    <span style={{ fontSize: '0.75rem', color: '#d4af37' }}>Nv.</span>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        max={limiteMaximoHab}
-                                                        value={h.nivel || 0}
-                                                        onChange={(e) => {
-                                                            const val = parseInt(e.target.value, 10) || 0;
-                                                            if (val > limiteMaximoHab) {
-                                                                alert(`⛔ Esta habilidade pode ter no máximo ${limiteMaximoHab} ponto(s)!`);
-                                                                return;
-                                                            }
 
-                                                            const atual = [...formClasses];
-                                                            atual[index].habilidades[hIndex].nivel = val;
-                                                            setFormClasses(atual);
-                                                        }}
-                                                        style={{ width: '70px', textAlign: 'center' }}
-                                                    />
-                                                </div>
+                                                {ehCompanheiroFiel && nivelHab > 0 && (
+                                                    <div className={styles.subCardContainer}>
+                                                        <CompanheiroFielCard
+                                                            fichaId={fichaId}
+                                                            classes={formClasses}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {ehEngenhocas && nivelHab > 0 && (
+                                                    <div className={styles.subCardContainer}>
+                                                        <ExibirEngenhocas
+                                                            habilidadeEngenhocas={h}
+                                                            aoAtualizarEngenhocas={(novosRamos) => {
+                                                                const atual = [...formClasses];
+                                                                atual[index].habilidades[hIndex].ramos = novosRamos;
+                                                                setFormClasses(atual);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
+                                        );
+                                    })}
+                                </div>
 
-                                            {/* 🐾 Card do Companheiro Fiel */}
-                                            {ehCompanheiroFiel && nivelHab > 0 && (
-                                                <div style={{ marginTop: '10px' }}>
-                                                    <CompanheiroFielCard
-                                                        fichaId={fichaId}
-                                                        classes={formClasses}
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* ⚙️ Gerenciador de Engenhocas */}
-                                            {ehEngenhocas && nivelHab > 0 && (
-                                                <div style={{ marginTop: '10px' }}>
-                                                    <ExibirEngenhocas
-                                                        habilidadeEngenhocas={h}
-                                                        aoAtualizarEngenhocas={(novosRamos) => {
-                                                            const atual = [...formClasses];
-                                                            atual[index].habilidades[hIndex].ramos = novosRamos;
-                                                            setFormClasses(atual);
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                {aceitaMagia && (
+                                    <FichaFormMagiasClasse
+                                        classeObjeto={c}
+                                        indexClasse={index}
+                                        formClasses={formClasses}
+                                        setFormClasses={setFormClasses}
+                                    />
+                                )}
                             </div>
-
-                            {/* Gerenciador modular de Magias da Classe */}
-                            {aceitaMagia && (
-                                <FichaFormMagiasClasse
-                                    classeObjeto={c}
-                                    indexClasse={index}
-                                    formClasses={formClasses}
-                                    setFormClasses={setFormClasses}
-                                />
-                            )}
-                        </div>
-                    );
-                })
+                        );
+                    })}
+                </div>
             )}
         </div>
     );

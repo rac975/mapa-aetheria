@@ -1,0 +1,245 @@
+/* =====================================================
+   FICHA FORM CLASSES MODULE - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.headerTitle {
+  margin: 0;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  color: var(--color-border-gold-bright);
+}
+
+.selectClasse {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.selectClasse:hover,
+.selectClasse:focus {
+  border-color: var(--color-border-gold);
+}
+
+.emptyClassesText {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.classList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.classItemCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--transition-normal);
+}
+
+.classItemCardDominada {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 12px var(--color-border-gold-glow);
+}
+
+.classHeaderGrid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.classNameInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.classNameReadOnly {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-weight: 700;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  width: 100%;
+  font-size: var(--font-size-sm);
+}
+
+.nivelInput {
+  width: 70px;
+  text-align: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-main);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.beneficiosInput {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(0, 245, 160, 0.2);
+  color: var(--color-core-green);
+  font-size: var(--font-size-xs);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+/* --- SEÇÃO DE HABILIDADES --- */
+.habilidadesArea {
+  border-top: 1px solid var(--color-border-gold-muted);
+  padding-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.habilidadesStatusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.habilidadeRow {
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: border-color var(--transition-fast);
+}
+
+.habilidadeRow:hover {
+  border-color: var(--color-border-gold-muted);
+}
+
+.habilidadeRowTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.habilidadeInfo {
+  flex: 1;
+}
+
+.habilidadeTitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.habilidadeTetoText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: normal;
+}
+
+.habilidadeDescricao {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.habilidadeInputGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.nivelLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-weight: 600;
+}
+
+.habilidadeNivelInput {
+  width: 60px;
+  text-align: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-main);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.subCardContainer {
+  margin-top: var(--space-2);
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA (@media print)
+   ===================================================== */
+@media print {
+  .container,
+  .classItemCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+
+  .headerTitle,
+  .classNameReadOnly {
+    color: #000000 !important;
+  }
+
+  .selectClasse,
+  button,
+  .btn-del,
+  .no-print {
+    display: none !important;
+  }
+}

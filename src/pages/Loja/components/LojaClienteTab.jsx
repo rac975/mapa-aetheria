@@ -366,14 +366,14 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                         >
                                             <FaShoppingCart /> Comprar Item
                                         </Button>
-                                        <Button
+                                        {/* <Button
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => window.print()}
                                             title="Imprimir Carta de Equipamento"
                                         >
                                             <FaPrint />
-                                        </Button>
+                                        </Button> */}
                                     </div>
                                 </Card>
                             );

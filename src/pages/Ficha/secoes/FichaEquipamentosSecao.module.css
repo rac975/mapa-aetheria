@@ -1,0 +1,354 @@
+/* =====================================================
+   FICHA EQUIPAMENTOS SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+}
+
+.sectionTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+}
+
+.golpeArmadoBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.slotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-3);
+}
+
+.slotBox {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  transition: border-color var(--transition-normal);
+}
+
+.slotBox:hover {
+  border-color: var(--color-border-gold);
+}
+
+.slotHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.slotEmpty {
+  border: 2px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.slotEmptyText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.itemEquipadoCard {
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.itemNome {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+/* --- MODO DE ATAQUE E ROLAGEM --- */
+.ataqueArea {
+  border-top: 1px solid var(--color-border-gold-muted);
+  padding-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modoAtaqueSwitcher {
+  display: flex;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.modoAtaqueBtn {
+  flex: 1;
+  background: transparent;
+  color: var(--color-text-dim);
+  border: none;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modoAtaqueBtnActive {
+  background: var(--color-bg-surface-active);
+  color: var(--color-text-main);
+  box-shadow: 0 0 6px var(--color-border-gold-glow);
+}
+
+.modoAtaqueBtnActiveMulti {
+  background: rgba(231, 76, 60, 0.25);
+  color: var(--color-crise-bright);
+  box-shadow: 0 0 6px var(--color-crise-glow);
+}
+
+/* --- RESULTADO DETALHADO DA ROLAGEM --- */
+.resultadoCard {
+  background: rgba(197, 160, 89, 0.08);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.criticoBanner {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-align: center;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.criticoSucesso {
+  color: var(--color-core-green);
+}
+
+.criticoFalha {
+  color: var(--color-crise-bright);
+}
+
+.resultadoLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+.resultadoValorDestaque {
+  color: var(--color-border-gold-bright);
+  font-weight: 700;
+}
+
+.resultadoDanoDestaque {
+  color: var(--color-ether-cyan);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.detalhesDiscriminados {
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.slotActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+/* --- MOCHILA & INVENTÁRIO --- */
+.mochilaCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.mochilaVazia {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--space-4) 0;
+  font-style: italic;
+}
+
+.mochilaLista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.mochilaItem {
+  background: var(--color-bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.mochilaItem:hover {
+  border-color: var(--color-border-gold-muted);
+}
+
+.mochilaItemDetails {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.mochilaItemNome {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.mochilaItemActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* --- MODAIS DE SELEÇÃO DE ITEM / MÃO --- */
+.modalItensLista {
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-right: var(--space-1);
+}
+
+.modalItemLinha {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.modalMaoOpcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.loadingText {
+  color: var(--color-text-muted);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA (@media print)
+   ===================================================== */
+@media print {
+  .slotBox,
+  .mochilaCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .sectionTitle {
+    color: #000000 !important;
+  }
+
+  .itemEquipadoCard,
+  .mochilaItem {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+  }
+
+  .itemNome,
+  .mochilaItemNome {
+    color: #000000 !important;
+  }
+
+  .slotActions,
+  .ataqueArea,
+  .mochilaItemActions,
+  .slotEmpty,
+  button,
+  .no-print,
+  [data-print="false"] {
+    display: none !important;
+  }
+}

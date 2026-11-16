@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FaFire, FaShieldAlt, FaBolt } from 'react-icons/fa';
+import { Button } from '../../../../components/ui';
+import styles from './ExibirFurioso.module.css';
 
 export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlobal, atributosAtuais = {}, onElevarAtributoTemporario }) {
   const [atributoEscolhidoResistir, setAtributoEscolhidoResistir] = useState('vigor');
@@ -9,7 +11,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
     );
-    return parseInt(h?.nivel) || 0;
+    return parseInt(h?.nivel, 10) || 0;
   };
 
   const nvAdrenalina = getNivel('adrenalina');
@@ -27,7 +29,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
 
   const lacos = ficha?.lacos || [];
   const maiorLaco = lacos.length > 0 
-    ? Math.max(...lacos.map(l => parseInt(l.forca || l.nivel || 1), 1)) 
+    ? Math.max(...lacos.map(l => parseInt(l.forca || l.nivel || 1, 10)), 1) 
     : 1;
 
   const curaResistir = nvResistir * maiorLaco;
@@ -91,22 +93,22 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
   };
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-        <div style={{ fontSize: '0.75rem', color: '#f85149', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <FaFire /> Fúria Implacável — Furioso
         </div>
 
         {emCriseGlobal && nvAdrenalina > 0 && (
-          <span style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(248, 81, 73, 0.2)', border: '1px solid #f85149', color: '#f85149', borderRadius: '4px' }}>
+          <span className={styles.adrenalinaBadge}>
             ⚡ Adrenalina Ativa (Dano +{danoAdrenalina} em crise)
           </span>
         )}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.75rem', marginBottom: '8px' }}>
+      <div className={styles.passivasRow}>
         {nvFrenesi > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d4af37', color: '#d4af37' }}>
+          <span className={styles.frenesiBadge}>
             🎯 Frenesi Ativo (Dados iguais em adagas, lutas, malhos e arremessos geram Crítico)
           </span>
         )}
@@ -114,7 +116,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
           <button
             type="button"
             onClick={usarProvocar}
-            style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #58a6ff', color: '#58a6ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            className={styles.provocarBtn}
           >
             🗣️ Provocar (5 PM | VIG+VON+{nvProvocar})
           </button>
@@ -122,44 +124,46 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
       </div>
 
       {nvIndomavel > 0 && (
-        <div style={{ padding: '8px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d', marginBottom: '8px', fontSize: '0.78rem' }}>
-          <div style={{ color: '#d2a8ff', fontWeight: 'bold', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className={styles.cardBox}>
+          <div className={styles.cardTitle}>
             <FaBolt /> Espírito Indomável (Gasta 1 Ponto de Fábula):
           </div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => usarIndomavel('pv')} style={{ padding: '3px 8px', fontSize: '0.74rem', background: '#21262d', color: '#3fb950', border: '1px solid #3fb950', borderRadius: '4px', cursor: 'pointer' }}>
+          <div className={styles.buttonRow}>
+            <Button type="button" variant="primary" size="sm" onClick={() => usarIndomavel('pv')}>
               Recuperar +{curaIndomavel} PV
-            </button>
-            <button type="button" onClick={() => usarIndomavel('pm')} style={{ padding: '3px 8px', fontSize: '0.74rem', background: '#21262d', color: '#58a6ff', border: '1px solid #58a6ff', borderRadius: '4px', cursor: 'pointer' }}>
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => usarIndomavel('pm')}>
               Recuperar +{curaIndomavel} PM
-            </button>
-            <button type="button" onClick={() => usarIndomavel('condicao')} style={{ padding: '3px 8px', fontSize: '0.74rem', background: '#21262d', color: '#d4af37', border: '1px solid #d4af37', borderRadius: '4px', cursor: 'pointer' }}>
+            </Button>
+            <Button type="button" variant="core" size="sm" onClick={() => usarIndomavel('condicao')}>
               Remover Condição
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {nvResistir > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', background: '#0d1117', padding: '6px 8px', borderRadius: '4px', border: '1px solid #30363d', fontSize: '0.78rem', gap: '6px', flexWrap: 'wrap' }}>
-          <span style={{ color: '#8b949e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className={styles.resistirRow}>
+          <span className={styles.resistirLabel}>
             <FaShieldAlt /> Resistir (+{curaResistir} PV):
           </span>
           <select
             value={atributoEscolhidoResistir}
             onChange={(e) => setAtributoEscolhidoResistir(e.target.value)}
-            style={{ background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '2px 4px', fontSize: '0.75rem' }}
+            className={styles.select}
           >
             <option value="vigor">Elevar Vigor</option>
             <option value="vontade">Elevar Vontade</option>
           </select>
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="sm"
+            className={styles.spacerRight}
             onClick={usarResistir}
-            style={{ padding: '3px 8px', fontSize: '0.74rem', background: '#21262d', color: '#3fb950', border: '1px solid #3fb950', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto', fontWeight: 'bold' }}
           >
             Executar Guarda
-          </button>
+          </Button>
         </div>
       )}
     </div>

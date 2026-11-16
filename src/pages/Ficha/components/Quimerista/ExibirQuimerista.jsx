@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { FaDragon, FaPlus, FaTrash, FaFlask } from 'react-icons/fa';
+import { FaDragon, FaPlus, FaTrash } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
+import { Button } from '../../../../components/ui';
+import styles from './ExibirQuimerista.module.css';
 
 export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjustarRecurso }) {
   const [magiasImitadas, setMagiasImitadas] = useState(() => ficha?.magias_imitadas || []);
@@ -19,7 +21,7 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
     );
-    return parseInt(h?.nivel) || 0;
+    return parseInt(h?.nivel, 10) || 0;
   };
 
   const nvImitacao = getNivel('imitacao magica');
@@ -47,7 +49,6 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
     });
 
     const { error } = await fichaService.atualizarClassesPersonagem(fichaId, classesAtualizadas);
-
     if (error) console.error('Erro ao salvar dados do Quimerista:', error.message);
   };
 
@@ -87,29 +88,30 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
   };
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+    <div className={styles.container}>
       {/* Cabeçalho */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-        <div style={{ fontSize: '0.75rem', color: '#3fb950', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <FaDragon /> Grimório Quimérico
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => setMostrarForm(!mostrarForm)}
-          style={{ padding: '3px 8px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid #30363d', background: '#21262d', color: '#3fb950', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
         >
           <FaPlus size={10} /> Imitar Feitiço ({magiasImitadas.length}/{limiteFeiticos})
-        </button>
+        </Button>
       </div>
 
       {/* Configuração de Atributos Oficiais de Magia */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', background: '#0d1117', padding: '6px 8px', borderRadius: '4px', border: '1px solid #30363d', fontSize: '0.78rem', flexWrap: 'wrap' }}>
-        <span style={{ color: '#8b949e' }}>Atributos de Magia/Quimerismo:</span>
+      <div className={styles.attributeConfig}>
+        <span className={styles.attributeLabel}>Atributos de Magia/Quimerismo:</span>
         <select
           value={atributoEscolhido}
           onChange={alterarAtributo}
-          style={{ background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '3px 6px', fontSize: '0.78rem' }}
+          className={styles.attributeSelect}
         >
           <option value="AST + VON">AST + VON (Astúcia + Vontade)</option>
           <option value="VIG + VON">VIG + VON (Vigor + Vontade)</option>
@@ -117,24 +119,24 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
       </div>
 
       {/* Resumo de Habilidades Passivas */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.75rem', marginBottom: '8px' }}>
+      <div className={styles.passivasRow}>
         {nvConsumir > 0 && (
           <button
             type="button"
             onClick={usarConsumir}
-            style={{ background: '#0d1117', padding: '3px 8px', borderRadius: '4px', border: '1px solid #3fb950', color: '#3fb950', cursor: 'pointer' }}
+            className={styles.passivaConsumir}
             title="Clique para recuperar PM"
           >
             ⚡ Consumir: Recuperar <strong>+{nvConsumir * 2} PM</strong>
           </button>
         )}
         {nvPatogenese > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d4af37', color: '#d4af37' }}>
+          <span className={styles.passivaPatogenese}>
             🧪 Patogênese ativa (envenena espécie correspondente)
           </span>
         )}
         {nvLingua > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #58a6ff', color: '#58a6ff' }}>
+          <span className={styles.passivaLingua}>
             🗣️ Língua das Feras
           </span>
         )}
@@ -142,27 +144,27 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
 
       {/* Formulário para Adicionar Feitiço Imitado */}
       {mostrarForm && (
-        <form onSubmit={adicionarMagia} style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px', padding: '8px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d' }}>
-          <div style={{ display: 'flex', gap: '6px' }}>
+        <form onSubmit={adicionarMagia} className={styles.formBox}>
+          <div className={styles.formRow}>
             <input
               type="text"
               placeholder="Nome do Feitiço Imitado"
               value={novaMagia.nome}
               onChange={(e) => setNovaMagia({ ...novaMagia, nome: e.target.value })}
               required
-              style={{ flex: 2, background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '5px 8px', fontSize: '0.8rem' }}
+              className={styles.inputName}
             />
             <input
               type="number"
               placeholder="MP"
               value={novaMagia.custo_mp}
               onChange={(e) => setNovaMagia({ ...novaMagia, custo_mp: e.target.value })}
-              style={{ flex: 0.5, background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '5px 8px', fontSize: '0.8rem' }}
+              className={styles.inputMp}
             />
             <select
               value={novaMagia.especie}
               onChange={(e) => setNovaMagia({ ...novaMagia, especie: e.target.value })}
-              style={{ flex: 1, background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '5px 8px', fontSize: '0.8rem' }}
+              className={styles.selectEspecie}
             >
               <option value="fera">Fera</option>
               <option value="monstro">Monstro</option>
@@ -174,40 +176,44 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
             placeholder="Descrição / Efeito do feitiço"
             value={novaMagia.descricao}
             onChange={(e) => setNovaMagia({ ...novaMagia, descricao: e.target.value })}
-            style={{ background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '5px 8px', fontSize: '0.8rem' }}
+            className={styles.inputDesc}
           />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
-            <button type="button" onClick={() => setMostrarForm(false)} style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#21262d', color: '#8b949e', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer' }}>Cancelar</button>
-            <button type="submit" style={{ padding: '4px 10px', fontSize: '0.75rem', background: '#238636', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Memorizar</button>
+          <div className={styles.formActions}>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMostrarForm(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="primary" size="sm">
+              Memorizar
+            </Button>
           </div>
         </form>
       )}
 
       {/* Lista de Feitiços Imitados */}
       {magiasImitadas.length === 0 ? (
-        <div style={{ fontSize: '0.78rem', color: '#8b949e' }}>
+        <div className={styles.emptyState}>
           Nenhum feitiço imitado memorizado ainda. Use <strong>Imitação Mágica</strong> para registrar feitiços aprendidos de feras, monstros ou plantas.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className={styles.spellsList}>
           {magiasImitadas.map((mag, idx) => (
-            <div key={mag.id || idx} style={{ padding: '7px 9px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d', fontSize: '0.8rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={mag.id || idx} className={styles.spellCard}>
+              <div className={styles.spellHeader}>
                 <div>
-                  <strong style={{ color: '#f0f6fc' }}>{mag.nome}</strong>
-                  <span style={{ fontSize: '0.72rem', color: '#3fb950', marginLeft: '6px' }}>(MP: {mag.custo_mp || '—'})</span>
-                  <span style={{ fontSize: '0.72rem', color: '#d4af37', marginLeft: '6px', textTransform: 'uppercase' }}>[{mag.especie}]</span>
+                  <strong className={styles.spellName}>{mag.nome}</strong>
+                  <span className={styles.spellMp}>(MP: {mag.custo_mp || '—'})</span>
+                  <span className={styles.spellSpecies}>[{mag.especie}]</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => removerMagia(idx)}
-                  style={{ background: 'transparent', border: 'none', color: '#f85149', cursor: 'pointer' }}
+                  className={styles.deleteBtn}
                   title="Esquecer feitiço"
                 >
                   <FaTrash size={11} />
                 </button>
               </div>
-              {mag.descricao && <div style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '2px' }}>{mag.descricao}</div>}
+              {mag.descricao && <div className={styles.spellDesc}>{mag.descricao}</div>}
             </div>
           ))}
         </div>

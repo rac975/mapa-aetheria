@@ -1,0 +1,98 @@
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+}
+
+.statusPending {
+  font-size: var(--font-size-xs);
+  color: var(--color-pv);
+}
+
+.statusAllocated {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-2);
+}
+
+.card {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.cardName {
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+}
+
+.cardStage {
+  font-size: var(--font-size-xs);
+  color: var(--color-pm);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.buttonRow {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  .title,
+  .cardName,
+  .cardStage {
+    color: #000000 !important;
+  }
+
+  .card {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  .buttonRow {
+    display: none !important;
+  }
+}

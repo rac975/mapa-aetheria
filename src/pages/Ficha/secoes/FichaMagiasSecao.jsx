@@ -1,17 +1,30 @@
 import { FaMagic } from 'react-icons/fa';
+import { Card, Badge } from '../../../components/ui';
+import styles from './FichaMagiasSecao.module.css';
 
 export default function FichaMagiasSecao({ magias }) {
   if (!magias || magias.length === 0) return null;
 
   return (
-    <section className="ficha-card-section">
-      <h3><FaMagic /> Magias/Arcanas</h3>
-      {magias.map((m, i) => (
-        <div key={i} className="traco-row" style={{ marginBottom: '8px' }}>
-          <strong>{m.nome}</strong> (MP: {m.custo_mp} | Alvos: {m.alvos} | Duração: {m.duracao})
-          {m.descricao && <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: '#9da3af' }}>{m.descricao}</p>}
-        </div>
-      ))}
-    </section>
+    <Card variant="default" className={styles.container}>
+      <h3 className={styles.sectionHeader}>
+        <FaMagic /> Magias/Arcanas
+      </h3>
+      <div className={styles.magiasList}>
+        {magias.map((m, i) => (
+          <div key={i} className={styles.magiaCard}>
+            <div className={styles.magiaHeader}>
+              <strong className={styles.magiaNome}>{m.nome}</strong>
+              <div className={styles.magiaMeta}>
+                <Badge variant="ether" size="sm">MP: {m.custo_mp}</Badge>
+                {m.alvos && <span>Alvos: {m.alvos}</span>}
+                {m.duracao && <span>Duração: {m.duracao}</span>}
+              </div>
+            </div>
+            {m.descricao && <p className={styles.magiaDescricao}>{m.descricao}</p>}
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }

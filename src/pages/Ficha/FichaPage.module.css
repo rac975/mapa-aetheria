@@ -1,0 +1,156 @@
+/* =====================================================
+   FICHA PAGE MODULE - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.pageContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-10) var(--space-4);
+  color: var(--color-text-main);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  box-sizing: border-box;
+}
+
+.centerWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+
+.loaderBox {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+}
+
+.spinnerIcon {
+  font-size: var(--font-size-2xl);
+  color: var(--color-ether-cyan);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorCard {
+  text-align: center;
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 480px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-surface);
+}
+
+.errorIcon {
+  font-size: 3rem;
+  color: var(--color-border-gold-bright);
+}
+
+.errorTitle {
+  margin: 0;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-main);
+}
+
+.errorMsg {
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 var(--space-4) 0;
+  font-size: var(--font-size-sm);
+}
+
+/* --- FORMULÁRIO DE EDIÇÃO --- */
+.formEditContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.saveFloatingBar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  background: var(--color-bg-surface);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-gold);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+/* --- CONTEÚDO DE VISUALIZAÇÃO --- */
+.viewContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA A4 (@media print)
+   ===================================================== */
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  .pageContainer {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 8mm !important;
+    color: #000000 !important;
+  }
+
+  .viewContent {
+    gap: 6mm !important;
+  }
+
+  /* Ocultar elementos estritamente interativos na impressão física */
+  .saveFloatingBar,
+  .formEditContainer,
+  button,
+  .no-print,
+  [data-print="false"] {
+    display: none !important;
+  }
+
+  /* Evitar quebras de página desagradáveis no meio de cartões */
+  .viewContent > * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

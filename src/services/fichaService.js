@@ -108,6 +108,40 @@ export const fichaService = {
   },
 
   /**
+   * Busca as magias da ficha com os detalhes do catálogo oficial de feitiços
+   * @param {string|number} fichaId
+   * @returns {Promise<Array<any>>}
+   */
+  async getMagiasComCatalogoByFichaId(fichaId) {
+    const { data, error } = await supabase
+      .from('fichas_magias')
+      .select(`
+        id,
+        customizacoes,
+        catalogo_feiticos (
+          id,
+          nome,
+          classe,
+          uso,
+          ofensivo,
+          pm_custo,
+          pm_por_alvo,
+          max_alvos,
+          alvo,
+          duracao,
+          descricao
+        )
+      `)
+      .eq('ficha_id', fichaId);
+
+    if (error) {
+      console.error('Erro ao buscar magias com catálogo da ficha:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  /**
    * Busca os itens do inventário de uma ficha
    * @param {string|number} fichaId
    * @returns {Promise<Array<any>>}
@@ -434,5 +468,17 @@ export const fichaService = {
       .from('itens_personagem')
       .delete()
       .in('id', ids);
+  },
+
+  /**
+   * Busca feitiços do catálogo filtrando pelo nome da classe
+   * @param {string} nomeClasse
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoFeiticosPorClasse(nomeClasse) {
+    return await supabase
+      .from('catalogo_feiticos')
+      .select('*')
+      .ilike('classe', nomeClasse);
   }
 };

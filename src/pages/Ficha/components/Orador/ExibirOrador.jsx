@@ -1,6 +1,7 @@
 import React from 'react';
 import OradorHeader from './OradorHeader';
 import OradorHabilidadesCards from './OradorHabilidadesCards';
+import styles from './ExibirOrador.module.css';
 
 export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso }) {
   const dadosClasse = classeObjeto || ficha;
@@ -82,136 +83,9 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
 
   const bonusPersuasivo = nivelOrador;
 
-  // --- ESTILOS EM LINHA ---
-  const styles = {
-    container: {
-      backgroundColor: 'rgba(13, 15, 24, 0.9)',
-      border: '1px solid rgba(245, 158, 11, 0.3)',
-      borderRadius: '12px',
-      padding: '20px',
-      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
-      color: '#f8fafc',
-      marginTop: '16px',
-      fontFamily: 'inherit',
-    },
-    header: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      borderBottom: '1px solid rgba(245, 158, 11, 0.2)',
-      paddingBottom: '12px',
-      marginBottom: '16px',
-      flexWrap: 'wrap',
-      gap: '10px',
-    },
-    title: {
-      fontSize: '1.25rem',
-      fontWeight: 'bold',
-      color: '#fbbf24',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      margin: 0,
-    },
-    badgeNivel: {
-      fontSize: '0.75rem',
-      backgroundColor: 'rgba(245, 158, 11, 0.2)',
-      color: '#fcd34d',
-      padding: '2px 8px',
-      borderRadius: '9999px',
-      border: '1px solid rgba(245, 158, 11, 0.3)',
-    },
-    subtitle: {
-      fontSize: '0.75rem',
-      color: '#94a3b8',
-      margin: '4px 0 0 0',
-    },
-    statusBox: {
-      textAlign: 'right',
-      fontSize: '0.75rem',
-      color: '#cbd5e1',
-      backgroundColor: 'rgba(30, 41, 59, 0.8)',
-      padding: '8px 12px',
-      borderRadius: '8px',
-      border: '1px solid rgba(51, 65, 85, 1)',
-    },
-    grid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-      gap: '12px',
-    },
-    card: {
-      backgroundColor: 'rgba(30, 41, 59, 0.6)',
-      border: '1px solid rgba(51, 65, 85, 0.6)',
-      borderRadius: '8px',
-      padding: '12px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-    },
-    cardTitle: {
-      fontWeight: 600,
-      color: '#fcd34d',
-      fontSize: '0.875rem',
-      margin: '0 0 4px 0',
-    },
-    cardDesc: {
-      fontSize: '0.75rem',
-      color: '#94a3b8',
-      margin: 0,
-      lineHeight: '1.4',
-    },
-    buttonAmber: {
-      marginTop: '12px',
-      width: '100%',
-      backgroundColor: 'rgba(217, 119, 6, 0.8)',
-      hoverBackgroundColor: '#d97706',
-      color: '#ffffff',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-      padding: '8px 12px',
-      borderRadius: '6px',
-      border: 'none',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    },
-    buttonIndigo: {
-      marginTop: '12px',
-      width: '100%',
-      backgroundColor: 'rgba(79, 70, 229, 0.8)',
-      color: '#ffffff',
-      fontSize: '0.75rem',
-      fontWeight: 500,
-      padding: '8px 12px',
-      borderRadius: '6px',
-      border: 'none',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    },
-    passivaBox: {
-      marginTop: '12px',
-      backgroundColor: 'rgba(30, 41, 59, 0.4)',
-      border: '1px solid rgba(51, 65, 85, 0.4)',
-      borderRadius: '8px',
-      padding: '12px',
-    },
-    passivaHeader: {
-      fontWeight: 600,
-      color: '#cbd5e1',
-      fontSize: '0.875rem',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      margin: 0,
-    }
-  };
-
   return (
-    <div style={styles.container}>
+    <div className={styles.container}>
       <OradorHeader
-        styles={styles}
         nivelOrador={nivelOrador}
         mpValido={mpValido}
         mpMaxPermitido={mpMaxPermitido}
@@ -219,7 +93,6 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
       />
 
       <OradorHabilidadesCards
-        styles={styles}
         usarAliadoInesperado={usarAliadoInesperado}
         usarCondenar={usarCondenar}
         perdaPmCondenar={perdaPmCondenar}
@@ -229,12 +102,12 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
       />
 
       {/* Persuasivo (Passiva) */}
-      <div style={styles.passivaBox}>
-        <h4 style={styles.passivaHeader}>
+      <div className={styles.passivaBox}>
+        <h4 className={styles.passivaHeader}>
           <span>Persuasivo (Passiva)</span>
-          <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>Bônus: +{bonusPersuasivo}</span>
+          <span className={styles.passivaBonus}>Bônus: +{bonusPersuasivo}</span>
         </h4>
-        <p style={{ ...styles.cardDesc, marginTop: '4px' }}>Você ganha bônus em testes sociais e interações baseadas em Astúcia e Vontade de acordo com o nível na classe.</p>
+        <p className={styles.cardDesc}>Você ganha bônus em testes sociais e interações baseadas em Astúcia e Vontade de acordo com o nível na classe.</p>
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
 import { FaShieldAlt, FaCheckCircle } from 'react-icons/fa';
+import { Card } from '../../../components/ui';
+import styles from './FichaProficienciasSecao.module.css';
 
 export default function FichaProficienciasSecao({ classes }) {
   if (!classes || classes.length === 0) return null;
@@ -11,30 +13,19 @@ export default function FichaProficienciasSecao({ classes }) {
   if (proficienciasList.length === 0) return null;
 
   return (
-    <section className="ficha-card-section" style={{ marginBottom: '20px' }}>
-      <h3><FaShieldAlt /> Proficiências & Equipamentos Permitidos</h3>
+    <Card variant="default" className={styles.container}>
+      <h3 className={styles.sectionHeader}>
+        <FaShieldAlt /> Proficiências & Equipamentos Permitidos
+      </h3>
       
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+      <div className={styles.proficienciasGrid}>
         {proficienciasList.map((beneficio, index) => (
-          <div 
-            key={index} 
-            style={{ 
-              background: '#161b22', 
-              border: '1px solid #30363d', 
-              borderRadius: '6px', 
-              padding: '8px 12px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              fontSize: '0.85rem',
-              color: '#3fb950'
-            }}
-          >
-            <FaCheckCircle size={14} style={{ color: '#3fb950', flexShrink: 0 }} />
+          <div key={index} className={styles.proficienciaItem}>
+            <FaCheckCircle size={14} className={styles.checkIcon} />
             <span>{beneficio}</span>
           </div>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }

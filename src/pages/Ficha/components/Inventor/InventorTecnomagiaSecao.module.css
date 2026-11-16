@@ -1,0 +1,76 @@
+.section {
+  margin-bottom: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-xs);
+  color: #bc8cff;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.cardsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.card {
+  background: var(--color-bg-input);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.card strong {
+  display: inline-block;
+  margin-bottom: var(--space-1);
+}
+
+.highlightPurple {
+  color: #bc8cff;
+}
+
+.highlightGold {
+  color: var(--color-text-gold);
+}
+
+.highlightRed {
+  color: var(--color-crise-bright);
+}
+
+.actionBtn {
+  margin-top: var(--space-2);
+}
+
+@media print {
+  .section {
+    border-top: 1px solid #000000 !important;
+  }
+
+  .title,
+  .card,
+  .highlightPurple,
+  .highlightGold,
+  .highlightRed {
+    color: #000000 !important;
+  }
+
+  .card {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

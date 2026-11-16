@@ -1,0 +1,99 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  color: var(--color-pm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.badgeGreen {
+  background: rgba(46, 204, 113, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-pv);
+  color: var(--color-pv);
+}
+
+.badgeRed {
+  background: rgba(231, 76, 60, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-crise);
+  color: var(--color-crise-bright);
+}
+
+.badgeGold {
+  background: rgba(197, 160, 89, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+.actionRow {
+  margin-top: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--font-size-xs);
+}
+
+.helperText {
+  color: var(--color-text-dim);
+}
+
+.helperText strong {
+  color: var(--color-text-main);
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .title,
+  .badgeGreen,
+  .badgeRed,
+  .badgeGold,
+  .helperText,
+  .helperText strong {
+    color: #000000 !important;
+  }
+
+  .badgeGreen,
+  .badgeRed,
+  .badgeGold {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

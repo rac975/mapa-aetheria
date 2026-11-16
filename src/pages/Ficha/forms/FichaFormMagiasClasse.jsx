@@ -1,30 +1,33 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaMagic } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
+import { fichaService } from '../../../services/fichaService';
+import { Badge } from '../../../components/ui';
+import styles from './FichaFormMagiasClasse.module.css';
 
 export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formClasses, setFormClasses }) {
     const [catalogoMagias, setCatalogoMagias] = useState([]);
     const [carregando, setCarregando] = useState(false);
 
-    const nomeClasse = classeObjeto.nome_classe || '';
+    const nomeClasse = classeObjeto?.nome_classe || '';
 
-    // 1. Carrega do banco o catálogo de feitiços desta classe específica
+    // 1. Carrega do banco o catálogo de feitiços desta classe específica via Service Layer
     useEffect(() => {
         let active = true;
         async function carregarCatalogoMagias() {
             setCarregando(true);
-            const { data, error } = await supabase
-                .from('catalogo_feiticos')
-                .select('*')
-                .ilike('classe', nomeClasse);
-
-            if (!active) return;
-            if (!error && data) {
-                setCatalogoMagias(data);
-            } else {
-                console.error("Erro ao carregar catálogo de feitiços:", error);
+            try {
+                const { data, error } = await fichaService.getCatalogoFeiticosPorClasse(nomeClasse);
+                if (!active) return;
+                if (!error && data) {
+                    setCatalogoMagias(data);
+                } else {
+                    console.error("Erro ao carregar catálogo de feitiços:", error);
+                }
+            } catch (err) {
+                console.error("Erro ao carregar feitiços:", err);
+            } finally {
+                if (active) setCarregando(false);
             }
-            setCarregando(false);
         }
 
         if (nomeClasse) {
@@ -34,7 +37,7 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
     }, [nomeClasse]);
 
     // 2. Descobre o nível da habilidade de magia da classe (Ex: "Magia Elemental", "Magia Espiritual", etc.)
-    const habMagia = (classeObjeto.habilidades || []).find(h => {
+    const habMagia = (classeObjeto?.habilidades || []).find(h => {
         const nomeH = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
         return nomeH.includes('magia elemental') || 
                nomeH.includes('magia espiritual') || 
@@ -42,11 +45,11 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
                nomeH.includes('magia arcanista');
     });
 
-    const nivelHabilidadeMagia = parseInt(habMagia?.nivel) || 0;
+    const nivelHabilidadeMagia = parseInt(habMagia?.nivel, 10) || 0;
     
-    // Regra ajustada: 1 magia por nível da habilidade de magia
+    // Regra oficial: 1 magia por nível da habilidade de magia
     const limiteMagias = nivelHabilidadeMagia; 
-    const magiasAtuais = classeObjeto.magias || [];
+    const magiasAtuais = classeObjeto?.magias || [];
 
     const adicionarMagiaDoCatalogo = (e) => {
         const idMagiaSelecionada = e.target.value;
@@ -92,23 +95,23 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
 
     if (nivelHabilidadeMagia === 0) {
         return (
-            <div style={{ fontSize: '0.8rem', color: '#8b949e', fontStyle: 'italic', marginTop: '8px', padding: '6px', background: '#161b22', borderRadius: '4px' }}>
+            <div className={styles.avisoSemHabilidade}>
                 💡 Distribua pontos na habilidade de magia da classe (ex: <i>Magia Elemental</i>) para desbloquear o grimório e aprender feitiços (1 magia por nível).
             </div>
         );
     }
 
     return (
-        <div style={{ borderTop: '1px solid #30363d', paddingTop: '10px', marginTop: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                <span style={{ fontSize: '0.85rem', color: '#58a6ff', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <div className={styles.container}>
+            <div className={styles.headerRow}>
+                <span className={styles.grimorioTitle}>
                     <FaMagic /> Grimório ({magiasAtuais.length} / {limiteMagias} Magias Conhecidas)
                 </span>
 
                 <select
                     onChange={adicionarMagiaDoCatalogo}
                     defaultValue=""
-                    style={{ padding: '4px 8px', fontSize: '0.78rem', background: '#161b22', color: '#58a6ff', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer' }}
+                    className={styles.selectMagia}
                     disabled={carregando || magiasAtuais.length >= limiteMagias}
                 >
                     <option value="" disabled>+ Aprender Magia do Catálogo</option>
@@ -124,21 +127,23 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
             </div>
 
             {magiasAtuais.length === 0 ? (
-                <div style={{ fontSize: '0.78rem', color: '#8b949e', fontStyle: 'italic' }}>
+                <div className={styles.emptyMagias}>
                     Nenhuma magia aprendida ainda. Selecione acima para adicionar do catálogo.
                 </div>
             ) : (
                 magiasAtuais.map((m, mIndex) => (
-                    <div key={mIndex} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#161b22', padding: '6px 8px', borderRadius: '4px', marginTop: '4px', fontSize: '0.82rem' }}>
-                        <div>
-                            <strong style={{ color: '#f0f6fc' }}>{m.nome}</strong>{' '}
-                            <span style={{ color: '#3fb950' }}>(MP: {m.custo_mp})</span>:{' '}
-                            <span style={{ color: '#8b949e' }}>{m.descricao}</span>
+                    <div key={mIndex} className={styles.magiaItem}>
+                        <div className={styles.magiaInfo}>
+                            <div className={styles.magiaHeaderLine}>
+                                <strong className={styles.magiaNome}>{m.nome}</strong>
+                                <Badge variant="ether" size="sm">MP: {m.custo_mp}</Badge>
+                            </div>
+                            <span className={styles.magiaDescricao}>{m.descricao}</span>
                         </div>
                         <button
                             type="button"
                             onClick={() => removerMagia(mIndex)}
-                            style={{ background: 'transparent', border: 'none', color: '#f85149', cursor: 'pointer', padding: '2px 6px' }}
+                            className={styles.btnRemover}
                             title="Esquecer Magia"
                         >
                             <FaTrash size={12} />

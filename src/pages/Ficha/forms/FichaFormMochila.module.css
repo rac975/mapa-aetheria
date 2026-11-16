@@ -1,0 +1,81 @@
+/* =====================================================
+   FICHA FORM MOCHILA - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textarea {
+  width: 100%;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-main);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.textarea:focus {
+  border-color: var(--color-border-gold);
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .title {
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .label {
+    color: #000000 !important;
+  }
+
+  .textarea {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+}

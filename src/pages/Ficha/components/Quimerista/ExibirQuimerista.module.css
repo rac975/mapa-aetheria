@@ -1,0 +1,269 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  color: var(--color-pv);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.attributeConfig {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  background: var(--color-bg-input);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-xs);
+  flex-wrap: wrap;
+}
+
+.attributeLabel {
+  color: var(--color-text-dim);
+}
+
+.attributeSelect {
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+}
+
+.attributeSelect:focus {
+  border-color: var(--color-pv);
+}
+
+.passivasRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--space-3);
+}
+
+.passivaConsumir {
+  background: rgba(46, 204, 113, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-pv);
+  color: var(--color-pv);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+}
+
+.passivaPatogenese {
+  background: rgba(197, 160, 89, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+.passivaLingua {
+  background: rgba(0, 180, 255, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-pm);
+  color: var(--color-pm);
+}
+
+.formBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+}
+
+.formRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.inputName {
+  flex: 2;
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.inputMp {
+  flex: 0.6;
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.selectEspecie {
+  flex: 1;
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.inputDesc {
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.emptyState {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: var(--space-2) 0;
+}
+
+.spellsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.spellCard {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-sm);
+}
+
+.spellHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spellName {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.spellMp {
+  font-size: var(--font-size-xs);
+  color: var(--color-pv);
+  margin-left: var(--space-2);
+}
+
+.spellSpecies {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  margin-left: var(--space-2);
+  text-transform: uppercase;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-crise);
+  cursor: pointer;
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.deleteBtn:hover {
+  opacity: 1;
+}
+
+.spellDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .title,
+  .attributeLabel,
+  .passivaConsumir,
+  .passivaPatogenese,
+  .passivaLingua,
+  .spellName,
+  .spellMp,
+  .spellSpecies,
+  .spellDesc {
+    color: #000000 !important;
+  }
+
+  .attributeConfig,
+  .spellCard {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  .passivaConsumir,
+  .passivaPatogenese,
+  .passivaLingua {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+  }
+
+  button,
+  .formBox,
+  .deleteBtn {
+    display: none !important;
+  }
+}

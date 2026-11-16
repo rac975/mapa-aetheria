@@ -1,0 +1,73 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.card {
+  background: var(--color-bg-input);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-xs);
+}
+
+.titleAlquimia {
+  color: var(--color-pm);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.titleInfusoes {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.titleTecnomagia {
+  color: #bc8cff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.statusActive {
+  color: var(--color-pv);
+  margin-top: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.statusInactive {
+  color: var(--color-text-dim);
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .card {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+    color: #000000 !important;
+  }
+
+  .titleAlquimia,
+  .titleInfusoes,
+  .titleTecnomagia,
+  .statusActive,
+  .statusInactive {
+    color: #000000 !important;
+  }
+}

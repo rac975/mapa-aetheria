@@ -3,9 +3,11 @@ import { FaStar, FaPlus, FaBook } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { calcularBonusEscalaArcanista } from '../../../../domain/fabula/classRules';
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
+import { Button } from '../../../../components/ui';
 import ArcanoAtivoPainel from './ArcanoAtivoPainel';
 import ArcanosForms from './ArcanosForms';
 import ArcanosLista from './ArcanosLista';
+import styles from './ExibirArcanista.module.css';
 
 export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustarRecurso }) {
   const [catalogo, setCatalogo] = useState([]);
@@ -123,62 +125,57 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
   const arcanoAtivo = arcanoAtivoIdx !== null ? arcanosVinculados[arcanoAtivoIdx] : null;
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+    <div className={styles.container}>
       {/* Cabeçalho e Controles */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-        <div style={{ fontSize: '0.75rem', color: '#d2a8ff', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <FaStar /> Grimório de Arcanos
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div className={styles.headerActions}>
           {nvEmergencial > 0 && (
-            <button
+            <Button
               type="button"
+              variant={emCrise ? 'danger' : 'ghost'}
+              size="sm"
               onClick={() => setEmCrise(!emCrise)}
-              style={{
-                padding: '3px 8px',
-                fontSize: '0.72rem',
-                borderRadius: '4px',
-                border: '1px solid #da3633',
-                background: emCrise ? '#da3633' : '#0d1117',
-                color: '#f0f6fc',
-                cursor: 'pointer',
-              }}
             >
               {emCrise ? `Em Crise (-${nvEmergencial * 5} PM)` : 'Simular Crise'}
-            </button>
+            </Button>
           )}
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => setModoAdicao(modoAdicao === 'catalogo' ? null : 'catalogo')}
-            style={{ padding: '3px 8px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid #30363d', background: '#21262d', color: '#d2a8ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             <FaBook size={10} /> + Catálogo
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => setModoAdicao(modoAdicao === 'custom' ? null : 'custom')}
-            style={{ padding: '3px 8px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid #30363d', background: '#21262d', color: '#58a6ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
             <FaPlus size={10} /> + Custom
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Resumo de Custos e Escala */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.75rem', marginBottom: '8px' }}>
-        <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #30363d', color: '#c9d1d9' }}>
+      <div className={styles.resumoGrid}>
+        <span className={styles.resumoItem}>
           Invocação: <strong>{custoInvocacao} PM</strong>
         </span>
         {nvRegeneracao > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #3fb950', color: '#3fb950' }}>
+          <span className={styles.resumoItemGreen}>
             Regeneração: <strong>+{curaRegeneracao} PV</strong> ao invocar
           </span>
         )}
         {bonusEscalaNivel > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d4af37', color: '#d4af37' }}>
+          <span className={styles.resumoItemGold}>
             Dano de Dispensa (Nv. {nivelTotal}): <strong>+{bonusEscalaNivel}</strong>
           </span>
         )}

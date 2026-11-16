@@ -1,4 +1,6 @@
-import { FaBoxOpen } from 'react-icons/fa';
+import { FaBoxOpen, FaStickyNote } from 'react-icons/fa';
+import { Card } from '../../../components/ui';
+import styles from './FichaMochilaSecao.module.css';
 
 export default function FichaMochilaSecao({ mochila, notas }) {
   if (!mochila && !notas) return null;
@@ -6,16 +8,20 @@ export default function FichaMochilaSecao({ mochila, notas }) {
   return (
     <>
       {mochila && (
-        <section className="ficha-card-section">
-          <h3><FaBoxOpen /> Mochila</h3>
-          <p style={{ whiteSpace: 'pre-line' }}>{mochila}</p>
-        </section>
+        <Card variant="default" className={styles.container}>
+          <h3 className={styles.sectionHeader}>
+            <FaBoxOpen /> Mochila
+          </h3>
+          <p className={styles.conteudoTexto}>{mochila}</p>
+        </Card>
       )}
       {notas && (
-        <section className="ficha-card-section">
-          <h3>Notas</h3>
-          <p style={{ whiteSpace: 'pre-line' }}>{notas}</p>
-        </section>
+        <Card variant="default" className={styles.container}>
+          <h3 className={styles.sectionHeader}>
+            <FaStickyNote /> Notas
+          </h3>
+          <p className={styles.conteudoTexto}>{notas}</p>
+        </Card>
       )}
     </>
   );

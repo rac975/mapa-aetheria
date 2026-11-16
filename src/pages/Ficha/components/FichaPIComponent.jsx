@@ -1,6 +1,8 @@
-import { FaBoxOpen, FaPlus, FaMinus, FaCoins, FaFlask, FaHeart, FaMagic, FaShieldAlt, FaBolt } from 'react-icons/fa';
+import { FaBoxOpen, FaCoins, FaFlask, FaHeart } from 'react-icons/fa';
 import { MdWaterDrop } from 'react-icons/md';
 import { fichaService } from '../../../services/fichaService';
+import { ResourceBar, Button, Badge } from '../../../components/ui';
+import styles from './FichaPIComponent.module.css';
 
 export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
     if (!ficha) return null;
@@ -23,7 +25,7 @@ export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
 
     const alterarPI = async (quantidade) => {
         const novoPiAtual = Math.max(0, Math.min(piMax, piAtual + quantidade));
-        await atualizarFichaNoBanco({ pi_atual: novoPiAtual });
+        await atualizarFichaNoBanco({ pi_atual: novoPiAtual, ip_atual: novoPiAtual });
     };
 
     const recarregarPIs = async () => {
@@ -37,7 +39,7 @@ export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
         }
 
         const novoZenit = zenitAtual - custoTotal;
-        await atualizarFichaNoBanco({ pi_atual: piMax, zenit: novoZenit });
+        await atualizarFichaNoBanco({ pi_atual: piMax, ip_atual: piMax, zenit: novoZenit });
     };
 
     // ==========================================
@@ -50,122 +52,115 @@ export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
         }
 
         const novoPiAtual = piAtual - custoPI;
-        let novosDados = { pi_atual: novoPiAtual };
+        let novosDados = { pi_atual: novoPiAtual, ip_atual: novoPiAtual };
 
         if (tipoEfeito === 'remedio') {
-            // Remédio: 3 PI -> Recupera 50 PV (limitado ao PV Máximo)
             const hpMax = ficha.hp_max || 100;
             const hpAtual = ficha.hp_atual || 0;
             novosDados.hp_atual = Math.min(hpMax, hpAtual + 50);
         } 
         else if (tipoEfeito === 'elixir') {
-            // Elixir: 3 PI -> Recupera 50 MP (limitado ao MP Máximo)
             const mpMax = ficha.mp_max || 50;
             const mpAtual = ficha.mp_atual || 0;
             novosDados.mp_atual = Math.min(mpMax, mpAtual + 50);
         } 
         else if (tipoEfeito === 'tonico') {
-            // Tônico: 2 PI -> Recupera de todas as condições (Avisa na tela para o Mestre/Jogador)
             alert("✨ Tônico utilizado! Todas as condições foram removidas.");
-            // Opcional: se houver lógica de limpar condições locais, pode ser acionada aqui
         }
 
         await atualizarFichaNoBanco(novosDados);
     };
 
     return (
-        <div className="ficha-card-section" style={{ background: '#161b22', border: '1px solid #30363d', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: '#d4af37', fontSize: '1rem' }}>
+        <div className={styles.container}>
+            <div className={styles.headerRow}>
+                <h3 className={styles.title}>
                     <FaBoxOpen /> Pontos de Inventário (PI)
                 </h3>
-                <span style={{ background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                <Badge variant="gold" size="md">
                     {piAtual} / {piMax} PI
-                </span>
+                </Badge>
             </div>
 
             {/* Barra Visual de PIs */}
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-                {Array.from({ length: piMax }).map((_, index) => {
-                    const ativo = index < piAtual;
-                    return (
-                        <div
-                            key={index}
-                            style={{
-                                flex: 1,
-                                height: '10px',
-                                borderRadius: '4px',
-                                background: ativo ? '#2ecc71' : '#352123',
-                                border: `1px solid ${ativo ? '#27ae60' : '#f85149'}`,
-                                transition: 'all 0.2s'
-                            }}
-                            title={ativo ? 'PI Disponível' : 'PI Gasto/Consumido'}
-                        />
-                    );
-                })}
-            </div>
+            <ResourceBar
+                type="pi"
+                current={piAtual}
+                max={piMax}
+                label="Pontos de Inventário (Mochila)"
+                showValues={true}
+            />
 
             {/* BOTÕES DE USO RÁPIDO DE CONSUMÍVEIS */}
-            <div style={{ marginBottom: '16px', borderTop: '1px solid #30363d', paddingTop: '12px' }}>
-                <span style={{ fontSize: '0.8rem', color: '#8b949e', display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-                    CRIAR E USAR CONSUMÍVEL IMEDIATAMENTE:
+            <div className={styles.consumiveisSection}>
+                <span className={styles.consumiveisLabel}>
+                    Criar e usar consumível imediatamente:
                 </span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
-                    <button
+                <div className={styles.consumiveisGrid}>
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => usarConsumivel(3, 'remedio')}
-                        style={{ background: '#21262d', color: '#2ecc71', border: '1px solid #30363d', padding: '8px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        className={styles.consumivelBtn}
                     >
-                        <FaHeart /> Remédio (3 PI) <span style={{ fontSize: '0.65rem', color: '#8b949e' }}>+50 PV</span>
-                    </button>
+                        <FaHeart /> Remédio (3 PI) <span className={styles.consumivelEfeito}>+50 PV</span>
+                    </Button>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => usarConsumivel(3, 'elixir')}
-                        style={{ background: '#21262d', color: '#58a6ff', border: '1px solid #30363d', padding: '8px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        className={styles.consumivelBtn}
                     >
-                        <MdWaterDrop /> Elixir (3 PI) <span style={{ fontSize: '0.65rem', color: '#8b949e' }}>+50 MP</span>
-                    </button>
+                        <MdWaterDrop /> Elixir (3 PI) <span className={styles.consumivelEfeito}>+50 MP</span>
+                    </Button>
 
-                    <button
+                    <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => usarConsumivel(2, 'tonico')}
-                        style={{ background: '#21262d', color: '#d4af37', border: '1px solid #30363d', padding: '8px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        className={styles.consumivelBtn}
                     >
-                        <FaFlask /> Tônico (2 PI) <span style={{ fontSize: '0.65rem', color: '#8b949e' }}>Cura Status</span>
-                    </button>
+                        <FaFlask /> Tônico (2 PI) <span className={styles.consumivelEfeito}>Status</span>
+                    </Button>
                 </div>
             </div>
 
             {/* Controles Manuais e Reabastecimento */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #30363d', paddingTop: '12px' }}>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                    <button 
+            <div className={styles.controlesRow}>
+                <div className={styles.manualBtnGroup}>
+                    <Button
                         type="button"
-                        onClick={() => alterarPI(-1)} 
+                        variant="danger"
+                        size="sm"
+                        onClick={() => alterarPI(-1)}
                         disabled={piAtual <= 0}
-                        style={{ background: '#21262d', color: '#f85149', border: '1px solid #30363d', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem' }}
                     >
                         -1 PI Manual
-                    </button>
-                    <button 
+                    </Button>
+                    <Button
                         type="button"
-                        onClick={() => alterarPI(1)} 
+                        variant="core"
+                        size="sm"
+                        onClick={() => alterarPI(1)}
                         disabled={piAtual >= piMax}
-                        style={{ background: '#21262d', color: '#2ecc71', border: '1px solid #30363d', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem' }}
                     >
                         +1 PI Manual
-                    </button>
+                    </Button>
                 </div>
 
-                <button 
+                <Button
                     type="button"
+                    variant="primary"
+                    size="sm"
                     onClick={recarregarPIs}
-                    style={{ background: 'rgba(212, 175, 55, 0.2)', color: '#d4af37', border: '1px solid rgba(212, 175, 55, 0.4)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 'bold' }}
                     title="Custa 10z por PI faltante"
                 >
                     <FaCoins /> Reabastecer na Vila (10z/PI)
-                </button>
+                </Button>
             </div>
         </div>
     );

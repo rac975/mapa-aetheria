@@ -1,0 +1,147 @@
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+  color: var(--color-text-main);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-family-serif);
+}
+
+.subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  margin: var(--space-1) 0 0 0;
+}
+
+.statusBox {
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-bg-input);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.statusPm {
+  color: var(--color-pm);
+}
+
+.statusFabula {
+  color: var(--color-text-gold);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.card {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: var(--color-text-gold);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.cardDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.passivaBox {
+  margin-top: var(--space-3);
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+.passivaHeader {
+  font-weight: 700;
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+
+.passivaBonus {
+  color: var(--color-text-gold);
+  font-size: var(--font-size-xs);
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .header {
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .title,
+  .subtitle,
+  .statusBox,
+  .statusPm,
+  .statusFabula,
+  .cardTitle,
+  .cardDesc,
+  .passivaHeader,
+  .passivaBonus {
+    color: #000000 !important;
+  }
+
+  .statusBox,
+  .card,
+  .passivaBox {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

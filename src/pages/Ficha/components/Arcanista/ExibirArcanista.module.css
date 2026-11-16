@@ -1,0 +1,101 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  color: #d2a8ff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.resumoGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--space-3);
+}
+
+.resumoItem {
+  background: var(--color-bg-input);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--color-text-muted);
+}
+
+.resumoItem strong {
+  color: var(--color-text-main);
+}
+
+.resumoItemGreen {
+  background: rgba(46, 204, 113, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-pv);
+  color: var(--color-pv);
+}
+
+.resumoItemGold {
+  background: rgba(197, 160, 89, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  .title {
+    color: #000000 !important;
+  }
+
+  .headerActions {
+    display: none !important;
+  }
+
+  .resumoItem,
+  .resumoItemGreen,
+  .resumoItemGold {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+    color: #000000 !important;
+  }
+
+  .resumoItem strong {
+    color: #000000 !important;
+  }
+}

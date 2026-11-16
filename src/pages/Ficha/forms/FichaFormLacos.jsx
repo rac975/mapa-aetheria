@@ -1,4 +1,6 @@
 import { FaPlus, FaTrash, FaHeart } from 'react-icons/fa';
+import { Card, Button, Badge, Input } from '../../../components/ui';
+import styles from './FichaFormLacos.module.css';
 
 export default function FichaFormLacos({ formData, setFormData, setAlerta }) {
     const listaEmocoes = ['Adoração', 'Inferioridade', 'Lealdade', 'Desconfiança', 'Afeto', 'Ódio'];
@@ -37,45 +39,50 @@ export default function FichaFormLacos({ formData, setFormData, setAlerta }) {
         setFormData({ ...formData, lacos });
     };
 
+    const lacosLista = formData.lacos || [];
+
     return (
-        <div className="form-section-box">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h3><FaHeart /> Laços ({(formData.lacos || []).length} / 6)</h3>
-                <button type="button" className="btn-secundario" onClick={adicionarLaco}>
+        <Card variant="default" className={styles.container}>
+            <div className={styles.headerRow}>
+                <h3 className={styles.title}>
+                    <FaHeart className={styles.titleIcon} /> Laços ({lacosLista.length} / 6)
+                </h3>
+                <Button type="button" variant="secondary" size="sm" onClick={adicionarLaco}>
                     <FaPlus /> Adicionar Laço
-                </button>
+                </Button>
             </div>
 
-            {(formData.lacos || []).length === 0 ? (
-                <p style={{ color: '#8b949e', fontSize: '0.85rem', textAlign: 'center', padding: '10px 0' }}>
+            {lacosLista.length === 0 ? (
+                <p className={styles.emptyText}>
                     Nenhum laço registrado.
                 </p>
             ) : (
-                (formData.lacos || []).map((l, index) => {
+                lacosLista.map((l, index) => {
                     const emocoes = l.emocoes || [];
                     const forca = emocoes.length;
                     return (
-                        <div key={index} style={{ border: '1px solid #30363d', padding: '12px', marginTop: '10px', borderRadius: '6px', background: '#0d0f18' }}>
-                            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                <input 
-                                    type="text" 
-                                    placeholder="Nome do Vínculo (Pessoa, Objeto, Organização...)" 
-                                    value={l.nome || ''} 
-                                    onChange={(e) => {
-                                        const novos = [...formData.lacos]; 
-                                        novos[index].nome = e.target.value; 
-                                        setFormData({ ...formData, lacos: novos });
-                                    }} 
-                                    style={{ flex: 1 }} 
-                                />
-                                <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.85rem', whiteSpace: 'nowrap', background: 'rgba(212, 175, 55, 0.1)', padding: '6px 10px', borderRadius: '4px' }}>
+                        <div key={index} className={styles.lacoCard}>
+                            <div className={styles.topRow}>
+                                <div className={styles.inputWrapper}>
+                                    <Input 
+                                        type="text" 
+                                        placeholder="Nome do Vínculo (Pessoa, Objeto, Organização...)" 
+                                        value={l.nome || ''} 
+                                        onChange={(e) => {
+                                            const novos = [...formData.lacos]; 
+                                            novos[index].nome = e.target.value; 
+                                            setFormData({ ...formData, lacos: novos });
+                                        }} 
+                                    />
+                                </div>
+                                <Badge variant="gold" size="md">
                                     Força: {forca}
-                                </span>
-                                <button type="button" className="btn-del" onClick={() => removerLaco(index)} style={{ padding: '8px', height: '100%' }}>
+                                </Badge>
+                                <Button type="button" variant="danger" size="sm" onClick={() => removerLaco(index)} title="Remover laço">
                                     <FaTrash />
-                                </button>
+                                </Button>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+                            <div className={styles.gridEmocoes}>
                                 {listaEmocoes.map(emocao => {
                                     const marcado = emocoes.includes(emocao);
                                     return (
@@ -83,13 +90,7 @@ export default function FichaFormLacos({ formData, setFormData, setAlerta }) {
                                             key={emocao}
                                             type="button"
                                             onClick={() => toggleEmocaoLaco(index, emocao)}
-                                            style={{
-                                                background: marcado ? 'rgba(212, 175, 55, 0.2)' : '#161b22',
-                                                color: marcado ? '#d4af37' : '#c9d1d9',
-                                                border: `1px solid ${marcado ? '#d4af37' : '#30363d'}`,
-                                                padding: '6px', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: marcado ? 'bold' : 'normal',
-                                                transition: 'all 0.2s'
-                                            }}
+                                            className={`${styles.btnEmocao} ${marcado ? styles.btnEmocaoAtiva : ''}`}
                                         >
                                             {emocao} {marcado && '✓'}
                                         </button>
@@ -100,6 +101,6 @@ export default function FichaFormLacos({ formData, setFormData, setAlerta }) {
                     );
                 })
             )}
-        </div>
+        </Card>
     );
 }

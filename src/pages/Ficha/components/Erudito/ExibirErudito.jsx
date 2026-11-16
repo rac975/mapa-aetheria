@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FaBookOpen, FaSearch, FaBrain } from 'react-icons/fa';
+import { Button } from '../../../../components/ui';
+import styles from './ExibirErudito.module.css';
 
 export default function ExibirErudito({ ficha, handleAjustarRecurso }) {
   const [qtdAnalises, setQtdAnalises] = useState(1);
@@ -9,7 +11,7 @@ export default function ExibirErudito({ ficha, handleAjustarRecurso }) {
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
     );
-    return parseInt(h?.nivel) || 0;
+    return parseInt(h?.nivel, 10) || 0;
   };
 
   const nvAnalise = getNivel('analise rapida');
@@ -30,35 +32,35 @@ export default function ExibirErudito({ ficha, handleAjustarRecurso }) {
   };
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
-      <div style={{ fontSize: '0.75rem', color: '#58a6ff', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <div className={styles.container}>
+      <div className={styles.title}>
         <FaBookOpen /> Painel Tático — Erudito
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.8rem', marginBottom: nvAnalise > 0 ? '8px' : '0' }}>
+      <div className={styles.badgesRow}>
         {nvConcentrado > 0 && (
-          <span style={{ background: '#0d1117', padding: '4px 8px', borderRadius: '4px', border: '1px solid #58a6ff', color: '#58a6ff' }}>
+          <span className={styles.badgeBlue}>
             <FaBrain size={10} /> Concentrado: <strong>+{nvConcentrado * 3} PM</strong> | <strong>+{nvConcentrado}</strong> em (AST+AST) aberto
           </span>
         )}
         {nvLampejo > 0 && (
-          <span style={{ background: '#0d1117', padding: '4px 8px', borderRadius: '4px', border: '1px solid #d4af37', color: '#d4af37' }}>
+          <span className={styles.badgeGold}>
             💡 Lampejo de Saber (13+): até <strong>{nvLampejo}</strong> pergunta(s)
           </span>
         )}
         {nvConhecimento > 0 && (
-          <span style={{ background: '#0d1117', padding: '4px 8px', borderRadius: '4px', border: '1px solid #3fb950', color: '#3fb950' }}>
+          <span className={styles.badgeGreen}>
             🎯 Conhecimento é Poder: substitui 1 dado de Precisão por <strong>AST</strong>
           </span>
         )}
       </div>
 
       {nvAnalise > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <div className={styles.actionRow}>
           <select
             value={qtdAnalises}
             onChange={(e) => setQtdAnalises(Number(e.target.value))}
-            style={{ background: '#0d1117', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '4px 6px', fontSize: '0.78rem' }}
+            className={styles.select}
           >
             {Array.from({ length: nvAnalise }, (_, idx) => idx + 1).map((n) => (
               <option key={n} value={n}>
@@ -67,13 +69,14 @@ export default function ExibirErudito({ ficha, handleAjustarRecurso }) {
             ))}
           </select>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={usarAnaliseRapida}
-            style={{ padding: '4px 10px', fontSize: '0.78rem', background: '#21262d', color: '#58a6ff', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
           >
             <FaSearch /> Análise Rápida (-{qtdAnalises * 5} PM)
-          </button>
+          </Button>
         </div>
       )}
     </div>

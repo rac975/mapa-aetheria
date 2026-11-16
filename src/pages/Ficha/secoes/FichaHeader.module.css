@@ -1,0 +1,200 @@
+/* =====================================================
+   FICHA HEADER MODULE - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.headerCard {
+  width: 100%;
+  padding: var(--space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: var(--backdrop-blur);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  transition: border-color var(--transition-normal);
+}
+
+.headerInfoWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+  min-width: 280px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.avatarContainer {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-border-gold);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-glow-gold);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  color: var(--color-border-gold);
+}
+
+.headerTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.characterName {
+  margin: 0;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.badgesWrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.zenitGearBtn {
+  margin-left: var(--space-1);
+  background: var(--color-bg-surface-hover);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-gold);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-1);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.zenitGearBtn:hover {
+  background: var(--color-bg-surface-active);
+  border-color: var(--color-border-gold);
+  transform: scale(1.1);
+}
+
+.condicoesStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.headerActionsGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* --- MODAL DE ZÊNITES INTERNO --- */
+.zenitModalForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.zenitTypeSwitcher {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.zenitTypeBtn {
+  flex: 1;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border-gold-muted);
+  background: var(--color-bg-input);
+  color: var(--color-text-muted);
+}
+
+.zenitTypeBtnActiveAdd {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: var(--color-pv);
+  color: var(--color-pv);
+  box-shadow: 0 0 10px var(--color-pv-glow);
+}
+
+.zenitTypeBtnActiveSub {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: var(--color-crise);
+  color: var(--color-crise);
+  box-shadow: 0 0 10px var(--color-crise-glow);
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA (@media print)
+   ===================================================== */
+@media print {
+  .headerCard {
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 10px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .characterName {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  .avatarContainer {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  .avatarPlaceholder {
+    color: #000000 !important;
+  }
+
+  .headerActionsGroup,
+  .zenitGearBtn,
+  .backBtn,
+  [data-print="false"],
+  .no-print {
+    display: none !important;
+  }
+}

@@ -1,0 +1,111 @@
+/* =====================================================
+   FICHA PERÍCIAS SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.innerFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+}
+
+.titleIcon {
+  color: var(--color-border-gold);
+}
+
+.controlsWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  max-width: 500px;
+}
+
+.selectCircunstancia {
+  width: 100%;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-main);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.selectCircunstancia:focus {
+  border-color: var(--color-border-gold);
+}
+
+.selectCircunstancia optgroup {
+  background: var(--color-bg-base);
+  color: var(--color-border-gold-bright);
+  font-weight: 700;
+}
+
+.selectCircunstancia option {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+}
+
+.resultadoBox {
+  background: rgba(197, 160, 89, 0.12);
+  border: 1px solid var(--color-border-gold-glow);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.resultadoTitulo {
+  font-size: var(--font-size-xs);
+  color: var(--color-border-gold-bright);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultadoValores {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.resultadoTotal {
+  color: var(--color-core-green);
+  font-weight: 700;
+}
+
+.resultadoVazio {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    display: none !important;
+  }
+}

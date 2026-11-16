@@ -1,0 +1,116 @@
+.section {
+  margin-bottom: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  margin-bottom: var(--space-2);
+}
+
+.infusoesGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.groupLabelBasicas {
+  font-size: var(--font-size-xs);
+  color: var(--color-pm);
+  width: 100%;
+  font-weight: 700;
+  margin-top: var(--space-1);
+}
+
+.groupLabelAvancadas {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  width: 100%;
+  font-weight: 700;
+  margin-top: var(--space-1);
+}
+
+.groupLabelSuperiores {
+  font-size: var(--font-size-xs);
+  color: var(--color-crise-bright);
+  width: 100%;
+  font-weight: 700;
+  margin-top: var(--space-1);
+}
+
+.infusaoBtn {
+  background: var(--color-bg-input);
+  color: var(--color-pv);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.infusaoBtnActive {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-pv);
+  box-shadow: 0 0 8px var(--color-pv-glow);
+}
+
+.infusaoBtnAvancada {
+  color: var(--color-text-gold);
+}
+
+.infusaoBtnAvancadaActive {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 8px var(--color-border-gold-glow);
+}
+
+.infusaoBtnSuperior {
+  color: var(--color-crise-bright);
+}
+
+.infusaoBtnSuperiorActive {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-crise);
+  box-shadow: 0 0 8px var(--color-crise-glow);
+}
+
+.activeInfo {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+@media print {
+  .section {
+    border-top: 1px solid #000000 !important;
+  }
+
+  .title,
+  .desc,
+  .groupLabelBasicas,
+  .groupLabelAvancadas,
+  .groupLabelSuperiores {
+    color: #000000 !important;
+  }
+
+  .infusaoBtn {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}

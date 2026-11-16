@@ -4,6 +4,7 @@ import { FaSave, FaIdCard, FaSignInAlt } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { useCharacterSheet } from '../../hooks/useCharacterSheet';
+import { Button, Card } from '../../components/ui';
 
 // Importação das subcomponentes de visualização
 import FichaHeader from './secoes/FichaHeader';
@@ -24,11 +25,10 @@ import FichaFormGeral from './forms/FichaFormGeral';
 import FichaFormPeculiaridade from './forms/FichaFormPeculiaridades';
 import FichaFormAtributos from './forms/FichaFormAtributos';
 import FichaFormClasses from './forms/FichaFormClasses';
-import FichaFormMagias from './forms/FichaFormMagias';
 import FichaFormLacos from './forms/FichaFormLacos';
 import FichaFormMochila from './forms/FichaFormMochila';
 
-import './FichaPage.css';
+import styles from './FichaPage.module.css';
 
 export default function FichaPage({ isMestre, setFichaGlobal }) {
     const { id } = useParams();
@@ -102,9 +102,9 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
 
     if (carregando) {
         return (
-            <div className="ficha-page-container flex-center">
-                <div className="loader-box">
-                    <LuSparkles className="icon-spin" />
+            <div className={`${styles.pageContainer} ${styles.centerWrapper}`}>
+                <div className={styles.loaderBox}>
+                    <LuSparkles className={styles.spinnerIcon} />
                     <p>Lendo dados do herói...</p>
                 </div>
             </div>
@@ -113,21 +113,21 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
 
     if (erro) {
         return (
-            <div className="ficha-page-container flex-center">
-                <div className="badge-warning-card" style={{ textAlign: 'center', padding: '30px' }}>
-                    <FaIdCard className="icon-warning" style={{ fontSize: '3rem', color: '#d4af37' }} />
-                    <h2>Acesso Não Identificado</h2>
-                    <p style={{ color: '#8b949e', margin: '10px 0 20px 0' }}>{erro}</p>
-                    <button className="btn-salvar-ficha" onClick={() => navigate('/ficha/login')}>
+            <div className={`${styles.pageContainer} ${styles.centerWrapper}`}>
+                <Card variant="default" className={styles.errorCard}>
+                    <FaIdCard className={styles.errorIcon} />
+                    <h2 className={styles.errorTitle}>Acesso Não Identificado</h2>
+                    <p className={styles.errorMsg}>{erro}</p>
+                    <Button variant="primary" onClick={() => navigate('/ficha/login')}>
                         <FaSignInAlt /> Identificar-se no Sistema
-                    </button>
-                </div>
+                    </Button>
+                </Card>
             </div>
         );
     }
 
     return (
-        <div className="ficha-page-container">
+        <div className={styles.pageContainer}>
             <FichaHeader
                 ficha={ficha}
                 id={id}
@@ -148,22 +148,32 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
             />
 
             {editando ? (
-                <form onSubmit={handleSalvarEdicao} className="ficha-form-edit">
+                <form onSubmit={handleSalvarEdicao} className={styles.formEditContainer}>
                     <FichaFormGeral formData={formData} setFormData={setFormData} />
                     <FichaFormPeculiaridade formData={formData} setFormData={setFormData} />
                     <FichaFormAtributos formData={formData} setFormData={setFormData} />
-                    <FichaFormClasses formClasses={formClasses} setFormClasses={setFormClasses} formData={formData} setFormData={setFormData} />
-                    <FichaFormMagias formMagias={formMagias} setFormMagias={setFormMagias} />
+                    <FichaFormClasses
+                        formClasses={formClasses}
+                        setFormClasses={setFormClasses}
+                        formData={formData}
+                        setFormData={setFormData}
+                    />
                     <FichaFormLacos formData={formData} setFormData={setFormData} setAlerta={setAlerta} />
                     <FichaFormMochila formData={formData} setFormData={setFormData} />
 
-                    <button type="submit" className="btn-salvar-ficha" disabled={salvando}>
-                        <FaSave /> {salvando ? 'Salvando...' : 'Salvar Alterações da Ficha'}
-                    </button>
+                    <div className={styles.saveFloatingBar}>
+                        <Button type="submit" variant="core" size="lg" disabled={salvando}>
+                            <FaSave /> {salvando ? 'Salvando...' : 'Salvar Alterações da Ficha'}
+                        </Button>
+                    </div>
                 </form>
             ) : (
-                <div className="ficha-view-content">
-                    <FichaRecursos ficha={ficha} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
+                <div className={styles.viewContent}>
+                    <FichaRecursos
+                        ficha={ficha}
+                        statusFicha={statusFicha}
+                        handleAjustarRecurso={ajustarRecurso}
+                    />
                     <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
                     <FichaEstatisticasSecao statusFicha={statusFicha} />
                     <FichaPIComponent ficha={ficha} setFicha={setFicha} piMaxCalculado={statusFicha.piMax} />

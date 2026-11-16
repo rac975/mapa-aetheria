@@ -1,0 +1,207 @@
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+}
+
+.powersGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.powerCard {
+  background: var(--color-bg-input);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-xs);
+}
+
+.powerTitleBlue {
+  color: var(--color-pm);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.powerTitleGold {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.powerDescActive {
+  color: var(--color-pv);
+  margin-top: 2px;
+}
+
+.powerDescInactive {
+  color: var(--color-text-dim);
+  margin-top: 2px;
+}
+
+.sectionBox {
+  margin-bottom: var(--space-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: var(--space-3);
+}
+
+.sectionTitleBlue {
+  font-size: var(--font-size-xs);
+  color: var(--color-pm);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sectionTitlePurple {
+  font-size: var(--font-size-xs);
+  color: #bc8cff;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sectionSubtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  margin-bottom: var(--space-2);
+  line-height: 1.4;
+}
+
+.inputsRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.selectAlvo {
+  flex: 1;
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+}
+
+.inputNivel {
+  width: 90px;
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+}
+
+.resultadoRouboBox {
+  background: rgba(137, 87, 229, 0.1);
+  border: 1px solid rgba(137, 87, 229, 0.3);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.resultadoRouboMsg {
+  color: #bc8cff;
+  margin-top: var(--space-1);
+  font-weight: 700;
+}
+
+.vejoMaisTardeBox {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.vejoMaisTardeBox strong {
+  color: var(--color-text-gold);
+}
+
+@media (max-width: 600px) {
+  .powersGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  .header {
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .title,
+  .powerTitleBlue,
+  .powerTitleGold,
+  .powerDescActive,
+  .powerDescInactive,
+  .sectionTitleBlue,
+  .sectionTitlePurple,
+  .sectionSubtitle,
+  .resultadoRouboBox,
+  .resultadoRouboMsg,
+  .vejoMaisTardeBox,
+  .vejoMaisTardeBox strong {
+    color: #000000 !important;
+  }
+
+  .powerCard,
+  .resultadoRouboBox {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button,
+  .inputsRow {
+    display: none !important;
+  }
+}

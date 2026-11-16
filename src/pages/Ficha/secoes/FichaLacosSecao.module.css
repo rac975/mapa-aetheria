@@ -1,0 +1,105 @@
+/* =====================================================
+   FICHA LAÇOS SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  margin: 0 0 var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.lacosList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.emptyText {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+.lacoCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: var(--shadow-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.lacoCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.lacoTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lacoNome {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.lacoEmocoes {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin-bottom: 12px !important;
+    padding: 0 !important;
+  }
+
+  .sectionHeader {
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .lacoCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 6px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .lacoNome,
+  .lacoEmocoes {
+    color: #000000 !important;
+  }
+}

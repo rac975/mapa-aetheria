@@ -1,0 +1,81 @@
+.section {
+  margin-bottom: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.attrGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.card {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+}
+
+.labelDim {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.labelPv {
+  font-size: var(--font-size-xs);
+  color: var(--color-pv);
+}
+
+.labelPm {
+  font-size: var(--font-size-xs);
+  color: var(--color-pm);
+}
+
+.labelDef {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.labelDefMag {
+  font-size: var(--font-size-xs);
+  color: #d2a8ff;
+}
+
+.value {
+  color: var(--color-text-main);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+@media print {
+  .card {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  .labelDim,
+  .labelPv,
+  .labelPm,
+  .labelDef,
+  .labelDefMag,
+  .value,
+  .sectionTitle {
+    color: #000000 !important;
+  }
+}

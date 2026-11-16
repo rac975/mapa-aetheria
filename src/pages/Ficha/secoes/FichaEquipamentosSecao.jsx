@@ -7,12 +7,14 @@ import {
   isArmaDuasMaos
 } from '../../../domain/fabula/equipmentRules';
 import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha';
+import { Card, Button, Badge, Modal } from '../../../components/ui';
+import styles from './FichaEquipamentosSecao.module.css';
 
-export default function FichaEquipamentosSecao({ 
-  fichaId, 
-  atributosAtuais = {}, 
-  classes = [], 
-  opcoesGolpeAtivo = null, 
+export default function FichaEquipamentosSecao({
+  fichaId,
+  atributosAtuais = {},
+  classes = [],
+  opcoesGolpeAtivo = null,
   limparGolpeAtivo = null,
   emCriseGlobal = false
 }) {
@@ -33,7 +35,6 @@ export default function FichaEquipamentosSecao({
       setCarregando(false);
       return;
     }
-
     try {
       const data = await fichaService.getItensByFichaId(fichaId);
       setItensInventario(data || []);
@@ -46,16 +47,14 @@ export default function FichaEquipamentosSecao({
 
   useEffect(() => {
     let ativo = true;
-
-    const sincronizarItens = async () => {
+    const sincronizar = async () => {
       if (!fichaId) {
         if (ativo) setCarregando(false);
         return;
       }
       await carregarItens();
     };
-
-    sincronizarItens();
+    sincronizar();
 
     if (!fichaId) return;
 
@@ -69,16 +68,12 @@ export default function FichaEquipamentosSecao({
     };
   }, [fichaId, carregarItens]);
 
-  const getItemNoSlot = (slotName) => {
-    return itensInventario.find(i => i.stats_personalizados?.slot === slotName);
-  };
-
+  const getItemNoSlot = (slotName) => itensInventario.find(i => i.stats_personalizados?.slot === slotName);
   const itensMochila = itensInventario.filter(i => !i.stats_personalizados?.slot);
 
   const desequiparItem = async (item) => {
     const novosStats = { ...(item.stats_personalizados || {}) };
     delete novosStats.slot;
-
     try {
       await fichaService.atualizarItemPersonagem(item.id, {
         equipado: false,
@@ -91,7 +86,6 @@ export default function FichaEquipamentosSecao({
   };
 
   const equiparItemNoSlot = async (item, slotAlvo) => {
-    // Validação isolada de regras puras de Fabula Ultima
     const validacao = validarSlotEquipamento({ item, slotAlvo, classes });
     if (!validacao.permitido) {
       alert(validacao.motivo);
@@ -144,7 +138,6 @@ export default function FichaEquipamentosSecao({
 
   const deletarItem = async (itemId) => {
     if (!window.confirm("Deseja realmente descartar este item do inventário?")) return;
-
     try {
       await fichaService.deletarItemPersonagem(itemId);
       carregarItens();
@@ -155,8 +148,6 @@ export default function FichaEquipamentosSecao({
 
   const executarRolagemArma = (itemArma, slotId) => {
     const isMulti = modoAtaqueState[slotId] === 'multi';
-
-    // Delega o cálculo completo (incluindo Adrenalina, Frenesi e Golpe das Sombras) para o utilitário
     const resultadoCalculado = rolarAtaqueEDanoArma(
       itemArma,
       atributosAtuais,
@@ -168,7 +159,6 @@ export default function FichaEquipamentosSecao({
     );
 
     const usandoGolpe = !!(opcoesGolpeAtivo && opcoesGolpeAtivo.usandoGolpeDasSombras);
-
     setResultadosRolagem(prev => ({
       ...prev,
       [slotId]: {
@@ -178,13 +168,12 @@ export default function FichaEquipamentosSecao({
       }
     }));
 
-    // Consome o golpe ativo após rolar o ataque
     if (usandoGolpe && limparGolpeAtivo) {
       limparGolpeAtivo();
     }
   };
 
-  if (carregando) return <div style={{ color: '#8b949e', padding: '10px' }}>Carregando equipamentos...</div>;
+  if (carregando) return <div className={styles.loadingText}>Carregando equipamentos...</div>;
 
   const slotConfig = [
     { id: SLOTS_EQUIPAMENTO.MAO_DOMINANTE, label: 'Mão Dominante', icone: <FaHandHolding /> },
@@ -194,18 +183,21 @@ export default function FichaEquipamentosSecao({
   ];
 
   return (
-    <div>
-      <section className="ficha-card-section" style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3>🛡️ Itens Equipados</h3>
+    <div className={styles.container}>
+      {/* 1. SEÇÃO DE SLOTS EQUIPADOS */}
+      <Card variant="default">
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <FaShieldAlt /> Itens Equipados
+          </h3>
           {opcoesGolpeAtivo && (
-            <span style={{ fontSize: '0.75rem', background: 'rgba(188, 140, 255, 0.2)', border: '1px solid #bc8cff', color: '#bc8cff', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <FaSkull size={10} /> Golpe das Sombras Armado (Dano de Trevas)
-            </span>
+            <Badge variant="core" size="sm" className={styles.golpeArmadoBadge}>
+              <FaSkull /> Golpe das Sombras Armado (Trevas)
+            </Badge>
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginTop: '12px' }}>
+        <div className={styles.slotsGrid}>
           {slotConfig.map(slot => {
             const itemEquipado = getItemNoSlot(slot.id);
             const tipoItemEquipado = (itemEquipado?.tipo || '').toLowerCase();
@@ -222,232 +214,233 @@ export default function FichaEquipamentosSecao({
             );
 
             return (
-              <div key={slot.id} style={{ background: '#0d0f18', border: '1px solid #30363d', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#8b949e', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {slot.icone} {slot.label}
-                  </span>
+              <div key={slot.id} className={styles.slotBox}>
+                <div className={styles.slotHeader}>
+                  {slot.icone} <span>{slot.label}</span>
                 </div>
 
                 {itemEquipado ? (
-                  <div style={{ background: '#161b22', padding: '10px', borderRadius: '6px', border: '1px solid #21262d', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: '#f0f6fc', fontSize: '0.95rem' }}>{itemEquipado.nome}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#d4af37', textTransform: 'uppercase', marginTop: '2px' }}>{itemEquipado.tipo}</div>
+                  <div className={styles.itemEquipadoCard}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemNome}>{itemEquipado.nome}</span>
+                      <Badge variant="gold" size="sm">{itemEquipado.tipo}</Badge>
                     </div>
 
                     {ehArmaOuEscudoAtacavel && (
-                      <div style={{ borderTop: '1px solid #30363d', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-
-                        <div style={{ display: 'flex', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', padding: '2px' }}>
+                      <div className={styles.ataqueArea}>
+                        <div className={styles.modoAtaqueSwitcher}>
                           <button
                             type="button"
                             onClick={() => setModoAtaqueState(prev => ({ ...prev, [slot.id]: 'normal' }))}
-                            style={{
-                              flex: 1, background: modoAtual === 'normal' ? '#21262d' : 'transparent',
-                              color: modoAtual === 'normal' ? '#f0f6fc' : '#8b949e', border: 'none',
-                              padding: '4px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer'
-                            }}
+                            className={`${styles.modoAtaqueBtn} ${modoAtual === 'normal' ? styles.modoAtaqueBtnActive : ''}`}
                           >
                             Ataque Único
                           </button>
                           <button
                             type="button"
                             onClick={() => setModoAtaqueState(prev => ({ ...prev, [slot.id]: 'multi' }))}
-                            style={{
-                              flex: 1, background: modoAtual === 'multi' ? '#da3633' : 'transparent',
-                              color: modoAtual === 'multi' ? '#fff' : '#8b949e', border: 'none',
-                              padding: '4px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer'
-                            }}
+                            className={`${styles.modoAtaqueBtn} ${modoAtual === 'multi' ? styles.modoAtaqueBtnActiveMulti : ''}`}
                           >
                             Multiataque / 2ª Arma
                           </button>
                         </div>
 
-                        <button
+                        <Button
                           type="button"
+                          variant="core"
+                          size="sm"
+                          fullWidth
                           onClick={() => executarRolagemArma(itemEquipado, slot.id)}
-                          style={{ background: '#238636', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
                         >
                           <FaDice /> Rolar Ataque e Dano
-                        </button>
+                        </Button>
 
-                        {/* 📊 EXIBIÇÃO DETALHADA E DISCRIMINADA DA PRECISÃO E DANO */}
                         {ultimaRolagem && (
-                          <div style={{ background: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-
+                          <div className={styles.resultadoCard}>
                             {ultimaRolagem.statusCritico && (
-                              <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: ultimaRolagem.statusCritico.includes('Sucesso') ? '#3fb950' : '#f85149', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '3px' }}>
+                              <div className={`${styles.criticoBanner} ${ultimaRolagem.statusCritico.includes('Sucesso') ? styles.criticoSucesso : styles.criticoFalha}`}>
                                 <FaBolt /> {ultimaRolagem.statusCritico}
                               </div>
                             )}
-
-                            <div style={{ fontSize: '0.75rem', color: '#f0f6fc', display: 'flex', justifyContent: 'space-between' }}>
+                            <div className={styles.resultadoLinha}>
                               <span>Precisão Final:</span>
-                              <strong style={{ color: '#d4af37' }}>{ultimaRolagem.testeAtaque}</strong>
+                              <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
                             </div>
-
-                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <div>🧩 Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} (Rolados: {ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
-                              <div>⚔️ Bônus de Precisão Total: +{ultimaRolagem.bonusPrecisaoTotal}</div>
+                            <div className={styles.detalhesDiscriminados}>
+                              <div>Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
+                              <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
                             </div>
-
-                            <div style={{ fontSize: '0.75rem', color: '#bc8cff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '2px', paddingTop: '2px' }}>
-                              <span>Dano Final ({ultimaRolagem.usandoGolpe ? 'Trevas 🖤' : 'Normal'}):</span>
-                              <strong style={{ fontSize: '0.85rem' }}>{ultimaRolagem.danoTotal}</strong>
+                            <div className={styles.resultadoLinha}>
+                              <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : 'Normal'}):</span>
+                              <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
                             </div>
-
-                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <div className={styles.detalhesDiscriminados}>
                               <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
-                              {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo Total: +{ultimaRolagem.bonusDanoFixo}</div>}
-                              {ultimaRolagem.danoAdrenalinaFurioso > 0 && (
-                                <div style={{ color: '#f85149' }}>⚡ Adrenalina (Crise): +{ultimaRolagem.danoAdrenalinaFurioso}</div>
-                              )}
-                              {ultimaRolagem.danoExtraHabilidade > 0 && (
-                                <div style={{ color: '#bc8cff' }}>🖤 Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>
-                              )}
+                              {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
+                              {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
+                              {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
                             </div>
                           </div>
                         )}
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
-                      <button
+                    <div className={styles.slotActions}>
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setModalSlotAberto(slot.id)}
-                        style={{ background: '#21262d', color: '#58a6ff', border: '1px solid #30363d', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
                       >
                         <FaExchangeAlt /> Trocar
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="danger"
+                        size="sm"
                         onClick={() => desequiparItem(itemEquipado)}
-                        style={{ background: '#da3633', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
                       >
                         Desequipar
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ border: '2px dashed #30363d', borderRadius: '6px', padding: '12px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#6e7681', fontStyle: 'italic' }}>Vazio</span>
-                    <button
+                  <div className={styles.slotEmpty}>
+                    <span className={styles.slotEmptyText}>Vazio</span>
+                    <Button
                       type="button"
+                      variant="core"
+                      size="sm"
                       onClick={() => setModalSlotAberto(slot.id)}
-                      style={{ background: '#238636', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}
                     >
                       + Equipar
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-      </section>
+      </Card>
 
       {/* 2. SEÇÃO DE MOCHILA & INVENTÁRIO */}
-      <section className="ficha-card-section">
-        <h3><FaBoxOpen /> Mochila & Inventário ({itensInventario.length})</h3>
+      <Card variant="default">
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
+            <FaBoxOpen /> Mochila & Inventário ({itensInventario.length})
+          </h3>
+        </div>
+
         {itensInventario.length === 0 ? (
-          <p style={{ color: '#8b949e', fontSize: '0.85rem', textAlign: 'center', padding: '15px 0', fontStyle: 'italic' }}>
-            Sua mochila está vazia.
-          </p>
+          <p className={styles.mochilaVazia}>Sua mochila está vazia.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+          <div className={styles.mochilaLista}>
             {itensInventario.map((item) => {
               const estaEquipado = !!item.stats_personalizados?.slot;
               return (
-                <div key={item.id} style={{ background: '#0d0f18', border: '1px solid #30363d', padding: '12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '70%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ color: '#f0f6fc', fontWeight: 'bold' }}>{item.nome}</span>
-                      {item.tipo && (
-                        <span style={{ fontSize: '0.75rem', color: '#d4af37', background: 'rgba(212, 175, 55, 0.1)', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                          {item.tipo}
-                        </span>
-                      )}
-                      {estaEquipado ? (
-                        <span style={{ fontSize: '0.70rem', color: '#3fb950', background: 'rgba(63, 185, 80, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                          Equipado ({item.stats_personalizados.slot.replace('_', ' ')})
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '0.70rem', color: '#8b949e', background: 'rgba(139, 148, 158, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>
-                          Na Mochila
-                        </span>
-                      )}
-                    </div>
+                <div key={item.id} className={styles.mochilaItem}>
+                  <div className={styles.mochilaItemDetails}>
+                    <span className={styles.mochilaItemNome}>{item.nome}</span>
+                    {item.tipo && <Badge variant="gold" size="sm">{item.tipo}</Badge>}
+                    <Badge variant={estaEquipado ? 'core' : 'default'} size="sm">
+                      {estaEquipado ? `Equipado (${item.stats_personalizados.slot.replace('_', ' ')})` : 'Na Mochila'}
+                    </Badge>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div className={styles.mochilaItemActions}>
                     {estaEquipado ? (
-                      <button type="button" onClick={() => desequiparItem(item)} style={{ background: '#da3633', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        onClick={() => desequiparItem(item)}
+                      >
                         Desequipar
-                      </button>
+                      </Button>
                     ) : (
-                      <button type="button" onClick={() => lidarComCliqueEquipar(item)} style={{ background: '#238636', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                      <Button
+                        type="button"
+                        variant="core"
+                        size="sm"
+                        onClick={() => lidarComCliqueEquipar(item)}
+                      >
                         Equipar
-                      </button>
+                      </Button>
                     )}
-                    <button type="button" onClick={() => deletarItem(item.id)} style={{ background: 'transparent', border: '1px solid #30363d', color: '#f85149', padding: '6px 8px', borderRadius: '4px', cursor: 'pointer' }} title="Descartar item">
-                      <FaTimes size={12} />
-                    </button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deletarItem(item.id)}
+                      title="Descartar item"
+                    >
+                      <FaTimes />
+                    </Button>
                   </div>
                 </div>
               );
             })}
           </div>
         )}
-      </section>
+      </Card>
 
-      {/* MODAIS */}
-      {modalSlotAberto && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100 }}>
-          <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '12px', padding: '20px', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ margin: 0, color: '#f0f6fc' }}>Escolher item da Mochila</h4>
-              <button type="button" onClick={() => setModalSlotAberto(null)} style={{ background: 'transparent', border: 'none', color: '#8b949e', cursor: 'pointer' }}><FaTimes size={16} /></button>
-            </div>
-            <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {itensMochila.length === 0 ? (
-                <p style={{ color: '#8b949e', fontSize: '0.85rem', textAlign: 'center', padding: '20px' }}>Sua mochila está sem itens disponíveis.</p>
-              ) : (
-                itensMochila.map(item => (
-                  <div key={item.id} style={{ background: '#0d1117', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: '#c9d1d9', fontSize: '0.9rem' }}>{item.nome}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#8b949e' }}>Tipo: {item.tipo}</div>
-                    </div>
-                    <button type="button" onClick={() => equiparItemNoSlot(item, modalSlotAberto)} style={{ background: '#238636', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>
-                      Equipar Aqui
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+      {/* MODAL 1: Escolher Item da Mochila */}
+      <Modal
+        isOpen={!!modalSlotAberto}
+        onClose={() => setModalSlotAberto(null)}
+        title="Escolher item da Mochila"
+        size="md"
+      >
+        <div className={styles.modalItensLista}>
+          {itensMochila.length === 0 ? (
+            <p className={styles.mochilaVazia}>Sua mochila está sem itens disponíveis.</p>
+          ) : (
+            itensMochila.map(item => (
+              <div key={item.id} className={styles.modalItemLinha}>
+                <div>
+                  <div className={styles.itemNome}>{item.nome}</div>
+                  <Badge variant="default" size="sm">Tipo: {item.tipo}</Badge>
+                </div>
+                <Button
+                  type="button"
+                  variant="core"
+                  size="sm"
+                  onClick={() => equiparItemNoSlot(item, modalSlotAberto)}
+                >
+                  Equipar Aqui
+                </Button>
+              </div>
+            ))
+          )}
         </div>
-      )}
+      </Modal>
 
-      {itemParaEquiparDireto && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100 }}>
-          <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '12px', padding: '20px', width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ margin: 0, color: '#f0f6fc' }}>Escolher Mão para {itemParaEquiparDireto.nome}</h4>
-              <button type="button" onClick={() => setItemParaEquiparDireto(null)} style={{ background: 'transparent', border: 'none', color: '#8b949e', cursor: 'pointer' }}><FaTimes size={16} /></button>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_DOMINANTE)} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
-                ⚔️ Mão Dominante
-              </button>
-              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_SECUNDARIA)} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
-                🛡️ Mão Não Dominante / Escudo
-              </button>
-            </div>
-          </div>
+      {/* MODAL 2: Escolher Mão */}
+      <Modal
+        isOpen={!!itemParaEquiparDireto}
+        onClose={() => setItemParaEquiparDireto(null)}
+        title={`Escolher Mão para ${itemParaEquiparDireto?.nome || 'Item'}`}
+        size="sm"
+      >
+        <div className={styles.modalMaoOpcoes}>
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_DOMINANTE)}
+          >
+            ⚔️ Mão Dominante
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            fullWidth
+            onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_SECUNDARIA)}
+          >
+            🛡️ Mão Não Dominante / Escudo
+          </Button>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

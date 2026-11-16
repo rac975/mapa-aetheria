@@ -1,16 +1,16 @@
-// import React, { useState } from 'react';
+import React from 'react';
 import { FaMoon, FaSkull, FaHeartbeat } from 'react-icons/fa';
 import { processarGolpeDasSombras } from '../../../../domain/fabula/classRules';
+import { Button } from '../../../../components/ui';
+import styles from './ExibirGuerreiroSombrio.module.css';
 
 export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vigorValor = 8, emCriseGlobal, classes = [], onAtivarGolpe }) {
-  // const [dadoVigorRolado, setDadoVigorRolado] = useState(8);
-
   const habs = ficha?.habilidades || [];
   const getNivel = (termo) => {
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
     );
-    return parseInt(h?.nivel) || 0;
+    return parseInt(h?.nivel, 10) || 0;
   };
 
   const nvAgonia = getNivel('agonia');
@@ -24,7 +24,6 @@ export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vi
   }
 
   const recAgonia = nvAgonia * 2;
-  // const danoExtraGolpe = nvGolpe + dadoVigorRolado;
 
   const usarAgonia = () => {
     if (!handleAjustarRecurso) return;
@@ -69,29 +68,29 @@ export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vi
   if (nvGolpe === 0) return null;
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
+    <div className={styles.container}>
       {/* Cabeçalho */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-        <div style={{ fontSize: '0.75rem', color: '#bc8cff', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <FaMoon /> Disciplina Sombria — Guerreiro Sombrio
         </div>
 
         {emCriseGlobal && nvSangue > 0 && (
-          <span style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(63, 185, 80, 0.2)', border: '1px solid #3fb950', color: '#3fb950', borderRadius: '4px' }}>
+          <span className={styles.criseBadge}>
             🛡️ Sangue das Trevas Ativo (Resistência a Trevas e Veneno)
           </span>
         )}
       </div>
 
       {/* Resumo Passivo */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.75rem', marginBottom: '8px' }}>
+      <div className={styles.passivasRow}>
         {nvCoracao > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #bc8cff', color: '#bc8cff' }}>
+          <span className={styles.badgeCoracao}>
             🖤 Coração da Escuridão disponível (1x/cena)
           </span>
         )}
         {nvLicao > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #d4af37', color: '#d4af37' }}>
+          <span className={styles.badgeLicao}>
             👁️ Lição Dolorosa: Bônus de <strong>+{nvLicao}</strong> ao Estudar após sofrer dano
           </span>
         )}
@@ -99,30 +98,33 @@ export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vi
 
       {/* Ação Agonia */}
       {nvAgonia > 0 && (
-        <div style={{ marginBottom: '8px' }}>
-          <button
+        <div className={styles.actionBox}>
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
+            fullWidth
             onClick={usarAgonia}
-            style={{ width: '100%', padding: '5px', fontSize: '0.78rem', background: '#21262d', color: '#bc8cff', border: '1px solid #bc8cff', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
           >
             <FaHeartbeat /> Acionar Agonia (Recuperar +{recAgonia} PV e +{recAgonia} MP)
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Ação Golpe das Sombras */}
       {nvGolpe > 0 && (
-        <div style={{ padding: '8px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d', fontSize: '0.78rem' }}>
-          <div style={{ color: '#bc8cff', fontWeight: 'bold', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className={styles.cardBox}>
+          <div className={styles.cardTitle}>
             <FaSkull /> Golpe das Sombras (Sacrifício de Vigor)
           </div>
-          <button
+          <Button
             type="button"
+            variant="danger"
+            size="sm"
             onClick={acionarGolpeDasSombras}
-            style={{ padding: '4px 10px', fontSize: '0.78rem', background: '#da3633', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
           >
             Executar Golpe das Sombras (Rolar d{vigorValor})
-          </button>
+          </Button>
         </div>
       )}
     </div>

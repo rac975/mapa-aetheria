@@ -1,0 +1,158 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  color: var(--color-crise-bright);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.adrenalinaBadge {
+  font-size: var(--font-size-xs);
+  padding: var(--space-1) var(--space-2);
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid var(--color-crise);
+  color: var(--color-crise-bright);
+  border-radius: var(--radius-sm);
+}
+
+.passivasRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--space-3);
+}
+
+.frenesiBadge {
+  background: rgba(197, 160, 89, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+.provocarBtn {
+  background: rgba(0, 180, 255, 0.1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-pm);
+  color: var(--color-pm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.cardBox {
+  padding: var(--space-3);
+  background: var(--color-bg-input);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.cardTitle {
+  color: #d2a8ff;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.buttonRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.resistirRow {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-input);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: var(--font-size-xs);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.resistirLabel {
+  color: var(--color-text-dim);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.select {
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+}
+
+.select:focus {
+  border-color: var(--color-pv);
+}
+
+.spacerRight {
+  margin-left: auto;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .title,
+  .adrenalinaBadge,
+  .frenesiBadge,
+  .provocarBtn,
+  .cardTitle,
+  .resistirLabel {
+    color: #000000 !important;
+  }
+
+  .cardBox,
+  .resistirRow {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button,
+  .select {
+    display: none !important;
+  }
+}

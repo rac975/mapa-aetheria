@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FaFire, FaBolt, FaMountain } from 'react-icons/fa';
+import { Button } from '../../../../components/ui';
+import styles from './ExibirElementalista.module.css';
 
 export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
   const [custoExtraCataclismo, setCustoExtraCataclismo] = useState(10);
@@ -10,7 +12,7 @@ export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
     );
-    return parseInt(h?.nivel) || 0;
+    return parseInt(h?.nivel, 10) || 0;
   };
 
   const nvArtilharia = getNivel('artilharia magica');
@@ -58,22 +60,22 @@ export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
   }
 
   return (
-    <div style={{ marginTop: '10px', padding: '10px', background: '#161b22', borderRadius: '6px', border: '1px solid #30363d' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-        <div style={{ fontSize: '0.75rem', color: '#58a6ff', fontWeight: 'bold', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.title}>
           <FaFire /> Domínio Elemental — Elementalista
         </div>
 
         {nvRitualista > 0 && (
-          <span style={{ fontSize: '0.72rem', padding: '2px 6px', background: 'rgba(88, 166, 255, 0.1)', border: '1px solid #58a6ff', color: '#58a6ff', borderRadius: '4px' }}>
+          <span className={styles.ritualistaBadge}>
             ✨ Ritualismo Elemental Ativo (AST + VON)
           </span>
         )}
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.75rem', marginBottom: '8px' }}>
+      <div className={styles.passivasRow}>
         {nvArtilharia > 0 && (
-          <span style={{ background: '#0d1117', padding: '3px 7px', borderRadius: '4px', border: '1px solid #3fb950', color: '#3fb950' }}>
+          <span className={styles.artilhariaBadge}>
             🎯 Artilharia Mágica Ativa (+{bonusArtilharia} em Testes de Magia Ofensiva com Arma Arcana)
           </span>
         )}
@@ -81,48 +83,49 @@ export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
 
       {/* Seção de Cataclismo */}
       {nvCataclismo > 0 && (
-        <div style={{ padding: '8px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d', marginBottom: '8px', fontSize: '0.78rem' }}>
-          <div style={{ color: '#f85149', fontWeight: 'bold', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className={styles.cardBox}>
+          <div className={styles.cataclismoTitle}>
             <FaBolt /> Cataclismo (Até +{maxPmCataclismo} PM):
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <label style={{ color: '#9da3af', fontSize: '0.74rem' }}>PM Extra a Gastar:</label>
+          <div className={styles.actionRow}>
+            <label className={styles.label}>PM Extra a Gastar:</label>
             <select
               value={custoExtraCataclismo}
               onChange={(e) => setCustoExtraCataclismo(Number(e.target.value))}
-              style={{ background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem' }}
+              className={styles.select}
             >
               {opcoesCataclismo}
             </select>
-            <button
+            <Button
               type="button"
+              variant="danger"
+              size="sm"
               onClick={usarCataclismo}
-              style={{ padding: '3px 8px', fontSize: '0.74rem', background: '#21262d', color: '#f85149', border: '1px solid #f85149', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
             >
               Lançar Cataclismo (+{danoExtraCataclismo} Dano)
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Seção de Lâmina Mágica */}
       {nvLamina > 0 && (
-        <div style={{ padding: '8px', background: '#0d1117', borderRadius: '4px', border: '1px solid #30363d', fontSize: '0.78rem' }}>
-          <div style={{ color: '#d4af37', fontWeight: 'bold', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className={styles.cardBox}>
+          <div className={styles.laminaTitle}>
             <FaMountain /> Lâmina Mágica (Limite máx. feitiço: {maxPmLamina} PM):
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ color: '#9da3af', fontSize: '0.74rem' }}>Tipo de Arma Equipada:</span>
+          <div className={styles.actionRow}>
+            <span className={styles.label}>Tipo de Arma Equipada:</span>
             <select
               value={tipoArmaLamina}
               onChange={(e) => setTipoArmaLamina(e.target.value)}
-              style={{ background: '#161b22', color: '#f0f6fc', border: '1px solid #30363d', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem' }}
+              className={styles.select}
             >
               <option value="des">Usa Destreza (Bônus de Atributo: +{bonusAtributoLamina})</option>
               <option value="outro">Outro Atributo (Sem bônus extra de DES)</option>
             </select>
           </div>
-          <div style={{ color: '#8b949e', fontSize: '0.72rem', marginTop: '4px' }}>
+          <div className={styles.infoText}>
             ℹ️ Permite usar a fórmula de Precisão da arma física no teste de Magia para feitiços de alvo único. Se incluir Destreza, ganha bônus igual ao nível da habilidade (+{nvLamina}).
           </div>
         </div>

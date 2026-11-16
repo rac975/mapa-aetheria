@@ -1,0 +1,152 @@
+/* =====================================================
+   FICHA FORM MAGIAS CLASSE - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  border-top: 1px solid var(--color-border-gold-muted);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.avisoSemHabilidade {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.grimorioTitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-ether-cyan);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-family-serif);
+}
+
+.selectMagia {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.selectMagia:focus {
+  border-color: var(--color-border-gold);
+}
+
+.selectMagia:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selectMagia option {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+}
+
+.emptyMagias {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: var(--space-1) 0;
+}
+
+.magiaItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg-elevated);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 180, 255, 0.15);
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  gap: var(--space-2);
+}
+
+.magiaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.magiaHeaderLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.magiaNome {
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.magiaDescricao {
+  color: var(--color-text-muted);
+}
+
+.btnRemover {
+  background: transparent;
+  border: none;
+  color: var(--color-crise);
+  cursor: pointer;
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+}
+
+.btnRemover:hover {
+  opacity: 0.8;
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    border-top: 1px solid #000000 !important;
+  }
+
+  .grimorioTitle {
+    color: #000000 !important;
+  }
+
+  .selectMagia,
+  .btnRemover {
+    display: none !important;
+  }
+
+  .magiaItem {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  .magiaNome,
+  .magiaDescricao {
+    color: #000000 !important;
+  }
+}

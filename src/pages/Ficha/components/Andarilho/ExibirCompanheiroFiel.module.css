@@ -1,0 +1,151 @@
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-top: var(--space-3);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.warningBox {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-dim);
+  font-style: italic;
+  margin-top: var(--space-2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+}
+
+.sectionBox {
+  margin-bottom: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.sectionTitleSpells {
+  font-size: var(--font-size-xs);
+  color: var(--color-pm);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.traitsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.traitItem {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  background: var(--color-bg-input);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--color-border-gold);
+}
+
+.attacksList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.spellsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.spellCard {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.spellHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spellName {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.spellCost {
+  color: var(--color-pv);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.spellDesc {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  .title,
+  .sectionTitle,
+  .sectionTitleSpells,
+  .traitItem,
+  .spellName,
+  .spellCost,
+  .spellDesc {
+    color: #000000 !important;
+  }
+
+  .traitItem,
+  .spellCard {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  button {
+    display: none !important;
+  }
+}

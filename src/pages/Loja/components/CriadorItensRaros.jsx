@@ -421,14 +421,14 @@ export default function CriadorItensRaros({ ficha, onCriado }) {
                         </div>
 
                         <div className={styles.resumoBotoes}>
-                            <Button
+                            {/* <Button
                                 variant="ghost"
                                 size="md"
                                 onClick={() => window.print()}
                                 title="Imprimir Carta Física para Mesa"
                             >
                                 <FaPrint /> Imprimir Carta
-                            </Button>
+                            </Button> */}
                             <Button
                                 type="submit"
                                 variant="primary"

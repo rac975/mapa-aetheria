@@ -1,0 +1,151 @@
+.container {
+  background: var(--color-bg-input);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.name {
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.modeSwitch {
+  display: flex;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.modeBtn {
+  flex: 1;
+  background: transparent;
+  color: var(--color-text-dim);
+  border: none;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modeBtnActiveNormal {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-main);
+}
+
+.modeBtnActiveMulti {
+  background: var(--color-crise);
+  color: #ffffff;
+}
+
+.rollBox {
+  background: rgba(197, 160, 89, 0.08);
+  border: 1px solid var(--color-border-gold-glow);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: 2px;
+}
+
+.criticalSuccess {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-pv);
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 3px;
+}
+
+.criticalFailure {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-crise-bright);
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 3px;
+}
+
+.precisionRow {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  display: flex;
+  justify-content: space-between;
+}
+
+.precisionValue {
+  color: var(--color-text-gold);
+  font-weight: 700;
+}
+
+.attrsDetail {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.damageRow {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 2px;
+  padding-top: 2px;
+}
+
+.damageValue {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+@media print {
+  .container {
+    background: transparent !important;
+    border: 1px solid #666666 !important;
+  }
+
+  .name,
+  .desc,
+  .precisionRow,
+  .precisionValue,
+  .attrsDetail,
+  .damageRow,
+  .damageValue {
+    color: #000000 !important;
+  }
+
+  .modeSwitch,
+  button {
+    display: none !important;
+  }
+
+  .rollBox {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+  }
+}

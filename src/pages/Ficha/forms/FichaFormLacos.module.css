@@ -1,0 +1,156 @@
+/* =====================================================
+   FICHA FORM LAÇOS - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.titleIcon {
+  color: var(--color-crise);
+}
+
+.emptyText {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--space-3) 0;
+  margin: 0;
+  font-style: italic;
+}
+
+.lacoCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.lacoCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.topRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.inputWrapper {
+  flex: 1;
+}
+
+.gridEmocoes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.btnEmocao {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.btnEmocao:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold);
+  color: var(--color-text-main);
+}
+
+.btnEmocaoAtiva {
+  background: rgba(197, 160, 89, 0.22);
+  color: var(--color-border-gold-bright);
+  border-color: var(--color-border-gold);
+  font-weight: 700;
+  box-shadow: var(--shadow-glow-gold);
+}
+
+@media (max-width: 600px) {
+  .gridEmocoes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO (@media print)
+   ===================================================== */
+@media print {
+  .container {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .headerRow {
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .title {
+    color: #000000 !important;
+  }
+
+  .headerRow button,
+  .topRow button {
+    display: none !important;
+  }
+
+  .lacoCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    padding: 6px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .btnEmocao {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    color: #888888 !important;
+  }
+
+  .btnEmocaoAtiva {
+    background: #e0e0e0 !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-weight: bold !important;
+  }
+}

@@ -1,0 +1,209 @@
+/* =====================================================
+   FICHA CLASSES SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.classList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.classCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--transition-normal);
+}
+
+.classCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.classTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.className {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  letter-spacing: 0.02em;
+}
+
+.classBenefits {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-core-green);
+  font-size: var(--font-size-sm);
+  background: rgba(0, 245, 160, 0.08);
+  border: 1px solid rgba(0, 245, 160, 0.25);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  width: fit-content;
+}
+
+/* --- BLOCO DE HABILIDADES --- */
+.habilidadesBox {
+  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border-gold);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.subSectionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-ether-cyan);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-1);
+}
+
+.habilidadeItem {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-main);
+  background: var(--color-bg-elevated);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.habilidadeNome {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.habilidadeNivelBadge {
+  margin-left: var(--space-1);
+  margin-right: var(--space-1);
+}
+
+.habilidadeDescricao {
+  color: var(--color-text-muted);
+}
+
+/* --- BLOCO DE MAGIAS --- */
+.magiasBox {
+  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-pm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.magiaItem {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--color-text-main);
+  background: var(--color-bg-elevated);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 180, 255, 0.15);
+}
+
+.magiaNome {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.magiaDescricao {
+  color: var(--color-text-muted);
+}
+
+.magiaNota {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-style: italic;
+}
+
+/* =====================================================
+   MODO HÍBRIDO / IMPRESSÃO FÍSICA (@media print)
+   ===================================================== */
+@media print {
+  .classCard {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 10px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .className {
+    color: #000000 !important;
+  }
+
+  .sectionHeader {
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
+  .classBenefits {
+    background: transparent !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  .habilidadesBox,
+  .magiasBox {
+    border-left: 2px solid #000000 !important;
+  }
+
+  .habilidadeItem,
+  .magiaItem {
+    background: transparent !important;
+    border: 1px dashed #888888 !important;
+    color: #000000 !important;
+  }
+
+  .habilidadeNome,
+  .magiaNome {
+    color: #000000 !important;
+  }
+
+  .habilidadeDescricao,
+  .magiaDescricao {
+    color: #222222 !important;
+  }
+
+  .magiaNota {
+    color: #444444 !important;
+  }
+}
