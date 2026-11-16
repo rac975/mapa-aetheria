@@ -1,61 +1,50 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaPaw } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
+import { fichaService } from '../../../services/fichaService';
+import {
+    NIVEL_MAXIMO_CLASSE,
+    NIVEL_MAXIMO_HABILIDADE_PADRAO,
+    calcularNivelTotal,
+    sanitizarNivelClasse,
+    isClasseDominada,
+    validarDistribuicaoHabilidades,
+    podeAdicionarClasse,
+    classeAceitaMagia
+} from '../../../domain/fabula/characterProgression';
 import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
 import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
 import FichaFormMagiasClasse from './FichaFormMagiasClasse';
 
-// Lista de classes do Fabula Ultima que possuem acesso a magias
-const CLASSES_COM_MAGIA = [
-    'arcanista',
-    'elementalista',
-    'entropista',
-    'espiritualista',
-    'invocador',
-];
-
 export default function FichaFormClasses({ fichaId, formClasses = [], setFormClasses, formData, setFormData }) {
     const [catalogoClasses, setCatalogoClasses] = useState([]);
 
-    // Carrega o catálogo de classes direto do Supabase
+    // Carrega o catálogo de classes via Service Layer (Clean Architecture)
     useEffect(() => {
+        let isMounted = true;
         async function carregarCatalogo() {
-            const { data, error } = await supabase.from('catalogo_classes').select('*');
-            if (!error && data) {
-                setCatalogoClasses(data);
-            } else {
+            try {
+                const data = await fichaService.getCatalogoClasses();
+                if (isMounted && data) {
+                    setCatalogoClasses(data);
+                }
+            } catch (error) {
                 console.error("❌ Erro ao carregar catálogo:", error);
             }
         }
         carregarCatalogo();
+        return () => { isMounted = false; };
     }, []);
-
-    // Função para calcular o nível total somando todas as classes
-    const calcularNivelTotal = (classesAtuais) => {
-        return classesAtuais.reduce((acc, c) => acc + (parseInt(c.nivel) || 1), 0);
-    };
 
     const adicionarClasseDoCatalogo = (e) => {
         const nomeSelecionado = e.target.value;
         if (!nomeSelecionado) return;
 
-        // Validação 1: Impede adicionar a mesma classe duas vezes
-        const jaPossuiClasse = formClasses.some(c => c.nome_classe === nomeSelecionado);
-        if (jaPossuiClasse) {
-            alert(`⛔ O personagem já possui a classe "${nomeSelecionado}" ativa!`);
+        // Validação de regras de Fabula Ultima via Domain Pure Logic
+        const validacao = podeAdicionarClasse(formClasses, nomeSelecionado);
+        if (!validacao.permitido) {
+            alert(validacao.motivo);
             e.target.value = "";
             return;
-        }
-
-        // Validação 2: Regra de Classes do Fabula Ultima (Máx 3 classes, a menos que alguma esteja no Nível 10)
-        if (formClasses.length >= 3) {
-            const temClasseNivel10 = formClasses.some(c => parseInt(c.nivel) === 10);
-
-            if (!temClasseNivel10) {
-                alert("Regra de Fabula Ultima: Você já possui 3 classes ativas e nenhuma delas está no Nível 10. Você precisa concluir (chegar ao nível 10) em pelo menos uma classe antes de poder adquirir uma nova!");
-                e.target.value = "";
-                return;
-            }
         }
 
         const classeOficial = catalogoClasses.find(c => c.nome_classe === nomeSelecionado);
@@ -117,15 +106,10 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
                 </p>
             ) : (
                 formClasses.map((c, index) => {
-                    const somaHabs = (c.habilidades || []).reduce((acc, h) => acc + (parseInt(h.nivel) || 0), 0);
-                    const nivelClasse = parseInt(c.nivel) || 1;
-                    const habInvalida = somaHabs > nivelClasse;
-                    const habIncompleta = somaHabs < nivelClasse;
-                    const classeConcluida = nivelClasse === 10;
-
-                    // Identifica se a classe atual suporta magias
-                    const nomeClasseNorm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-                    const aceitaMagia = CLASSES_COM_MAGIA.some(cm => nomeClasseNorm.includes(cm));
+                    const nivelClasse = parseInt(c.nivel, 10) || 1;
+                    const statusHab = validarDistribuicaoHabilidades(nivelClasse, c.habilidades);
+                    const classeConcluida = isClasseDominada(nivelClasse);
+                    const aceitaMagia = classeAceitaMagia(c.nome_classe);
 
                     // 🔍 Localiza a classe correspondente no repositório oficial (catalogo_classes)
                     const classeCatalogoOficial = catalogoClasses.find(cat => cat.nome_classe === c.nome_classe);
@@ -149,13 +133,11 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
                                 <input
                                     type="number"
                                     min="1"
-                                    max="10"
+                                    max={NIVEL_MAXIMO_CLASSE}
                                     placeholder="Nível"
                                     value={c.nivel}
                                     onChange={(e) => {
-                                        let val = parseInt(e.target.value) || 1;
-                                        if (val > 10) val = 10;
-                                        if (val < 1) val = 1;
+                                        const val = sanitizarNivelClasse(e.target.value);
                                         const atual = [...formClasses];
                                         atual[index].nivel = val;
                                         setFormClasses(atual);
@@ -180,24 +162,24 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
                             {/* Habilidades Oficiais */}
                             <div style={{ borderTop: '1px solid #30363d', paddingTop: '10px', marginTop: '10px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                    <span style={{ fontSize: '0.85rem', color: habInvalida ? '#f85149' : (habIncompleta ? '#d4af37' : '#3fb950'), fontWeight: 'bold' }}>
-                                        Habilidades Distribuídas: {somaHabs} / {nivelClasse} nível(is) da classe
-                                        {habInvalida && ' ⚠️ Excede o nível!'}
-                                        {habIncompleta && !habInvalida && ' ℹ️ Há pontos livres.'}
+                                    <span style={{ fontSize: '0.85rem', color: statusHab.excedeNivel ? '#f85149' : (statusHab.incompleto ? '#d4af37' : '#3fb950'), fontWeight: 'bold' }}>
+                                        Habilidades Distribuídas: {statusHab.pontosGastos} / {statusHab.pontosMaximos} nível(is) da classe
+                                        {statusHab.excedeNivel && ' ⚠️ Excede o nível!'}
+                                        {statusHab.incompleto && !statusHab.excedeNivel && ' ℹ️ Há pontos livres.'}
                                     </span>
                                 </div>
 
                                 {(c.habilidades || []).map((h, hIndex) => {
                                     const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
                                     const ehEngenhocas = (h.nome || '').toLowerCase().includes('engenhocas');
-                                    const nivelHab = parseInt(h.nivel) || 0;
+                                    const nivelHab = parseInt(h.nivel, 10) || 0;
 
                                     // 🎯 Busca o teto máximo diretamente no catálogo oficial usando o nome da habilidade
                                     const habCatalogoOficial = (classeCatalogoOficial?.habilidades_padrao || []).find(
                                         hp => hp.nome.trim().toLowerCase() === h.nome.trim().toLowerCase()
                                     );
                                     
-                                    const limiteMaximoHab = habCatalogoOficial?.nivel_maximo ?? 5;
+                                    const limiteMaximoHab = habCatalogoOficial?.nivel_maximo ?? NIVEL_MAXIMO_HABILIDADE_PADRAO;
 
                                     return (
                                         <div key={hIndex} style={{ background: '#161b22', padding: '10px', borderRadius: '6px', marginTop: '8px' }}>

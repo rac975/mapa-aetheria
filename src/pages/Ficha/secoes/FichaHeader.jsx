@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../../constants/condicoes';
-import { supabase } from '../../../services/supabase';
+import { fichaService } from '../../../services/fichaService';
 
 export default function FichaHeader({
     ficha,
@@ -12,7 +12,7 @@ export default function FichaHeader({
     onToggleEdit,
     nivelAtual,
     condicoesAtivas = [],
-    setFicha // 🔹 Adicionado para atualizar o estado global da ficha quando os zênites mudarem
+    setFicha // 🔹 Atualiza o estado global da ficha quando os zênites mudarem
 }) {
     const navigate = useNavigate();
     const tokenJogadorSalvo = localStorage.getItem('aetheria_jogador_token');
@@ -48,12 +48,7 @@ export default function FichaHeader({
 
         setProcessandoZenit(true);
         try {
-            const { error } = await supabase
-                .from('fichas_personagens')
-                .update({ zenit: novoZenit })
-                .eq('id', ficha.id);
-
-            if (error) throw error;
+            await fichaService.atualizarZenit(ficha.id, novoZenit);
 
             // Atualiza o estado da ficha na página pai
             if (setFicha) {

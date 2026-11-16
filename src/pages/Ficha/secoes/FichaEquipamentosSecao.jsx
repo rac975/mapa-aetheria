@@ -1,7 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt, FaSkull } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
-import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha'; // Ajuste o caminho correto para o seu utils
+import { fichaService } from '../../../services/fichaService';
+import {
+  SLOTS_EQUIPAMENTO,
+  validarSlotEquipamento,
+  isArmaDuasMaos
+} from '../../../domain/fabula/equipmentRules';
+import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha';
 
 export default function FichaEquipamentosSecao({ 
   fichaId, 
@@ -29,17 +34,14 @@ export default function FichaEquipamentosSecao({
       return;
     }
 
-    const { data, error } = await supabase
-      .from('itens_personagem')
-      .select('*')
-      .eq('ficha_id', fichaId);
-
-    if (error) {
-      console.error("❌ Erro ao carregar itens_personagem:", error.message);
-    } else {
+    try {
+      const data = await fichaService.getItensByFichaId(fichaId);
       setItensInventario(data || []);
+    } catch (error) {
+      console.error("❌ Erro ao carregar itens_personagem:", error.message);
+    } finally {
+      setCarregando(false);
     }
-    setCarregando(false);
   }, [fichaId]);
 
   useEffect(() => {
@@ -57,20 +59,13 @@ export default function FichaEquipamentosSecao({
 
     if (!fichaId) return;
 
-    const channel = supabase
-      .channel(`realtime_equip_${fichaId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'itens_personagem', filter: `ficha_id=eq.${fichaId}` },
-        () => {
-          carregarItens();
-        }
-      )
-      .subscribe();
+    const channel = fichaService.subscribeItens(fichaId, () => {
+      carregarItens();
+    });
 
     return () => {
       ativo = false;
-      supabase.removeChannel(channel);
+      fichaService.removeChannel(channel);
     };
   }, [fichaId, carregarItens]);
 
@@ -84,99 +79,48 @@ export default function FichaEquipamentosSecao({
     const novosStats = { ...(item.stats_personalizados || {}) };
     delete novosStats.slot;
 
-    const { error } = await supabase
-      .from('itens_personagem')
-      .update({
+    try {
+      await fichaService.atualizarItemPersonagem(item.id, {
         equipado: false,
         stats_personalizados: novosStats
-      })
-      .eq('id', item.id);
-
-    if (!error) carregarItens();
+      });
+      carregarItens();
+    } catch (err) {
+      console.error("Erro ao desequipar item:", err);
+    }
   };
 
   const equiparItemNoSlot = async (item, slotAlvo) => {
-    const tipoItem = (item.tipo || '').toLowerCase();
-    const nomeItem = (item.nome || '').toLowerCase();
-    const ehEscudo = tipoItem.includes('escudo');
-
-    if ((slotAlvo === 'mao_dominante' || slotAlvo === 'mao_secundaria') && (tipoItem.includes('armadura') || tipoItem.includes('acessorio'))) {
-      alert("Este item não pode ser empunhado nas mãos!");
-      return;
-    }
-    if (slotAlvo === 'armadura' && !tipoItem.includes('armadura')) {
-      alert("Apenas armaduras podem ser vestidas neste slot!");
-      return;
-    }
-    if (slotAlvo === 'acessorio' && !tipoItem.includes('acessorio')) {
-      alert("Apenas acessórios podem ser equipados neste slot!");
+    // Validação isolada de regras puras de Fabula Ultima
+    const validacao = validarSlotEquipamento({ item, slotAlvo, classes });
+    if (!validacao.permitido) {
+      alert(validacao.motivo);
       return;
     }
 
-    const ehMarcialOuPesado = tipoItem.includes('marcial') ||
-      tipoItem.includes('pesada') ||
-      tipoItem.includes('escudo') ||
-      nomeItem.includes('nodachi') ||
-      nomeItem.includes('martelo de guerra');
-
-    const temDuploEscudeiro = classes.some(c =>
-      (c.habilidades || []).some(h =>
-        (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel) || 0) > 0
-      )
-    );
-
-    if (slotAlvo === 'mao_dominante') {
-      if (tipoItem.includes('armadura') || tipoItem.includes('acessorio')) {
-        alert("Este item não pode ser empunhado nas mãos!");
-        return;
-      }
-      if (ehEscudo && !temDuploEscudeiro) {
-        alert("⛔ Apenas personagens com a habilidade 'Duplo Escudeiro' podem equipar escudos na mão dominante!");
-        return;
-      }
-    }
-
-    if (ehMarcialOuPesado) {
-      const temProficiencia = classes.some(c => {
-        const ben = (c.beneficios || '').toLowerCase();
-        return ben.includes('marcial') ||
-          ben.includes('pesada') ||
-          ben.includes('escudos') ||
-          ben.includes('todos') ||
-          ben.includes('armas corpo a corpo');
-      });
-
-      if (!temProficiencia) {
-        alert("⛔ Bloqueado pelas regras de Fabula Ultima: Seu personagem não possui a proficiência necessária nas classes ativas para equipar este tipo de equipamento marcial/pesado!");
-        return;
-      }
-    }
-
+    const ehDuasMaos = isArmaDuasMaos(item);
     const itemAtualNoSlot = getItemNoSlot(slotAlvo);
     if (itemAtualNoSlot) {
       await desequiparItem(itemAtualNoSlot);
     }
 
-    const slotParaSalvar = tipoItem.includes('2h') ? 'mao_dominante' : slotAlvo;
+    const slotParaSalvar = ehDuasMaos ? SLOTS_EQUIPAMENTO.MAO_DOMINANTE : slotAlvo;
     const novosStats = { ...(item.stats_personalizados || {}), slot: slotParaSalvar };
 
-    const { error } = await supabase
-      .from('itens_personagem')
-      .update({
+    try {
+      await fichaService.atualizarItemPersonagem(item.id, {
         equipado: true,
         stats_personalizados: novosStats
-      })
-      .eq('id', item.id);
+      });
 
-    if (!error) {
-      if (tipoItem.includes('2h')) {
-        const outraMao = getItemNoSlot('mao_secundaria');
+      if (ehDuasMaos) {
+        const outraMao = getItemNoSlot(SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
         if (outraMao) await desequiparItem(outraMao);
       }
       setModalSlotAberto(null);
       setItemParaEquiparDireto(null);
       carregarItens();
-    } else {
+    } catch (error) {
       alert("Erro ao equipar item: " + error.message);
     }
   };
@@ -184,15 +128,15 @@ export default function FichaEquipamentosSecao({
   const lidarComCliqueEquipar = (item) => {
     const tipoItem = (item.tipo || '').toLowerCase();
     if (tipoItem.includes('armadura')) {
-      equiparItemNoSlot(item, 'armadura');
+      equiparItemNoSlot(item, SLOTS_EQUIPAMENTO.ARMADURA);
       return;
     }
     if (tipoItem.includes('acessorio') || tipoItem.includes('acessório')) {
-      equiparItemNoSlot(item, 'acessorio');
+      equiparItemNoSlot(item, SLOTS_EQUIPAMENTO.ACESSORIO);
       return;
     }
     if (tipoItem.includes('escudo')) {
-      equiparItemNoSlot(item, 'mao_secundaria');
+      equiparItemNoSlot(item, SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
       return;
     }
     setItemParaEquiparDireto(item);
@@ -201,12 +145,12 @@ export default function FichaEquipamentosSecao({
   const deletarItem = async (itemId) => {
     if (!window.confirm("Deseja realmente descartar este item do inventário?")) return;
 
-    const { error } = await supabase
-      .from('itens_personagem')
-      .delete()
-      .eq('id', itemId);
-
-    if (!error) carregarItens();
+    try {
+      await fichaService.deletarItemPersonagem(itemId);
+      carregarItens();
+    } catch (err) {
+      console.error("Erro ao deletar item:", err);
+    }
   };
 
   const executarRolagemArma = (itemArma, slotId) => {
@@ -243,10 +187,10 @@ export default function FichaEquipamentosSecao({
   if (carregando) return <div style={{ color: '#8b949e', padding: '10px' }}>Carregando equipamentos...</div>;
 
   const slotConfig = [
-    { id: 'mao_dominante', label: 'Mão Dominante', icone: <FaHandHolding /> },
-    { id: 'mao_secundaria', label: 'Mão Não Dominante / Escudo', icone: <FaHandHolding /> },
-    { id: 'armadura', label: 'Armadura', icone: <FaShieldAlt /> },
-    { id: 'acessorio', label: 'Acessório', icone: <FaRing /> }
+    { id: SLOTS_EQUIPAMENTO.MAO_DOMINANTE, label: 'Mão Dominante', icone: <FaHandHolding /> },
+    { id: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA, label: 'Mão Não Dominante / Escudo', icone: <FaHandHolding /> },
+    { id: SLOTS_EQUIPAMENTO.ARMADURA, label: 'Armadura', icone: <FaShieldAlt /> },
+    { id: SLOTS_EQUIPAMENTO.ACESSORIO, label: 'Acessório', icone: <FaRing /> }
   ];
 
   return (
@@ -267,14 +211,14 @@ export default function FichaEquipamentosSecao({
             const tipoItemEquipado = (itemEquipado?.tipo || '').toLowerCase();
             const temDuploEscudeiro = classes.some(c =>
               (c.habilidades || []).some(h =>
-                (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel) || 0) > 0
+                (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel, 10) || 0) > 0
               )
             );
             const ultimaRolagem = resultadosRolagem[slot.id];
             const modoAtual = modoAtaqueState[slot.id] || 'normal';
             const ehArmaOuEscudoAtacavel = slot.id.includes('mao') && itemEquipado && (
               tipoItemEquipado.includes('arma') ||
-              (slot.id === 'mao_dominante' && tipoItemEquipado.includes('escudo') && temDuploEscudeiro)
+              (slot.id === SLOTS_EQUIPAMENTO.MAO_DOMINANTE && tipoItemEquipado.includes('escudo') && temDuploEscudeiro)
             );
 
             return (
@@ -494,10 +438,10 @@ export default function FichaEquipamentosSecao({
               <button type="button" onClick={() => setItemParaEquiparDireto(null)} style={{ background: 'transparent', border: 'none', color: '#8b949e', cursor: 'pointer' }}><FaTimes size={16} /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, 'mao_dominante')} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_DOMINANTE)} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
                 ⚔️ Mão Dominante
               </button>
-              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, 'mao_secundaria')} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button type="button" onClick={() => equiparItemNoSlot(itemParaEquiparDireto, SLOTS_EQUIPAMENTO.MAO_SECUNDARIA)} style={{ background: '#21262d', color: '#c9d1d9', border: '1px solid #30363d', padding: '10px', borderRadius: '6px', textAlign: 'left', fontWeight: 'bold', cursor: 'pointer' }}>
                 🛡️ Mão Não Dominante / Escudo
               </button>
             </div>
