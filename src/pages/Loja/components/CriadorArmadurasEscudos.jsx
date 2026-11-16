@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { FaShieldAlt, FaCoins, FaHammer, FaPrint } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { Button, Badge, Input, Card } from '../../../components/ui';
+import styles from './CriadorItensRaros.module.css';
 
 export default function CriadorArmadurasEscudos({ onSalvarItem }) {
     const [itensBase, setItensBase] = useState([]);
@@ -7,6 +10,7 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
     const [caracteristicas, setCaracteristicas] = useState([]);
     const [caracteristicaSelecionada, setCaracteristicaSelecionada] = useState(null);
     const [nomeItem, setNomeItem] = useState('');
+    const [salvando, setSalvando] = useState(false);
 
     useEffect(() => {
         async function carregarDados() {
@@ -30,65 +34,193 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
         carregarDados();
     }, []);
 
+    const statsBase = itemBaseSelecionado?.stats || {};
+    const defesa = statsBase.defesa || 0;
+    const defesaMagica = statsBase.defesa_magica || statsBase['defesa magica'] || 0;
+    const iniciativa = statsBase.iniciativa || 0;
+    const ehMarcial = statsBase.marcial === true;
+
     const custoBase = itemBaseSelecionado?.custo || 100;
     const custoCarac = caracteristicaSelecionada?.custo || 0;
     const precoTotal = custoBase + custoCarac;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!nomeItem.trim()) return alert('Dê um nome para a armadura/escudo!');
+        if (!itemBaseSelecionado) return alert('Selecione uma armadura base!');
 
+        setSalvando(true);
         const efeitosList = caracteristicaSelecionada?.efeito ? [caracteristicaSelecionada.efeito] : [];
 
-        onSalvarItem({
-            nome: nomeItem,
-            tipo: 'armadura',
-            custo: precoTotal,
-            stats: {
-                slot: 'armadura',
-                raridade: 'raro',
+        try {
+            await onSalvarItem({
+                nome: nomeItem,
+                tipo: 'armadura',
                 custo: precoTotal,
-                efeitos: efeitosList
-            }
-        });
+                stats: {
+                    slot: 'armadura',
+                    raridade: 'raro',
+                    defesa: defesa,
+                    defesa_magica: defesaMagica,
+                    iniciativa: iniciativa,
+                    marcial: ehMarcial,
+                    custo: precoTotal,
+                    efeitos: efeitosList
+                }
+            });
+            setNomeItem('');
+            setCaracteristicaSelecionada(null);
+        } finally {
+            setSalvando(false);
+        }
     };
 
+    const nomeExibicao = nomeItem || itemBaseSelecionado?.nome || 'Armadura Rara';
+
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Nome da Armadura / Escudo</label>
-                <input
-                    type="text"
-                    value={nomeItem}
-                    onChange={e => setNomeItem(e.target.value)}
-                    placeholder="Ex: Armadura Aethelgard"
-                    style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                />
-            </div>
+        <div className={styles.container}>
+            <Card variant="default" className={styles.oficinaCard}>
+                <h3 className={styles.titulo}>
+                    <FaShieldAlt /> Forja de Armaduras e Escudos Raros
+                </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '3px' }}>Item Base Comum</label>
-                    <select onChange={e => setItemBaseSelecionado(itensBase[e.target.value])} style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}>
-                        {itensBase.map((i, idx) => <option key={i.id || idx} value={idx}>{i.nome}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '3px' }}>Característica Especial</label>
-                    <select onChange={e => setCaracteristicaSelecionada(caracteristicas[e.target.value])} style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}>
-                        {caracteristicas.map((c, idx) => <option key={c.id || idx} value={idx}>{c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}</option>)}
-                    </select>
-                </div>
-            </div>
+                <form onSubmit={handleSubmit} className={styles.formGrid}>
+                    <Input
+                        label="Nome da Armadura / Escudo"
+                        value={nomeItem}
+                        onChange={e => setNomeItem(e.target.value)}
+                        placeholder="Ex: Armadura Aethelgard"
+                        required
+                    />
 
-            <div style={{ background: '#0d0f18', padding: '12px', borderRadius: '6px', border: '1px solid #30363d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '0.9rem', color: '#8b949e' }}>
-                    Custo Total: <strong style={{ color: '#2ecc71', fontSize: '1.1rem' }}>{precoTotal} zênites</strong>
+                    <div className={styles.gridDuasColunas}>
+                        <div className={styles.campoGrupo}>
+                            <label htmlFor="select-armadura-base" className={styles.labelCampo}>
+                                Item Base Comum
+                            </label>
+                            <select
+                                id="select-armadura-base"
+                                className={styles.selectCampo}
+                                onChange={e => setItemBaseSelecionado(itensBase[e.target.value])}
+                            >
+                                {itensBase.map((i, idx) => (
+                                    <option key={i.id || idx} value={idx}>
+                                        {i.nome} ({i.custo}z)
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className={styles.campoGrupo}>
+                            <label htmlFor="select-armadura-caracteristica" className={styles.labelCampo}>
+                                Característica Especial
+                            </label>
+                            <select
+                                id="select-armadura-caracteristica"
+                                className={styles.selectCampo}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    setCaracteristicaSelecionada(val === 'nenhuma' ? null : caracteristicas[val]);
+                                }}
+                            >
+                                {caracteristicas.map((c, idx) => (
+                                    <option key={c.id || idx} value={c.id === 'nenhuma' ? 'nenhuma' : idx}>
+                                        {c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {caracteristicaSelecionada?.efeito && (
+                        <p className={styles.efeitoDescricao}>
+                            Efeito: {caracteristicaSelecionada.efeito}
+                        </p>
+                    )}
+
+                    {/* Resumo Dinâmico e Ações */}
+                    <div className={styles.painelResumo}>
+                        <div className={styles.resumoValores}>
+                            <div className={styles.resumoDano}>
+                                Defesa: <span className={styles.resumoDanoValor}>{defesa}</span> | Def. Mágica: <span className={styles.resumoDanoValor}>{defesaMagica}</span>
+                            </div>
+                            <Badge variant="gold" size="lg">
+                                <FaCoins /> {precoTotal} zênites
+                            </Badge>
+                        </div>
+
+                        <div className={styles.resumoBotoes}>
+                            <Button
+                                variant="ghost"
+                                size="md"
+                                onClick={() => window.print()}
+                                title="Imprimir Carta Física para Mesa"
+                            >
+                                <FaPrint /> Imprimir Carta
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                size="md"
+                                disabled={salvando}
+                            >
+                                <FaHammer /> {salvando ? 'Forjando...' : 'Forjar Armadura'}
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </Card>
+
+            {/* Prévia da Carta de Equipamento para a Mesa */}
+            <section className={styles.previewArea} aria-label="Prévia da Carta de Equipamento">
+                <div className={styles.previewTitulo}>
+                    <FaShieldAlt /> Prévia da Carta de Equipamento (Pronta para Impressão)
                 </div>
-                <button type="submit" style={{ background: '#238636', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-                    Forjar Armadura
-                </button>
-            </div>
-        </form>
+
+                <div className={styles.physicalCard}>
+                    <div className={styles.cardHeaderFisica}>
+                        <div>
+                            <h4 className={styles.cardNomeFisico}>{nomeExibicao}</h4>
+                            <span className={styles.cardSubtituloFisico}>
+                                ARMADURA • {ehMarcial ? 'MARCIAL' : 'SIMPLES'}
+                            </span>
+                        </div>
+                        <Badge variant="gold" size="sm">
+                            <FaCoins /> {precoTotal}z
+                        </Badge>
+                    </div>
+
+                    <div className={styles.tagsRow}>
+                        <Badge variant="ether" size="sm">Raro</Badge>
+                        <Badge variant={ehMarcial ? 'crise' : 'default'} size="sm">
+                            {ehMarcial ? '⚔️ Marcial' : '🛡️ Simples'}
+                        </Badge>
+                        {iniciativa !== 0 && (
+                            <Badge variant="core" size="sm">
+                                {iniciativa > 0 ? `+${iniciativa}` : iniciativa} Iniciativa
+                            </Badge>
+                        )}
+                    </div>
+
+                    <div className={styles.cardStatsGrid}>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Defesa</span>
+                            <span className={styles.cardStatValor}>{defesa}</span>
+                        </div>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Def. Mágica</span>
+                            <span className={styles.cardStatValor}>{defesaMagica}</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.cardEfeitosArea}>
+                        <strong>Propriedades Mágicas & Efeitos:</strong>
+                        <p className={styles.efeitoDescricao}>
+                            {caracteristicaSelecionada?.efeito || 'Nenhuma propriedade adicional selecionada.'}
+                        </p>
+                    </div>
+                </div>
+            </section>
+        </div>
     );
 }

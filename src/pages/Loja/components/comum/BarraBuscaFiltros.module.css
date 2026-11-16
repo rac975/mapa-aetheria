@@ -1,0 +1,148 @@
+/* BarraBuscaFiltros.module.css - Estilização da barra de busca e filtros da Loja */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.linhaBuscaOrdenacao {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.buscaWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.buscaIcone {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-border-gold-muted);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.buscaInput {
+  width: 100%;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.buscaInput::placeholder {
+  color: var(--color-text-dim);
+}
+
+.buscaInput:focus {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 10px rgba(56, 239, 239, 0.25);
+  background: rgba(10, 25, 47, 0.95);
+}
+
+.buscaWrapper:focus-within .buscaIcone {
+  color: var(--color-ether-cyan);
+}
+
+.ordenacaoWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  height: 38px;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast);
+}
+
+.ordenacaoWrapper:focus-within {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 8px rgba(56, 239, 239, 0.2);
+}
+
+.ordenacaoIcone {
+  color: var(--color-text-dim);
+}
+
+.ordenacaoSelect {
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  outline: none;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--space-2) 0;
+}
+
+.ordenacaoOption {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+}
+
+.linhaFiltros {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.chipsContainer {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtroBtn {
+  border-radius: var(--radius-pill);
+}
+
+.filtroRarosLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  color: #d8b4fe;
+  background: rgba(138, 43, 226, 0.12);
+  border: 1px solid rgba(138, 43, 226, 0.35);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.filtroRarosLabel:hover {
+  background: rgba(138, 43, 226, 0.22);
+  border-color: rgba(138, 43, 226, 0.55);
+}
+
+.filtroRarosCheckbox {
+  accent-color: #8a2be2;
+  cursor: pointer;
+}
+
+/* Modo Híbrido / Impressão */
+@media print {
+  .container {
+    display: none !important;
+  }
+}

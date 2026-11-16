@@ -109,10 +109,12 @@
 .statLinha {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--space-2);
   font-size: var(--font-size-xs);
   border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
-  padding-bottom: 2px;
+  padding-bottom: 3px;
+  line-height: 1.35;
 }
 
 .statLinha:last-child {
@@ -124,12 +126,37 @@
   color: var(--color-text-dim);
   font-weight: 500;
   text-transform: capitalize;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .statValor {
   color: var(--color-text-main);
   font-weight: 600;
   font-family: var(--font-family-mono);
+  text-align: right;
+  word-break: break-word;
+}
+
+/* Quando o efeito ou atributo for longo, quebra linha em bloco sem espremer o rótulo */
+.statLinhaEfeito {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.statLinhaEfeito .statChave {
+  color: var(--color-text-gold);
+  font-weight: 600;
+}
+
+.statLinhaEfeito .statValor {
+  text-align: left;
+  font-family: var(--font-family-sans);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .cardAcoes {
@@ -279,16 +306,29 @@
 
   .statLinha {
     border-bottom: 1px dotted #666666 !important;
+    gap: 2mm !important;
   }
 
   .statChave {
     color: #111111 !important;
     font-size: 8pt !important;
+    flex-shrink: 0 !important;
   }
 
   .statValor {
     color: #000000 !important;
     font-size: 8pt !important;
     font-weight: bold !important;
+  }
+
+  .statLinhaEfeito {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .statLinhaEfeito .statValor {
+    text-align: left !important;
+    font-weight: normal !important;
+    color: #222222 !important;
   }
 }

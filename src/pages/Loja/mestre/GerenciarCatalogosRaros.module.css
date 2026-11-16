@@ -1,0 +1,83 @@
+/* GerenciarCatalogosRaros.module.css - Catálogo de Raros do Mestre */
+
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+.cabecalho {
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-3);
+}
+
+.titulo {
+  margin: 0 0 var(--space-1) 0;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+}
+
+.subtitulo {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.gridItens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.itemCard {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.itemCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.itemNome {
+  font-weight: 700;
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+}
+
+.itemTags {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.catalogoVazio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--color-text-muted);
+  background: var(--color-bg-base);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-gold-muted);
+  font-size: var(--font-size-sm);
+}

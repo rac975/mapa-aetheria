@@ -344,9 +344,10 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
 
                                                         const labelBonita = nomesFormatados[chave.toLowerCase()] || chave.replace('_', ' ');
                                                         const valorExibido = Array.isArray(valor) ? valor.join(', ') : String(valor);
+                                                        const ehEfeitoOuLongo = chave.toLowerCase() === 'efeitos' || chave.toLowerCase() === 'efeito' || valorExibido.length > 35;
 
                                                         return (
-                                                            <div key={chave} className={styles.statLinha}>
+                                                            <div key={chave} className={`${styles.statLinha} ${ehEfeitoOuLongo ? styles.statLinhaEfeito : ''}`}>
                                                                 <span className={styles.statChave}>{labelBonita}:</span>
                                                                 <span className={styles.statValor}>{valorExibido}</span>
                                                             </div>
@@ -436,12 +437,16 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                                         const valor = itemInv.stats_personalizados[chave];
                                                         return valor !== null && valor !== undefined && valor !== '';
                                                     })
-                                                    .map(([chave, valor]) => (
-                                                        <div key={chave} className={styles.statLinha}>
-                                                            <span className={styles.statChave}>{chave.replace('_', ' ')}:</span>
-                                                            <span className={styles.statValor}>{String(valor)}</span>
-                                                        </div>
-                                                    ))}
+                                                    .map(([chave, valor]) => {
+                                                        const valorStr = String(valor);
+                                                        const ehEfeitoOuLongo = chave.toLowerCase() === 'efeitos' || chave.toLowerCase() === 'efeito' || valorStr.length > 35;
+                                                        return (
+                                                            <div key={chave} className={`${styles.statLinha} ${ehEfeitoOuLongo ? styles.statLinhaEfeito : ''}`}>
+                                                                <span className={styles.statChave}>{chave.replace('_', ' ')}:</span>
+                                                                <span className={styles.statValor}>{valorStr}</span>
+                                                            </div>
+                                                        );
+                                                    })}
                                             </div>
                                         )}
                                     </div>

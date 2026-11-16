@@ -1,0 +1,154 @@
+/* GerenciarEstabelecimentos.module.css - Gerenciamento de Lojas do Mestre */
+
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.tituloArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+}
+
+.subtitulo {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.lojasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.lojaCard {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.lojaCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.lojaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.lojaNome {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-serif);
+}
+
+.lojaCidade {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.lojaDesc {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.cardAcoes {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: var(--space-3);
+}
+
+.lojasVazio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--color-text-muted);
+  background: var(--color-bg-base);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-gold-muted);
+  font-size: var(--font-size-sm);
+}
+
+.formModal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.textareaGrupo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.textareaLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.textareaInput {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.textareaInput:focus {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 10px rgba(56, 239, 239, 0.25);
+  background: rgba(10, 25, 47, 0.95);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  width: 100%;
+}

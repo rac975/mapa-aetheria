@@ -1,7 +1,9 @@
-import { FaTools, FaTrash } from 'react-icons/fa';
+import { FaTools, FaTrash, FaCoins } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from '../components/comum/BarraBuscaFiltros';
+import { Button, Badge } from '../../../components/ui';
+import styles from './GerenciarCatalogosRaros.module.css';
 
 export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados }) {
     // Filtra previamente apenas os itens que são raros ou armas customizadas/forjadas
@@ -36,15 +38,15 @@ export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados 
     };
 
     return (
-        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
-            <div style={{ marginBottom: '16px', borderBottom: '1px solid #30363d', paddingBottom: '12px' }}>
-                <h3 style={{ margin: '0 0 4px 0', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem' }}>
+        <div className={styles.container}>
+            <header className={styles.cabecalho}>
+                <h3 className={styles.titulo}>
                     <FaTools /> Itens Raros e Forjados no Catálogo
                 </h3>
-                <p style={{ margin: 0, color: '#8b949e', fontSize: '0.85rem' }}>
+                <p className={styles.subtitulo}>
                     Lista de todas as criações personalizadas salvas no mundo. Você pode buscá-las ou removê-las se necessário.
                 </p>
-            </div>
+            </header>
 
             {/* Barra de Busca e Filtros Modular Integrada */}
             <BarraBuscaFiltros
@@ -56,33 +58,34 @@ export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados 
                 setOrdenacao={setOrdenacao}
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div className={styles.gridItens}>
                 {itensFiltrados.map(item => (
-                    <div key={item.id} style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '10px', padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <span style={{ fontWeight: 'bold', color: '#f0f6fc', display: 'block', fontSize: '0.95rem', marginBottom: '4px' }}>{item.nome}</span>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.75rem', background: '#21262d', padding: '2px 6px', borderRadius: '4px', color: '#8b949e', textTransform: 'uppercase' }}>{item.tipo}</span>
-                                <span style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: 'bold' }}>{item.custo}z</span>
+                    <div key={item.id} className={styles.itemCard}>
+                        <div className={styles.itemInfo}>
+                            <span className={styles.itemNome}>{item.nome}</span>
+                            <div className={styles.itemTags}>
+                                <Badge variant="default" size="sm">{item.tipo}</Badge>
+                                <Badge variant="gold" size="sm">
+                                    <FaCoins /> {item.custo}z
+                                </Badge>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            className='btn-del'
+                        <Button
+                            variant="danger"
+                            size="sm"
                             onClick={() => deletarItemCatalogo(item)}
-                            style={{ background: 'rgba(248, 81, 73, 0.2)', color: '#f85149', border: '1px solid rgba(248, 81, 73, 0.4)', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}
+                            title="Deletar item do catálogo"
                         >
-                            <FaTrash size={10} /> Deletar
-                        </button>
+                            <FaTrash size={12} /> Deletar
+                        </Button>
                     </div>
                 ))}
+                {itensFiltrados.length === 0 && (
+                    <div className={styles.catalogoVazio}>
+                        Nenhum item raro encontrado no catálogo.
+                    </div>
+                )}
             </div>
-
-            {itensFiltrados.length === 0 && (
-                <div className="loja-vazio" style={{ marginTop: '16px' }}>
-                    <p style={{ margin: 0 }}>Nenhum item raro encontrado com os filtros aplicados.</p>
-                </div>
-            )}
         </div>
     );
 }

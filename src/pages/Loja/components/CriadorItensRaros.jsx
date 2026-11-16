@@ -473,6 +473,14 @@ export default function CriadorItensRaros({ ficha, onCriado }) {
                                 </Badge>
                             </>
                         )}
+                        {tipoCriacao === 'armadura' && (
+                            <Badge variant={statsBase.marcial ? 'crise' : 'default'} size="sm">
+                                {statsBase.marcial ? '⚔️ Marcial' : '🛡️ Simples'}
+                            </Badge>
+                        )}
+                        {tipoCriacao === 'acessorio' && (
+                            <Badge variant="default" size="sm">Acessório</Badge>
+                        )}
                     </div>
 
                     {tipoCriacao === 'arma' && (
@@ -484,6 +492,32 @@ export default function CriadorItensRaros({ ficha, onCriado }) {
                             <div className={styles.cardStatItem}>
                                 <span className={styles.cardStatLabel}>Dano</span>
                                 <span className={styles.cardStatValor}>RA + {bonusDanoFinalNumerico}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {tipoCriacao === 'armadura' && (
+                        <div className={styles.cardStatsGrid}>
+                            <div className={styles.cardStatItem}>
+                                <span className={styles.cardStatLabel}>Defesa</span>
+                                <span className={styles.cardStatValor}>{statsBase.defesa || '0'}</span>
+                            </div>
+                            <div className={styles.cardStatItem}>
+                                <span className={styles.cardStatLabel}>Def. Mágica</span>
+                                <span className={styles.cardStatValor}>{statsBase.defesa_magica || statsBase['defesa magica'] || '0'}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {tipoCriacao === 'acessorio' && (
+                        <div className={styles.cardStatsGrid}>
+                            <div className={styles.cardStatItem}>
+                                <span className={styles.cardStatLabel}>Slot</span>
+                                <span className={styles.cardStatValor}>Acessório</span>
+                            </div>
+                            <div className={styles.cardStatItem}>
+                                <span className={styles.cardStatLabel}>Capacidade</span>
+                                <span className={styles.cardStatValor}>1 Vaga</span>
                             </div>
                         </div>
                     )}

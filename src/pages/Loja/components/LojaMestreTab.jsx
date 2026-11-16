@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaStore, FaBoxOpen, FaHammer, FaTools } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { Button } from '../../../components/ui';
 import GerenciarEstabelecimentos from '../mestre/GerenciarEstabelecimentos';
 import GerenciarEstoqueLoja from '../mestre/GerenciarEstoqueLoja';
 import GerenciarForja from '../mestre/GerenciarForja';
 import GerenciarCatalogoRaros from '../mestre/GerenciarCatalogosRaros';
+import styles from '../LojaPage.module.css';
 
 export default function LojaMestreTab({ itensCatalogo, lojas, recarregarDados, ficha }) {
     // Sub-aba interna do Mestre: 'lojas', 'estoque', 'forja', 'catalogo'
@@ -27,45 +29,45 @@ export default function LojaMestreTab({ itensCatalogo, lojas, recarregarDados, f
     }, [recarregarDados]);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Menu de Sub-Abas do Mestre (Design Limpo e Organizado) */}
-            <div style={{ display: 'flex', gap: '8px', background: '#0d1117', padding: '6px', borderRadius: '10px', border: '1px solid #30363d', overflowX: 'auto' }}>
-                <button
-                    type="button"
+        <div className={styles.mestreContainer}>
+            {/* Menu de Sub-Abas do Mestre (Design Limpo e Organizado com Button UI) */}
+            <nav className={styles.mestreSubAbas} aria-label="Sub-abas de administração do Mestre">
+                <Button
+                    variant={subAbaMestre === 'lojas' ? 'secondary' : 'ghost'}
+                    size="md"
+                    className={styles.mestreSubAbaBtn}
                     onClick={() => setSubAbaMestre('lojas')}
-                    className={`btn-aba ${subAbaMestre === 'lojas' ? 'ativa' : ''}`}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                     <FaStore /> Estabelecimentos
-                </button>
-                <button
-                    type="button"
+                </Button>
+                <Button
+                    variant={subAbaMestre === 'estoque' ? 'secondary' : 'ghost'}
+                    size="md"
+                    className={styles.mestreSubAbaBtn}
                     onClick={() => setSubAbaMestre('estoque')}
-                    className={`btn-aba ${subAbaMestre === 'estoque' ? 'ativa' : ''}`}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                     <FaBoxOpen /> Estoque das Lojas
-                </button>
-                <button
-                    type="button"
+                </Button>
+                <Button
+                    variant={subAbaMestre === 'forja' ? 'secondary' : 'ghost'}
+                    size="md"
+                    className={styles.mestreSubAbaBtn}
                     onClick={() => setSubAbaMestre('forja')}
-                    className={`btn-aba ${subAbaMestre === 'forja' ? 'ativa' : ''}`}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                     <FaHammer /> Oficina / Forja
-                </button>
-                <button
-                    type="button"
+                </Button>
+                <Button
+                    variant={subAbaMestre === 'catalogo' ? 'secondary' : 'ghost'}
+                    size="md"
+                    className={styles.mestreSubAbaBtn}
                     onClick={() => setSubAbaMestre('catalogo')}
-                    className={`btn-aba ${subAbaMestre === 'catalogo' ? 'ativa' : ''}`}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
                     <FaTools /> Catálogo de Raros
-                </button>
-            </div>
+                </Button>
+            </nav>
 
             {/* Conteúdo dinâmico baseado na sub-aba escolhida */}
-            <div className="mestre-conteudo-painel">
+            <div className={styles.mestrePainelConteudo}>
                 {subAbaMestre === 'lojas' && (
                     <GerenciarEstabelecimentos lojas={lojas} recarregarDados={recarregarDados} />
                 )}
