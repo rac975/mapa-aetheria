@@ -1,9 +1,10 @@
 import React from 'react';
 import { 
   FaShieldAlt, FaSkull, FaChevronUp, FaChevronDown, FaTrash, 
-  FaEdit, FaCheck, FaTimes, FaMinus, FaPlus 
+  FaCheck, FaTimes, FaMinus, FaPlus 
 } from 'react-icons/fa';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
+import { estaDerrotado as checkDerrotado, calcularStatusCrise, calcularDanoAcumulado } from '../../domain/fabula/combatRules';
 
 export default function CombatantItem({
   p,
@@ -23,13 +24,13 @@ export default function CombatantItem({
   onAlterarRecurso,
   onToggleCondicao
 }) {
-  const estaDerrotado = p.hp_atual === 0;
-  const emCrise = !estaDerrotado && p.hp_atual <= p.hp_max / 2;
-  const danoInimigo = p.hp_max - p.hp_atual;
+  const estaDerrotado = checkDerrotado(p.hp_atual);
+  const emCrise = calcularStatusCrise(p.hp_atual, p.hp_max);
+  const danoInimigo = calcularDanoAcumulado(p.hp_atual, p.hp_max);
   const condicoesAtivas = p.condicoes || [];
 
   const fichaCorrespondente = fichasDisponiveis.find(
-    f => f.id === p.ficha_id || f.nome_personagem.toLowerCase() === p.nome.toLowerCase()
+    f => f.id === p.ficha_id || f.nome_personagem?.toLowerCase() === p.nome?.toLowerCase()
   );
   const avatarUrl = fichaCorrespondente?.avatar_url;
   const defesaHeroi = fichaCorrespondente?.defesa || 10;
@@ -92,7 +93,7 @@ export default function CombatantItem({
         )}
       </div>
 
-      {/* LINHA 2: Condições Ativas (Casoexista) */}
+      {/* LINHA 2: Condições Ativas (Caso exista) */}
       {condicoesAtivas.length > 0 && !isEditando && (
         <div className="condicoes-strip">
           {condicoesAtivas.map(cId => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../services/supabase';
+import { npcService } from '../../services/npcService';
 
 export default function AddParticipantForm({
   novoTipo,
@@ -14,7 +14,7 @@ export default function AddParticipantForm({
   mpMaxInput,
   setMpMaxInput,
   onAddParticipante,
-  onSelecionarNpcCatalogo // Nova prop para lidar com a seleção do NPC pronto
+  onSelecionarNpcCatalogo // Callback para lidar com a seleção do NPC pronto
 }) {
   const [modoInimigo, setModoInimigo] = useState('manual'); // 'manual' ou 'catalogo'
   const [npcsSalvos, setNpcsSalvos] = useState([]);
@@ -22,14 +22,19 @@ export default function AddParticipantForm({
 
   useEffect(() => {
     async function carregarNpcsSalvos() {
-      const { data } = await supabase.from('npcs_mestre').select('*');
+      const { data } = await npcService.getNpcsMestre();
       if (data) {
         setNpcsSalvos(data);
-        if (data.length > 0) setNpcSelecionadoId(data[0].id);
+        if (data.length > 0) {
+          setNpcSelecionadoId(data[0].id);
+          if (onSelecionarNpcCatalogo) {
+            onSelecionarNpcCatalogo(data[0]);
+          }
+        }
       }
     }
     carregarNpcsSalvos();
-  }, []);
+  }, [onSelecionarNpcCatalogo]);
 
   const handleMudarNpcCatalogo = (e) => {
     const id = e.target.value;
