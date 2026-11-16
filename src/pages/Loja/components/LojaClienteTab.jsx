@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
-import { FaCoins, FaShoppingCart, FaShieldAlt, FaBoxOpen, FaStore, FaHandHoldingUsd } from 'react-icons/fa';
+import {
+    FaCoins,
+    FaShoppingCart,
+    FaShieldAlt,
+    FaBoxOpen,
+    FaStore,
+    FaHandHoldingUsd,
+    FaPrint
+} from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from './comum/BarraBuscaFiltros';
+import { Button, Card, Badge, Modal } from '../../../components/ui';
+import styles from './LojaClienteTab.module.css';
 
 export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
     const {
@@ -174,7 +184,6 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
             return;
         }
 
-        // Leitura blindada priorizando o valor gerado por habilidades (Tesouro da Alma, etc.)
         const custoOriginal =
             itemInv.stats_personalizados?.valor_zenites ||
             itemInv.stats_personalizados?.custo ||
@@ -214,33 +223,38 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         }
     };
 
-    const getRaridadeStyle = (raridade) => {
+    const getRaridadeVariant = (raridade) => {
         switch (raridade?.toLowerCase()) {
-            case 'raro': return { bg: 'rgba(138, 43, 226, 0.2)', color: '#d8b4fe', border: 'rgba(138, 43, 226, 0.4)' };
-            case 'epico': return { bg: 'rgba(255, 140, 0, 0.2)', color: '#fed7aa', border: 'rgba(255, 140, 0, 0.4)' };
-            case 'lendario': return { bg: 'rgba(255, 215, 0, 0.2)', color: '#fef08a', border: 'rgba(255, 215, 0, 0.4)' };
-            default: return { bg: 'rgba(128, 128, 128, 0.2)', color: '#c4c4c4', border: 'rgba(128,128,128,0.4)' };
+            case 'raro': return 'ether';
+            case 'epico':
+            case 'épico': return 'core';
+            case 'lendario':
+            case 'lendário': return 'gold';
+            default: return 'default';
         }
     };
 
     return (
-        <div>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                <button
-                    type="button"
+        <div className={styles.container}>
+            {/* Abas Superiores de Comprar / Vender */}
+            <nav className={styles.abasNavegacao} aria-label="Navegação de compra e venda">
+                <Button
+                    variant={abaAtiva === 'comprar' ? 'primary' : 'ghost'}
+                    size="md"
+                    className={styles.abaBtn}
                     onClick={() => setAbaAtiva('comprar')}
-                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: `1px solid ${abaAtiva === 'comprar' ? '#238636' : '#30363d'}`, background: abaAtiva === 'comprar' ? 'rgba(35, 134, 54, 0.15)' : '#161b22', color: '#f0f6fc', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                    <FaStore color="#238636" /> Comprar na Loja
-                </button>
-                <button
-                    type="button"
+                    <FaStore /> Comprar na Loja
+                </Button>
+                <Button
+                    variant={abaAtiva === 'vender' ? 'secondary' : 'ghost'}
+                    size="md"
+                    className={styles.abaBtn}
                     onClick={() => setAbaAtiva('vender')}
-                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: `1px solid ${abaAtiva === 'vender' ? '#d4af37' : '#30363d'}`, background: abaAtiva === 'vender' ? 'rgba(212, 175, 55, 0.15)' : '#161b22', color: '#f0f6fc', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                    <FaHandHoldingUsd color="#d4af37" /> Vender Seus Itens
-                </button>
-            </div>
+                    <FaHandHoldingUsd /> Vender Seus Itens
+                </Button>
+            </nav>
 
             {abaAtiva === 'comprar' && (
                 <>
@@ -256,50 +270,57 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                         mostrarFiltroRaros={true}
                     />
 
-                    <div className="loja-grid">
+                    <div className={styles.lojaGrid}>
                         {itensFiltrados.map((item) => {
-                            const ehMarcial = item.stats && item.stats.marcial === true;
-                            const ehComum = item.stats && item.stats.raridade === 'comum';
-                            const raridadeStyle = item.stats?.raridade ? getRaridadeStyle(item.stats.raridade) : null;
+                            const ehMarcial = item.stats?.marcial === true;
                             const raridadeTexto = item.stats?.raridade;
+                            const tipoDano = item.stats?.tipo_dano;
+                            const vagasQualidade = item.stats?.vagas || item.stats?.vagas_qualidade;
 
                             return (
-                                <div key={item.id} className="loja-card">
-                                    <div>
-                                        <div className="loja-card-header">
-                                            <h4 className="loja-card-titulo">{item.nome}</h4>
-                                            <div className="loja-preco-badge">
-                                                <FaCoins size={11} /> {item.custo}z
-                                            </div>
+                                <Card key={item.id} variant="default" className={styles.itemCard}>
+                                    <div className={styles.cardTopo}>
+                                        <div className={styles.cardHeader}>
+                                            <h4 className={styles.cardTitulo}>{item.nome}</h4>
+                                            <Badge variant="gold" size="sm">
+                                                <FaCoins /> {item.custo}z
+                                            </Badge>
                                         </div>
 
-                                        <div className="loja-tags-row">
-                                            <span className="tag-tipo">{item.tipo}</span>
+                                        <div className={styles.tagsRow}>
+                                            <Badge variant="default" size="sm">{item.tipo}</Badge>
                                             {item.stats && 'marcial' in item.stats && (
-                                                <span className={`tag-marcial ${ehMarcial ? 'sim' : 'nao'}`}>
+                                                <Badge variant={ehMarcial ? 'crise' : 'default'} size="sm">
                                                     {ehMarcial ? '⚔️ Marcial' : '🛡️ Simples'}
-                                                </span>
+                                                </Badge>
                                             )}
-                                            {raridadeStyle && (
-                                                <span className="tag-raridade" style={{ background: raridadeStyle.bg, color: raridadeStyle.color, border: `1px solid ${raridadeStyle.border}` }}>
-                                                    {ehComum ? `${raridadeTexto}` : `⭐ ${raridadeTexto}`}
-                                                </span>
+                                            {raridadeTexto && (
+                                                <Badge variant={getRaridadeVariant(raridadeTexto)} size="sm">
+                                                    ⭐ {raridadeTexto}
+                                                </Badge>
+                                            )}
+                                            {tipoDano && (
+                                                <Badge variant="core" size="sm">
+                                                    {tipoDano}
+                                                </Badge>
+                                            )}
+                                            {vagasQualidade && (
+                                                <Badge variant="ether" size="sm">
+                                                    {vagasQualidade} Vagas
+                                                </Badge>
                                             )}
                                         </div>
 
-                                        <p className="loja-descricao">
+                                        <p className={styles.cardDescricao}>
                                             {item.descricao || 'Sem descrição cadastrada.'}
                                         </p>
 
-                                        {/* 🔹 CAIXINHA DE ESTATÍSTICAS "MASTIGADA" (Sem campos de controle) */}
                                         {item.stats && Object.keys(item.stats).length > 0 && (
-                                            <div className="loja-stats-box">
+                                            <div className={styles.statsBox}>
                                                 {Object.entries(item.stats)
                                                     .filter(([chave]) => {
-                                                        // Oculta chaves de controle indesejadas (slot, equipado, custo, raridade, marcial)
                                                         const chaveLower = chave.toLowerCase();
-                                                        if (['slot', 'equipado', 'custo', 'raridade', 'marcial'].includes(chaveLower)) return false;
-
+                                                        if (['slot', 'equipado', 'custo', 'raridade', 'marcial', 'tipo_dano', 'vagas'].includes(chaveLower)) return false;
                                                         if (chaveLower === 'efeitos') {
                                                             const val = item.stats[chave];
                                                             return Array.isArray(val) ? val.length > 0 : Boolean(val);
@@ -314,7 +335,6 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                                             alcance: 'Alcance',
                                                             precisao: 'Precisão',
                                                             categoria: 'Categoria',
-                                                            tipo_dano: 'Tipo de Dano',
                                                             defesa: 'Defesa',
                                                             defesa_magica: 'Defesa Mágica',
                                                             'defesa magica': 'Defesa Mágica',
@@ -323,12 +343,12 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                                         };
 
                                                         const labelBonita = nomesFormatados[chave.toLowerCase()] || chave.replace('_', ' ');
-                                                        const valorExibido = Array.isArray(valor) ? valor.join(', ') : valor;
+                                                        const valorExibido = Array.isArray(valor) ? valor.join(', ') : String(valor);
 
                                                         return (
-                                                            <div key={chave} className="stat-linha">
-                                                                <span className="stat-chave">{labelBonita}:</span>
-                                                                <span className="stat-valor">{valorExibido}</span>
+                                                            <div key={chave} className={styles.statLinha}>
+                                                                <span className={styles.statChave}>{labelBonita}:</span>
+                                                                <span className={styles.statValor}>{valorExibido}</span>
                                                             </div>
                                                         );
                                                     })}
@@ -336,21 +356,32 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                         )}
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        className="btn-comprar"
-                                        onClick={() => abrirModalCompra(item)}
-                                    >
-                                        <FaShoppingCart size={12} style={{ marginRight: '6px', display: 'inline-flex' }} /> Comprar Item
-                                    </button>
-                                </div>
+                                    <div className={styles.cardAcoes}>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className={styles.btnAcaoPrincipal}
+                                            onClick={() => abrirModalCompra(item)}
+                                        >
+                                            <FaShoppingCart /> Comprar Item
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => window.print()}
+                                            title="Imprimir Carta de Equipamento"
+                                        >
+                                            <FaPrint />
+                                        </Button>
+                                    </div>
+                                </Card>
                             );
                         })}
                     </div>
 
                     {itensFiltrados.length === 0 && (
-                        <div className="loja-vazio">
-                            <p style={{ margin: 0 }}>Nenhum item encontrado com esses filtros ou termos de busca.</p>
+                        <div className={styles.lojaVazio}>
+                            <p>Nenhum item encontrado com esses filtros ou termos de busca.</p>
                         </div>
                     )}
                 </>
@@ -358,13 +389,13 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
 
             {abaAtiva === 'vender' && (
                 <div>
-                    <div style={{ background: '#161b22', padding: '16px', borderRadius: '8px', border: '1px solid #30363d', marginBottom: '16px' }}>
-                        <p style={{ margin: 0, color: '#8b949e', fontSize: '0.9rem' }}>
-                            💡 Você pode vender os itens guardados na sua mochila por **metade do preço original**. Itens equipados devem ser desequipados antes da venda.
+                    <div className={styles.infoVenda}>
+                        <p className={styles.infoVendaTexto}>
+                            💡 Você pode vender os itens guardados na sua mochila por <strong>metade do preço original</strong>. Itens equipados devem ser desequipados antes da venda.
                         </p>
                     </div>
 
-                    <div className="loja-grid">
+                    <div className={styles.lojaGrid}>
                         {itensInventario.map((itemInv) => {
                             const custoOriginal =
                                 itemInv.stats_personalizados?.valor_zenites ||
@@ -376,27 +407,28 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                             const estaEquipado = Boolean(itemInv.stats_personalizados?.slot || itemInv.equipado);
 
                             return (
-                                <div key={itemInv.id} className="loja-card" style={{ opacity: estaEquipado ? 0.7 : 1 }}>
-                                    <div>
-                                        <div className="loja-card-header">
-                                            <h4 className="loja-card-titulo">{itemInv.nome}</h4>
-                                            <div className="loja-preco-badge" style={{ color: '#d4af37' }}>
-                                                <FaCoins size={11} /> +{valorVenda}z (Venda)
-                                            </div>
+                                <Card
+                                    key={itemInv.id}
+                                    variant="default"
+                                    className={`${styles.itemCard} ${estaEquipado ? styles.itemCardEquipado : ''}`}
+                                >
+                                    <div className={styles.cardTopo}>
+                                        <div className={styles.cardHeader}>
+                                            <h4 className={styles.cardTitulo}>{itemInv.nome}</h4>
+                                            <Badge variant="gold" size="sm">
+                                                <FaCoins /> +{valorVenda}z (Venda)
+                                            </Badge>
                                         </div>
 
-                                        <div className="loja-tags-row">
-                                            <span className="tag-tipo">{itemInv.tipo}</span>
+                                        <div className={styles.tagsRow}>
+                                            <Badge variant="default" size="sm">{itemInv.tipo}</Badge>
                                             {estaEquipado && (
-                                                <span style={{ fontSize: '0.75rem', background: 'rgba(210, 153, 34, 0.2)', color: '#f0883e', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(210, 153, 34, 0.4)' }}>
-                                                    🔒 Equipado
-                                                </span>
+                                                <Badge variant="gold" size="sm">🔒 Equipado</Badge>
                                             )}
                                         </div>
 
-                                        {/* 🔹 ESTATÍSTICAS TAMBÉM NO INVENTÁRIO (LIMPAS) */}
                                         {itemInv.stats_personalizados && Object.keys(itemInv.stats_personalizados).length > 0 && (
-                                            <div className="loja-stats-box" style={{ marginTop: '10px' }}>
+                                            <div className={styles.statsBox}>
                                                 {Object.entries(itemInv.stats_personalizados)
                                                     .filter(([chave]) => {
                                                         const chaveLower = chave.toLowerCase();
@@ -405,80 +437,82 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                                         return valor !== null && valor !== undefined && valor !== '';
                                                     })
                                                     .map(([chave, valor]) => (
-                                                        <div key={chave} className="stat-linha">
-                                                            <span className="stat-chave">{chave.replace('_', ' ')}:</span>
-                                                            <span className="stat-valor">{String(valor)}</span>
+                                                        <div key={chave} className={styles.statLinha}>
+                                                            <span className={styles.statChave}>{chave.replace('_', ' ')}:</span>
+                                                            <span className={styles.statValor}>{String(valor)}</span>
                                                         </div>
                                                     ))}
                                             </div>
                                         )}
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => venderItem(itemInv)}
-                                        disabled={estaEquipado}
-                                        style={{
-                                            background: estaEquipado ? '#21262d' : '#9e6a03',
-                                            border: 'none',
-                                            color: estaEquipado ? '#8b949e' : '#fff',
-                                            padding: '8px 12px',
-                                            borderRadius: '6px',
-                                            fontWeight: 'bold',
-                                            cursor: estaEquipado ? 'not-allowed' : 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '6px',
-                                            marginTop: '12px'
-                                        }}
-                                    >
-                                        <FaHandHoldingUsd size={12} /> {estaEquipado ? 'Desequipe para Vender' : `Vender por ${valorVenda}z`}
-                                    </button>
-                                </div>
+                                    <div className={styles.cardAcoes}>
+                                        <Button
+                                            variant={estaEquipado ? 'ghost' : 'secondary'}
+                                            size="sm"
+                                            fullWidth
+                                            onClick={() => venderItem(itemInv)}
+                                            disabled={estaEquipado}
+                                        >
+                                            <FaHandHoldingUsd /> {estaEquipado ? 'Desequipe para Vender' : `Vender por ${valorVenda}z`}
+                                        </Button>
+                                    </div>
+                                </Card>
                             );
                         })}
                     </div>
 
                     {itensInventario.length === 0 && (
-                        <div className="loja-vazio">
-                            <p style={{ margin: 0 }}>Sua mochila está vazia. Não há itens para vender.</p>
+                        <div className={styles.lojaVazio}>
+                            <p>Sua mochila está vazia. Não há itens para vender.</p>
                         </div>
                     )}
                 </div>
             )}
 
+            {/* Modal de Confirmação de Compra */}
             {modalAberto && itemSelecionadoParaCompra && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <h3 style={{ margin: 0, color: '#f0f6fc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FaShoppingCart color="#238636" /> Adquirir Item
-                        </h3>
-
-                        <div style={{ background: '#0d1117', padding: '12px', borderRadius: '8px', border: '1px solid #30363d' }}>
-                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#c9d1d9' }}>{itemSelecionadoParaCompra.nome}</p>
-                            <p style={{ margin: 0, color: '#d4af37', fontSize: '0.9rem' }}>Preço: {itemSelecionadoParaCompra.custo || 0} zênites</p>
+                <Modal
+                    isOpen={modalAberto}
+                    onClose={fecharModal}
+                    title="Adquirir Equipamento"
+                    size="md"
+                    footer={
+                        <div className={styles.modalFooter}>
+                            <Button variant="ghost" size="md" onClick={fecharModal} disabled={processando}>
+                                Cancelar
+                            </Button>
+                            <Button variant="primary" size="md" onClick={confirmarCompra} disabled={processando}>
+                                {processando ? 'Processando...' : 'Confirmar Compra'}
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div className={styles.modalConteudo}>
+                        <div className={styles.modalItemResumo}>
+                            <span className={styles.modalItemNome}>{itemSelecionadoParaCompra.nome}</span>
+                            <Badge variant="gold" size="md">
+                                <FaCoins /> {itemSelecionadoParaCompra.custo || 0} zênites
+                            </Badge>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            <label style={{ fontSize: '0.85rem', color: '#8b949e', fontWeight: 'bold' }}>O que deseja fazer com o item?</label>
-
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button
-                                    type="button"
+                        <div className={styles.modalOpcoesDestino}>
+                            <span className={styles.modalLabel}>O que deseja fazer com o item?</span>
+                            <div className={styles.modalDestinoBotoes}>
+                                <Button
+                                    variant={destinoCompra === 'mochila' ? 'primary' : 'ghost'}
+                                    size="sm"
                                     onClick={() => setDestinoCompra('mochila')}
-                                    style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${destinoCompra === 'mochila' ? '#58a6ff' : '#30363d'}`, background: destinoCompra === 'mochila' ? 'rgba(88, 166, 255, 0.1)' : '#0d1117', color: '#c9d1d9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
                                 >
-                                    <FaBoxOpen color="#58a6ff" /> Guardar na Mochila
-                                </button>
-
-                                <button
-                                    type="button"
+                                    <FaBoxOpen /> Guardar na Mochila
+                                </Button>
+                                <Button
+                                    variant={destinoCompra === 'equipar' ? 'core' : 'ghost'}
+                                    size="sm"
                                     onClick={() => setDestinoCompra('equipar')}
-                                    style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${destinoCompra === 'equipar' ? '#238636' : '#30363d'}`, background: destinoCompra === 'equipar' ? 'rgba(35, 134, 54, 0.1)' : '#0d1117', color: '#c9d1d9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
                                 >
-                                    <FaShieldAlt color="#238636" /> Equipar Imediatamente
-                                </button>
+                                    <FaShieldAlt /> Equipar Imediatamente
+                                </Button>
                             </div>
                         </div>
 
@@ -488,39 +522,23 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                             const ehDuasMaos = tipo.includes('2h') || tipo.includes('duas mãos');
                             return ehArmaPura && !ehDuasMaos;
                         })() && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <label style={{ fontSize: '0.85rem', color: '#8b949e', fontWeight: 'bold' }}>Escolha o slot de mão:</label>
-                                    <select
-                                        value={slotEscolhido}
-                                        onChange={(e) => setSlotEscolhido(e.target.value)}
-                                        style={{ background: '#0d1117', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px', borderRadius: '6px', outline: 'none' }}
-                                    >
-                                        <option value="mao_dominante">Mão Dominante</option>
-                                        <option value="mao_secundaria">Mão Não Dominante</option>
-                                    </select>
-                                </div>
-                            )}
-
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                            <button
-                                type="button"
-                                onClick={fecharModal}
-                                disabled={processando}
-                                style={{ background: 'transparent', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmarCompra}
-                                disabled={processando}
-                                style={{ background: '238636', border: 'none', color: '#fff', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
-                            >
-                                {processando ? 'Processando...' : 'Confirmar Compra'}
-                            </button>
-                        </div>
+                            <div className={styles.modalSelectGroup}>
+                                <label htmlFor="slot-escolhido" className={styles.modalLabel}>
+                                    Escolha o slot de mão:
+                                </label>
+                                <select
+                                    id="slot-escolhido"
+                                    value={slotEscolhido}
+                                    onChange={(e) => setSlotEscolhido(e.target.value)}
+                                    className={styles.modalSelect}
+                                >
+                                    <option value="mao_dominante">Mão Dominante</option>
+                                    <option value="mao_secundaria">Mão Não Dominante</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { FaCoins, FaHammer, FaPrint, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { Button, Badge, Input, Card } from '../../../components/ui';
+import styles from './CriadorArmas.module.css';
 
 export default function CriadorArmas({ onSalvarItem }) {
     const [subMetodo, setSubMetodo] = useState('padrao_raro'); // 'padrao_raro' ou 'personalizada_atlas'
@@ -27,7 +30,7 @@ export default function CriadorArmas({ onSalvarItem }) {
 
     const [nomeItem, setNomeItem] = useState('');
 
-    // Lista oficial de personalizações do Atlas (segura e sem depender de tabela nova no banco)
+    // Lista oficial de personalizações do Atlas
     const listaPersonalizacoesAtlas = [
         { id: 'defesa', nome: 'Aumento na Defesa (+2 Defesa, conta como escudo)', custoExtra: 0, marcial: false },
         { id: 'defesa_magica', nome: 'Aumento na Defesa Mágica (+2 Def. Mágica)', custoExtra: 0, marcial: true },
@@ -38,7 +41,7 @@ export default function CriadorArmas({ onSalvarItem }) {
         { id: 'rapida', nome: 'Rápida (Dois ataques - Conta por 2 vagas)', custoExtra: 0, marcial: true, vagas: 2 }
     ];
 
-    // Carregar dados base do Supabase com segurança contra erros 500
+    // Carregar dados base do Supabase
     useEffect(() => {
         async function carregarDadosForja() {
             try {
@@ -90,7 +93,7 @@ export default function CriadorArmas({ onSalvarItem }) {
     const categoriaProibida = nomeBaseLower.includes('adaga') || nomeBaseLower.includes('arremessável') || nomeBaseLower.includes('luta') || nomeBaseLower.includes('brawling');
 
     // --- CÁLCULOS DE CUSTO E STATUS (RARA) ---
-    let custoBaseItem = itemBaseSelecionado?.preco || itemBaseSelecionado?.custo_base || itemBaseSelecionado?.custo || 100;
+    const custoBaseItem = itemBaseSelecionado?.preco || itemBaseSelecionado?.custo_base || itemBaseSelecionado?.custo || 100;
 
     let modDanoFinal = 0;
     if (modMao === '1_para_2') modDanoFinal += 4;
@@ -129,6 +132,7 @@ export default function CriadorArmas({ onSalvarItem }) {
     const precoFinal = subMetodo === 'padrao_raro' ? precoTotalRaro : precoAtlasFinal;
     const danoFinalStr = subMetodo === 'padrao_raro' ? `RA + ${bonusDanoFinalNumerico}` : `RA + ${danoAtlasNum}`;
     const ehMarcialFinal = subMetodo === 'padrao_raro' ? ehMarcialRaro : ehMarcialAtlas;
+    const vagasOcupadasAtlas = personalizacoesAtlas.reduce((acc, p) => acc + (p.vagas || 1), 0);
 
     const togglePersAtlas = (item) => {
         if (personalizacoesAtlas.some(p => p.id === item.id)) {
@@ -145,6 +149,17 @@ export default function CriadorArmas({ onSalvarItem }) {
         }
     };
 
+    const ehDuasMaosFinal = baseEhDuasMaos ? (modMao !== '2_para_1') : (modMao === '1_para_2');
+    const strMaosFinal = subMetodo === 'padrao_raro' ? (ehDuasMaosFinal ? "Duas mãos" : "Uma mão") : "Duas mãos";
+
+    let stringPrecisao = statsBase.precisao || "(DES + AST)";
+    if (atributoUnico) {
+        const siglaAtrib = atributoEscolhido.substring(0, 3).toUpperCase();
+        stringPrecisao = `(${siglaAtrib} + ${siglaAtrib})`;
+    }
+    const bonusPrecTotal = bonusPrecisaoArma ? 1 : 0;
+    const precisaoFinalFormatada = bonusPrecTotal > 0 ? `${stringPrecisao} + ${bonusPrecTotal}` : stringPrecisao;
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!nomeItem.trim()) return alert('Dê um nome para a arma!');
@@ -155,27 +170,15 @@ export default function CriadorArmas({ onSalvarItem }) {
             personalizacoesAtlas.forEach(p => efeitosAplicados.push(p.nome));
         }
 
-        const ehDuasMaosFinal = baseEhDuasMaos ? (modMao !== '2_para_1') : (modMao === '1_para_2');
-        const strMaos = ehDuasMaosFinal ? "Duas mãos" : "Uma mão";
-
-        let stringPrecisao = statsBase.precisao || "(DES + AST)";
-        if (atributoUnico) {
-            const siglaAtrib = atributoEscolhido.substring(0, 3).toUpperCase();
-            stringPrecisao = `(${siglaAtrib} + ${siglaAtrib})`;
-        }
-        const bonusPrecTotal = bonusPrecisaoArma ? 1 : 0;
-        const precisaoFinalFormatada = bonusPrecTotal > 0 ? `${stringPrecisao} + ${bonusPrecTotal}` : stringPrecisao;
-
         const stats = subMetodo === 'padrao_raro' ? {
             dano: danoFinalStr,
-            maos: strMaos,
+            maos: strMaosFinal,
             alcance: statsBase.alcance || "Corpo a corpo",
             marcial: ehMarcialFinal,
             precisao: precisaoFinalFormatada,
             raridade: "raro",
             categoria: statsBase.categoria || itemBaseSelecionado?.tipo || "Arma",
             tipo_dano: tipoDano.toLowerCase(),
-            // slot: ehDuasMaosFinal ? 'duas_maos' : 'mao_dominante',
             equipado: false,
             custo: precoFinal,
             efeitos: efeitosAplicados
@@ -205,217 +208,373 @@ export default function CriadorArmas({ onSalvarItem }) {
         });
     };
 
+    const nomeExibicao = nomeItem || 'Arma Forjada';
+
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '5px' }}>
-                <button
-                    type="button"
-                    onClick={() => setSubMetodo('padrao_raro')}
-                    style={{ flex: 1, padding: '6px', background: subMetodo === 'padrao_raro' ? '#1f6feb' : '#161b22', color: '#fff', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                    Arma Rara (Livro Básico)
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setSubMetodo('personalizada_atlas')}
-                    style={{ flex: 1, padding: '6px', background: subMetodo === 'personalizada_atlas' ? '#1f6feb' : '#161b22', color: '#fff', border: '1px solid #30363d', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
-                >
-                    Arma Personalizada (Atlas)
-                </button>
-            </div>
+        <div className={styles.container}>
+            <Card variant="default" className={styles.forjaCard}>
+                <nav className={styles.subMetodoNav} aria-label="Modo de Criação">
+                    <Button
+                        variant={subMetodo === 'padrao_raro' ? 'primary' : 'ghost'}
+                        size="sm"
+                        fullWidth
+                        onClick={() => setSubMetodo('padrao_raro')}
+                    >
+                        Arma Rara (Livro Básico)
+                    </Button>
+                    <Button
+                        variant={subMetodo === 'personalizada_atlas' ? 'primary' : 'ghost'}
+                        size="sm"
+                        fullWidth
+                        onClick={() => setSubMetodo('personalizada_atlas')}
+                    >
+                        Arma Personalizada (Atlas)
+                    </Button>
+                </nav>
 
-            <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Nome da Arma</label>
-                <input
-                    type="text"
-                    value={nomeItem}
-                    onChange={e => setNomeItem(e.target.value)}
-                    placeholder="Ex: Lâmina do Crepúsculo"
-                    style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                />
-            </div>
+                <form onSubmit={handleSubmit} className={styles.formGrid}>
+                    <Input
+                        label="Nome da Arma"
+                        value={nomeItem}
+                        onChange={e => setNomeItem(e.target.value)}
+                        placeholder="Ex: Lâmina do Crepúsculo"
+                    />
 
-            {subMetodo === 'padrao_raro' ? (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Item Base Comum</label>
-                            <select
-                                onChange={e => {
-                                    const idx = e.target.value;
-                                    setItemBaseSelecionado(itensBaseFiltrados[idx]);
-                                    setModMao('normal');
-                                }}
-                                style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                            >
-                                {itensBaseFiltrados.map((item, idx) => (
-                                    <option key={item.id || idx} value={idx}>{item.nome_item || item.nome}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Tipo de Dano (+100z se elemental)</label>
-                            <select
-                                value={tipoDano}
-                                onChange={e => setTipoDano(e.target.value)}
-                                style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                            >
-                                {['Físico', 'Ar', 'Fogo', 'Gelo', 'Luz', 'Raio', 'Terra', 'Trevas', 'Veneno'].map(d => <option key={d} value={d}>{d}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    <fieldset style={{ border: '1px solid #30363d', padding: '12px', borderRadius: '6px' }}>
-                        <legend style={{ fontSize: '0.8rem', color: '#d4af37', padding: '0 5px', fontWeight: 'bold' }}>Modificações e Alterações da Arma</legend>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.9rem' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.82rem', color: '#8b949e', marginBottom: '4px' }}>Ajuste de Empunhadura</label>
-                                {baseEhDuasMaos ? (
-                                    <select
-                                        value={modMao}
-                                        onChange={e => setModMao(e.target.value)}
-                                        style={{ width: '100%', padding: '6px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
-                                    >
-                                        <option value="normal">Manter Duas Mãos (Sem alteração)</option>
-                                        <option value="2_para_1">Transformar em Uma Mão: Reduz o dano em -4</option>
-                                    </select>
-                                ) : categoriaProibida ? (
-                                    <p style={{ fontSize: '0.78rem', color: '#f85149', fontStyle: 'italic' }}>Armas das categorias Adaga, Arremessável ou Luta não podem ser alteradas para duas mãos.</p>
-                                ) : (
-                                    <select
-                                        value={modMao}
-                                        onChange={e => setModMao(e.target.value)}
-                                        style={{ width: '100%', padding: '6px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
-                                    >
-                                        <option value="normal">Manter Uma Mão (Sem alteração)</option>
-                                        <option value="1_para_2">Transformar em Duas Mãos: Aumenta o dano em +4</option>
-                                    </select>
-                                )}
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                    <input type="checkbox" checked={bonusPrecisaoArma} onChange={e => setBonusPrecisaoArma(e.target.checked)} />
-                                    <span>+1 no Teste de Precisão <strong style={{ color: '#d4af37' }}>(+100z)</strong></span>
-                                </label>
-
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                    <input type="checkbox" checked={bonusDanoExtraArma} onChange={e => setBonusDanoExtraArma(e.target.checked)} />
-                                    <span>+4 no Dano da Arma <strong style={{ color: '#d4af37' }}>(+200z)</strong></span>
-                                </label>
-
-                                <div>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                        <input type="checkbox" checked={atributoUnico} onChange={e => setAtributoUnico(e.target.checked)} />
-                                        <span>Precisão baseada em 1 Único Atributo <strong style={{ color: '#d4af37' }}>(+50z)</strong></span>
+                    {subMetodo === 'padrao_raro' ? (
+                        <>
+                            <div className={styles.gridDuasColunas}>
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-item-base" className={styles.labelCampo}>
+                                        Item Base Comum
                                     </label>
+                                    <select
+                                        id="select-item-base"
+                                        className={styles.selectCampo}
+                                        onChange={e => {
+                                            const idx = e.target.value;
+                                            setItemBaseSelecionado(itensBaseFiltrados[idx]);
+                                            setModMao('normal');
+                                        }}
+                                    >
+                                        {itensBaseFiltrados.map((item, idx) => (
+                                            <option key={item.id || idx} value={idx}>
+                                                {item.nome_item || item.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                                    {atributoUnico && (
-                                        <div style={{ marginTop: '8px', marginLeft: '24px' }}>
-                                            <label style={{ display: 'block', fontSize: '0.78rem', color: '#8b949e', marginBottom: '3px' }}>Selecione o Atributo:</label>
-                                            <select
-                                                value={atributoEscolhido}
-                                                onChange={e => setAtributoEscolhido(e.target.value)}
-                                                style={{ width: '100%', padding: '6px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }}
-                                            >
-                                                <option value="Destreza">Destreza + Destreza (Des + Des)</option>
-                                                <option value="Astucia">Astúcia + Astúcia (Ast + Ast)</option>
-                                                <option value="Vigor">Vigor + Vigor (Vig + Vig)</option>
-                                                <option value="Vontade">Vontade + Vontade (Von + Von)</option>
-                                            </select>
-                                        </div>
-                                    )}
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-tipo-dano" className={styles.labelCampo}>
+                                        Tipo de Dano (+100z se elemental)
+                                    </label>
+                                    <select
+                                        id="select-tipo-dano"
+                                        value={tipoDano}
+                                        onChange={e => setTipoDano(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        {['Físico', 'Ar', 'Fogo', 'Gelo', 'Luz', 'Raio', 'Terra', 'Trevas', 'Veneno'].map(d => (
+                                            <option key={d} value={d}>{d}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-                    </fieldset>
 
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Característica Especial (Máximo de 1)</label>
-                        <select
-                            onChange={e => {
-                                const idx = e.target.value;
-                                if (idx === 'nenhuma') setCaracteristicaSelecionada(null);
-                                else setCaracteristicaSelecionada(caracteristicasDisponiveis[idx]);
-                            }}
-                            style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                        >
-                            {caracteristicasDisponiveis.map((c, idx) => (
-                                <option key={c.id || idx} value={c.id === 'nenhuma' ? 'nenhuma' : idx}>
-                                    {c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}
-                                </option>
-                            ))}
-                        </select>
-                        {caracteristicaSelecionada?.efeito && (
-                            <p style={{ fontSize: '0.78rem', color: '#8b949e', marginTop: '4px', fontStyle: 'italic' }}>
-                                Efeito: {caracteristicaSelecionada.efeito}
-                            </p>
+                            <fieldset className={styles.fieldsetModificacoes}>
+                                <legend className={styles.legendModificacoes}>Modificações e Alterações da Arma</legend>
+                                <div className={styles.modificacoesLista}>
+                                    <div className={styles.campoGrupo}>
+                                        <label htmlFor="select-ajuste-mao" className={styles.labelCampo}>
+                                            Ajuste de Empunhadura
+                                        </label>
+                                        {baseEhDuasMaos ? (
+                                            <select
+                                                id="select-ajuste-mao"
+                                                value={modMao}
+                                                onChange={e => setModMao(e.target.value)}
+                                                className={styles.selectCampo}
+                                            >
+                                                <option value="normal">Manter Duas Mãos (Sem alteração)</option>
+                                                <option value="2_para_1">Transformar em Uma Mão: Reduz o dano em -4</option>
+                                            </select>
+                                        ) : categoriaProibida ? (
+                                            <p className={styles.textoAviso}>
+                                                Armas das categorias Adaga, Arremessável ou Luta não podem ser alteradas para duas mãos.
+                                            </p>
+                                        ) : (
+                                            <select
+                                                id="select-ajuste-mao"
+                                                value={modMao}
+                                                onChange={e => setModMao(e.target.value)}
+                                                className={styles.selectCampo}
+                                            >
+                                                <option value="normal">Manter Uma Mão (Sem alteração)</option>
+                                                <option value="1_para_2">Transformar em Duas Mãos: Aumenta o dano em +4</option>
+                                            </select>
+                                        )}
+                                    </div>
+
+                                    <label className={styles.checkboxItem}>
+                                        <input
+                                            type="checkbox"
+                                            checked={bonusPrecisaoArma}
+                                            onChange={e => setBonusPrecisaoArma(e.target.checked)}
+                                        />
+                                        <span>+1 no Teste de Precisão <strong className={styles.textoDestaqueOuro}>(+100z)</strong></span>
+                                    </label>
+
+                                    <label className={styles.checkboxItem}>
+                                        <input
+                                            type="checkbox"
+                                            checked={bonusDanoExtraArma}
+                                            onChange={e => setBonusDanoExtraArma(e.target.checked)}
+                                        />
+                                        <span>+4 no Dano da Arma <strong className={styles.textoDestaqueOuro}>(+200z)</strong></span>
+                                    </label>
+
+                                    <div>
+                                        <label className={styles.checkboxItem}>
+                                            <input
+                                                type="checkbox"
+                                                checked={atributoUnico}
+                                                onChange={e => setAtributoUnico(e.target.checked)}
+                                            />
+                                            <span>Precisão baseada em 1 Único Atributo <strong className={styles.textoDestaqueOuro}>(+50z)</strong></span>
+                                        </label>
+
+                                        {atributoUnico && (
+                                            <div className={styles.campoGrupo}>
+                                                <label htmlFor="select-atrib-unico" className={styles.labelCampo}>
+                                                    Selecione o Atributo:
+                                                </label>
+                                                <select
+                                                    id="select-atrib-unico"
+                                                    value={atributoEscolhido}
+                                                    onChange={e => setAtributoEscolhido(e.target.value)}
+                                                    className={styles.selectCampo}
+                                                >
+                                                    <option value="Destreza">Destreza + Destreza (Des + Des)</option>
+                                                    <option value="Astucia">Astúcia + Astúcia (Ast + Ast)</option>
+                                                    <option value="Vigor">Vigor + Vigor (Vig + Vig)</option>
+                                                    <option value="Vontade">Vontade + Vontade (Von + Von)</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <div className={styles.campoGrupo}>
+                                <label htmlFor="select-caracteristica" className={styles.labelCampo}>
+                                    Característica Especial (Máximo de 1)
+                                </label>
+                                <select
+                                    id="select-caracteristica"
+                                    className={styles.selectCampo}
+                                    onChange={e => {
+                                        const idx = e.target.value;
+                                        if (idx === 'nenhuma') setCaracteristicaSelecionada(null);
+                                        else setCaracteristicaSelecionada(caracteristicasDisponiveis[idx]);
+                                    }}
+                                >
+                                    {caracteristicasDisponiveis.map((c, idx) => (
+                                        <option key={c.id || idx} value={c.id === 'nenhuma' ? 'nenhuma' : idx}>
+                                            {c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {caracteristicaSelecionada?.efeito && (
+                                    <p className={styles.efeitoDescricao}>
+                                        Efeito: {caracteristicaSelecionada.efeito}
+                                    </p>
+                                )}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className={styles.gridQuatroColunas}>
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-raridade-atlas" className={styles.labelCampo}>Versão</label>
+                                    <select
+                                        id="select-raridade-atlas"
+                                        value={raridadePers}
+                                        onChange={e => setRaridadePers(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        <option value="padrao">Padrão (300z)</option>
+                                        <option value="rara">Rara / Aprimorada (+200z)</option>
+                                    </select>
+                                </div>
+
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-categoria-atlas" className={styles.labelCampo}>Categoria</label>
+                                    <select
+                                        id="select-categoria-atlas"
+                                        value={categoriaPers}
+                                        onChange={e => setCategoriaPers(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        {['adaga', 'arcana', 'arco', 'arremessável', 'arma de fogo', 'espada', 'lança', 'luta', 'malho', 'pesada'].map(c => (
+                                            <option key={c} value={c}>{c.toUpperCase()}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-alcance-atlas" className={styles.labelCampo}>Alcance</label>
+                                    <select
+                                        id="select-alcance-atlas"
+                                        value={alcancePers}
+                                        onChange={e => setAlcancePers(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        <option value="Corpo a corpo">Corpo a corpo</option>
+                                        <option value="À distância">À distância</option>
+                                    </select>
+                                </div>
+
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="select-precisao-atlas" className={styles.labelCampo}>Precisão</label>
+                                    <select
+                                        id="select-precisao-atlas"
+                                        value={precisaoPers}
+                                        onChange={e => setPrecisaoPers(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        <option value="(DES + AST)">(DES + AST)</option>
+                                        <option value="(DES + VIG)">(DES + VIG)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <fieldset className={styles.fieldsetModificacoes}>
+                                <legend className={styles.legendModificacoes}>
+                                    Personalizações (Até 3 vagas)
+                                </legend>
+                                <div className={styles.modificacoesLista}>
+                                    {listaPersonalizacoesAtlas.map(p => (
+                                        <label key={p.id} className={styles.checkboxItem}>
+                                            <input
+                                                type="checkbox"
+                                                checked={personalizacoesAtlas.some(item => item.id === p.id)}
+                                                onChange={() => togglePersAtlas(p)}
+                                            />
+                                            <span>
+                                                {p.nome} {p.custoExtra > 0 ? `(+${p.custoExtra}z)` : ''}
+                                                {p.marcial ? ' ⚔️' : ''}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </fieldset>
+
+                            {temMutavel && (
+                                <div className={styles.mutavelContainer}>
+                                    <h4 className={styles.mutavelTitulo}>Configuração da 2ª Forma (Mutável)</h4>
+                                    <Input
+                                        placeholder="Nome da 2ª forma (Mutável)"
+                                        value={nomeSegundaForma}
+                                        onChange={e => setNomeSegundaForma(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    <div className={styles.painelResumo}>
+                        <div className={styles.resumoValores}>
+                            <div className={styles.resumoDano}>
+                                Dano: <span className={styles.resumoDanoValor}>{danoFinalStr}</span>
+                            </div>
+                            <Badge variant="gold" size="lg">
+                                <FaCoins /> {precoFinal} zênites
+                            </Badge>
+                        </div>
+
+                        <div className={styles.resumoBotoes}>
+                            <Button
+                                variant="ghost"
+                                size="md"
+                                onClick={() => window.print()}
+                                title="Imprimir Carta Física para Mesa"
+                            >
+                                <FaPrint /> Imprimir Carta
+                            </Button>
+                            <Button type="submit" variant="primary" size="md">
+                                <FaHammer /> Forjar Arma
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </Card>
+
+            {/* Visualização de Carta Física de Equipamento para a Mesa */}
+            <section className={styles.previewArea} aria-label="Prévia da Carta de Equipamento">
+                <div className={styles.previewTitulo}>
+                    <FaShieldAlt /> Prévia da Carta de Equipamento (Pronta para Impressão)
+                </div>
+
+                <div className={styles.physicalCard}>
+                    <div className={styles.cardHeaderFisica}>
+                        <div>
+                            <h4 className={styles.cardNomeFisico}>{nomeExibicao}</h4>
+                            <span className={styles.cardSubtituloFisico}>
+                                {subMetodo === 'padrao_raro'
+                                    ? `${statsBase.categoria || 'Arma'} • ${strMaosFinal}`
+                                    : `${categoriaPers.toUpperCase()} • ${alcancePers}`}
+                            </span>
+                        </div>
+                        <Badge variant="gold" size="sm">
+                            <FaCoins /> {precoFinal}z
+                        </Badge>
+                    </div>
+
+                    <div className={styles.tagsRow}>
+                        <Badge variant={ehMarcialFinal ? 'crise' : 'default'} size="sm">
+                            {ehMarcialFinal ? '⚔️ Marcial' : '🛡️ Simples'}
+                        </Badge>
+                        <Badge variant="core" size="sm">
+                            {subMetodo === 'padrao_raro' ? tipoDano : 'Físico'}
+                        </Badge>
+                        <Badge variant="ether" size="sm">
+                            {subMetodo === 'padrao_raro' ? 'Raro' : `${vagasOcupadasAtlas}/3 Vagas`}
+                        </Badge>
+                    </div>
+
+                    <div className={styles.cardStatsGrid}>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Precisão</span>
+                            <span className={styles.cardStatValor}>
+                                {subMetodo === 'padrao_raro' ? precisaoFinalFormatada : precisaoPers}
+                            </span>
+                        </div>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Dano</span>
+                            <span className={styles.cardStatValor}>{danoFinalStr}</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.cardEfeitosArea}>
+                        <strong>Qualidades & Efeitos:</strong>
+                        {subMetodo === 'padrao_raro' ? (
+                            caracteristicaSelecionada?.efeito ? (
+                                <p className={styles.efeitoDescricao}>{caracteristicaSelecionada.efeito}</p>
+                            ) : (
+                                <p className={styles.efeitoDescricao}>Nenhuma propriedade mágica adicional.</p>
+                            )
+                        ) : (
+                            <ul className={styles.cardEfeitosLista}>
+                                {personalizacoesAtlas.length > 0 ? (
+                                    personalizacoesAtlas.map(p => <li key={p.id}>{p.nome}</li>)
+                                ) : (
+                                    <li>Sem personalizações adicionadas.</li>
+                                )}
+                            </ul>
                         )}
                     </div>
-                </>
-            ) : (
-                <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '3px' }}>Versão</label>
-                            <select value={raridadePers} onChange={e => setRaridadePers(e.target.value)} style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}>
-                                <option value="padrao">Padrão (300z)</option>
-                                <option value="rara">Rara / Aprimorada</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '3px' }}>Categoria</label>
-                            <select value={categoriaPers} onChange={e => setCategoriaPers(e.target.value)} style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}>
-                                {['adaga', 'arcana', 'arco', 'arremessável', 'arma de fogo', 'espada', 'lança', 'luta', 'malho', 'pesada'].map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '3px' }}>Alcance</label>
-                            <select value={alcancePers} onChange={e => setAlcancePers(e.target.value)} style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}>
-                                <option value="Corpo a corpo">Corpo a corpo</option>
-                                <option value="À distância">À distância</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '3px' }}>Precisão</label>
-                            <select value={precisaoPers} onChange={e => setPrecisaoPers(e.target.value)} style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.8rem' }}>
-                                <option value="(DES + AST)">(DES + AST)</option>
-                                <option value="(DES + VIG)">(DES + VIG)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <fieldset style={{ border: '1px solid #30363d', padding: '10px', borderRadius: '6px' }}>
-                        <legend style={{ fontSize: '0.78rem', color: '#d4af37', padding: '0 4px', fontWeight: 'bold' }}>Personalizações (Até 3 vagas)</legend>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '4px' }}>
-                            {listaPersonalizacoesAtlas.map(p => (
-                                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
-                                    <input type="checkbox" checked={personalizacoesAtlas.some(item => item.id === p.id)} onChange={() => togglePersAtlas(p)} />
-                                    <span>{p.nome} {p.custoExtra > 0 ? `(+${p.custoExtra}z)` : ''} {p.marcial ? <PiStarFourFill style={{ color: '#bc3025', stroke: 'black', strokeWidth: '10px', display: 'inline-flex' }} /> : ''}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </fieldset>
-
-                    {temMutavel && (
-                        <input type="text" value={nomeSegundaForma} onChange={e => setNomeSegundaForma(e.target.value)} placeholder="Nome da 2ª forma (Mutável)" style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px', fontSize: '0.85rem' }} />
-                    )}
-                </>
-            )}
-
-            <div style={{ background: '#0d0f18', padding: '12px', borderRadius: '6px', border: '1px solid #30363d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <div style={{ fontSize: '0.85rem', color: '#8b949e' }}>
-                        Dano: <strong style={{ color: '#58a6ff' }}>{danoFinalStr}</strong> {ehMarcialFinal && <span style={{ color: '#f85149' }}>(Arma Marcial ⚔️)</span>}
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: '#8b949e', marginTop: '2px' }}>
-                        Custo Total: <strong style={{ color: '#2ecc71', fontSize: '1.1rem' }}>{precoFinal} zênites</strong>
-                    </div>
                 </div>
-                <button type="submit" style={{ background: '#238636', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-                    Forjar Arma
-                </button>
-            </div>
-        </form>
+            </section>
+        </div>
     );
 }

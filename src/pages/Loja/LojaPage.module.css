@@ -1,0 +1,187 @@
+/* LojaPage.module.css - Estilização modular para a página principal da Loja */
+
+.lojaWrapper {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--color-text-main);
+  box-sizing: border-box;
+}
+
+.lojaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.lojaTituloArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.lojaTitulo {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-xl);
+  text-shadow: var(--shadow-glow-gold);
+}
+
+.lojaTituloIcon {
+  color: var(--color-border-gold);
+}
+
+.lojaAbasMestre {
+  display: flex;
+  background: var(--color-bg-base);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-gold-muted);
+  gap: var(--space-1);
+}
+
+.lojaAcoesDireita {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.simuladorMestre {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.simuladorIcon {
+  color: var(--color-ether-cyan);
+}
+
+.simuladorSelect {
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  outline: none;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.simuladorOption {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+}
+
+.lojaCarteira {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.personagemNome {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin-left: var(--space-1);
+}
+
+.alertaSemFicha {
+  background: rgba(231, 76, 60, 0.12);
+  border: 1px solid var(--color-crise-track);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-crise-bright);
+  font-size: var(--font-size-sm);
+}
+
+/* Seletor de Lojas em Carrossel Horizontal */
+.lojasCarrossel {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.lojaBtnItem {
+  background: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  min-width: 180px;
+  transition: all var(--transition-normal);
+  font-family: inherit;
+  text-align: left;
+}
+
+.lojaBtnItem:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold);
+  color: var(--color-text-main);
+}
+
+.lojaBtnItemAtivo {
+  background: var(--color-bg-surface-active);
+  color: var(--color-text-gold);
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.lojaBtnNome {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lojaBtnCidade {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.lojaVazio {
+  text-align: center;
+  padding: var(--space-10);
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+}
+
+/* MODO DE IMPRESSÃO (Carta Física para Mesa) */
+@media print {
+  .lojaWrapper {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  .lojaHeader,
+  .lojasCarrossel,
+  .lojaAbasMestre,
+  .simuladorMestre,
+  .lojaCarteira,
+  .alertaSemFicha {
+    display: none !important;
+  }
+}

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FaHammer, FaCheckCircle } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaHammer, FaCheckCircle, FaCoins, FaPrint, FaShieldAlt } from 'react-icons/fa';
 import {
     CATEGORIAS_ARMA,
     ALCANCES_ARMA,
@@ -12,16 +12,18 @@ import {
     construirStatsArmaPersonalizada
 } from '../../../domain/fabula/weaponForge';
 import { lojaService } from '../../../services/lojaService';
+import { Button, Badge, Card, Input } from '../../../components/ui';
+import styles from './CriadorArmasPersonalizadas.module.css';
 
 export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
     const [nomeItem, setNomeItem] = useState('');
     const [categoria, setCategoria] = useState('espada');
     const [alcance, setAlcance] = useState('Corpo a corpo');
     const [precisaoTipo, setPrecisaoTipo] = useState('(DES + AST)');
-    
+
     // As personalizações escolhidas
     const [personalizacoes, setPersonalizacoes] = useState([]);
-    
+
     // Caso escolha a opção Mutável, configuramos a 2ª forma aqui
     const [temMutavel, setTemMutavel] = useState(false);
     const [nomeSegundaForma, setNomeSegundaForma] = useState('');
@@ -49,6 +51,7 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
     const custoTotal = calcularCustoTotal(personalizacoes);
     const danoFinalNumerico = calcularDanoFinal(categoria, personalizacoes);
     const temTagMarcial = verificarEhMarcial(personalizacoes, danoFinalNumerico);
+    const vagasOcupadas = personalizacoes.reduce((acc, p) => acc + (p.vagas || 1), 0);
 
     const handleSalvar = async (e) => {
         e.preventDefault();
@@ -81,7 +84,7 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
         if (erroBanco) {
             alert('Erro ao salvar arma: ' + erroBanco.message);
         } else {
-            alert('Arma personalizada criada com sucesso!');
+            alert('✨ Arma personalizada criada com sucesso!');
             if (onCriado) onCriado();
             setNomeItem('');
             setPersonalizacoes([]);
@@ -89,131 +92,216 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
         }
     };
 
-    return (
-        <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '20px', color: '#c9d1d9', maxWidth: '650px', margin: '20px auto' }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#d4af37', fontSize: '1.2rem', marginBottom: '15px' }}>
-                <FaHammer /> Criação de Armas Personalizadas (Atlas)
-            </h2>
+    const nomeExibicao = nomeItem || 'Arma Personalizada';
 
-            <form onSubmit={handleSalvar} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Nome da Arma</label>
-                    <input
-                        type="text"
+    return (
+        <div className={styles.container}>
+            <Card variant="default" className={styles.forjaCard}>
+                <h3 className={styles.titulo}>
+                    <FaHammer /> Criação de Armas Personalizadas (Atlas)
+                </h3>
+
+                <form onSubmit={handleSalvar} className={styles.formGrid}>
+                    <Input
+                        label="Nome da Arma"
                         value={nomeItem}
                         onChange={e => setNomeItem(e.target.value)}
                         placeholder="Ex: Quebra-Muralha"
-                        style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
                     />
-                </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Categoria</label>
+                    <div className={styles.gridDuasColunas}>
+                        <div className={styles.campoGrupo}>
+                            <label htmlFor="categoria-arma" className={styles.labelCampo}>Categoria</label>
+                            <select
+                                id="categoria-arma"
+                                value={categoria}
+                                onChange={e => setCategoria(e.target.value)}
+                                className={styles.selectCampo}
+                            >
+                                {CATEGORIAS_ARMA.map(c => (
+                                    <option key={c} value={c}>{c.toUpperCase()}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className={styles.campoGrupo}>
+                            <label htmlFor="alcance-arma" className={styles.labelCampo}>Alcance</label>
+                            <select
+                                id="alcance-arma"
+                                value={alcance}
+                                onChange={e => setAlcance(e.target.value)}
+                                className={styles.selectCampo}
+                            >
+                                {ALCANCES_ARMA.map(a => (
+                                    <option key={a} value={a}>{a}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className={styles.campoGrupo}>
+                        <label htmlFor="precisao-arma" className={styles.labelCampo}>Atributo de Precisão</label>
                         <select
-                            value={categoria}
-                            onChange={e => setCategoria(e.target.value)}
-                            style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
+                            id="precisao-arma"
+                            value={precisaoTipo}
+                            onChange={e => setPrecisaoTipo(e.target.value)}
+                            className={styles.selectCampo}
                         >
-                            {CATEGORIAS_ARMA.map(c => (
-                                <option key={c} value={c}>{c.toUpperCase()}</option>
+                            {ATRIBUTOS_PRECISAO.map(atr => (
+                                <option key={atr} value={atr}>{atr}</option>
                             ))}
                         </select>
                     </div>
 
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Alcance</label>
-                        <select
-                            value={alcance}
-                            onChange={e => setAlcance(e.target.value)}
-                            style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                        >
-                            {ALCANCES_ARMA.map(a => (
-                                <option key={a} value={a}>{a}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                    {/* Seleção de Personalizações (Até 3 vagas) */}
+                    <fieldset className={styles.fieldsetPersonalizacoes}>
+                        <legend className={styles.legendPersonalizacoes}>
+                            Personalizações (Escolha até 3 vagas)
+                        </legend>
+                        <div className={styles.listaPersonalizacoes}>
+                            {PERSONALIZACOES_DISPONIVEIS.map(p => {
+                                const selecionada = personalizacoes.some(item => item.id === p.id);
+                                return (
+                                    <label key={p.id} className={styles.checkboxItem}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selecionada}
+                                            onChange={() => togglePersonalizacao(p)}
+                                        />
+                                        <span>
+                                            {p.nome} {p.custoExtra > 0 ? `(+${p.custoExtra}z)` : ''}
+                                            {p.marcial ? ' ⚔️ (Marcial)' : ''}
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </fieldset>
 
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '5px' }}>Atributo de Precisão</label>
-                    <select
-                        value={precisaoTipo}
-                        onChange={e => setPrecisaoTipo(e.target.value)}
-                        style={{ width: '100%', padding: '8px', background: '#0d0f18', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
-                    >
-                        {ATRIBUTOS_PRECISAO.map(atr => (
-                            <option key={atr} value={atr}>{atr}</option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Seleção de Personalizações (Até 3 vagas) */}
-                <fieldset style={{ border: '1px solid #30363d', padding: '12px', borderRadius: '6px' }}>
-                    <legend style={{ fontSize: '0.8rem', color: '#d4af37', padding: '0 5px', fontWeight: 'bold' }}>
-                        Personalizações (Escolha até 3 vagas)
-                    </legend>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                        {PERSONALIZACOES_DISPONIVEIS.map(p => {
-                            const selecionada = personalizacoes.some(item => item.id === p.id);
-                            return (
-                                <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={selecionada}
-                                        onChange={() => togglePersonalizacao(p)}
-                                    />
-                                    <span>{p.nome} {p.custoExtra > 0 ? `(+${p.custoExtra}z)` : ''} {p.marcial ? '⚔️ (Marcial)' : ''}</span>
-                                </label>
-                            );
-                        })}
-                    </div>
-                </fieldset>
-
-                {/* Configuração extra se for Mutável */}
-                {temMutavel && (
-                    <div style={{ background: '#0d1117', padding: '12px', borderRadius: '6px', border: '1px dashed #d4af37', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <h4 style={{ margin: 0, color: '#d4af37', fontSize: '0.9rem' }}>Configuração da 2ª Forma (Mutável)</h4>
-                        <div>
-                            <label style={{ display: 'block', fontSize: '0.78rem', marginBottom: '3px' }}>Nome da Segunda Forma</label>
-                            <input
-                                type="text"
+                    {/* Configuração extra se for Mutável */}
+                    {temMutavel && (
+                        <div className={styles.mutavelContainer}>
+                            <h4 className={styles.mutavelTitulo}>Configuração da 2ª Forma (Mutável)</h4>
+                            <Input
+                                label="Nome da Segunda Forma"
                                 value={nomeSegundaForma}
                                 onChange={e => setNomeSegundaForma(e.target.value)}
                                 placeholder="Ex: Modo Lança Longa"
-                                style={{ width: '100%', padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}
                             />
+                            <div className={styles.gridDuasColunas}>
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="categoria-mutavel" className={styles.labelCampo}>Categoria (Forma 2)</label>
+                                    <select
+                                        id="categoria-mutavel"
+                                        value={categoria2}
+                                        onChange={e => setCategoria2(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        {CATEGORIAS_ARMA.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div className={styles.campoGrupo}>
+                                    <label htmlFor="alcance-mutavel" className={styles.labelCampo}>Alcance (Forma 2)</label>
+                                    <select
+                                        id="alcance-mutavel"
+                                        value={alcance2}
+                                        onChange={e => setAlcance2(e.target.value)}
+                                        className={styles.selectCampo}
+                                    >
+                                        {ALCANCES_ARMA.map(a => <option key={a} value={a}>{a}</option>)}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <select value={categoria2} onChange={e => setCategoria2(e.target.value)} style={{ padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}>
-                                {CATEGORIAS_ARMA.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <select value={alcance2} onChange={e => setAlcance2(e.target.value)} style={{ padding: '6px', background: '#161b22', border: '1px solid #30363d', color: '#fff', borderRadius: '4px' }}>
-                                {ALCANCES_ARMA.map(a => <option key={a} value={a}>{a}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Resumo */}
-                <div style={{ background: '#0d0f18', padding: '12px', borderRadius: '6px', border: '1px solid #30363d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <div style={{ fontSize: '0.85rem', color: '#8b949e' }}>
-                            Dano: <strong style={{ color: '#58a6ff' }}>RA + {danoFinalNumerico}</strong> {temTagMarcial && <span style={{ color: '#f85149' }}>(Marcial ⚔️)</span>}
+                    {/* Resumo */}
+                    <div className={styles.painelResumo}>
+                        <div className={styles.resumoValores}>
+                            <div className={styles.resumoDano}>
+                                Dano: <span className={styles.resumoDanoValor}>RA + {danoFinalNumerico}</span>
+                            </div>
+                            <Badge variant="gold" size="lg">
+                                <FaCoins /> {custoTotal} zênites
+                            </Badge>
                         </div>
-                        <div style={{ fontSize: '0.9rem', color: '#8b949e', marginTop: '2px' }}>
-                            Custo Inicial: <strong style={{ color: '#2ecc71', fontSize: '1.1rem' }}>{custoTotal} zênites</strong>
+
+                        <div className={styles.resumoBotoes}>
+                            <Button
+                                variant="ghost"
+                                size="md"
+                                onClick={() => window.print()}
+                                title="Imprimir Carta Física para Mesa"
+                            >
+                                <FaPrint /> Imprimir Carta
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                size="md"
+                                disabled={salvando}
+                            >
+                                <FaCheckCircle /> {salvando ? 'Criando...' : 'Criar Arma'}
+                            </Button>
                         </div>
                     </div>
-                    <button
-                        type="submit"
-                        disabled={salvando}
-                        style={{ background: '#238636', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                        <FaCheckCircle /> {salvando ? 'Criando...' : 'Criar Arma'}
-                    </button>
+                </form>
+            </Card>
+
+            {/* Visualização de Carta Física de Equipamento para a Mesa */}
+            <section className={styles.previewArea} aria-label="Prévia da Carta de Equipamento">
+                <div className={styles.previewTitulo}>
+                    <FaShieldAlt /> Prévia da Carta de Equipamento (Pronta para Impressão)
                 </div>
-            </form>
+
+                <div className={styles.physicalCard}>
+                    <div className={styles.cardHeaderFisica}>
+                        <div>
+                            <h4 className={styles.cardNomeFisico}>{nomeExibicao}</h4>
+                            <span className={styles.cardSubtituloFisico}>
+                                {categoria.toUpperCase()} • {alcance}
+                            </span>
+                        </div>
+                        <Badge variant="gold" size="sm">
+                            <FaCoins /> {custoTotal}z
+                        </Badge>
+                    </div>
+
+                    <div className={styles.tagsRow}>
+                        <Badge variant={temTagMarcial ? 'crise' : 'default'} size="sm">
+                            {temTagMarcial ? '⚔️ Marcial' : '🛡️ Simples'}
+                        </Badge>
+                        <Badge variant="core" size="sm">
+                            {categoria.toUpperCase()}
+                        </Badge>
+                        <Badge variant="ether" size="sm">
+                            {vagasOcupadas}/3 Vagas
+                        </Badge>
+                    </div>
+
+                    <div className={styles.cardStatsGrid}>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Precisão</span>
+                            <span className={styles.cardStatValor}>{precisaoTipo}</span>
+                        </div>
+                        <div className={styles.cardStatItem}>
+                            <span className={styles.cardStatLabel}>Dano</span>
+                            <span className={styles.cardStatValor}>RA + {danoFinalNumerico}</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.cardEfeitosArea}>
+                        <strong>Personalizações Aplicadas:</strong>
+                        <ul className={styles.cardEfeitosLista}>
+                            {personalizacoes.length > 0 ? (
+                                personalizacoes.map(p => <li key={p.id}>{p.nome}</li>)
+                            ) : (
+                                <li>Nenhuma personalização selecionada.</li>
+                            )}
+                        </ul>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }
