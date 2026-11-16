@@ -156,9 +156,10 @@ export function useCharacterSheet(id, navigate) {
     return calcularStatusPersonagem(
       atributosAtuaisParaCalculo,
       classes,
-      itensEquipados
+      itensEquipados,
+      ficha
     );
-  }, [atributosAtuaisParaCalculo, classes, itensEquipados]);
+  }, [atributosAtuaisParaCalculo, classes, itensEquipados, ficha]);
 
   // Estado de Crise Global (HP atual <= metade do HP máximo)
   const hpAtualNum = Number(ficha?.hp_atual ?? statusFicha.pvMax);

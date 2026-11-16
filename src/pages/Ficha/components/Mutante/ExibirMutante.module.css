@@ -1,0 +1,256 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  color: var(--color-core-green);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --- ALERTA BIÓFAGO EM CRISE --- */
+.criseAlertBox {
+  background: rgba(var(--color-crise-rgb), 0.15);
+  border: 1px solid var(--color-crise);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-glow-crise);
+  animation: pulseCrise 2s infinite ease-in-out;
+}
+
+@keyframes pulseCrise {
+  0% {
+    box-shadow: 0 0 10px rgba(var(--color-crise-rgb), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(var(--color-crise-rgb), 0.8);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(var(--color-crise-rgb), 0.4);
+  }
+}
+
+.criseContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.criseTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-crise-bright);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.criseDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+/* --- TERIOMORFOSE & GRID DE FORMAS --- */
+.terioformasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.terioCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.terioCard:hover {
+  border-color: var(--color-core-green);
+  background: var(--color-bg-surface-hover);
+}
+
+.terioCardActive {
+  border-color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.16);
+  box-shadow: var(--shadow-glow-green);
+}
+
+.terioCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.terioCardDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.terioActionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* --- ACROMORFOSE --- */
+.acromorfoseRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.select {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.select:focus {
+  border-color: var(--color-core-green);
+}
+
+.feedbackBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+}
+
+.printOnly {
+  display: none;
+}
+
+/* ==========================================================================
+   MODO HÍBRIDO (@media print)
+   ========================================================================== */
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    gap: var(--space-2);
+  }
+
+  .title,
+  .sectionTitle,
+  .criseTitle {
+    color: #000000 !important;
+  }
+
+  .section,
+  .criseAlertBox {
+    background: transparent !important;
+    border: 1px solid #444444 !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  .terioCard {
+    background: transparent !important;
+    border: 1px solid #888888 !important;
+    color: #000000 !important;
+  }
+
+  .terioCardActive {
+    background: #e6e6e6 !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .terioCardDesc,
+  .criseDesc {
+    color: #222222 !important;
+  }
+
+  .terioActionsRow button,
+  button,
+  .select {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: block !important;
+    font-size: var(--font-size-xs) !important;
+    color: #000000 !important;
+    margin-top: var(--space-1) !important;
+  }
+}

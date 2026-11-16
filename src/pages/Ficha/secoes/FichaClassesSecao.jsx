@@ -20,6 +20,9 @@ import ExibirElementalista from '../components/Elementalista/ExibirElementalista
 import ExibirEntropista from '../components/Entropista/ExibirEntropista';
 import ExibirEspiritualista from '../components/Espiritualista/ExibirEspiritualista';
 import ExibirOrador from '../components/Orador/ExibirOrador';
+import ExibirEsper from '../components/Esper/ExibirEsper';
+import ExibirMutante from '../components/Mutante/ExibirMutante';
+import ExibirPiloto from '../components/Piloto/ExibirPiloto';
 
 export default function FichaClassesSecao({
   fichaId,
@@ -120,6 +123,9 @@ export default function FichaClassesSecao({
           const ehElementalista = nomeClasse.includes('elementalista');
           const ehEspiritualista = nomeClasse.includes('espiritualista');
           const ehEntropista = nomeClasse.includes('entropista');
+          const ehEsper = nomeClasse.includes('esper');
+          const ehMutante = nomeClasse.includes('mutant');
+          const ehPiloto = nomeClasse.includes('pilot');
 
           const magiasDestaClasse = magiasFicha.filter(mf => {
             const classeMagia = (mf.catalogo_feiticos?.classe || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -163,6 +169,9 @@ export default function FichaClassesSecao({
               {ehEntropista && <ExibirEntropista classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
               {ehEspiritualista && <ExibirEspiritualista classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
               {ehGuardiao && <ExibirGuardiao ficha={c} />}
+              {ehEsper && <ExibirEsper ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
+              {ehMutante && <ExibirMutante ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} emCriseGlobal={emCrise} pvMaxCalculado={hpMaxCalculado} />}
+              {ehPiloto && <ExibirPiloto fichaId={fichaId || ficha?.id} ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
 
               {/* Habilidades Oficiais */}
               {habilidadesAtivas.length > 0 && (

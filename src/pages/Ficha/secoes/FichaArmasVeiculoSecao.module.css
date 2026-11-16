@@ -1,0 +1,169 @@
+/* =====================================================
+   FICHA ARMAS VEÍCULO SEÇÃO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.container {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border-gold-bright);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-border-gold-bright);
+  margin: 0;
+}
+
+.pulsoFirmeBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+.weaponsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+.weaponCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-surface);
+  transition: border-color var(--transition-fast);
+}
+
+.weaponCard:hover {
+  border-color: var(--color-border-gold);
+}
+
+.weaponHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.weaponName {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.statItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  color: var(--color-text-main);
+}
+
+.statHighlight {
+  color: var(--color-core-green);
+  font-weight: 700;
+}
+
+.desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.propriedade {
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--color-ether-cyan);
+  font-style: italic;
+}
+
+.restricao {
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--color-hp);
+}
+
+.actionsRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: var(--space-1);
+}
+
+.resultadoBox {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-left: 3px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+.resultadoLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* Modo Impressão */
+@media print {
+  .container {
+    background: transparent !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .title,
+  .weaponName {
+    color: #000000 !important;
+  }
+
+  .actionsRow,
+  .pulsoFirmeBar button {
+    display: none !important;
+  }
+}

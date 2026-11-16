@@ -8,6 +8,7 @@ import {
 } from '../../../domain/fabula/equipmentRules';
 import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha';
 import { Card, Button, Badge, Modal } from '../../../components/ui';
+import FichaArmasVeiculoSecao from './FichaArmasVeiculoSecao';
 import styles from './FichaEquipamentosSecao.module.css';
 
 export default function FichaEquipamentosSecao({
@@ -16,7 +17,8 @@ export default function FichaEquipamentosSecao({
   classes = [],
   opcoesGolpeAtivo = null,
   limparGolpeAtivo = null,
-  emCriseGlobal = false
+  emCriseGlobal = false,
+  statusFicha = null
 }) {
   const [itensInventario, setItensInventario] = useState([]);
   const [modalSlotAberto, setModalSlotAberto] = useState(null);
@@ -383,6 +385,21 @@ export default function FichaEquipamentosSecao({
           </div>
         )}
       </Card>
+
+      {/* SEÇÃO DE ARMAS VEICULARES SE O VEÍCULO ESTIVER OPERACIONAL/ATIVO */}
+      {statusFicha?.veiculoAtivo && statusFicha?.dadosVeiculo && (
+        <FichaArmasVeiculoSecao
+          dadosVeiculo={statusFicha.dadosVeiculo}
+          atributos={atributosAtuais}
+          nvPulsoFirme={
+            (classes.find(c =>
+              (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('pilot')
+            )?.habilidades || []).find(h =>
+              (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('pulso firme')
+            )?.nivel || 0
+          }
+        />
+      )}
 
       {/* MODAL 1: Escolher Item da Mochila */}
       <Modal

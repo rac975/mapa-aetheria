@@ -23,7 +23,7 @@
 
 .gridEstatisticas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: var(--space-3);
   text-align: center;
 }
@@ -70,6 +70,33 @@
 
 .valIniciativa {
   color: var(--color-border-gold-bright);
+}
+
+.valPrecisao {
+  color: var(--color-gold-bright, #ffd700);
+}
+
+.statSub {
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-sans);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.headerRow .sectionHeader {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 @media (max-width: 600px) {

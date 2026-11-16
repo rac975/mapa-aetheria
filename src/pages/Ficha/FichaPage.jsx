@@ -204,6 +204,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         opcoesGolpeAtivo={opcoesGolpeAtivo}
                         limparGolpeAtivo={() => setOpcoesGolpeAtivo(null)}
                         emCriseGlobal={emCriseGlobal}
+                        statusFicha={statusFicha}
                     />
                     <FichaMagiasSecao magias={magias} />
                     <FichaLacosSecao lacos={ficha?.lacos} />

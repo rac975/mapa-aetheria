@@ -1,16 +1,20 @@
+import { calcularEstatisticasVeiculo } from '../domain/fabula/technoFantasyRules';
+
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
  * @param {Object} atributos { destreza, astucia, vigor, vontade }
  * @param {Array} classes Lista de classes do personagem
  * @param {Array} itensEquipados Lista de itens da tabela itens_personagem que possuem 'slot'
+ * @param {Object} [ficha=null] Objeto completo da ficha para acesso a dados_veiculo
  */
 
-const CONFIG_BONUS_CLASSES = {
+export const CONFIG_BONUS_CLASSES = {
   andarilho: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   arcanista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   atirador: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   elementalista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   entropista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  esper: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   "guerreiro sombrio": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   erudito: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   espiritualista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
@@ -19,7 +23,9 @@ const CONFIG_BONUS_CLASSES = {
   inventor: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   ladino: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   "mestre de armas": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  mutante: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   orador: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  piloto: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   quimerista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
 };
 
@@ -27,6 +33,7 @@ export function calcularStatusPersonagem(
   atributos = {},
   classes = [],
   itensEquipados = [],
+  ficha = null,
 ) {
   const nivelTotal =
     classes.reduce((acc, c) => acc + (parseInt(c.nivel) || 0), 0) || 5;
@@ -213,7 +220,7 @@ export function calcularStatusPersonagem(
     });
   }
 
-  const defesaTotal = defesaBase + bonusDefesaItens + bonusEsquivaLadino;
+  let defesaTotal = defesaBase + bonusDefesaItens + bonusEsquivaLadino;
 
   // 🛡️ VERIFICAÇÃO DE "MAESTRIA DEFENSIVA" DO GUARDIÃO (Redução de Dano)
   let reducaoDano = 0;
@@ -257,9 +264,9 @@ export function calcularStatusPersonagem(
     }
   });
 
-  const mdefTotal = mdefBase + bonusMDefItens;
+  let mdefTotal = mdefBase + bonusMDefItens;
 
-  // 5. Cálculo de Iniciativa
+  // 5. Cálculo de Iniciativa Base
   let iniciativaTotal = 0;
   [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
     if (item) {
@@ -269,16 +276,117 @@ export function calcularStatusPersonagem(
     }
   });
 
+  // 6. Integração com Veículo Pessoal do Piloto (Atlas Tecno-Fantasia)
+  // Quando o Piloto estiver embarcado/ativo no veículo, soma ou aplica os valores dos módulos ativos
+  const pilotoClass = (classes || []).find((c) => {
+    const nome = (c.nome_classe || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+    return nome.includes('pilot');
+  });
+
+  const habVeiculo = (pilotoClass?.habilidades || []).find((h) => {
+    const nome = (h.nome || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+    return nome.includes('veiculo');
+  });
+
+  const dadosVeiculo = ficha?.dados_veiculo || pilotoClass?.veiculo || habVeiculo?.veiculo || null;
+  const veiculoAtivo = !!(dadosVeiculo && typeof dadosVeiculo === 'object' && dadosVeiculo.veiculoInvocado !== false);
+
+  let precisaoBonus = 0;
+  let dadosVeiculoInfo = null;
+
+  if (veiculoAtivo) {
+    const slVeiculo = Math.max(1, parseInt(habVeiculo?.nivel, 10) || 1);
+    const statsVeiculo = calcularEstatisticasVeiculo(
+      dadosVeiculo.frameKey || 'exoesqueleto',
+      Array.isArray(dadosVeiculo.modulosAtivos) ? dadosVeiculo.modulosAtivos : [],
+      { des, int: ast, vig, von },
+      slVeiculo,
+      dadosVeiculo.customizacoes || {}
+    );
+
+    // Se o veículo tiver módulo de blindagem ativa, substitui as defesas base pelas do veículo
+    if (statsVeiculo.armaduraAtiva) {
+      defesaBase = Number(statsVeiculo.defesaBase) || (Number(des) || 8);
+      mdefBase = Number(statsVeiculo.mdefBase) || (Number(ast) || 8);
+    } else if (statsVeiculo.frameAtual) {
+      defesaBase = Math.max(Number(defesaBase) || 0, Number(statsVeiculo.frameAtual.defesa_base) || (Number(des) || 8));
+      mdefBase = Math.max(Number(mdefBase) || 0, Number(statsVeiculo.frameAtual.mdef_base) || (Number(ast) || 8));
+    }
+
+    // Soma bônus estruturais e de módulos (ex: Módulo de Escudo +2 DEF, +2 MDEF, Mecha +1 DEF)
+    const defVeiculoTotal = Number(statsVeiculo.defesaTotal) || 0;
+    const defVeiculoBase = Number(statsVeiculo.defesaBase) || 0;
+    const bonusDefVeiculo = Math.max(0, defVeiculoTotal - defVeiculoBase);
+
+    const mdefVeiculoTotal = Number(statsVeiculo.mdefTotal) || 0;
+    const mdefVeiculoBase = Number(statsVeiculo.mdefBase) || 0;
+    const bonusMdefVeiculo = Math.max(0, mdefVeiculoTotal - mdefVeiculoBase);
+
+    bonusDefesaItens = (Number(bonusDefesaItens) || 0) + bonusDefVeiculo;
+    bonusMDefItens = (Number(bonusMDefItens) || 0) + bonusMdefVeiculo;
+
+    // Modificador de Iniciativa do veículo (Mecha -2, Corcel +4, Módulo de Velocidade +2)
+    iniciativaTotal = (Number(iniciativaTotal) || 0) + (Number(statsVeiculo.iniciativaBonus) || 0);
+
+    // Bônus de Precisão concedido por módulos (ex: Módulo de Mira Avançada +2)
+    precisaoBonus = Number(statsVeiculo.precisaoBonus) || 0;
+
+    dadosVeiculoInfo = {
+      nome: dadosVeiculo.nome || 'Veículo Pessoal',
+      frameKey: dadosVeiculo.frameKey || 'exoesqueleto',
+      armaduraAtiva: statsVeiculo.armaduraAtiva?.nome || null,
+      defesaVeiculo: Number(statsVeiculo.defesaTotal) || 0,
+      mdefVeiculo: Number(statsVeiculo.mdefTotal) || 0,
+      iniciativaBonus: Number(statsVeiculo.iniciativaBonus) || 0,
+      precisaoBonus,
+      armasInstaladas: statsVeiculo.armasInstaladas || []
+    };
+  }
+
+  defesaTotal = (Number(defesaBase) || 0) + (Number(bonusDefesaItens) || 0) + (Number(bonusEsquivaLadino) || 0);
+  mdefTotal = (Number(mdefBase) || 0) + (Number(bonusMDefItens) || 0);
+  iniciativaTotal = Number(iniciativaTotal) || 0;
+  precisaoBonus = Number(precisaoBonus) || 0;
+
+  // 7. Verificação de Proficiências Concedidas por Classes (ex: Piloto, Mestre de Armas)
+  const temProficienciaArmasMarciais = classes.some((c) => {
+    const nomeNorm = (c.nome_classe || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+    const ben = (c.beneficios || "").toLowerCase();
+    return (
+      nomeNorm.includes("piloto") ||
+      nomeNorm.includes("mestre de armas") ||
+      nomeNorm.includes("atirador") ||
+      ben.includes("marciais") ||
+      ben.includes("marcial")
+    );
+  });
+
   return {
-    nivelTotal,
-    pvMax,
-    mpMax,
-    piMax,
-    defesaTotal,
-    mdefTotal,
-    iniciativaTotal,
-    reducaoDano,
+    nivelTotal: Number(nivelTotal) || 1,
+    pvMax: Number(pvMax) || 10,
+    mpMax: Number(mpMax) || 10,
+    piMax: Number(piMax) || 6,
+    defesaTotal: Number(defesaTotal) || 0,
+    mdefTotal: Number(mdefTotal) || 0,
+    iniciativaTotal: Number(iniciativaTotal) || 0,
+    precisaoBonus: Number(precisaoBonus) || 0,
+    reducaoDano: Number(reducaoDano) || 0,
     temDoisEscudos,
+    temProficienciaArmasMarciais,
+    veiculoAtivo,
+    dadosVeiculo: dadosVeiculoInfo,
   };
 }
 

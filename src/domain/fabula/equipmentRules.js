@@ -176,12 +176,17 @@ export function validarSlotEquipamento({ item, slotAlvo, classes = [] }) {
 
   if (ehMarcialOuPesado) {
     const temProficiencia = classes.some(c => {
+      const nomeNorm = (c.nome_classe || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
       const ben = (c.beneficios || '').toLowerCase();
       return ben.includes('marcial') ||
         ben.includes('pesada') ||
         ben.includes('escudos') ||
         ben.includes('todos') ||
-        ben.includes('armas corpo a corpo');
+        ben.includes('armas corpo a corpo') ||
+        nomeNorm.includes('piloto');
     });
 
     if (!temProficiencia) {

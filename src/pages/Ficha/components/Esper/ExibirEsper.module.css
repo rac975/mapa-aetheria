@@ -1,0 +1,259 @@
+.container {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: var(--backdrop-blur);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  color: var(--color-ether-cyan);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* --- RELÓGIO DE ONDAS CEREBRAIS --- */
+.clockWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.clockTrack {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+}
+
+.clockSegment {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-dim);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  user-select: none;
+}
+
+.clockSegment:hover {
+  border-color: var(--color-ether-cyan);
+  color: var(--color-text-main);
+  background: var(--color-bg-surface-hover);
+}
+
+.clockSegmentFilled {
+  background: rgba(var(--color-ether-cyan-rgb), 0.22);
+  border-color: var(--color-ether-cyan);
+  color: var(--color-ether-cyan);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.clockControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.clockButtons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* --- FOCO COGNITIVO --- */
+.focoForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.focoInputsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.select {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.select:focus {
+  border-color: var(--color-ether-cyan);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.checkbox {
+  accent-color: var(--color-ether-cyan);
+  cursor: pointer;
+}
+
+.bonusesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+/* --- DÁDIVAS PSÍQUICAS --- */
+.dadivaForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dadivaSelectRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.dadivaDescricao {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  padding: var(--space-2);
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-ether-cyan);
+}
+
+.feedbackBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.printOnly {
+  display: none;
+}
+
+/* ==========================================================================
+   MODO HÍBRIDO (@media print)
+   ========================================================================== */
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    gap: var(--space-2);
+  }
+
+  .title,
+  .sectionTitle {
+    color: #000000 !important;
+  }
+
+  .section {
+    background: transparent !important;
+    border: 1px solid #444444 !important;
+  }
+
+  .dadivaDescricao {
+    background: transparent !important;
+    border-left: 2px solid #000000 !important;
+    color: #000000 !important;
+  }
+
+  .clockButtons,
+  .focoInputsRow,
+  .dadivaSelectRow,
+  .feedbackBox,
+  button,
+  .select {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: block !important;
+    font-size: var(--font-size-xs) !important;
+    color: #000000 !important;
+    margin-top: var(--space-1) !important;
+  }
+
+  .clockSegment {
+    border-color: #000000 !important;
+    color: #000000 !important;
+    background: transparent !important;
+  }
+
+  .clockSegmentFilled {
+    background: #cccccc !important;
+    box-shadow: none !important;
+  }
+}

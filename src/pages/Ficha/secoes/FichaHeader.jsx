@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaPrint } from 'react-icons/fa';
+import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaPrint, FaCog } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../../constants/condicoes';
 import { fichaService } from '../../../services/fichaService';
@@ -117,7 +117,7 @@ export default function FichaHeader({
                                 className={styles.zenitGearBtn}
                                 aria-label="Gerenciar Zênites"
                             >
-                                ⚙️
+                            <FaCog/>
                             </button>
                         </Badge>
 

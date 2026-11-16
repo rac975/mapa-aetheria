@@ -435,16 +435,34 @@ export const fichaService = {
   },
 
   /**
-   * Atualiza as classes de um personagem na tabela personagens
+   * Atualiza as classes de um personagem na tabela fichas_classes
    * @param {string|number} fichaId
    * @param {Array} classes
    * @returns {Promise<{data: any, error: any}>}
    */
-  async atualizarClassesPersonagem(fichaId, classes) {
-    return await supabase
-      .from('personagens')
-      .update({ classes })
-      .eq('id', fichaId);
+  async atualizarClassesPersonagem(fichaId, classes = []) {
+    if (!fichaId || !Array.isArray(classes)) return { data: null, error: null };
+    try {
+      const updates = classes.map(async (c) => {
+        if (c.id) {
+          return await supabase
+            .from('fichas_classes')
+            .update({
+              nome_classe: c.nome_classe,
+              nivel: c.nivel,
+              beneficios: c.beneficios,
+              habilidades: c.habilidades || []
+            })
+            .eq('id', c.id);
+        }
+        return null;
+      });
+      await Promise.all(updates);
+      return { data: true, error: null };
+    } catch (error) {
+      console.error('Erro ao atualizar classes em fichas_classes:', error);
+      return { data: null, error };
+    }
   },
 
   /**
@@ -480,5 +498,189 @@ export const fichaService = {
       .from('catalogo_feiticos')
       .select('*')
       .ilike('classe', nomeClasse);
+  },
+
+  /**
+   * Salva a configuração do veículo pessoal da classe Piloto no Supabase.
+   * Padrão oficial do projeto: Atualiza o nó da habilidade "Veículo Pessoal" na tabela fichas_classes
+   * (idêntico ao padrão de Engenhocas do Inventor e poderes do Arcanista).
+   * @param {string|number} fichaId
+   * @param {Object} configuracaoVeiculo { nome, frameKey, modulosReserva, modulosAtivos, veiculoInvocado, customizacoes }
+   * @param {Array} [classes=[]] Lista de classes da ficha para sincronização
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarConfiguracaoVeiculo(fichaId, configuracaoVeiculo, classes = []) {
+    if (!fichaId) {
+      return { sucesso: false, error: new Error('fichaId é obrigatório para salvar veículo.') };
+    }
+
+    try {
+      // 1. Atualizar em fichas_classes (localiza a linha da classe Piloto)
+      const { data: classesData, error: errBusca } = await supabase
+        .from('fichas_classes')
+        .select('*')
+        .eq('ficha_id', fichaId);
+
+      if (errBusca) {
+        throw errBusca;
+      }
+
+      if (classesData && classesData.length > 0) {
+        const pilotoClass = classesData.find(c =>
+          (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('pilot')
+        );
+
+        if (pilotoClass) {
+          const habilidadesAtualizadas = (pilotoClass.habilidades || []).map(h => {
+            const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (nomeHab.includes('veiculo pessoal') || nomeHab.includes('veiculo')) {
+              return { ...h, veiculo: configuracaoVeiculo };
+            }
+            return h;
+          });
+
+          const temHabVeiculo = habilidadesAtualizadas.some(h =>
+            (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('veiculo')
+          );
+          if (!temHabVeiculo) {
+            habilidadesAtualizadas.push({
+              nome: 'Veículo Pessoal',
+              nivel: 1,
+              veiculo: configuracaoVeiculo
+            });
+          }
+
+          const { error: errUpdate } = await supabase
+            .from('fichas_classes')
+            .update({ habilidades: habilidadesAtualizadas })
+            .eq('id', pilotoClass.id);
+
+          if (errUpdate) throw errUpdate;
+        }
+      }
+
+      // 2. Sincroniza em memória no array de classes se fornecido
+      if (classes && classes.length > 0) {
+        classes.forEach(c => {
+          const norm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          if (norm.includes('pilot')) {
+            c.veiculo = configuracaoVeiculo;
+            if (Array.isArray(c.habilidades)) {
+              c.habilidades.forEach(h => {
+                const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                if (nomeHab.includes('veiculo pessoal') || nomeHab.includes('veiculo')) {
+                  h.veiculo = configuracaoVeiculo;
+                }
+              });
+            }
+          }
+        });
+      }
+
+      return { sucesso: true };
+    } catch (err) {
+      console.error('Erro ao salvar configuração do veículo:', err);
+      return { sucesso: false, error: err };
+    }
+  },
+
+  /**
+   * Salva os dados específicos da classe Esper no Supabase
+   * Atualiza a tabela fichas_classes (anexando às habilidades do Esper)
+   * @param {string|number} fichaId
+   * @param {Object} dadosEsper
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosEsper(fichaId, dadosEsper) {
+    if (!fichaId) {
+      return { sucesso: false, error: new Error('fichaId é obrigatório para salvar Esper.') };
+    }
+
+    try {
+      const { data: classesData, error: errBusca } = await supabase
+        .from('fichas_classes')
+        .select('*')
+        .eq('ficha_id', fichaId);
+
+      if (errBusca) throw errBusca;
+
+      if (classesData && classesData.length > 0) {
+        const esperClass = classesData.find(c =>
+          (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('esper')
+        );
+
+        if (esperClass) {
+          const habilidadesAtualizadas = (esperClass.habilidades || []).map(h => {
+            const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (nomeHab.includes('dadiva') || nomeHab.includes('foco') || nomeHab.includes('psicocinese')) {
+              return { ...h, dados_esper: dadosEsper };
+            }
+            return h;
+          });
+
+          const { error: errUpdate } = await supabase
+            .from('fichas_classes')
+            .update({ habilidades: habilidadesAtualizadas })
+            .eq('id', esperClass.id);
+
+          if (errUpdate) throw errUpdate;
+        }
+      }
+
+      return { sucesso: true };
+    } catch (err) {
+      console.error('Erro ao salvar dados do Esper:', err);
+      return { sucesso: false, error: err };
+    }
+  },
+
+  /**
+   * Salva os dados específicos da classe Mutante no Supabase
+   * Atualiza a tabela fichas_classes (anexando às habilidades do Mutante)
+   * @param {string|number} fichaId
+   * @param {Object} dadosMutante
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosMutante(fichaId, dadosMutante) {
+    if (!fichaId) {
+      return { sucesso: false, error: new Error('fichaId é obrigatório para salvar Mutante.') };
+    }
+
+    try {
+      const { data: classesData, error: errBusca } = await supabase
+        .from('fichas_classes')
+        .select('*')
+        .eq('ficha_id', fichaId);
+
+      if (errBusca) throw errBusca;
+
+      if (classesData && classesData.length > 0) {
+        const mutanteClass = classesData.find(c =>
+          (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('mutant')
+        );
+
+        if (mutanteClass) {
+          const habilidadesAtualizadas = (mutanteClass.habilidades || []).map(h => {
+            const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (nomeHab.includes('terioforma') || nomeHab.includes('teriomorfose') || nomeHab.includes('acromorfose')) {
+              return { ...h, dados_mutante: dadosMutante };
+            }
+            return h;
+          });
+
+          const { error: errUpdate } = await supabase
+            .from('fichas_classes')
+            .update({ habilidades: habilidadesAtualizadas })
+            .eq('id', mutanteClass.id);
+
+          if (errUpdate) throw errUpdate;
+        }
+      }
+
+      return { sucesso: true };
+    } catch (err) {
+      console.error('Erro ao salvar dados do Mutante:', err);
+      return { sucesso: false, error: err };
+    }
   }
 };
