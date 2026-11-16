@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaDragon, FaPlus, FaTrash, FaFlask } from 'react-icons/fa';
-import { supabase } from '../../../../services/supabase';
+import { fichaService } from '../../../../services/fichaService';
 
 export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjustarRecurso }) {
   const [magiasImitadas, setMagiasImitadas] = useState(() => ficha?.magias_imitadas || []);
@@ -46,10 +46,7 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
       return c;
     });
 
-    const { error } = await supabase
-      .from('personagens')
-      .update({ classes: classesAtualizadas })
-      .eq('id', fichaId);
+    const { error } = await fichaService.atualizarClassesPersonagem(fichaId, classesAtualizadas);
 
     if (error) console.error('Erro ao salvar dados do Quimerista:', error.message);
   };

@@ -1,20 +1,21 @@
 import React from 'react';
-import { GiDramaMasks } from "react-icons/gi";
+import OradorHeader from './OradorHeader';
+import OradorHabilidadesCards from './OradorHabilidadesCards';
 
 export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso }) {
   const dadosClasse = classeObjeto || ficha;
-  const nivelOrador = parseInt(dadosClasse?.nivel) || 1;
+  const nivelOrador = parseInt(dadosClasse?.nivel, 10) || 1;
 
   const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
   const mpMaxPermitido = Number(ficha?.mp_max ?? 99);
   const mpValido = mpAtual > mpMaxPermitido ? mpMaxPermitido : mpAtual;
+  const fabulaPontos = Number(ficha?.fabula ?? 0);
 
   // --- CÁLCULOS DAS HABILIDADES DO ORADOR ---
   
   const usarAliadoInesperado = () => {
-    const pontosFabula = Number(ficha?.fabula ?? 0);
-    if (pontosFabula < 1) {
-      window.alert(`Pontos de Fábula insuficientes! Você tem ${pontosFabula} PF (Exige 1 PF).`);
+    if (fabulaPontos < 1) {
+      window.alert(`Pontos de Fábula insuficientes! Você tem ${fabulaPontos} PF (Exige 1 PF).`);
       return;
     }
 
@@ -47,9 +48,8 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
   };
 
   const usarConfioEmVoce = () => {
-    const pontosFabula = Number(ficha?.fabula ?? 0);
-    if (pontosFabula < 1) {
-      window.alert(`Pontos de Fábula insuficientes! Você tem ${pontosFabula} PF (Exige 1 PF).`);
+    if (fabulaPontos < 1) {
+      window.alert(`Pontos de Fábula insuficientes! Você tem ${fabulaPontos} PF (Exige 1 PF).`);
       return;
     }
 
@@ -210,84 +210,23 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <div>
-          <h3 style={styles.title}>
-            <GiDramaMasks /> Habilidades de Orador <span style={styles.badgeNivel}>Nível {nivelOrador}</span>
-          </h3>
-          <p style={styles.subtitle}>Gerencie os recursos de Mana e Fábula para inspirar seus aliados e subjugar inimigos.</p>
-        </div>
-        <div style={styles.statusBox}>
-          <div>Mana Disponível: <strong style={{ color: '#22d3ee' }}>{mpValido} / {mpMaxPermitido} PM</strong></div>
-          <div>Pontos de Fábula: <strong style={{ color: '#fbbf24' }}>{Number(ficha?.fabula ?? 0)} PF</strong></div>
-        </div>
-      </div>
+      <OradorHeader
+        styles={styles}
+        nivelOrador={nivelOrador}
+        mpValido={mpValido}
+        mpMaxPermitido={mpMaxPermitido}
+        fabulaPontos={fabulaPontos}
+      />
 
-      <div style={styles.grid}>
-        {/* Aliado Inesperado */}
-        <div style={styles.card}>
-          <div>
-            <h4 style={styles.cardTitle}>Aliado Inesperado</h4>
-            <p style={styles.cardDesc}>Gaste 1 Ponto de Fábula para introduzir um elemento ou NPC de ajuda na cena.</p>
-          </div>
-          <button
-            onClick={usarAliadoInesperado}
-            style={styles.buttonAmber}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#b45309'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(217, 119, 6, 0.8)'}
-          >
-            Usar Aliado Inesperado (1 PF)
-          </button>
-        </div>
-
-        {/* Condenar */}
-        <div style={styles.card}>
-          <div>
-            <h4 style={styles.cardTitle}>Condenar</h4>
-            <p style={styles.cardDesc}>Custa 5 PM. Alvo sofre teste oposto e perde {perdaPmCondenar} PM.</p>
-          </div>
-          <button
-            onClick={usarCondenar}
-            style={styles.buttonIndigo}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#4338ca'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(79, 70, 229, 0.8)'}
-          >
-            Usar Condenar (5 PM)
-          </button>
-        </div>
-
-        {/* Confio em Você */}
-        <div style={styles.card}>
-          <div>
-            <h4 style={styles.cardTitle}>Confio em Você</h4>
-            <p style={styles.cardDesc}>Gaste 1 Ponto de Fábula para permitir que um aliado re-role um dado.</p>
-          </div>
-          <button
-            onClick={usarConfioEmVoce}
-            style={styles.buttonAmber}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#b45309'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(217, 119, 6, 0.8)'}
-          >
-            Usar Confio em Você (1 PF)
-          </button>
-        </div>
-
-        {/* Encorajar */}
-        <div style={styles.card}>
-          <div>
-            <h4 style={styles.cardTitle}>Encorajar</h4>
-            <p style={styles.cardDesc}>Custa 5 PM. Aliado recupera {curaEncorajar} PV e sobe um passo em um Atributo.</p>
-          </div>
-          <button
-            onClick={usarEncorajar}
-            style={styles.buttonIndigo}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#4338ca'}
-            onMouseOut={(e) => e.target.style.backgroundColor = 'rgba(79, 70, 229, 0.8)'}
-          >
-            Usar Encorajar (5 PM)
-          </button>
-        </div>
-      </div>
+      <OradorHabilidadesCards
+        styles={styles}
+        usarAliadoInesperado={usarAliadoInesperado}
+        usarCondenar={usarCondenar}
+        perdaPmCondenar={perdaPmCondenar}
+        usarConfioEmVoce={usarConfioEmVoce}
+        usarEncorajar={usarEncorajar}
+        curaEncorajar={curaEncorajar}
+      />
 
       {/* Persuasivo (Passiva) */}
       <div style={styles.passivaBox}>

@@ -1,24 +1,18 @@
 import React, { useState } from 'react';
-import { FaPaw, FaDice, FaBolt, FaMagic } from 'react-icons/fa';
+import { FaPaw, FaMagic } from 'react-icons/fa';
+import { extrairValorDado } from '../../../../domain/fabula/classRules';
+import CompanheiroStats from './CompanheiroStats';
+import CompanheiroAtaqueItem from './CompanheiroAtaqueItem';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
-
-const extrairValorDado = (dadoStr) => {
-    if (!dadoStr) return 8;
-    const num = parseInt(String(dadoStr).replace(/\D/g, ''), 10);
-    return isNaN(num) ? 8 : num;
-};
 
 export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurso }) {
     const [modoAtaqueState, setModoAtaqueState] = useState({});
     const [resultadosRolagem, setResultadosRolagem] = useState({});
 
-    // Movido para dentro do componente para ter acesso às props
     const conjurarFeiticoCompanheiro = (feitico) => {
         const custo = parseInt(feitico.pm_custo || 0, 10);
-
         if (custo > 0 && handleAjustarRecurso) {
-            // Deduz o custo do MP do personagem principal
             handleAjustarRecurso('mp_atual', -custo);
         }
     };
@@ -89,9 +83,12 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
         }));
     };
 
+    const alterarModoAtaque = (indexAtaque, modo) => {
+        setModoAtaqueState(prev => ({ ...prev, [indexAtaque]: modo }));
+    };
+
     return (
         <div style={{ background: '#0d0f18', border: '1px solid #30363d', borderRadius: '8px', padding: '14px', marginTop: '10px' }}>
-
             {/* Título do Companheiro */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #21262d', paddingBottom: '8px', marginBottom: '10px' }}>
                 <span style={{ color: '#d4af37', fontWeight: 'bold', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -102,45 +99,8 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
                 </span>
             </div>
 
-            {/* Atributos Básicos */}
-            <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.75rem', color: '#8b949e', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>Atributos</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center' }}>
-                    {['des', 'ast', 'vig', 'von'].map(attr => (
-                        <div key={attr} style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                            <div style={{ fontSize: '0.65rem', color: '#8b949e', textTransform: 'uppercase' }}>{attr}</div>
-                            <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>{companheiro.atributos?.[attr] || 'd8'}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Estatísticas de Combate */}
-            <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontSize: '0.75rem', color: '#8b949e', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>Estatísticas de Combate</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', textAlign: 'center' }}>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#ff7b72' }}>PV Máx</div>
-                        <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>{companheiro.pv_max}</div>
-                    </div>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#58a6ff' }}>PM Máx</div>
-                        <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>{companheiro.pm_max}</div>
-                    </div>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#3fb950' }}>Defesa</div>
-                        <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>{companheiro.defesa}</div>
-                    </div>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#d2a8ff' }}>Def. Mág.</div>
-                        <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>{companheiro.defesa_magica}</div>
-                    </div>
-                    <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '4px', padding: '4px' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#8b949e' }}>Iniciativa</div>
-                        <div style={{ color: '#f0f6fc', fontWeight: 'bold', fontSize: '0.85rem' }}>0</div>
-                    </div>
-                </div>
-            </div>
+            {/* Atributos e Estatísticas */}
+            <CompanheiroStats companheiro={companheiro} />
 
             {/* Traços */}
             {companheiro.tracos && companheiro.tracos.some(Boolean) && (
@@ -161,78 +121,17 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ fontSize: '0.75rem', color: '#8b949e', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>Ataques Básicos</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {companheiro.ataques_basicos.map((atk, aIdx) => {
-                            const modoAtual = modoAtaqueState[aIdx] || 'normal';
-                            const ultimaRolagem = resultadosRolagem[aIdx];
-
-                            return (
-                                <div key={aIdx} style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '6px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div>
-                                            <strong style={{ color: '#f0f6fc', fontSize: '0.9rem' }}>{atk.nome}</strong>
-                                            <div style={{ fontSize: '0.75rem', color: '#8b949e' }}>
-                                                Atributos: [{atk.atributo_dado1?.toUpperCase()} + {atk.atributo_dado2?.toUpperCase()}] • Tipo: {atk.tipo_dano || 'Físico'}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', padding: '2px' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setModoAtaqueState(prev => ({ ...prev, [aIdx]: 'normal' }))}
-                                            style={{
-                                                flex: 1, background: modoAtual === 'normal' ? '#21262d' : 'transparent',
-                                                color: modoAtual === 'normal' ? '#f0f6fc' : '#8b949e', border: 'none',
-                                                padding: '4px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer'
-                                            }}
-                                        >
-                                            Ataque Único
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setModoAtaqueState(prev => ({ ...prev, [aIdx]: 'multi' }))}
-                                            style={{
-                                                flex: 1, background: modoAtual === 'multi' ? '#da3633' : 'transparent',
-                                                color: modoAtual === 'multi' ? '#fff' : '#8b949e', border: 'none',
-                                                padding: '4px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', cursor: 'pointer'
-                                            }}
-                                        >
-                                            Multiataque
-                                        </button>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => executarRolagemAtaqueCompanheiro(atk, aIdx)}
-                                        style={{ background: '#238636', color: '#fff', border: 'none', padding: '6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}
-                                    >
-                                        <FaDice /> Rolar Ataque e Dano do Companheiro
-                                    </button>
-
-                                    {ultimaRolagem && (
-                                        <div style={{ background: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
-                                            {ultimaRolagem.statusCritico && (
-                                                <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: ultimaRolagem.statusCritico.includes('Sucesso') ? '#3fb950' : '#f85149', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '3px' }}>
-                                                    <FaBolt /> {ultimaRolagem.statusCritico}
-                                                </div>
-                                            )}
-                                            <div style={{ fontSize: '0.75rem', color: '#f0f6fc', display: 'flex', justifyContent: 'space-between' }}>
-                                                <span>Precisão Final:</span>
-                                                <strong style={{ color: '#d4af37' }}>{ultimaRolagem.testeAtaque}</strong>
-                                            </div>
-                                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                                <div>🧩 Atributos: {ultimaRolagem.attr1Label} ({ultimaRolagem.res1}) + {ultimaRolagem.attr2Label} ({ultimaRolagem.res2})</div>
-                                                <div>⚔️ Bônus de Precisão (NP): +{ultimaRolagem.bonusPrecisao}</div>
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', color: '#d4af37', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '2px', paddingTop: '2px' }}>
-                                                <span>Dano Final:</span>
-                                                <strong style={{ fontSize: '0.85rem' }}>{ultimaRolagem.danoTotal}</strong>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                        {companheiro.ataques_basicos.map((atk, aIdx) => (
+                            <CompanheiroAtaqueItem
+                                key={aIdx}
+                                ataque={atk}
+                                indexAtaque={aIdx}
+                                modoAtual={modoAtaqueState[aIdx] || 'normal'}
+                                onAlterarModo={alterarModoAtaque}
+                                onRolarAtaque={executarRolagemAtaqueCompanheiro}
+                                ultimaRolagem={resultadosRolagem[aIdx]}
+                            />
+                        ))}
                     </div>
                 </div>
             )}
@@ -264,7 +163,6 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
                     </div>
                 </div>
             )}
-
         </div>
     );
 }

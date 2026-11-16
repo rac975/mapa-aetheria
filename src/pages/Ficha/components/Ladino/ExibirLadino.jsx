@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaUserSecret, FaRunning, FaShieldAlt, FaCrosshairs, FaGhost, FaBolt } from 'react-icons/fa';
-import { supabase } from '../../../../services/supabase';
+import { fichaService } from '../../../../services/fichaService';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
@@ -62,8 +62,8 @@ export default function ExibirLadino({ classes, ficha, fichaId, handleAjustarRec
             const nomeItem = `Tesouro da Alma (${tipoAlvo.toUpperCase()} Nv. ${alvoNivel})`;
 
             try {
-                // Inserção corrigida sem a coluna 'custo'
-                const { error } = await supabase.from('itens_personagem').insert([{
+                // Inserção corrigida sem a coluna 'custo' via fichaService
+                const { error } = await fichaService.addItemPersonagem({
                     ficha_id: idPersonagem,
                     nome: nomeItem,
                     tipo: 'Tesouro / Valioso',
@@ -72,7 +72,7 @@ export default function ExibirLadino({ classes, ficha, fichaId, handleAjustarRec
                         valor_zenites: valorZenites,
                         descricao: `Tesouro no valor de ${valorZenites} zênites obtido de um ${tipoAlvo} de nível ${alvoNivel}.`
                     }
-                }]);
+                });
 
                 if (error) throw error;
                 mensagemResultado = `💎 Tesouro da Alma obtido! Um item no valor de ${valorZenites} zênites foi adicionado à sua mochila.`;

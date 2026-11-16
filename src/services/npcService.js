@@ -93,5 +93,40 @@ export const npcService = {
     return await supabase
       .from('catalogo_poderes_npc')
       .select('*');
+  },
+
+  /**
+   * Busca o companheiro fiel associado a um personagem
+   * @param {string|number} personagemId
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCompanheiroFielPorPersonagemId(personagemId) {
+    return await supabase
+      .from('npcs_mestre')
+      .select('*')
+      .eq('personagem_id', personagemId)
+      .eq('tipo_registro', 'companheiro')
+      .maybeSingle();
+  },
+
+  /**
+   * Cria um registro de companheiro fiel
+   * @param {Object} companheiroData
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async createCompanheiroFiel(companheiroData) {
+    return await supabase
+      .from('npcs_mestre')
+      .insert([companheiroData])
+      .select()
+      .single();
+  },
+
+  /**
+   * Obtém os dados de autenticação do usuário atual
+   * @returns {Promise<any>}
+   */
+  async getAuthUser() {
+    return await supabase.auth.getUser();
   }
 };

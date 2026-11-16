@@ -362,5 +362,52 @@ export const fichaService = {
       .from('fichas_personagens')
       .delete()
       .eq('id', id);
+  },
+
+  /**
+   * Adiciona um item ao inventário do personagem (ex: Tesouro da Alma do Ladino)
+   * @param {Object} itemData
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async addItemPersonagem(itemData) {
+    return await supabase
+      .from('itens_personagem')
+      .insert([itemData]);
+  },
+
+  /**
+   * Atualiza as classes de um personagem na tabela personagens
+   * @param {string|number} fichaId
+   * @param {Array} classes
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async atualizarClassesPersonagem(fichaId, classes) {
+    return await supabase
+      .from('personagens')
+      .update({ classes })
+      .eq('id', fichaId);
+  },
+
+  /**
+   * Busca o catálogo completo de arcanos ordenados por nome
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoArcanos() {
+    return await supabase
+      .from('catalogo_arcanos')
+      .select('*')
+      .order('nome', { ascending: true });
+  },
+
+  /**
+   * Deleta itens do personagem por lista de IDs
+   * @param {Array<string|number>} ids
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async deletarItensPersonagemPorIds(ids) {
+    return await supabase
+      .from('itens_personagem')
+      .delete()
+      .in('id', ids);
   }
 };

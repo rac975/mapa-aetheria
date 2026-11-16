@@ -1,6 +1,6 @@
 // import React, { useState } from 'react';
 import { FaMoon, FaSkull, FaHeartbeat } from 'react-icons/fa';
-import { processarGolpeDasSombras } from './processarGolpeDasSombras';
+import { processarGolpeDasSombras } from '../../../../domain/fabula/classRules';
 
 export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vigorValor = 8, emCriseGlobal, classes = [], onAtivarGolpe }) {
   // const [dadoVigorRolado, setDadoVigorRolado] = useState(8);

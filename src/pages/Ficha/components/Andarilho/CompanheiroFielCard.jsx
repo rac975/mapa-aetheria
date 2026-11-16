@@ -1,21 +1,10 @@
 import { useState, useEffect } from 'react';
 import { FaPaw, FaCog, FaPlusCircle } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../../../../services/supabase';
+import { npcService } from '../../../../services/npcService';
+import { calcularPvMaximoCompanheiro, extrairNivelCompanheiroFiel } from '../../../../domain/fabula/classRules';
+import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import NPCEditor from '../../../Mestre/NPC/components/NPCEditor';
-
-// Helper para converter string de dado ('d8') em valor numérico (8)
-const extrairValorDado = (dadoStr) => {
-    if (!dadoStr) return 8;
-    const num = parseInt(String(dadoStr).replace(/\D/g, ''), 10);
-    return isNaN(num) ? 8 : num;
-};
-
-// Fórmula oficial de Fabula Ultima para PV do Companheiro Fiel
-const calcularPvMaximo = (nivelNP, dadoVigor, nivelPersonagem) => {
-    const valorVigor = extrairValorDado(dadoVigor);
-    return (nivelNP * valorVigor) + Math.floor(nivelPersonagem / 2);
-};
 
 export default function CompanheiroFielCard({ fichaId, classes = [] }) {
     const { id: idUrl } = useParams();
@@ -27,12 +16,8 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
     const [catalogoPoderes, setCatalogoPoderes] = useState([]);
     const [catalogoFeiticos, setCatalogoFeiticos] = useState([]);
 
-    const nivelNP = classes.reduce((max, c) => {
-        const hab = (c.habilidades || []).find(h => (h.nome || '').toLowerCase().includes('companheiro fiel'));
-        return hab ? Math.max(max, parseInt(hab.nivel) || 0) : max;
-    }, 0);
-
-    const nivelPersonagem = classes.reduce((acc, c) => acc + (parseInt(c.nivel) || 1), 0);
+    const nivelNP = extrairNivelCompanheiroFiel(classes);
+    const nivelPersonagem = calcularNivelTotal(classes);
 
     useEffect(() => {
         let active = true;
@@ -40,19 +25,14 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
         async function carregarDados() {
             if (!realFichaId || nivelNP <= 0) return;
 
-            const { data: compData, error: errComp } = await supabase
-                .from('npcs_mestre')
-                .select('*')
-                .eq('personagem_id', realFichaId)
-                .eq('tipo_registro', 'companheiro')
-                .maybeSingle();
+            const { data: compData, error: errComp } = await npcService.getCompanheiroFielPorPersonagemId(realFichaId);
 
             if (errComp) {
                 console.error("❌ [CompanheiroFiel] Erro ao buscar:", errComp.message);
             }
 
-            const { data: poderesData } = await supabase.from('catalogo_poderes_npc').select('*');
-            const { data: feiticosData } = await supabase.from('catalogo_feiticos').select('*');
+            const { data: poderesData } = await npcService.getCatalogoPoderesNpc();
+            const { data: feiticosData } = await npcService.getCatalogoFeiticos();
 
             if (!active) return;
 
@@ -60,12 +40,12 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
             if (feiticosData) setCatalogoFeiticos(feiticosData);
 
             if (compData) {
-                const pvCalculado = calcularPvMaximo(nivelNP, compData.atributos?.vig, nivelPersonagem);
+                const pvCalculado = calcularPvMaximoCompanheiro(nivelNP, compData.atributos?.vig, nivelPersonagem);
                 if (compData.pv_max !== pvCalculado) {
                     const compSincronizado = { ...compData, pv_max: pvCalculado };
                     setCompanheiro(compSincronizado);
                     const { id, ...resto } = compSincronizado;
-                    await supabase.from('npcs_mestre').update(resto).eq('id', id);
+                    await npcService.updateNpc(id, resto);
                 } else {
                     setCompanheiro(compData);
                 }
@@ -90,8 +70,8 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
 
     const criarCompanheiroNoBanco = async () => {
         setSalvando(true);
-        const { data: userData } = await supabase.auth.getUser();
-        const pvInicial = calcularPvMaximo(nivelNP, 'd8', nivelPersonagem);
+        const { data: userData } = await npcService.getAuthUser();
+        const pvInicial = calcularPvMaximoCompanheiro(nivelNP, 'd8', nivelPersonagem);
 
         const novoMolde = {
             user_id: userData?.user?.id || null,
@@ -116,11 +96,7 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
             tipo_registro: 'companheiro'
         };
 
-        const { data, error } = await supabase
-            .from('npcs_mestre')
-            .insert([novoMolde])
-            .select()
-            .single();
+        const { data, error } = await npcService.createCompanheiroFiel(novoMolde);
 
         if (!error && data) {
             setCompanheiro(data);
@@ -133,7 +109,7 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
     };
 
     const salvarNoBanco = async (novoEstado) => {
-        const pvRecalculado = calcularPvMaximo(nivelNP, novoEstado.atributos?.vig, nivelPersonagem);
+        const pvRecalculado = calcularPvMaximoCompanheiro(nivelNP, novoEstado.atributos?.vig, nivelPersonagem);
         const estadoAtualizado = {
             ...novoEstado,
             pv_max: pvRecalculado
@@ -150,10 +126,7 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
         };
 
         if (id) {
-            const { error } = await supabase
-                .from('npcs_mestre')
-                .update(payload)
-                .eq('id', id);
+            const { error } = await npcService.updateNpc(id, payload);
 
             if (error) {
                 console.error("❌ [CompanheiroFiel] Erro ao atualizar:", error.message);
