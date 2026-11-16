@@ -44,3 +44,14 @@ Padrões de higiene de código e limites de complexidade estrutural.
 * **Eliminação de Código Duplicado (DRY)**: Reutilizar helpers, serviços e hooks em vez de duplicar blocos de queries ou lógica de manipulação de dados.
 * **Evitar Estados Derivados Desnecessários**: Não duplicar em `useState` valores que podem ser computados diretamente a partir das props ou de outros estados durante a renderização (use cálculos diretos ou `useMemo` quando custoso).
 * **Preservação de Estilo e Visual**: Durante as etapas de refatoração arquitetural, **não alterar nada no visual/CSS** nem modificar a interface que o usuário final utiliza.
+
+---
+
+## 5. Regras de Design System, Estilização e Interface Híbrida
+Diretrizes mandatórias para estilização, eliminação de acoplamento visual no JSX e suporte à experiência física/digital.
+
+1. **Zero Estilo Inline no JSX**: É **estritamente proibido** usar `style={{ ... }}` com valores fixos (cores, tamanhos, bordas) ou tags `<style>` dentro de arquivos `.jsx`. Estilos dinâmicos só podem ser passados via variáveis CSS inline (`style={{ '--var-name': valor }}`) ou classes condicionais.
+2. **Tokens Visuais Únicos (`src/styles/theme.css`)**: Centralizar todas as variáveis CSS de cores (tema JRPG/Fabula Ultima, PV, PM, PI, status de Crise, superfícies e bordas), fontes e sombras em um único arquivo global.
+3. **Separação JSX e CSS**: Todo componente deve manter seu estilo separado (usando Tailwind ou arquivos `.module.css` consumindo as variáveis de `theme.css`).
+4. **Componentes Base (`src/components/ui/`)**: Criar e reutilizar componentes fundamentais padronizados: `Button`, `Card`, `Badge`, `Input`, `Modal` e `ResourceBar`.
+5. **Modo Híbrido (Virtual vs. Físico)**: Todo componente de ficha ou carta deve conter regras `@media print` (ou classes `print:`) para ocultar controles interativos e converter o layout para fundo branco e alto contraste na hora de imprimir.

@@ -1,0 +1,263 @@
+/* ==========================================================================
+   NPC EDITOR - CSS MODULE
+   Tokens do theme.css (Fabula Ultima / Xenoblade 2)
+   ========================================================================== */
+
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  font-family: var(--font-family-sans);
+}
+
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.editorTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-gold);
+  margin: 0 0 var(--space-1) 0;
+  letter-spacing: 0.05em;
+}
+
+.editorSubtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  margin: 0 0 var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sectionHeaderFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.sectionHeaderFlex h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sectionSubtext {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+/* FORM ELEMENTS */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+.fieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.select,
+.input {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 8px var(--color-border-gold-glow);
+}
+
+.inputDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-bg-base);
+}
+
+.regrasEspeciais {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  margin-top: var(--space-1);
+}
+
+/* GRIDS ESPECÍFICOS */
+.patenteGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.atributosGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+.afinidadesGrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-2);
+}
+
+.tracosGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+/* ATAQUES */
+.ataquesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ataqueItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* PODERES E FEITIÇOS */
+.poderesFeiticosGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.catalogoBonusText {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  margin-bottom: var(--space-2);
+}
+
+.listaScroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.itemCatalogo {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemTitle {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.itemDesc {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 900px) {
+  .formGrid,
+  .atributosGrid,
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .afinidadesGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .poderesFeiticosGrid,
+  .patenteGrid,
+  .tracosGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ataqueItem {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .afinidadesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

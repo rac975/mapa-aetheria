@@ -1,0 +1,473 @@
+/* ==========================================================================
+   NPC VIEW - CSS MODULE
+   Tokens do theme.css (Fabula Ultima / Xenoblade 2)
+   Regras completas de exibição digital e bloco de estatísticas físico (@media print)
+   ========================================================================== */
+
+.viewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  font-family: var(--font-family-sans);
+}
+
+/* CABEÇALHO DO NPC */
+.headerCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.headerMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.npcTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-gold);
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-shadow: var(--shadow-glow-gold);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.bonusBox {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: right;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.bonusItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.bonusValue {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-family: var(--font-family-mono);
+}
+
+/* TRAÇOS */
+.tracosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.tracoCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tracoLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tracoText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+/* ATRIBUTOS */
+.atributosGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.atributoCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atributoLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.atributoValue {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-gold);
+  font-weight: 800;
+  font-family: var(--font-family-mono);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* RECURSOS E COMBATE */
+.combatGrid {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+.resourceCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.statControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.statQuickBtn {
+  background: var(--color-bg-surface);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.statQuickBtn:hover {
+  background: var(--color-border-gold);
+  color: var(--color-bg-base);
+}
+
+.statCardCenter {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.statTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statNumberLarge {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-gold);
+  font-weight: 800;
+  font-family: var(--font-family-mono);
+  margin: 0;
+}
+
+/* AFINIDADES ELEMENTARES */
+.sectionTitle {
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-gold);
+  margin: 0 0 var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.afinidadesGrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-2);
+}
+
+.afinidadeItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tipoDanoNome {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-main);
+  text-transform: capitalize;
+}
+
+/* ATAQUES BÁSICOS */
+.ataquesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ataqueItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ataqueName {
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-text-main);
+}
+
+.ataqueDado {
+  font-size: var(--font-size-sm);
+  color: var(--color-ether-cyan);
+  font-family: var(--font-family-mono);
+  margin-left: var(--space-2);
+}
+
+.ataqueDanoInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gold);
+  font-weight: 600;
+  font-family: var(--font-family-mono);
+}
+
+/* PODERES E FEITIÇOS */
+.poderesFeiticosGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.viewList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.viewItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.itemHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.poderName {
+  color: var(--color-text-gold);
+  font-weight: 700;
+}
+
+.feiticoName {
+  color: var(--color-ether-cyan);
+  font-weight: 700;
+}
+
+.emptyText {
+  color: var(--color-text-dim);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 900px) {
+  .combatGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .afinidadesGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .poderesFeiticosGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .atributosGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .combatGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .afinidadesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   MODO HÍBRIDO (@media print) - BLOCO DE ESTATÍSTICAS FÍSICO LIMPO
+   ========================================================================== */
+@media print {
+  .viewContainer {
+    color: #000000 !important;
+    background: #ffffff !important;
+    gap: 8px !important;
+  }
+
+  .headerCard {
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .npcTitle {
+    color: #000000 !important;
+    text-shadow: none !important;
+    font-size: 1.4rem !important;
+  }
+
+  .bonusBox {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    padding: 4px 8px !important;
+  }
+
+  .bonusValue {
+    color: #000000 !important;
+  }
+
+  .tracoCard,
+  .atributoCard,
+  .resourceCard,
+  .statCardCenter,
+  .afinidadeItem,
+  .ataqueItem,
+  .viewItem {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .tracoLabel,
+  .atributoLabel,
+  .statTitle,
+  .sectionTitle {
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .atributoValue,
+  .statNumberLarge,
+  .poderName,
+  .feiticoName,
+  .ataqueDanoInfo {
+    color: #000000 !important;
+  }
+
+  .statControls,
+  .statQuickBtn,
+  .noPrint {
+    display: none !important;
+  }
+
+  .combatGrid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .afinidadesGrid {
+    grid-template-columns: repeat(8, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .tracosGrid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .poderesFeiticosGrid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Evita quebras no meio do bloco físico */
+  .viewContainer,
+  .headerCard,
+  .combatGrid,
+  .afinidadesGrid,
+  .ataqueItem,
+  .viewItem {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}

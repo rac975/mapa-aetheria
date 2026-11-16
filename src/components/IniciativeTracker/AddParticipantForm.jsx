@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
+import { FaUserPlus, FaShieldAlt, FaSkull } from 'react-icons/fa';
+import { Button, Input } from '../ui';
 import { npcService } from '../../services/npcService';
+import styles from './AddParticipantForm.module.css';
 
 export default function AddParticipantForm({
   novoTipo,
@@ -14,7 +17,7 @@ export default function AddParticipantForm({
   mpMaxInput,
   setMpMaxInput,
   onAddParticipante,
-  onSelecionarNpcCatalogo // Callback para lidar com a seleção do NPC pronto
+  onSelecionarNpcCatalogo
 }) {
   const [modoInimigo, setModoInimigo] = useState('manual'); // 'manual' ou 'catalogo'
   const [npcsSalvos, setNpcsSalvos] = useState([]);
@@ -46,48 +49,87 @@ export default function AddParticipantForm({
   };
 
   return (
-    <form onSubmit={onAddParticipante} className="form-add-part">
-      <div className="form-row-inline" style={{ flexWrap: 'wrap', gap: '10px' }}>
-        <select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value)}>
-          <option value="heroi">Herói (Selecionar Ficha)</option>
-          <option value="inimigo">Inimigo / NPC</option>
-        </select>
+    <form onSubmit={onAddParticipante} className={styles.formCard}>
+      <header className={styles.formHeader}>
+        <span className={styles.formTitle}>
+          <FaUserPlus className={styles.titleIcon} /> Adicionar Combatente à Cena
+        </span>
+      </header>
+
+      <div className={styles.formRow}>
+        <div className={styles.selectWrapper}>
+          <select
+            value={novoTipo}
+            onChange={(e) => setNovoTipo(e.target.value)}
+            className={styles.select}
+            aria-label="Tipo de combatente"
+          >
+            <option value="heroi">Herói (Selecionar Ficha)</option>
+            <option value="inimigo">Inimigo / NPC</option>
+          </select>
+        </div>
 
         {novoTipo === 'heroi' ? (
-          <select
-            value={fichaSelecionadaId}
-            onChange={(e) => setFichaSelecionadaId(e.target.value)}
-            style={{ flex: 2 }}
-          >
-            {fichasDisponiveis.map(f => (
-              <option key={f.id} value={f.id}>{f.nome_personagem}</option>
-            ))}
-          </select>
+          <div className={styles.fieldGrow}>
+            <select
+              value={fichaSelecionadaId}
+              onChange={(e) => setFichaSelecionadaId(e.target.value)}
+              className={styles.select}
+              aria-label="Selecionar Ficha do Personagem"
+            >
+              {fichasDisponiveis.map(f => (
+                <option key={f.id} value={f.id}>
+                  {f.nome_personagem}
+                </option>
+              ))}
+            </select>
+          </div>
         ) : (
-          <>
-            <div style={{ display: 'flex', gap: '5px', flex: 2 }}>
-              <select 
-                value={modoInimigo} 
-                onChange={(e) => setModoInimigo(e.target.value)}
-                style={{ width: '130px' }}
-              >
-                <option value="manual">Digitar Rápido</option>
-                <option value="catalogo">Dos Meus NPCs</option>
-              </select>
+          <div className={styles.inimigoControls}>
+            <select
+              value={modoInimigo}
+              onChange={(e) => setModoInimigo(e.target.value)}
+              className={styles.selectSmall}
+              aria-label="Modo de adição do inimigo"
+            >
+              <option value="manual">Digitar Rápido</option>
+              <option value="catalogo">Dos Meus NPCs</option>
+            </select>
 
-              {modoInimigo === 'manual' ? (
-                <input
-                  type="text"
-                  placeholder="Nome do Inimigo / NPC"
-                  value={nomeInimigo}
-                  onChange={(e) => setNomeInimigo(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-              ) : (
+            {modoInimigo === 'manual' ? (
+              <>
+                <div className={styles.fieldGrow}>
+                  <Input
+                    type="text"
+                    placeholder="Nome do Inimigo / NPC"
+                    value={nomeInimigo}
+                    onChange={(e) => setNomeInimigo(e.target.value)}
+                  />
+                </div>
+                <div className={styles.inputNumberWrapper}>
+                  <Input
+                    type="number"
+                    placeholder="HP Máx"
+                    value={hpMaxInput}
+                    onChange={(e) => setHpMaxInput(e.target.value)}
+                  />
+                </div>
+                <div className={styles.inputNumberWrapper}>
+                  <Input
+                    type="number"
+                    placeholder="MP Máx"
+                    value={mpMaxInput}
+                    onChange={(e) => setMpMaxInput(e.target.value)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className={styles.fieldGrow}>
                 <select
                   value={npcSelecionadoId}
                   onChange={handleMudarNpcCatalogo}
-                  style={{ flex: 1 }}
+                  className={styles.select}
+                  aria-label="Selecionar NPC do catálogo"
                 >
                   {npcsSalvos.map(n => (
                     <option key={n.id} value={n.id}>
@@ -95,19 +137,14 @@ export default function AddParticipantForm({
                     </option>
                   ))}
                 </select>
-              )}
-            </div>
-
-            {modoInimigo === 'manual' && (
-              <>
-                <input type="number" placeholder="HP Máx" value={hpMaxInput} onChange={(e) => setHpMaxInput(e.target.value)} style={{ width: '80px' }} />
-                <input type="number" placeholder="MP Máx" value={mpMaxInput} onChange={(e) => setMpMaxInput(e.target.value)} style={{ width: '80px' }} />
-              </>
+              </div>
             )}
-          </>
+          </div>
         )}
 
-        <button type="submit">Adicionar à Cena</button>
+        <Button type="submit" variant="primary" size="md" className={styles.submitBtn}>
+          <FaUserPlus /> Adicionar
+        </Button>
       </div>
     </form>
   );

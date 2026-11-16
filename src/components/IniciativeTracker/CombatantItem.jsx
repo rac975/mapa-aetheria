@@ -1,10 +1,12 @@
 import React from 'react';
-import { 
-  FaShieldAlt, FaSkull, FaChevronUp, FaChevronDown, FaTrash, 
-  FaCheck, FaTimes, FaMinus, FaPlus 
+import {
+  FaShieldAlt, FaSkull, FaChevronUp, FaChevronDown, FaTrashAlt,
+  FaCheck, FaTimes, FaMinus, FaPlus, FaHeartbeat, FaMagic, FaStar, FaBoxOpen
 } from 'react-icons/fa';
+import { Badge, Button, Input, ResourceBar } from '../ui';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
 import { estaDerrotado as checkDerrotado, calcularStatusCrise, calcularDanoAcumulado } from '../../domain/fabula/combatRules';
+import styles from './CombatantItem.module.css';
 
 export default function CombatantItem({
   p,
@@ -16,7 +18,6 @@ export default function CombatantItem({
   setEditForm,
   fichasDisponiveis,
   onToggleTurno,
-  // onIniciarEdicao,
   onSalvarEdicao,
   onCancelarEdicao,
   onMoverItem,
@@ -36,70 +37,79 @@ export default function CombatantItem({
   const defesaHeroi = fichaCorrespondente?.defesa || 10;
   const mdefHeroi = fichaCorrespondente?.mdef || 10;
 
+  const itemClasses = [
+    styles.itemCard,
+    p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
+    p.agiu ? styles.turnCompleted : '',
+    estaDerrotado ? styles.isDefeated : ''
+  ].filter(Boolean).join(' ');
+
   return (
-    <div
-      className={`participante-item ${p.tipo} ${p.agiu ? 'turn-completed' : ''} ${estaDerrotado ? 'is-defeated' : ''}`}
-      onClick={() => !isEditando && onToggleTurno(p.id, p.agiu)}
-    >
+    <div className={itemClasses} onClick={() => !isEditando && onToggleTurno(p.id, p.agiu)}>
       {/* LINHA 1: Identidade, Nome, Badges de Estado e Controles */}
-      <div className="item-main-row">
-        <input type="checkbox" checked={p.agiu} readOnly />
+      <div className={styles.itemMainRow}>
+        <input
+          type="checkbox"
+          checked={p.agiu}
+          readOnly
+          className={styles.turnCheckbox}
+          aria-label={`Status de turno de ${p.nome}`}
+        />
 
         {avatarUrl ? (
-          <img src={avatarUrl} alt={p.nome} className="avatar-img" />
+          <img src={avatarUrl} alt={p.nome} className={styles.avatarImg} />
         ) : (
-          <div className="avatar-placeholder">
-            {p.tipo === 'heroi' ? <FaShieldAlt size={14} /> : <FaSkull size={14} />}
+          <div className={styles.avatarPlaceholder}>
+            {p.tipo === 'heroi' ? <FaShieldAlt size={15} /> : <FaSkull size={15} />}
           </div>
         )}
 
         {isEditando ? (
-          <input
-            type="text"
-            value={editForm.nome}
-            onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-            onClick={(e) => e.stopPropagation()}
-            className="input-edit-nome"
-          />
+          <div className={styles.editInputWrapper} onClick={(e) => e.stopPropagation()}>
+            <Input
+              value={editForm.nome}
+              onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+              placeholder="Nome do combatente"
+            />
+          </div>
         ) : (
-          <div className="info-principal-wrapper">
-            <span className="nome">{p.nome}</span>
-            <div className="badges-estado-inline">
-              {estaDerrotado && <span className="badge-derrotado">CAÍDO</span>}
-              {emCrise && <span className="badge-crise">CRISE</span>}
-              <span className={`badge ${p.tipo}`}>
+          <div className={styles.infoPrincipalWrapper}>
+            <span className={styles.nome}>{p.nome}</span>
+            <div className={styles.badgesEstadoInline}>
+              {estaDerrotado && <Badge variant="default" size="sm">CAÍDO</Badge>}
+              {emCrise && !estaDerrotado && <Badge variant="crise" size="sm">CRISE</Badge>}
+              <Badge variant={p.tipo === 'heroi' ? 'core' : 'crise'} size="sm">
                 {p.tipo === 'heroi' ? <><FaShieldAlt /> Herói</> : <><FaSkull /> Inimigo</>}
-              </span>
+              </Badge>
             </div>
           </div>
         )}
 
         {isMestre && (
-          <div className="item-controls" onClick={(e) => e.stopPropagation()}>
+          <div className={`${styles.itemControls} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
             {isEditando ? (
               <>
-                <button className="btn-save-edit" onClick={() => onSalvarEdicao(p.id)} title="Salvar"><FaCheck /></button>
-                <button className="btn-cancel-edit" onClick={onCancelarEdicao} title="Cancelar"><FaTimes /></button>
+                <Button variant="core" size="sm" onClick={() => onSalvarEdicao(p.id)} title="Salvar" className={styles.iconBtn}><FaCheck /></Button>
+                <Button variant="danger" size="sm" onClick={onCancelarEdicao} title="Cancelar" className={styles.iconBtn}><FaTimes /></Button>
               </>
             ) : (
               <>
-                {/* <button onClick={() => onIniciarEdicao(p)} title="Editar Cartão"><FaEdit /></button> */}
-                <button disabled={index === 0} onClick={() => onMoverItem(index, 'cima')} title="Subir"><FaChevronUp /></button>
-                <button disabled={index === totalParticipantes - 1} onClick={() => onMoverItem(index, 'baixo')} title="Descer"><FaChevronDown /></button>
-                <button className="btn-delete-part" onClick={() => onIniciarExclusao(p)} title="Remover"><FaTrash /></button>
+                <button type="button" disabled={index === 0} onClick={() => onMoverItem(index, 'cima')} title="Subir Ordem" className={styles.controlBtn}><FaChevronUp /></button>
+                <button type="button" disabled={index === totalParticipantes - 1} onClick={() => onMoverItem(index, 'baixo')} title="Descer Ordem" className={styles.controlBtn}><FaChevronDown /></button>
+                <button type="button" className={`${styles.controlBtn} ${styles.deleteBtn}`} onClick={() => onIniciarExclusao(p)} title="Remover da Cena"><FaTrashAlt /></button>
               </>
             )}
           </div>
         )}
       </div>
 
-      {/* LINHA 2: Condições Ativas (Caso exista) */}
+      {/* LINHA 2: Condições Ativas */}
       {condicoesAtivas.length > 0 && !isEditando && (
-        <div className="condicoes-strip">
+        <div className={styles.condicoesStrip}>
           {condicoesAtivas.map(cId => {
             const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
             return (
-              <span key={cId} className={`condicao-chip cond-${cId}`}>
+              <span key={cId} className={`${styles.condicaoChip} ${styles['cond_' + cId] || ''}`}>
                 {getCondicaoIcon(cId)}
                 <span>{condObj?.label}</span>
               </span>
@@ -108,110 +118,78 @@ export default function CombatantItem({
         </div>
       )}
 
-      {/* LINHA 3: Estatísticas Públicas (Compactas e Organizadas) */}
+      {/* LINHA 3: Estatísticas Públicas com ResourceBar */}
       {!isEditando && p.tipo === 'heroi' && (
-        <div className="stats-badges-public-grid">
-          <div className="stat-bar-wrapper">
-            <div className="stat-bar-header">
-              <span>❤️ HP: {p.hp_atual}/{p.hp_max}</span>
-            </div>
-            <div className="barra-container">
-              <div
-                className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
-                style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="stat-bar-wrapper">
-            <div className="stat-bar-header">
-              <span>💧 MP: {p.mp_atual}/{p.mp_max}</span>
-            </div>
-            <div className="barra-container">
-              <div
-                className="barra-mp-fill"
-                style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="badges-row">
-            <span className="badge-info ip-badge">📦 IP: {p.ip}</span>
-            <span className="badge-info def-badge">🛡️ DEF: {defesaHeroi}</span>
-            <span className="badge-info mdef-badge">🔮 M.DEF: {mdefHeroi}</span>
-            <span className="badge-info fabula-badge">✨ Fábula: {p.pontos_fabula}</span>
+        <div className={styles.statsHeroiGrid}>
+          <ResourceBar type="pv" current={p.hp_atual} max={p.hp_max} label="PV" isCrise={emCrise} />
+          <ResourceBar type="pm" current={p.mp_atual} max={p.mp_max} label="PM" />
+          <div className={styles.badgesRow}>
+            <Badge variant="pi" size="sm"><FaBoxOpen /> IP: {p.ip}</Badge>
+            <Badge variant="default" size="sm"><FaShieldAlt /> DEF: {defesaHeroi}</Badge>
+            <Badge variant="ether" size="sm"><FaMagic /> M.DEF: {mdefHeroi}</Badge>
+            <Badge variant="gold" size="sm"><FaStar /> Fábula: {p.pontos_fabula}</Badge>
           </div>
         </div>
       )}
 
       {!isEditando && p.tipo === 'inimigo' && (
-        <div className="stats-badges-public">
-          <span className="badge-info dano-badge">💥 Dano Acumulado: {danoInimigo}</span>
+        <div className={styles.statsInimigo}>
+          <Badge variant="crise" size="md">
+            <FaHeartbeat /> Dano Acumulado: {danoInimigo}
+          </Badge>
         </div>
       )}
 
       {/* PAINEL DE CONTROLE DO MESTRE (Abaixo dos dados do combatente) */}
       {isMestre && !isEditando && (
-        <div className="mestre-stats-bar" onClick={(e) => e.stopPropagation()}>
-          <div className="mestre-stats-bar-row">
-            <div className="stat-group-barra">
-              <div className="stat-bar-header"><span>Ajustar HP ({p.hp_atual}/{p.hp_max})</span></div>
-              <div className="barra-container">
-                <div
-                  className={`barra-hp-fill ${estaDerrotado ? 'derrotado' : emCrise ? 'em-crise' : ''}`}
-                  style={{ width: `${Math.max(0, Math.min(100, (p.hp_atual / p.hp_max) * 100))}%` }}
-                />
-              </div>
-              <div className="btn-group-delta">
-                <button onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
-                <button onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
-                <button onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
-                <button onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
+        <div className={`${styles.mestreStatsBar} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.mestreStatsBarRow}>
+            <div className={styles.statGroupBarra}>
+              <ResourceBar type="pv" current={p.hp_atual} max={p.hp_max} label="Ajustar PV" isCrise={emCrise} />
+              <div className={styles.btnGroupDelta}>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
               </div>
             </div>
 
-            <div className="stat-group-barra">
-              <div className="stat-bar-header"><span>Ajustar MP ({p.mp_atual}/{p.mp_max})</span></div>
-              <div className="barra-container">
-                <div
-                  className="barra-mp-fill"
-                  style={{ width: `${Math.max(0, Math.min(100, (p.mp_atual / p.mp_max) * 100))}%` }}
-                />
-              </div>
-              <div className="btn-group-delta">
-                <button onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
-                <button onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
-                <button onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
-                <button onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
+            <div className={styles.statGroupBarra}>
+              <ResourceBar type="pm" current={p.mp_atual} max={p.mp_max} label="Ajustar PM" />
+              <div className={styles.btnGroupDelta}>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
+                <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
               </div>
             </div>
 
             {p.tipo === 'heroi' && (
-              <>
-                <div className="stat-group">
-                  <span className="stat-label">IP: {p.ip}</span>
-                  <button onClick={() => onAlterarRecurso(p.id, 'ip', p.ip, -1)}><FaMinus /></button>
-                  <button onClick={() => onAlterarRecurso(p.id, 'ip', p.ip, 1)}><FaPlus /></button>
+              <div className={styles.countersRow}>
+                <div className={styles.statGroup}>
+                  <span className={styles.statLabel}>IP: {p.ip}</span>
+                  <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'ip', p.ip, -1)}><FaMinus /></button>
+                  <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'ip', p.ip, 1)}><FaPlus /></button>
                 </div>
-                <div className="stat-group">
-                  <span className="stat-label">✨ Fábula: {p.pontos_fabula}</span>
-                  <button onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, -1)}><FaMinus /></button>
-                  <button onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, 1)}><FaPlus /></button>
+                <div className={styles.statGroup}>
+                  <span className={styles.statLabel}><FaStar /> Fábula: {p.pontos_fabula}</span>
+                  <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, -1)}><FaMinus /></button>
+                  <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, 1)}><FaPlus /></button>
                 </div>
-              </>
+              </div>
             )}
           </div>
 
-          <div className="condicoes-selector-group">
-            <span className="stat-label">Gerenciar Condições:</span>
-            <div className="condicoes-buttons">
+          <div className={styles.condicoesSelectorGroup}>
+            <span className={styles.condicoesTitle}>Gerenciar Condições:</span>
+            <div className={styles.condicoesButtons}>
               {CONDICOES_DISPONIVEIS.map(c => {
                 const ativo = condicoesAtivas.includes(c.id);
                 return (
                   <button
                     key={c.id}
                     type="button"
-                    className={`cond-btn ${ativo ? 'active' : ''}`}
+                    className={`${styles.condBtn} ${ativo ? styles.condBtnActive : ''}`}
                     onClick={() => onToggleCondicao(p, c.id)}
                   >
                     {c.icon}

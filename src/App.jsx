@@ -15,6 +15,7 @@ import FichaLoginPage from './pages/Ficha/FichaLoginPage';
 import LojaPage from './pages/Loja/LojaPage';
 import ListaNPCsPage from './pages/Mestre/NPC/ListaNPCsPage';
 import FichaNPCPage from './pages/Mestre/NPC/FichaNPCPage';
+import DesignSystemPage from './pages/DesignSystem/DesignSystemPage';
 import './App.css';
 
 function App() {
@@ -86,6 +87,9 @@ function App() {
                   />
                 }
               />
+
+              {/* Rota temporária de visualização e teste do Design System */}
+              <Route path="/design-system" element={<DesignSystemPage />} />
             </Routes>
           </main>
 

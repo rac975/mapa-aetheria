@@ -1,0 +1,188 @@
+/* ==========================================================================
+   LISTA NPCS PAGE - CSS MODULE
+   Tokens do theme.css (Fabula Ultima / Xenoblade 2)
+   ========================================================================== */
+
+.page {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  min-height: 100%;
+  width: 100%;
+  padding: var(--space-8);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  font-family: var(--font-family-sans);
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.headerInfo h1 {
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-1) 0;
+  letter-spacing: 0.05em;
+  text-shadow: var(--shadow-glow-gold);
+}
+
+.headerInfo p {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.loadingText {
+  color: var(--color-text-muted);
+  text-align: center;
+  font-style: italic;
+  padding: var(--space-10) 0;
+  font-size: var(--font-size-base);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-10);
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: var(--space-8) auto;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  color: var(--color-border-gold);
+  opacity: 0.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.npcCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  gap: var(--space-3);
+}
+
+.npcCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card), var(--shadow-glow-gold);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.npcTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.resourcesBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-bg-input);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-gold-muted);
+}
+
+.statsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-gold-muted);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statValue {
+  color: var(--color-text-gold);
+  font-weight: 700;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--color-border-gold-muted);
+  padding-top: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.openFichaText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  transition: transform var(--transition-fast);
+}
+
+.npcCard:hover .openFichaText {
+  transform: translateX(4px);
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 800px) {
+  .page {
+    padding: var(--space-4);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

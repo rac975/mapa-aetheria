@@ -13,7 +13,9 @@ export const npcService = {
   async getNpcsMestre() {
     return await supabase
       .from('npcs_mestre')
-      .select('*');
+      .select('*')
+      .eq('tipo_registro', 'npc_mestre')
+      .order('created_at', { ascending: false });
   },
 
   /**
@@ -62,7 +64,9 @@ export const npcService = {
   async createNpc(npcData) {
     return await supabase
       .from('npcs_mestre')
-      .insert([npcData]);
+      .insert([npcData])
+      .select()
+      .single();
   },
 
   /**

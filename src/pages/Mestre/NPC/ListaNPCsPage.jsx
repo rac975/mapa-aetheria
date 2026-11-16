@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../../services/supabase';
 import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull } from 'react-icons/fa';
+import { npcService } from '../../../services/npcService';
+import { Card, Button, Badge, ResourceBar } from '../../../components/ui';
+import styles from './ListaNPCsPage.module.css';
 
 export default function ListaNPCsPage() {
   const [npcs, setNpcs] = useState([]);
@@ -11,12 +14,7 @@ export default function ListaNPCsPage() {
     let active = true;
 
     async function carregarNpcs() {
-      // Filtrando apenas os NPCs criados pelo Mestre
-      const { data, error } = await supabase
-        .from('npcs_mestre')
-        .select('*')
-        .eq('tipo_registro', 'npc_mestre') // <-- Garante que não traz companheiros de jogadores aqui
-        .order('created_at', { ascending: false });
+      const { data, error } = await npcService.getNpcsMestre();
 
       if (!active) return;
 
@@ -35,8 +33,11 @@ export default function ListaNPCsPage() {
   }, []);
 
   async function criarNovoNpc() {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) return alert('Você precisa estar logado!');
+    const { data: userData } = await npcService.getAuthUser();
+    if (!userData?.user) {
+      alert('Você precisa estar logado como Mestre para criar NPCs.');
+      return;
+    }
 
     const novoNpc = {
       user_id: userData.user.id,
@@ -61,11 +62,7 @@ export default function ListaNPCsPage() {
       feiticos: []
     };
 
-    const { data, error } = await supabase
-      .from('npcs_mestre')
-      .insert([novoNpc])
-      .select()
-      .single();
+    const { data, error } = await npcService.createNpc(novoNpc);
 
     if (error) {
       console.error('Erro ao criar NPC:', error);
@@ -75,55 +72,99 @@ export default function ListaNPCsPage() {
     }
   }
 
+  const getRankBadgeVariant = (rank) => {
+    switch (rank?.toLowerCase()) {
+      case 'elite':
+        return 'ether';
+      case 'campeao':
+        return 'crise';
+      default:
+        return 'gold';
+    }
+  };
+
   return (
-    <div className="lista-npcs-container">
-      <div className="lista-npcs-header">
-        <div>
-          <h1>Criador de NPC (Mestre)</h1>
-          <p>Gerencie seus monstros, lacaios e chefes de campanha.</p>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerInfo}>
+          <h1><FaDragon /> Bestiário de NPCs (Mestre)</h1>
+          <p>Gerencie monstros, lacaios e chefes para as sessões de Fabula Ultima.</p>
         </div>
-        <button onClick={criarNovoNpc} className="btn-novo-npc">
-          + Novo NPC
-        </button>
-      </div>
+        <Button variant="primary" onClick={criarNovoNpc}>
+          <FaPlus /> Novo NPC
+        </Button>
+      </header>
 
       {loading ? (
-        <p className="loading-text">Carregando bestiário...</p>
+        <p className={styles.loadingText}>Carregando bestiário da mesa...</p>
       ) : npcs.length === 0 ? (
-        <div className="empty-state">
-          <p>Nenhum NPC cadastrado ainda.</p>
-          <button onClick={criarNovoNpc} className="link-criar">
-            Criar seu primeiro NPC agora
-          </button>
+        <div className={styles.emptyState}>
+          <FaSkull className={styles.emptyIcon} />
+          <p>Nenhum NPC ou adversário cadastrado ainda.</p>
+          <Button variant="secondary" onClick={criarNovoNpc}>
+            Criar Primeiro NPC
+          </Button>
         </div>
       ) : (
-        <div className="npcs-grid">
+        <div className={styles.grid}>
           {npcs.map((npc) => (
-            <div
+            <Card
               key={npc.id}
+              variant="interactive"
+              className={styles.npcCard}
               onClick={() => navigate(`/mestre/npcs/${npc.id}`)}
-              className="npc-card"
+              title="Abrir ficha completa"
             >
               <div>
-                <div className="npc-card-header">
-                  <h3>{npc.nome}</h3>
-                  <span className="npc-rank-badge">
-                    {npc.rank}
+                <div className={styles.cardHeader}>
+                  <h3 className={styles.npcTitle}>{npc.nome}</h3>
+                  <Badge variant={getRankBadgeVariant(npc.rank)} size="sm">
+                    {npc.rank?.toUpperCase() || 'SOLDADO'}
+                  </Badge>
+                </div>
+
+                <div className={styles.cardMeta}>
+                  <Badge variant="default" size="sm">
+                    {npc.especie?.toUpperCase() || 'FERA'}
+                  </Badge>
+                  <Badge variant="ether" size="sm">
+                    Nível {npc.nivel}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className={styles.resourcesBox}>
+                <ResourceBar
+                  type="pv"
+                  current={npc.pv_atual}
+                  max={npc.pv_max}
+                  label="PV"
+                />
+                <ResourceBar
+                  type="pm"
+                  current={npc.pm_atual}
+                  max={npc.pm_max}
+                  label="PM"
+                />
+                <div className={styles.statsRow}>
+                  <span className={styles.statItem}>
+                    <FaShieldAlt /> Def: <strong className={styles.statValue}>{npc.defesa}</strong>
+                  </span>
+                  <span className={styles.statItem}>
+                    Def. Mág: <strong className={styles.statValue}>{npc.defesa_magica}</strong>
+                  </span>
+                  <span className={styles.statItem}>
+                    Inic: <strong className={styles.statValue}>{npc.iniciativa}</strong>
                   </span>
                 </div>
-                <p className="npc-card-info">
-                  Espécie: <span>{npc.especie}</span> | Nível {npc.nivel}
-                </p>
-                <div className="npc-card-stats">
-                  <span>PV: {npc.pv_atual}/{npc.pv_max}</span>
-                  <span>PM: {npc.pm_atual}/{npc.pm_max}</span>
-                  <span>Def: {npc.defesa}</span>
-                </div>
               </div>
-              <div className="npc-card-footer">
-                Abrir Ficha →
+
+              <div className={styles.cardFooter}>
+                <span className={styles.openFichaText}>
+                  Abrir Ficha <FaArrowRight />
+                </span>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

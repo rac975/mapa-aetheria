@@ -1,362 +1,400 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaShieldAlt, FaUserPlus, FaTrash, FaHeart, FaMagic, FaDice, FaIdBadge, FaDownload, FaUser, FaEdit } from 'react-icons/fa';
+import { 
+  FaShieldAlt, 
+  FaUserPlus, 
+  FaTrash, 
+  FaDice, 
+  FaIdBadge, 
+  FaDownload, 
+  FaUser, 
+  FaEdit 
+} from 'react-icons/fa';
 import { LuUsers, LuSparkles } from 'react-icons/lu';
 import { QRCodeSVG } from 'qrcode.react';
 import { fichaService } from '../../services/fichaService';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
-import './MestreFichasPage.css';
+import { Card, Button, Badge, Input, Modal, ResourceBar } from '../../components/ui';
+import styles from './MestreFichasPage.module.css';
 
 export default function MestreFichasPage({ isMestre }) {
-    const [fichas, setFichas] = useState([]);
-    const [carregando, setCarregando] = useState(true);
-    const [modalCriarAberto, setModalCriarAberto] = useState(false);
+  const [fichas, setFichas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [modalCriarAberto, setModalCriarAberto] = useState(false);
 
-    const [nomeJogador, setNomeJogador] = useState('');
-    const [nomePersonagem, setNomePersonagem] = useState('');
-    const [registroId, setRegistroId] = useState('');
+  const [nomeJogador, setNomeJogador] = useState('');
+  const [nomePersonagem, setNomePersonagem] = useState('');
+  const [registroId, setRegistroId] = useState('');
 
-    const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
-    const navigate = useNavigate();
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+  const navigate = useNavigate();
 
-    // Referências para capturar os QR Codes para download
-    const qrRefs = useRef({});
+  // Referências para capturar os QR Codes para download
+  const qrRefs = useRef({});
 
-    useEffect(() => {
-        carregarTodasFichas();
-    }, []);
+  useEffect(() => {
+    carregarTodasFichas();
+  }, []);
 
-    async function carregarTodasFichas() {
-        try {
-            const fichasData = await fichaService.getFichasCompletasMestre();
+  async function carregarTodasFichas() {
+    try {
+      const fichasData = await fichaService.getFichasCompletasMestre();
 
-            // Para cada ficha, calcula os stats e IP reais
-            const fichasCompletas = fichasData.map((ficha) => {
-                const itens = ficha.itens || [];
-                const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
+      // Para cada ficha, calcula os stats e IP reais
+      const fichasCompletas = (fichasData || []).map((ficha) => {
+        const itens = ficha.itens || [];
+        const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
 
-                // Calcula os atributos atuais da ficha
-                const atributos = {
-                    destreza: ficha.destreza || 8,
-                    astucia: ficha.astucia || 8,
-                    vigor: ficha.vigor || 8,
-                    vontade: ficha.vontade || 8
-                };
+        const atributos = {
+          destreza: ficha.destreza || 8,
+          astucia: ficha.astucia || 8,
+          vigor: ficha.vigor || 8,
+          vontade: ficha.vontade || 8
+        };
 
-                // Usa a engine oficial de cálculo de status de Fabula Ultima
-                const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
+        const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
 
-                // Calcula o IP atual somando o custo/peso dos itens equipados ou na mochila
-                const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
-                    return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
-                }, 0);
+        const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
+          return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
+        }, 0);
 
-                return {
-                    ...ficha,
-                    hp_max_real: statusCalc.pvMax,
-                    mp_max_real: statusCalc.mpMax,
-                    ip_max_real: statusCalc.piMax,
-                    ip_atual_calculado: ipAtualCalculado
-                };
-            });
+        return {
+          ...ficha,
+          hp_max_real: statusCalc.pvMax,
+          mp_max_real: statusCalc.mpMax,
+          ip_max_real: statusCalc.piMax,
+          ip_atual_calculado: ipAtualCalculado
+        };
+      });
 
-            setFichas(fichasCompletas);
-        } finally {
-            setCarregando(false);
-        }
+      setFichas(fichasCompletas);
+    } finally {
+      setCarregando(false);
     }
+  }
 
-    const gerarIdAutomatico = (nome) => {
-        if (!nome.trim()) return '';
-        const prefixo = nome.substring(0, 3).toUpperCase();
-        const numeros = Math.floor(100 + Math.random() * 900);
-        return `${prefixo}-${numeros}`;
-    };
+  const gerarIdAutomatico = (nome) => {
+    if (!nome.trim()) return '';
+    const prefixo = nome.substring(0, 3).toUpperCase();
+    const numeros = Math.floor(100 + Math.random() * 900);
+    return `${prefixo}-${numeros}`;
+  };
 
-    const handleNomePersonagemChange = (e) => {
-        const novoNome = e.target.value;
-        setNomePersonagem(novoNome);
-        setRegistroId(gerarIdAutomatico(novoNome));
-    };
+  const handleNomePersonagemChange = (e) => {
+    const novoNome = e.target.value;
+    setNomePersonagem(novoNome);
+    setRegistroId(gerarIdAutomatico(novoNome));
+  };
 
-    const handleCriarFicha = async (e) => {
-        e.preventDefault();
-        if (!nomeJogador || !nomePersonagem || !registroId) return;
+  const handleCriarFicha = async (e) => {
+    e.preventDefault();
+    if (!nomeJogador || !nomePersonagem || !registroId) return;
 
-        const { error } = await fichaService.criarFicha({
-            nome_jogador: nomeJogador.trim(),
-            nome_personagem: nomePersonagem.trim(),
-            jogador_token: registroId.trim(),
-            identidade: 'Herói de Aetheria',
-            tema: 'Aventura',
-            hp_atual: 30, hp_max: 30,
-            mp_atual: 20, mp_max: 20,
-            ip_atual: 0, pi_max: 6,
-            nivel: 1
-        });
+    const { error } = await fichaService.criarFicha({
+      nome_jogador: nomeJogador.trim(),
+      nome_personagem: nomePersonagem.trim(),
+      jogador_token: registroId.trim(),
+      identidade: 'Herói de Aetheria',
+      tema: 'Aventura',
+      hp_atual: 30,
+      hp_max: 30,
+      mp_atual: 20,
+      mp_max: 20,
+      ip_atual: 0,
+      pi_max: 6,
+      nivel: 1
+    });
 
-        if (!error) {
-            setNomeJogador('');
-            setNomePersonagem('');
-            setRegistroId('');
-            setModalCriarAberto(false);
-            carregarTodasFichas();
-        } else {
-            setAlerta({
-                isOpen: true,
-                title: 'Erro ao Emitir Crachá',
-                message: `Não foi possível criar: ${error.message}`
-            });
-        }
-    };
-
-    const handleDeletarFicha = async (id, e) => {
-        e.stopPropagation();
-        if (confirm('Tem certeza que deseja apagar esta ficha e revogar o crachá?')) {
-            await fichaService.deletarFicha(id);
-            carregarTodasFichas();
-        }
-    };
-
-    const baixarQRCode = (personagemNome, fichaId) => {
-        const svgElement = qrRefs.current[fichaId];
-        if (!svgElement) return;
-
-        try {
-            const svgData = new XMLSerializer().serializeToString(svgElement);
-            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-
-            const downloadLink = document.createElement('a');
-            downloadLink.href = url;
-            downloadLink.download = `QRCode_${personagemNome.replace(/\s+/g, '_')}.svg`;
-
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-
-            document.body.removeChild(downloadLink);
-            URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error("Erro ao gerar o download do QR Code:", error);
-        }
-    };
-
-    if (!isMestre) {
-        return (
-            <div className="mestre-fichas-page">
-                <div className="mestre-bloqueado">
-                    <FaShieldAlt className="icon-lock" />
-                    <h2>Área Exclusiva do Mestre</h2>
-                    <p>Você precisa estar logado como Mestre para gerenciar os crachás e fichas da mesa.</p>
-                </div>
-            </div>
-        );
+    if (!error) {
+      setNomeJogador('');
+      setNomePersonagem('');
+      setRegistroId('');
+      setModalCriarAberto(false);
+      carregarTodasFichas();
+    } else {
+      setAlerta({
+        isOpen: true,
+        title: 'Erro ao Emitir Crachá',
+        message: `Não foi possível criar: ${error.message}`
+      });
     }
+  };
 
+  const handleDeletarFicha = async (id, e) => {
+    e.stopPropagation();
+    if (confirm('Tem certeza que deseja apagar esta ficha e revogar o crachá?')) {
+      await fichaService.deletarFicha(id);
+      carregarTodasFichas();
+    }
+  };
+
+  const baixarQRCode = (personagemNome, fichaId) => {
+    const svgElement = qrRefs.current[fichaId];
+    if (!svgElement) return;
+
+    try {
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `QRCode_${personagemNome.replace(/\s+/g, '_')}.svg`;
+
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erro ao gerar o download do QR Code:', error);
+    }
+  };
+
+  if (!isMestre) {
     return (
-        <div className="mestre-fichas-page">
-            <div className="mestre-header">
-                <div>
-                    <h1><LuUsers /> Gestão de Fichas e Crachás</h1>
-                    <p>Visualize os dados dos heróis, baixe os QR Codes para os crachás e gerencie a mesa.</p>
-                </div>
-                <button type="button" className="btn-novo" onClick={() => setModalCriarAberto(true)}>
-                    <FaUserPlus /> Cadastrar Novo Crachá
-                </button>
-            </div>
-
-            {carregando ? (
-                <p className="carregando-txt">Carregando fichas da mesa...</p>
-            ) : (
-                <div className="mestre-grid-fichas">
-                    {fichas.map((f) => {
-                        const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
-                        const hpMaxFinal = f.hp_max_real || f.hp_max || 30;
-                        const mpMaxFinal = f.mp_max_real || f.mp_max || 20;
-                        const ipMaxFinal = f.ip_max_real || f.pi_max || 6;
-                        const ipAtualFinal = f.ip_atual_calculado ?? f.ip_atual ?? 0;
-
-                        return (
-                            <div
-                                key={f.id}
-                                className="mestre-ficha-card clickable"
-                                onClick={() => navigate(`/mestre/editar/${f.id}`)}
-                                title="Abrir ficha completa"
-                            >
-                                <div className="card-top" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                                    <div className="card-avatar" style={{ width: '54px', height: '54px', borderRadius: '50%', border: '2px solid #d4af37', overflow: 'hidden', background: '#0d0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        {f.avatar_url ? (
-                                            <img src={f.avatar_url} alt={f.nome_personagem} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        ) : (
-                                            <FaUser size={22} color="#d4af37" />
-                                        )}
-                                    </div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#f0f6fc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {f.nome_personagem}
-                                        </h3>
-                                        <span className="jogador-sub" style={{ fontSize: '0.85rem', color: '#8b949e' }}>
-                                            Jogador: <strong>{f.nome_jogador || 'Não informado'}</strong>
-                                        </span>
-                                    </div>
-                                    <div className="token-tag-container" style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(212, 175, 55, 0.1)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
-                                        <FaIdBadge color="#d4af37" size={12} />
-                                        <span className="token-tag" style={{ fontSize: '0.75rem', color: '#d4af37', fontWeight: 'bold' }}>#{f.jogador_token}</span>
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '12px 0', fontSize: '0.85rem' }}>
-                                    <p className="identidade-txt" style={{ margin: 0, color: '#c9d1d9' }}>
-                                        <em>{f.identidade || 'Sem peculiaridade informada'}</em>
-                                    </p>
-
-                                    <div style={{ background: 'rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.2)', padding: '6px 10px', borderRadius: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.75rem', color: '#8b949e', textTransform: 'uppercase', fontWeight: 'bold' }}>Classes:</span>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                                            {f.fichas_classes && f.fichas_classes.length > 0 ? (
-                                                f.fichas_classes.map((c, idx) => (
-                                                    <span key={idx} style={{ background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                                        {c.nome_classe} ({c.nivel}v)
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span style={{ color: '#8b949e', fontStyle: 'italic', fontSize: '0.75rem' }}>Nenhuma classe informada</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Barras de Status recalculadas com precisão matemática */}
-                                <div className="status-bars-preview" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', background: 'rgba(13, 17, 23, 0.5)', padding: '10px 12px', borderRadius: '8px', border: '1px solid #30363d', fontSize: '0.85rem' }}>
-                                    <span title="Pontos de Vida"><FaHeart color="#f85149" /> HP: {f.hp_atual}/{hpMaxFinal}</span>
-                                    <span title="Pontos de Mana"><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{mpMaxFinal}</span>
-                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {ipAtualFinal}/{ipMaxFinal}</span>
-                                    <span title="Pontos de Fábula"><strong style={{ color: '#d5b8ff' }}>✨ Fábula:</strong> {f.fabula ?? 3}</span>
-
-                                    <span className="nivel-tag" style={{ marginLeft: 'auto', background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                                        Nível {f.nivel || 1}
-                                    </span>
-                                </div>
-
-                                <div
-                                    className="card-qrcode-container"
-                                    onClick={(e) => e.stopPropagation()}
-                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', padding: '8px 12px', background: 'rgba(13, 17, 23, 0.8)', borderRadius: '8px', border: '1px solid #30363d' }}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div style={{ background: '#fff', padding: '4px', borderRadius: '6px', display: 'flex' }}>
-                                            <div ref={(el) => { if (el) qrRefs.current[f.id] = el; }}>
-                                                <QRCodeSVG
-                                                    value={urlFicha}
-                                                    size={100}
-                                                    fgColor="#0d0f18"
-                                                    bgColor="#ffffff"
-                                                    level="M"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                            <span style={{ fontSize: '11px', color: '#d4af37', fontWeight: 'bold' }}>QR Code do Crachá</span>
-                                            <span style={{ fontSize: '10px', color: '#8b949e', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {f.jogador_token}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        className="btn-secundario"
-                                        onClick={(e) => { e.stopPropagation(); baixarQRCode(f.nome_personagem, f.id); }}
-                                        title="Baixar imagem do QR Code para impressão"
-                                        style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#21262d', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.4)', cursor: 'pointer', zIndex: 5, position: 'relative' }}
-                                    >
-                                        <FaDownload /> Baixar QR
-                                    </button>
-                                </div>
-
-                                <div className="card-actions" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        type="button"
-                                        className="btn-secundario"
-                                        onClick={() => navigate(`/mestre/editar/${f.id}`)}
-                                        style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#21262d', color: '#58a6ff', borderColor: 'rgba(88, 166, 255, 0.4)', cursor: 'pointer' }}
-                                    >
-                                        <FaEdit /> Editar Ficha
-                                    </button>
-
-                                    <button type="button" className="btn-del" onClick={(e) => handleDeletarFicha(f.id, e)}>
-                                        <FaTrash /> Excluir Ficha
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {modalCriarAberto && (
-                <div className="modal-overlay">
-                    <div className="modal-box">
-                        <h2><LuSparkles /> Emitir Novo Crachá de Aetheria</h2>
-                        <form onSubmit={handleCriarFicha}>
-                            <div className="form-group">
-                                <label>Nome do Jogador (Real)</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Rafael"
-                                    value={nomeJogador}
-                                    onChange={(e) => setNomeJogador(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>Nome do Personagem</label>
-                                <input
-                                    type="text"
-                                    placeholder="Ex: Cyrion"
-                                    value={nomePersonagem}
-                                    onChange={handleNomePersonagemChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>REGISTRO ID (Gerado Automaticamente)</label>
-                                <div className="input-with-action">
-                                    <input
-                                        type="text"
-                                        value={registroId}
-                                        onChange={(e) => setRegistroId(e.target.value)}
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn-reroll"
-                                        title="Gerar novos números aleatórios"
-                                        onClick={() => setRegistroId(gerarIdAutomatico(nomePersonagem))}
-                                    >
-                                        <FaDice />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="modal-footer">
-                                <button type="button" className="btn-secundario" onClick={() => setModalCriarAberto(false)}>Cancelar</button>
-                                <button type="submit" className="btn-primario">Gerar Crachá</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            <CustomAlert
-                isOpen={alerta.isOpen}
-                title={alerta.title}
-                message={alerta.message}
-                onClose={() => setAlerta({ ...alerta, isOpen: false })}
-            />
+      <div className={styles.page}>
+        <div className={styles.blockedContainer}>
+          <FaShieldAlt className={styles.lockIcon} />
+          <h2>Área Exclusiva do Mestre</h2>
+          <p>Você precisa estar logado como Mestre para gerenciar os crachás e fichas da mesa.</p>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.headerInfo}>
+          <h1><LuUsers /> Gestão de Fichas e Crachás</h1>
+          <p>Visualize os dados dos heróis, baixe os QR Codes para crachás e gerencie a mesa.</p>
+        </div>
+        <Button variant="primary" onClick={() => setModalCriarAberto(true)}>
+          <FaUserPlus /> Cadastrar Novo Crachá
+        </Button>
+      </header>
+
+      {carregando ? (
+        <p className={styles.loadingContainer}>Carregando fichas da mesa...</p>
+      ) : fichas.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>Nenhuma ficha cadastrada na mesa ainda.</p>
+          <Button variant="secondary" onClick={() => setModalCriarAberto(true)}>
+            Cadastrar Primeira Ficha
+          </Button>
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {fichas.map((f) => {
+            const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
+            const hpMaxFinal = f.hp_max_real || f.hp_max || 30;
+            const mpMaxFinal = f.mp_max_real || f.mp_max || 20;
+            const ipMaxFinal = f.ip_max_real || f.pi_max || 6;
+            const ipAtualFinal = f.ip_atual_calculado ?? f.ip_atual ?? 0;
+
+            return (
+              <Card
+                key={f.id}
+                variant="interactive"
+                className={styles.characterCard}
+                onClick={() => navigate(`/mestre/editar/${f.id}`)}
+                title="Abrir ficha completa"
+              >
+                <div>
+                  <div className={styles.cardTop}>
+                    <div className={styles.cardAvatar}>
+                      {f.avatar_url ? (
+                        <img src={f.avatar_url} alt={f.nome_personagem} className={styles.avatarImage} />
+                      ) : (
+                        <FaUser className={styles.avatarIcon} />
+                      )}
+                    </div>
+                    <div className={styles.characterMeta}>
+                      <h3 className={styles.characterName}>{f.nome_personagem}</h3>
+                      <span className={styles.playerName}>
+                        Jogador: <strong>{f.nome_jogador || 'Não informado'}</strong>
+                      </span>
+                    </div>
+                    <Badge variant="gold" size="sm">
+                      <FaIdBadge /> #{f.jogador_token}
+                    </Badge>
+                  </div>
+
+                  <div className={styles.middleSection}>
+                    <p className={styles.identityText}>
+                      {f.identidade || 'Sem peculiaridade informada'}
+                    </p>
+
+                    <div className={styles.classesBox}>
+                      <span className={styles.classesLabel}>Classes:</span>
+                      <div className={styles.classesList}>
+                        {f.fichas_classes && f.fichas_classes.length > 0 ? (
+                          f.fichas_classes.map((c, idx) => (
+                            <Badge key={idx} variant="gold" size="sm">
+                              {c.nome_classe} ({c.nivel}v)
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className={styles.noClassesText}>Nenhuma classe informada</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.resourcesSection}>
+                    <ResourceBar
+                      type="pv"
+                      current={f.hp_atual}
+                      max={hpMaxFinal}
+                      label="PV"
+                    />
+                    <ResourceBar
+                      type="pm"
+                      current={f.mp_atual}
+                      max={mpMaxFinal}
+                      label="PM"
+                    />
+                    <ResourceBar
+                      type="pi"
+                      current={ipAtualFinal}
+                      max={ipMaxFinal}
+                      label="IP"
+                    />
+                    <div className={styles.badgesRow}>
+                      <Badge variant="ether" size="sm">
+                        ✨ Fábula: {f.fabula ?? 3}
+                      </Badge>
+                      <Badge variant="gold" size="sm">
+                        Nível {f.nivel || 1}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div
+                    className={styles.qrSection}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={styles.qrPreview}>
+                      <div className={styles.qrSvgBox}>
+                        <div ref={(el) => { if (el) qrRefs.current[f.id] = el; }}>
+                          <QRCodeSVG
+                            value={urlFicha}
+                            size={72}
+                            fgColor="#060d17"
+                            bgColor="#ffffff"
+                            level="M"
+                          />
+                        </div>
+                      </div>
+                      <div className={styles.qrTextInfo}>
+                        <span className={styles.qrTitle}>QR Crachá</span>
+                        <span className={styles.qrToken}>{f.jogador_token}</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        baixarQRCode(f.nome_personagem, f.id);
+                      }}
+                      title="Baixar SVG do QR Code para crachá físico"
+                    >
+                      <FaDownload /> Baixar QR
+                    </Button>
+                  </div>
+                </div>
+
+                <div
+                  className={styles.cardActions}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="core"
+                    size="sm"
+                    onClick={() => navigate(`/mestre/editar/${f.id}`)}
+                  >
+                    <FaEdit /> Editar Ficha
+                  </Button>
+
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={(e) => handleDeletarFicha(f.id, e)}
+                  >
+                    <FaTrash /> Excluir
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal Criar Crachá */}
+      <Modal
+        isOpen={modalCriarAberto}
+        onClose={() => setModalCriarAberto(false)}
+        title="Emitir Novo Crachá de Aetheria"
+        size="md"
+        footer={
+          <div className={styles.modalFooter}>
+            <Button variant="secondary" onClick={() => setModalCriarAberto(false)}>
+              Cancelar
+            </Button>
+            <Button variant="primary" onClick={handleCriarFicha}>
+              <LuSparkles /> Gerar Crachá
+            </Button>
+          </div>
+        }
+      >
+        <form onSubmit={handleCriarFicha} className={styles.modalForm}>
+          <Input
+            label="Nome do Jogador (Real)"
+            placeholder="Ex: Rafael"
+            value={nomeJogador}
+            onChange={(e) => setNomeJogador(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Nome do Personagem"
+            placeholder="Ex: Cyrion"
+            value={nomePersonagem}
+            onChange={handleNomePersonagemChange}
+            required
+          />
+
+          <div className={styles.inputWithAction}>
+            <Input
+              label="REGISTRO ID (Automático)"
+              value={registroId}
+              onChange={(e) => setRegistroId(e.target.value)}
+              className={styles.inputFlex}
+              required
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className={styles.diceBtn}
+              title="Gerar novo código aleatório"
+              onClick={() => setRegistroId(gerarIdAutomatico(nomePersonagem))}
+            >
+              <FaDice />
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <CustomAlert
+        isOpen={alerta.isOpen}
+        title={alerta.title}
+        message={alerta.message}
+        onClose={() => setAlerta({ ...alerta, isOpen: false })}
+      />
+    </div>
+  );
 }

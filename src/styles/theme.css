@@ -1,0 +1,176 @@
+/* ==========================================================================
+   THEME.CSS - DESIGN SYSTEM TOKENS (FABULA ULTIMA + XENOBLADE CHRONICLES 2)
+   ========================================================================== */
+
+:root {
+  /* --- PALETA BASE & SUPERFÍCIES (Xenoblade 2 / Cloud Sea / Blade UI) --- */
+  --color-bg-base: #060d17;
+  --color-bg-surface-rgb: 10, 25, 47;
+  --color-bg-surface: rgba(var(--color-bg-surface-rgb), 0.78);
+  --color-bg-surface-hover: rgba(16, 36, 66, 0.88);
+  --color-bg-surface-active: rgba(22, 48, 88, 0.95);
+  --color-bg-elevated: rgba(13, 31, 58, 0.9);
+  --color-bg-overlay: rgba(3, 8, 16, 0.8);
+  --color-bg-input: rgba(6, 17, 34, 0.85);
+
+  /* --- BORDAS & FILIGRANAS DOURADAS (Fabula Ultima / Relíquias) --- */
+  --color-border-gold: #c5a059;
+  --color-border-gold-rgb: 197, 160, 89;
+  --color-border-gold-glow: rgba(197, 160, 89, 0.45);
+  --color-border-gold-muted: rgba(197, 160, 89, 0.28);
+  --color-border-gold-bright: #f3d489;
+
+  /* --- DESTAQUES ETÉREOS & CRISTAL NÚCLEO (Core Crystal / Ether) --- */
+  --color-ether-cyan: #38efef;
+  --color-ether-cyan-rgb: 56, 239, 239;
+  --color-ether-cyan-glow: rgba(56, 239, 239, 0.4);
+  --color-core-green: #00f5a0;
+  --color-core-green-rgb: 0, 245, 160;
+  --color-core-green-glow: rgba(0, 245, 160, 0.45);
+
+  /* --- CORES SEMÂNTICAS FABULA ULTIMA (PV, PM, PI, CRISE) --- */
+  /* PV (Pontos de Vida - Verde Esmeralda) */
+  --color-pv-rgb: 46, 204, 113;
+  --color-pv: #2ecc71;
+  --color-pv-glow: rgba(46, 204, 113, 0.45);
+  --color-pv-track: rgba(46, 204, 113, 0.18);
+
+  /* PM (Pontos de Magia - Azul Etéreo / Cristalino) */
+  --color-pm-rgb: 0, 180, 255;
+  --color-pm: #00b4ff;
+  --color-pm-glow: rgba(0, 180, 255, 0.45);
+  --color-pm-track: rgba(0, 180, 255, 0.18);
+
+  /* PI (Pontos de Inventário - Âmbar / Ouro Alquímico) */
+  --color-pi-rgb: 243, 156, 18;
+  --color-pi: #f39c12;
+  --color-pi-glow: rgba(243, 156, 18, 0.45);
+  --color-pi-track: rgba(243, 156, 18, 0.18);
+
+  /* STATUS DE CRISE (Carmesim Pulsante - PV <= Metade) */
+  --color-crise-rgb: 231, 76, 60;
+  --color-crise: #e74c3c;
+  --color-crise-bright: #ff3344;
+  --color-crise-glow: rgba(231, 76, 60, 0.6);
+  --color-crise-track: rgba(231, 76, 60, 0.25);
+
+  /* --- TIPOGRAFIA & TEXTO --- */
+  --color-text-main: #f0f4fc;
+  --color-text-muted: #8ea3bf;
+  --color-text-dim: #5c728e;
+  --color-text-gold: #f3d489;
+  --color-text-inverse: #060d17;
+
+  /* --- TIPOS DE FONTE & ESCALA --- */
+  --font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-serif: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', 'Georgia', serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-md: 1.125rem;   /* 18px */
+  --font-size-lg: 1.25rem;    /* 20px */
+  --font-size-xl: 1.5rem;     /* 24px */
+  --font-size-2xl: 1.875rem;  /* 30px */
+
+  /* --- ESPAÇAMENTOS E RADIUS --- */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 9999px;
+
+  /* --- EFEITOS DE BLUR & SOMBRAS --- */
+  --backdrop-blur: blur(14px);
+  --shadow-surface: 0 8px 32px 0 rgba(0, 0, 0, 0.48);
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 12px var(--color-border-gold-muted);
+  --shadow-glow-cyan: 0 0 16px var(--color-ether-cyan-glow);
+  --shadow-glow-green: 0 0 16px var(--color-core-green-glow);
+  --shadow-glow-gold: 0 0 14px var(--color-border-gold-glow);
+  --shadow-glow-crise: 0 0 20px var(--color-crise-glow);
+
+  /* --- TRANSIÇÕES --- */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   MODO HÍBRIDO (@media print) - Experiência Físico / Impressão
+   Converte automaticamente para fundo branco puro, tinta preta e alto contraste
+   ========================================================================== */
+@media print {
+  :root {
+    --color-bg-base: #ffffff;
+    --color-bg-surface-rgb: 255, 255, 255;
+    --color-bg-surface: #ffffff;
+    --color-bg-surface-hover: #ffffff;
+    --color-bg-surface-active: #ffffff;
+    --color-bg-elevated: #ffffff;
+    --color-bg-overlay: transparent;
+    --color-bg-input: #ffffff;
+
+    --color-border-gold: #000000;
+    --color-border-gold-glow: none;
+    --color-border-gold-muted: #333333;
+    --color-border-gold-bright: #000000;
+
+    --color-ether-cyan: #111111;
+    --color-ether-cyan-glow: none;
+    --color-core-green: #111111;
+    --color-core-green-glow: none;
+
+    --color-pv: #000000;
+    --color-pv-glow: none;
+    --color-pv-track: #e0e0e0;
+
+    --color-pm: #222222;
+    --color-pm-glow: none;
+    --color-pm-track: #e0e0e0;
+
+    --color-pi: #333333;
+    --color-pi-glow: none;
+    --color-pi-track: #e0e0e0;
+
+    --color-crise: #000000;
+    --color-crise-bright: #000000;
+    --color-crise-glow: none;
+    --color-crise-track: #cccccc;
+
+    --color-text-main: #000000;
+    --color-text-muted: #222222;
+    --color-text-dim: #444444;
+    --color-text-gold: #000000;
+    --color-text-inverse: #ffffff;
+
+    --backdrop-blur: none;
+    --shadow-surface: none;
+    --shadow-card: none;
+    --shadow-glow-cyan: none;
+    --shadow-glow-green: none;
+    --shadow-glow-gold: none;
+    --shadow-glow-crise: none;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Ocultar elementos estritamente digitais e de navegação na impressão */
+  .app-layout > nav,
+  aside,
+  .no-print,
+  [data-print="false"] {
+    display: none !important;
+  }
+}

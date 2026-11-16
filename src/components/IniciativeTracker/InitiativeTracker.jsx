@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { FaUndoAlt } from 'react-icons/fa';
+import { FaUndoAlt, FaRedo } from 'react-icons/fa';
+import { Card, Button, Modal } from '../ui';
 import UndoToast from '../UndoToast/UndoToast';
-import CustomAlert from '../CustomAlert/CustomAlert';
 import CombatantItem from './CombatantItem';
 import AddParticipantForm from './AddParticipantForm';
 import { useCombatTracker } from '../../hooks/useCombatTracker';
-import './InitiativeTracker.css';
+import styles from './InitiativeTracker.module.css';
 
 export default function InitiativeTracker({ isMestre }) {
   const {
@@ -59,26 +59,42 @@ export default function InitiativeTracker({ isMestre }) {
   };
 
   return (
-    <div className="combat-box">
-      <div className="box-header">
-        <h2>Ordem de Ação & Combate</h2>
+    <Card variant="default" className={styles.combatBox}>
+      <header className={styles.boxHeader}>
+        <div className={styles.titleGroup}>
+          <h2 className={styles.title}>Ordem de Ação & Combate</h2>
+          <p className={styles.boxHint}>
+            {isMestre
+              ? 'Gerencie turnos, PV, PM, IP, Fábula, Condições e Estados.'
+              : 'Acompanhe a ordem dos turnos, status e condições na cena.'}
+          </p>
+        </div>
+
         {isMestre && (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn-reset" onClick={restaurarTudoCena} title="Cura total e limpa turnos">
-              <FaUndoAlt /> Restaurar Cena
-            </button>
-            <button className="btn-reset" onClick={resetRodada}>Nova Rodada</button>
+          <div className={`${styles.headerActions} ${styles.noPrint}`}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={restaurarTudoCena}
+              title="Cura total e limpa turnos"
+            >
+              <FaUndoAlt className={styles.btnIcon} /> Restaurar Cena
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={resetRodada}
+              title="Limpar turnos e iniciar nova rodada"
+            >
+              <FaRedo className={styles.btnIcon} /> Nova Rodada
+            </Button>
           </div>
         )}
-      </div>
+      </header>
 
-      <p className="box-hint">
-        {isMestre ? "Gerencie turnos, HP, MP, IP, Fábula, Condições e Estados." : "Acompanhe a ordem dos turnos, status e condições na cena."}
-      </p>
-
-      <div className="participantes-list">
+      <div className={styles.participantesList}>
         {participantes.length === 0 ? (
-          <p className="empty-text">Nenhum combatente na cena.</p>
+          <p className={styles.emptyText}>Nenhum combatente na cena.</p>
         ) : (
           participantes.map((p, index) => (
             <CombatantItem
@@ -92,7 +108,6 @@ export default function InitiativeTracker({ isMestre }) {
               setEditForm={setEditForm}
               fichasDisponiveis={fichasDisponiveis}
               onToggleTurno={toggleTurno}
-              // onIniciarEdicao={iniciarEdicao}
               onSalvarEdicao={salvarEdicao}
               onCancelarEdicao={cancelarEdicao}
               onMoverItem={moverItem}
@@ -125,12 +140,19 @@ export default function InitiativeTracker({ isMestre }) {
         />
       )}
 
-      <CustomAlert
+      <Modal
         isOpen={alerta.isOpen}
-        title={alerta.title}
-        message={alerta.message}
         onClose={fecharAlerta}
-      />
+        title={alerta.title || 'Aviso de Combate'}
+        size="sm"
+        footer={
+          <Button variant="primary" size="sm" onClick={fecharAlerta}>
+            Entendi
+          </Button>
+        }
+      >
+        <p className={styles.modalMessage}>{alerta.message}</p>
+      </Modal>
 
       <UndoToast
         mostrar={mostrarToast}
@@ -138,6 +160,6 @@ export default function InitiativeTracker({ isMestre }) {
         progressoKey={progressoKey}
         onUndo={desfazerExclusao}
       />
-    </div>
+    </Card>
   );
 }

@@ -1,4 +1,26 @@
 import React from 'react';
+import { 
+  FaShieldAlt, 
+  FaMagic, 
+  FaHeart, 
+  FaDice, 
+  FaDragon, 
+  FaCrosshairs, 
+  FaFistRaised 
+} from 'react-icons/fa';
+import { Card, Badge, ResourceBar } from '../../../../components/ui';
+import styles from './NPCView.module.css';
+
+const TIPOS_DANO = [
+  { key: 'fisico', label: 'Físico' },
+  { key: 'fogo', label: 'Fogo' },
+  { key: 'gelo', label: 'Gelo' },
+  { key: 'raio', label: 'Raio' },
+  { key: 'sombrio', label: 'Sombrio' },
+  { key: 'luz', label: 'Luz' },
+  { key: 'veneno', label: 'Veneno' },
+  { key: 'terra', label: 'Terra' },
+];
 
 export default function NPCView({ npc, onUpdate }) {
   // Bônus de dano por nível oficial do Fabula Ultima
@@ -6,136 +28,238 @@ export default function NPCView({ npc, onUpdate }) {
   const bonusPrecisaoMagia = Math.floor(npc.nivel / 10);
 
   function ajustarStat(campo, valor) {
-    const novo = Math.max(0, npc[campo] + valor);
+    const novo = Math.max(0, (npc[campo] || 0) + valor);
     onUpdate({ ...npc, [campo]: novo });
   }
 
+  function getAfinidadeBadge(valor) {
+    switch (valor?.toLowerCase()) {
+      case 'vul':
+        return { variant: 'crise', label: 'VUL' };
+      case 'res':
+        return { variant: 'ether', label: 'RES' };
+      case 'imu':
+        return { variant: 'gold', label: 'IMU' };
+      case 'abs':
+        return { variant: 'core', label: 'ABS' };
+      default:
+        return { variant: 'default', label: '—' };
+    }
+  }
+
+  function renderRankBadge() {
+    switch (npc.rank?.toLowerCase()) {
+      case 'elite':
+        return <Badge variant="ether" size="md">ELITE</Badge>;
+      case 'campeao':
+        return (
+          <Badge variant="crise" size="md">
+            CAMPEÃO {npc.quantidade_soldados ? `(${npc.quantidade_soldados}x)` : ''}
+          </Badge>
+        );
+      default:
+        return <Badge variant="gold" size="md">SOLDADO</Badge>;
+    }
+  }
+
   return (
-    <div className="npc-view-container">
-      {/* Cabeçalho do Bestiário */}
-      <div className="npc-view-header">
-        <div>
-          <h1 className="npc-title">{npc.nome}</h1>
-          <p className="npc-subtitle">
-            Espécie: <strong className="highlight-text">{npc.especie}</strong> | Rank: 
-            <strong className="highlight-text uppercase">{npc.rank}</strong> | Nível {npc.nivel}
-          </p>
-        </div>
-        <div className="npc-bonus-box">
-          <p>Bônus Testes: <span className="bonus-value">+{bonusPrecisaoMagia}</span></p>
-          <p>Bônus Dano: <span className="bonus-value">+{bonusDanoNivel}</span></p>
-        </div>
-      </div>
-
-      {/* Traços */}
-      <div className="tracos-container">
-        {npc.tracos?.map((traco, i) => (
-          <div key={i} className="traco-card">
-            <span className="traco-label">Traço {i + 1}</span>
-            <p className="traco-text">{traco || '—'}</p>
+    <div className={styles.viewContainer}>
+      {/* 1. Cabeçalho do Bestiário */}
+      <Card variant="default">
+        <div className={styles.headerCard}>
+          <div className={styles.headerMain}>
+            <div className={styles.titleRow}>
+              <h1 className={styles.npcTitle}>{npc.nome}</h1>
+              {renderRankBadge()}
+            </div>
+            <div className={styles.metaRow}>
+              <Badge variant="default" size="sm">
+                <FaDragon /> {npc.especie?.toUpperCase() || 'FERA'}
+              </Badge>
+              <Badge variant="ether" size="sm">
+                Nível {npc.nivel}
+              </Badge>
+            </div>
           </div>
-        ))}
-      </div>
 
-      {/* Atributos & Combate */}
-      <div className="atributos-container">
-        {['des', 'ast', 'vig', 'von'].map((attr) => (
-          <div key={attr} className="atributo-card">
-            <span className="atributo-label">{attr}</span>
-            <p className="atributo-value">{npc.atributos?.[attr] || 'd8'}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* PV, PM e Defesas */}
-      <div className="stats-container">
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-title pv-color">PONTOS DE VIDA (PV)</span>
-            <span className="stat-aux">Crise: {Math.floor(npc.pv_max / 2)}</span>
-          </div>
-          <div className="stat-controls">
-            <button onClick={() => ajustarStat('pv_atual', -5)} className="stat-btn">-5</button>
-            <span className="stat-numbers">{npc.pv_atual} / {npc.pv_max}</span>
-            <button onClick={() => ajustarStat('pv_atual', 5)} className="stat-btn">+5</button>
+          <div className={styles.bonusBox}>
+            <div className={styles.bonusItem}>
+              <span><FaCrosshairs /> Bônus Testes:</span>
+              <span className={styles.bonusValue}>+{bonusPrecisaoMagia}</span>
+            </div>
+            <div className={styles.bonusItem}>
+              <span><FaFistRaised /> Bônus Dano:</span>
+              <span className={styles.bonusValue}>+{bonusDanoNivel}</span>
+            </div>
           </div>
         </div>
+      </Card>
 
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-title pm-color">PONTOS DE MANA (PM)</span>
+      {/* 2. Traços da Criatura */}
+      <Card variant="default">
+        <h3 className={styles.sectionTitle}>Traços da Criatura</h3>
+        <div className={styles.tracosGrid}>
+          {npc.tracos?.map((traco, i) => (
+            <div key={i} className={styles.tracoCard}>
+              <span className={styles.tracoLabel}>Traço {i + 1}</span>
+              <p className={styles.tracoText}>{traco || '—'}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* 3. Atributos Básicos */}
+      <Card variant="default">
+        <h3 className={styles.sectionTitle}><FaDice /> Atributos</h3>
+        <div className={styles.atributosGrid}>
+          {['des', 'ast', 'vig', 'von'].map((attr) => (
+            <div key={attr} className={styles.atributoCard}>
+              <span className={styles.atributoLabel}>{attr.toUpperCase()}</span>
+              <p className={styles.atributoValue}>{npc.atributos?.[attr] || 'd8'}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* 4. PV, PM, Defesas e Iniciativa */}
+      <Card variant="default">
+        <h3 className={styles.sectionTitle}><FaHeart /> Estatísticas de Combate</h3>
+        <div className={styles.combatGrid}>
+          {/* PV */}
+          <div className={styles.resourceCard}>
+            <ResourceBar
+              type="pv"
+              current={npc.pv_atual}
+              max={npc.pv_max}
+              label="PONTOS DE VIDA"
+            />
+            <div className={`${styles.statControls} ${styles.noPrint}`}>
+              <button type="button" onClick={() => ajustarStat('pv_atual', -5)} className={styles.statQuickBtn}>-5</button>
+              <button type="button" onClick={() => ajustarStat('pv_atual', -1)} className={styles.statQuickBtn}>-1</button>
+              <button type="button" onClick={() => ajustarStat('pv_atual', 1)} className={styles.statQuickBtn}>+1</button>
+              <button type="button" onClick={() => ajustarStat('pv_atual', 5)} className={styles.statQuickBtn}>+5</button>
+            </div>
           </div>
-          <div className="stat-controls">
-            <button onClick={() => ajustarStat('pm_atual', -5)} className="stat-btn">-5</button>
-            <span className="stat-numbers">{npc.pm_atual} / {npc.pm_max}</span>
-            <button onClick={() => ajustarStat('pm_atual', 5)} className="stat-btn">+5</button>
+
+          {/* PM */}
+          <div className={styles.resourceCard}>
+            <ResourceBar
+              type="pm"
+              current={npc.pm_atual}
+              max={npc.pm_max}
+              label="PONTOS DE MANA"
+            />
+            <div className={`${styles.statControls} ${styles.noPrint}`}>
+              <button type="button" onClick={() => ajustarStat('pm_atual', -5)} className={styles.statQuickBtn}>-5</button>
+              <button type="button" onClick={() => ajustarStat('pm_atual', -1)} className={styles.statQuickBtn}>-1</button>
+              <button type="button" onClick={() => ajustarStat('pm_atual', 1)} className={styles.statQuickBtn}>+1</button>
+              <button type="button" onClick={() => ajustarStat('pm_atual', 5)} className={styles.statQuickBtn}>+5</button>
+            </div>
+          </div>
+
+          {/* Defesa */}
+          <div className={styles.statCardCenter}>
+            <span className={styles.statTitle}><FaShieldAlt /> Defesa</span>
+            <p className={styles.statNumberLarge}>{npc.defesa}</p>
+          </div>
+
+          {/* Defesa Mágica */}
+          <div className={styles.statCardCenter}>
+            <span className={styles.statTitle}><FaMagic /> Def. Mág.</span>
+            <p className={styles.statNumberLarge}>{npc.defesa_magica}</p>
+          </div>
+
+          {/* Iniciativa */}
+          <div className={styles.statCardCenter}>
+            <span className={styles.statTitle}>Iniciativa</span>
+            <p className={styles.statNumberLarge}>{npc.iniciativa ?? 0}</p>
           </div>
         </div>
+      </Card>
 
-        <div className="stat-card center">
-          <span className="stat-title">DEFESA</span>
-          <p className="stat-numbers large">{npc.defesa}</p>
+      {/* 5. Afinidades Elementares */}
+      <Card variant="default">
+        <h3 className={styles.sectionTitle}><FaShieldAlt /> Afinidades a Danos</h3>
+        <div className={styles.afinidadesGrid}>
+          {TIPOS_DANO.map(({ key, label }) => {
+            const val = npc.afinidades?.[key];
+            const badgeInfo = getAfinidadeBadge(val);
+
+            return (
+              <div key={key} className={styles.afinidadeItem}>
+                <span className={styles.tipoDanoNome}>{label}</span>
+                <Badge variant={badgeInfo.variant} size="sm">
+                  {badgeInfo.label}
+                </Badge>
+              </div>
+            );
+          })}
         </div>
+      </Card>
 
-        <div className="stat-card center">
-          <span className="stat-title">DEFESA MÁGICA</span>
-          <p className="stat-numbers large">{npc.defesa_magica}</p>
-        </div>
-      </div>
-
-      {/* Ataques Básicos */}
-      <div className="ataques-view-container">
-        <h3>Ataques Básicos</h3>
+      {/* 6. Ataques Básicos */}
+      <Card variant="default">
+        <h3 className={styles.sectionTitle}><FaFistRaised /> Ataques Básicos</h3>
         {(!npc.ataques_basicos || npc.ataques_basicos.length === 0) ? (
-          <p className="empty-text">Nenhum ataque cadastrado.</p>
+          <p className={styles.emptyText}>Nenhum ataque básico cadastrado.</p>
         ) : (
-          <div className="ataques-view-list">
+          <div className={styles.ataquesList}>
             {npc.ataques_basicos.map((atk, i) => (
-              <div key={i} className="ataque-view-item">
+              <div key={i} className={styles.ataqueItem}>
                 <div>
-                  <span className="ataque-name">{atk.nome}</span>
-                  <span className="ataque-dado">({atk.atributo_dado1} + {atk.atributo_dado2})</span>
+                  <span className={styles.ataqueName}>{atk.nome}</span>
+                  <span className={styles.ataqueDado}>
+                    【{atk.atributo_dado1?.toUpperCase()} + {atk.atributo_dado2?.toUpperCase()}】
+                    {atk.bonus_precisao ? ` + ${atk.bonus_precisao}` : ''}
+                  </span>
                 </div>
-                <div className="ataque-dano-info">
-                  Dano: RA {atk.bonus_dano ? `+ ${atk.bonus_dano}` : ''} ({atk.tipo_dano})
+                <div className={styles.ataqueDanoInfo}>
+                  【RA + {atk.bonus_dano || 0}】 Dano {atk.tipo_dano?.toUpperCase()}
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Poderes e Feitiços */}
-      <div className="poderes-feiticos-view-grid">
-        <div className="view-card-secao">
-          <h3>Poderes</h3>
+      {/* 7. Poderes e Feitiços */}
+      <div className={styles.poderesFeiticosGrid}>
+        <Card variant="default">
+          <h3 className={styles.sectionTitle}>Poderes Especiais</h3>
           {(!npc.poderes || npc.poderes.length === 0) ? (
-            <p className="empty-text">Nenhum poder adquirido.</p>
+            <p className={styles.emptyText}>Nenhum poder adquirido.</p>
           ) : (
-            <ul className="view-list">
+            <ul className={styles.viewList}>
               {npc.poderes.map((p, i) => (
-                <li key={i} className="view-item">
-                  <strong className="poder-name">{p.nome}:</strong> {p.descricao}
+                <li key={i} className={styles.viewItem}>
+                  <div className={styles.itemHeading}>
+                    <strong className={styles.poderName}>{p.nome}</strong>
+                  </div>
+                  <p>{p.descricao}</p>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Card>
 
-        <div className="view-card-secao">
-          <h3>Feitiços</h3>
+        <Card variant="default">
+          <h3 className={styles.sectionTitle}>Feitiços e Magias</h3>
           {(!npc.feiticos || npc.feiticos.length === 0) ? (
-            <p className="empty-text">Nenhum feitiço conhecido.</p>
+            <p className={styles.emptyText}>Nenhum feitiço conhecido.</p>
           ) : (
-            <ul className="view-list">
+            <ul className={styles.viewList}>
               {npc.feiticos.map((f, i) => (
-                <li key={i} className="view-item">
-                  <strong className="feitico-name">{f.nome}</strong> ({f.pm_custo} PM) - {f.descricao}
+                <li key={i} className={styles.viewItem}>
+                  <div className={styles.itemHeading}>
+                    <strong className={styles.feiticoName}>{f.nome}</strong>
+                    <Badge variant="pm" size="sm">{f.pm_custo} PM</Badge>
+                  </div>
+                  <p>{f.descricao}</p>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

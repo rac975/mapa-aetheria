@@ -1,0 +1,96 @@
+/* ==========================================================================
+   FICHA NPC PAGE - CSS MODULE
+   Tokens do theme.css (Fabula Ultima / Xenoblade 2)
+   ========================================================================== */
+
+.pageContainer {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-10) var(--space-4);
+  color: var(--color-text-main);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  box-sizing: border-box;
+  font-family: var(--font-family-sans);
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  max-width: 480px;
+  margin: var(--space-10) auto;
+  box-shadow: var(--shadow-card);
+}
+
+/* NAVBAR SUPERIOR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: var(--space-3);
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .navActions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* IMPRESSÃO (MODO HÍBRIDO FÍSICO) */
+@media print {
+  .navbar,
+  .noPrint {
+    display: none !important;
+  }
+
+  .pageContainer {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
