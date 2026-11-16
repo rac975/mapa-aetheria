@@ -30,6 +30,7 @@ export default function FichaClassesSecao({
   classes,
   handleAjustarRecurso,
   pvMaxCalculado,
+  onAtualizarMutante,
   onAtivarGolpe
 }) {
   const [companheiro, setCompanheiro] = useState(null);
@@ -170,7 +171,17 @@ export default function FichaClassesSecao({
               {ehEspiritualista && <ExibirEspiritualista classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
               {ehGuardiao && <ExibirGuardiao ficha={c} />}
               {ehEsper && <ExibirEsper ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehMutante && <ExibirMutante ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} emCriseGlobal={emCrise} pvMaxCalculado={hpMaxCalculado} />}
+              {ehMutante && (
+                <ExibirMutante
+                  ficha={ficha}
+                  classe={c}
+                  classes={classes}
+                  handleAjustarRecurso={handleAjustarRecurso}
+                  emCriseGlobal={emCrise}
+                  pvMaxCalculado={hpMaxCalculado}
+                  onAtualizarMutante={onAtualizarMutante}
+                />
+              )}
               {ehPiloto && <ExibirPiloto fichaId={fichaId || ficha?.id} ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
 
               {/* Habilidades Oficiais */}

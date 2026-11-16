@@ -106,6 +106,44 @@
   }
 }
 
+.badgesEfeitosContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border-gold-muted);
+}
+
+.badgesEfeitosLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.badgesEfeitosGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.terioBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.resistenciaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 /* =====================================================
    MODO HÍBRIDO / IMPRESSÃO (@media print)
    ===================================================== */

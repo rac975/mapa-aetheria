@@ -48,6 +48,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         salvando,
         erro,
         ajustarRecurso,
+        atualizarDadosMutante,
         salvarEdicaoCompleta
     } = useCharacterSheet(id, navigate);
 
@@ -191,6 +192,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         classes={classes}
                         handleAjustarRecurso={ajustarRecurso}
                         pvMaxCalculado={statusFicha.pvMax}
+                        onAtualizarMutante={atualizarDadosMutante}
                         onAtivarGolpe={(opcoes) => {
                             setOpcoesGolpeAtivo(opcoes);
                             setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
@@ -205,6 +207,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         limparGolpeAtivo={() => setOpcoesGolpeAtivo(null)}
                         emCriseGlobal={emCriseGlobal}
                         statusFicha={statusFicha}
+                        onAtualizarMutante={atualizarDadosMutante}
                     />
                     <FichaMagiasSecao magias={magias} />
                     <FichaLacosSecao lacos={ficha?.lacos} />

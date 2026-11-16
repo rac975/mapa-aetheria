@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt, FaSkull } from 'react-icons/fa';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt, FaSkull, FaBrain } from 'react-icons/fa';
 import { fichaService } from '../../../services/fichaService';
 import {
   SLOTS_EQUIPAMENTO,
@@ -9,6 +9,8 @@ import {
 import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha';
 import { Card, Button, Badge, Modal } from '../../../components/ui';
 import FichaArmasVeiculoSecao from './FichaArmasVeiculoSecao';
+import FichaSlotMaoVazia from './components/FichaSlotMaoVazia';
+import FichaSlotEquipado from './components/FichaSlotEquipado';
 import styles from './FichaEquipamentosSecao.module.css';
 
 export default function FichaEquipamentosSecao({
@@ -18,7 +20,8 @@ export default function FichaEquipamentosSecao({
   opcoesGolpeAtivo = null,
   limparGolpeAtivo = null,
   emCriseGlobal = false,
-  statusFicha = null
+  statusFicha = null,
+  onAtualizarMutante = null
 }) {
   const [itensInventario, setItensInventario] = useState([]);
   const [modalSlotAberto, setModalSlotAberto] = useState(null);
@@ -31,6 +34,19 @@ export default function FichaEquipamentosSecao({
   });
 
   const [resultadosRolagem, setResultadosRolagem] = useState({});
+
+  // Verifica se o personagem possui a habilidade Psicocinese (classe Esper)
+  const temPsicocinese = useMemo(() => {
+    return (classes || []).some(c =>
+      (c.habilidades || []).some(h => {
+        const nomeNorm = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const nv = parseInt(h.nivel, 10) || 0;
+        return nomeNorm.includes('psicocinese') && nv > 0;
+      })
+    );
+  }, [classes]);
+
+  const [usarPsicocinese, setUsarPsicocinese] = useState(false);
 
   const carregarItens = useCallback(async () => {
     if (!fichaId) {
@@ -156,7 +172,10 @@ export default function FichaEquipamentosSecao({
       isMulti,
       classes,
       itensInventario,
-      opcoesGolpeAtivo || {},
+      {
+        ...(opcoesGolpeAtivo || {}),
+        usarPsicocinese
+      },
       emCriseGlobal
     );
 
@@ -166,6 +185,7 @@ export default function FichaEquipamentosSecao({
       [slotId]: {
         ...resultadoCalculado,
         usandoGolpe,
+        usandoPsicocinese,
         danoExtraGolpe: resultadoCalculado.danoExtraHabilidade || 0
       }
     }));
@@ -199,21 +219,52 @@ export default function FichaEquipamentosSecao({
           )}
         </div>
 
+        {temPsicocinese && (
+          <div className={styles.psicocineseBar}>
+            <div className={styles.psicocineseInfo}>
+              <FaBrain className={styles.psicocineseIcon} />
+              <span>
+                <strong>Psicocinese:</strong> Substitui um dado de atributo por Vontade (VON).
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant={usarPsicocinese ? 'core' : 'secondary'}
+              size="sm"
+              onClick={() => setUsarPsicocinese(prev => !prev)}
+            >
+              {usarPsicocinese ? 'VON Ativo' : 'Ativar VON'}
+            </Button>
+          </div>
+        )}
+
         <div className={styles.slotsGrid}>
           {slotConfig.map(slot => {
             const itemEquipado = getItemNoSlot(slot.id);
-            const tipoItemEquipado = (itemEquipado?.tipo || '').toLowerCase();
-            const temDuploEscudeiro = classes.some(c =>
-              (c.habilidades || []).some(h =>
-                (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel, 10) || 0) > 0
-              )
-            );
-            const ultimaRolagem = resultadosRolagem[slot.id];
-            const modoAtual = modoAtaqueState[slot.id] || 'normal';
-            const ehArmaOuEscudoAtacavel = slot.id.includes('mao') && itemEquipado && (
-              tipoItemEquipado.includes('arma') ||
-              (slot.id === SLOTS_EQUIPAMENTO.MAO_DOMINANTE && tipoItemEquipado.includes('escudo') && temDuploEscudeiro)
-            );
+            const ehSlotMao = slot.id === SLOTS_EQUIPAMENTO.MAO_DOMINANTE || slot.id === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA;
+
+            // Mão vazia: renderiza Ataque Desarmado e Arma Improvisada oficiais de Fabula Ultima
+            if (!itemEquipado && ehSlotMao) {
+              const itemMaoDom = getItemNoSlot(SLOTS_EQUIPAMENTO.MAO_DOMINANTE);
+              const ocupadoPor2H = slot.id === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA && itemMaoDom && isArmaDuasMaos(itemMaoDom);
+
+              return (
+                <FichaSlotMaoVazia
+                  key={slot.id}
+                  slotId={slot.id}
+                  slotLabel={slot.label}
+                  slotIcon={slot.icone}
+                  isOcupadoPor2H={ocupadoPor2H}
+                  classes={classes}
+                  onAbrirModalEquipar={() => setModalSlotAberto(slot.id)}
+                  onExecutarRolagem={(itemVirtual, slotId) => executarRolagemArma(itemVirtual, slotId)}
+                  ultimaRolagem={resultadosRolagem[slot.id]}
+                  modoAtaque={modoAtaqueState[slot.id] || 'normal'}
+                  setModoAtaque={(modo) => setModoAtaqueState(prev => ({ ...prev, [slot.id]: modo }))}
+                  onAtualizarMutante={onAtualizarMutante}
+                />
+              );
+            }
 
             return (
               <div key={slot.id} className={styles.slotBox}>
@@ -222,90 +273,17 @@ export default function FichaEquipamentosSecao({
                 </div>
 
                 {itemEquipado ? (
-                  <div className={styles.itemEquipadoCard}>
-                    <div className={styles.itemInfo}>
-                      <span className={styles.itemNome}>{itemEquipado.nome}</span>
-                      <Badge variant="gold" size="sm">{itemEquipado.tipo}</Badge>
-                    </div>
-
-                    {ehArmaOuEscudoAtacavel && (
-                      <div className={styles.ataqueArea}>
-                        <div className={styles.modoAtaqueSwitcher}>
-                          <button
-                            type="button"
-                            onClick={() => setModoAtaqueState(prev => ({ ...prev, [slot.id]: 'normal' }))}
-                            className={`${styles.modoAtaqueBtn} ${modoAtual === 'normal' ? styles.modoAtaqueBtnActive : ''}`}
-                          >
-                            Ataque Único
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setModoAtaqueState(prev => ({ ...prev, [slot.id]: 'multi' }))}
-                            className={`${styles.modoAtaqueBtn} ${modoAtual === 'multi' ? styles.modoAtaqueBtnActiveMulti : ''}`}
-                          >
-                            Multiataque / 2ª Arma
-                          </button>
-                        </div>
-
-                        <Button
-                          type="button"
-                          variant="core"
-                          size="sm"
-                          fullWidth
-                          onClick={() => executarRolagemArma(itemEquipado, slot.id)}
-                        >
-                          <FaDice /> Rolar Ataque e Dano
-                        </Button>
-
-                        {ultimaRolagem && (
-                          <div className={styles.resultadoCard}>
-                            {ultimaRolagem.statusCritico && (
-                              <div className={`${styles.criticoBanner} ${ultimaRolagem.statusCritico.includes('Sucesso') ? styles.criticoSucesso : styles.criticoFalha}`}>
-                                <FaBolt /> {ultimaRolagem.statusCritico}
-                              </div>
-                            )}
-                            <div className={styles.resultadoLinha}>
-                              <span>Precisão Final:</span>
-                              <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
-                            </div>
-                            <div className={styles.detalhesDiscriminados}>
-                              <div>Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
-                              <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
-                            </div>
-                            <div className={styles.resultadoLinha}>
-                              <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : 'Normal'}):</span>
-                              <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
-                            </div>
-                            <div className={styles.detalhesDiscriminados}>
-                              <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
-                              {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
-                              {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
-                              {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className={styles.slotActions}>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setModalSlotAberto(slot.id)}
-                      >
-                        <FaExchangeAlt /> Trocar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        onClick={() => desequiparItem(itemEquipado)}
-                      >
-                        Desequipar
-                      </Button>
-                    </div>
-                  </div>
+                  <FichaSlotEquipado
+                    slot={slot}
+                    itemEquipado={itemEquipado}
+                    classes={classes}
+                    ultimaRolagem={resultadosRolagem[slot.id]}
+                    modoAtual={modoAtaqueState[slot.id] || 'normal'}
+                    setModoAtual={(modo) => setModoAtaqueState(prev => ({ ...prev, [slot.id]: modo }))}
+                    onExecutarRolagem={executarRolagemArma}
+                    onTrocar={() => setModalSlotAberto(slot.id)}
+                    onDesequipar={() => desequiparItem(itemEquipado)}
+                  />
                 ) : (
                   <div className={styles.slotEmpty}>
                     <span className={styles.slotEmptyText}>Vazio</span>

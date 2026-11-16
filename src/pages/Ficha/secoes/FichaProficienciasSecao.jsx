@@ -1,5 +1,5 @@
-import { FaShieldAlt, FaCheckCircle } from 'react-icons/fa';
-import { Card } from '../../../components/ui';
+import { FaShieldAlt, FaCheckCircle, FaCompass } from 'react-icons/fa';
+import { Card, Badge } from '../../../components/ui';
 import styles from './FichaProficienciasSecao.module.css';
 
 export default function FichaProficienciasSecao({ classes }) {
@@ -10,7 +10,16 @@ export default function FichaProficienciasSecao({ classes }) {
     .map(c => c.beneficios)
     .filter(Boolean);
 
-  if (proficienciasList.length === 0) return null;
+  // Verifica se o personagem adquiriu a habilidade Navegador (classe Esper)
+  const temNavegador = classes.some(c =>
+    (c.habilidades || []).some(h => {
+      const nomeNorm = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const nv = parseInt(h.nivel, 10) || 0;
+      return nomeNorm.includes('navegador') && nv > 0;
+    })
+  );
+
+  if (proficienciasList.length === 0 && !temNavegador) return null;
 
   return (
     <Card variant="default" className={styles.container}>
@@ -25,6 +34,14 @@ export default function FichaProficienciasSecao({ classes }) {
             <span>{beneficio}</span>
           </div>
         ))}
+
+        {temNavegador && (
+          <div className={styles.navegadorItem}>
+            <Badge variant="ether" size="md" className={styles.navegadorBadge}>
+              <FaCompass /> <strong className={styles.navegadorTitulo}>Navegador:</strong> Você pode fazer rituais da disciplina Ritualismo
+            </Badge>
+          </div>
+        )}
       </div>
     </Card>
   );

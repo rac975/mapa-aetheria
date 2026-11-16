@@ -193,6 +193,115 @@
   padding: var(--space-2);
 }
 
+/* --- MODAL E GESTÃO DE TERIOFORMAS --- */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modalInfoBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.terioModalGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.terioModalCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.terioModalCard:hover {
+  border-color: var(--color-core-green);
+  background: var(--color-bg-surface-hover);
+  transform: translateY(-1px);
+}
+
+.terioModalCardSelected {
+  border-color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.14);
+  box-shadow: var(--shadow-glow-green);
+}
+
+.terioModalCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.terioModalCardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.terioModalCardInspiracao {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  line-height: 1.3;
+}
+
+.terioModalCardDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.emptyStateBox {
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.ecdiseRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .printOnly {
   display: none;
 }

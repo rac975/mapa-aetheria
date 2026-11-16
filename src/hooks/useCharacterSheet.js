@@ -106,6 +106,7 @@ export function useCharacterSheet(id, navigate) {
 
     let canalEquip = null;
     let canalCondicoes = null;
+    let canalClasses = null;
 
     try {
       canalEquip = fichaService.subscribeItens(fichaId, async () => {
@@ -122,6 +123,15 @@ export function useCharacterSheet(id, navigate) {
         setCondicoesAtivas(novasCondicoes);
         setModificadoresTemporarios(calcularModificadoresCondicoes(novasCondicoes));
       });
+
+      canalClasses = fichaService.subscribeClasses(fichaId, async () => {
+        try {
+          const novasClasses = await fichaService.getClassesByFichaId(fichaId);
+          setClasses(novasClasses);
+        } catch (err) {
+          console.error('Erro ao atualizar classes em tempo real:', err);
+        }
+      });
     } catch (subErr) {
       console.error('Erro ao registrar subscriptions da ficha:', subErr);
     }
@@ -129,27 +139,79 @@ export function useCharacterSheet(id, navigate) {
     return () => {
       if (canalEquip) fichaService.removeChannel(canalEquip);
       if (canalCondicoes) fichaService.removeChannel(canalCondicoes);
+      if (canalClasses) fichaService.removeChannel(canalClasses);
     };
   }, [ficha?.id]);
 
-  // 3. Cálculo de atributos dinâmicos com modificadores temporários
+  // Identifica terioformas ativas do Mutante que aumentam passos de atributos
+  const dadosMutanteAtual = useMemo(() => {
+    const mutanteClass = (classes || []).find((c) =>
+      (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('mutant')
+    );
+    const habTerio = (mutanteClass?.habilidades || []).find((h) =>
+      (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('teriomorfose')
+    );
+    return mutanteClass?.dados_mutante || habTerio?.dados_mutante || ficha?.dados_mutante || {};
+  }, [classes, ficha?.dados_mutante]);
+
+  const terioformasAtivasLista = dadosMutanteAtual?.terioformasAtivas || [];
+  const temTachytheria = terioformasAtivasLista.includes('tachytheria');
+  const temArpaktida = terioformasAtivasLista.includes('arpaktida');
+  const temDynamotheria = terioformasAtivasLista.includes('dynamotheria');
+
+  // 3. Cálculo de atributos dinâmicos com modificadores temporários e Terioformas
   const getAtributoAtualValor = useCallback((nomeAtributo, valorBase) => {
-    const mod = modificadoresTemporarios[nomeAtributo] || 0;
+    let mod = modificadoresTemporarios[nomeAtributo] || 0;
+    if (nomeAtributo === 'destreza' && temTachytheria) mod += 1;
+    if (nomeAtributo === 'astucia' && temArpaktida) mod += 1;
+    if (nomeAtributo === 'vigor' && temDynamotheria) mod += 1;
+
     const idxBase = PROGRESSAO_DADOS.indexOf(valorBase || 8);
     const idxFinal = Math.max(0, Math.min(PROGRESSAO_DADOS.length - 1, idxBase + mod));
     return PROGRESSAO_DADOS[idxFinal];
-  }, [modificadoresTemporarios]);
+  }, [modificadoresTemporarios, temTachytheria, temArpaktida, temDynamotheria]);
 
   const atributosAtuaisParaCalculo = useMemo(() => ({
     destreza: getAtributoAtualValor('destreza', ficha?.destreza),
     astucia: getAtributoAtualValor('astucia', ficha?.astucia),
-    vigor: ficha?.vigor || 8,
-    vontade: ficha?.vontade || 8
+    vigor: getAtributoAtualValor('vigor', ficha?.vigor),
+    vontade: getAtributoAtualValor('vontade', ficha?.vontade)
   }), [ficha?.destreza, ficha?.astucia, ficha?.vigor, ficha?.vontade, getAtributoAtualValor]);
 
   const itensEquipados = useMemo(() => {
     return itensInventario.filter(i => i.stats_personalizados?.slot);
   }, [itensInventario]);
+
+  // Atualização direta e reativa dos dados de Mutante no estado de classes
+  const atualizarDadosMutante = useCallback((novosDadosMutante) => {
+    setClasses(prevClasses => {
+      return prevClasses.map(c => {
+        const norm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (norm.includes('mutant')) {
+          const habsAtualizadas = (c.habilidades || []).map(h => {
+            const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            if (nomeHab.includes('teriomorfose')) {
+              return {
+                ...h,
+                terioformas_aprendidas: novosDadosMutante.terioformasAprendidas || h.terioformas_aprendidas || [],
+                dados_mutante: novosDadosMutante
+              };
+            }
+            if (nomeHab.includes('terioforma') || nomeHab.includes('acromorfose') || nomeHab.includes('biofag')) {
+              return { ...h, dados_mutante: novosDadosMutante };
+            }
+            return h;
+          });
+          return {
+            ...c,
+            dados_mutante: novosDadosMutante,
+            habilidades: habsAtualizadas
+          };
+        }
+        return c;
+      });
+    });
+  }, []);
 
   // 4. Status globais calculados (HP Máx, MP Máx, Defesas, Iniciativa)
   const statusFicha = useMemo(() => {
@@ -266,6 +328,7 @@ export function useCharacterSheet(id, navigate) {
     erro,
     recarregar: carregarDadosCompletos,
     ajustarRecurso,
+    atualizarDadosMutante,
     salvarEdicaoCompleta
   };
 }

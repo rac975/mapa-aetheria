@@ -340,3 +340,137 @@ export function calcularDefesasEIniciativa({ atributos = {}, itensEquipados = []
     temArmaduraMarcial: temArmaduraMarc
   };
 }
+
+/**
+ * Aumenta o passo do dado de atributo (ex: 6 -> 8, 8 -> 10, 10 -> 12).
+ * Conforme regras oficiais de Fabula Ultima (Passo maior de atributo, máximo d12).
+ * @param {string|number} valorDado
+ * @param {number} [max=12]
+ * @returns {number}
+ */
+export function aumentarPassoDado(valorDado, max = 12) {
+  const num = dadoParaNumero(valorDado);
+  if (num <= 6) return Math.min(max, 8);
+  if (num <= 8) return Math.min(max, 10);
+  return Math.min(max, 12);
+}
+
+/**
+ * Cria a representação padronizada do Ataque Desarmado (Unarmed Strike) de Fabula Ultima.
+ * Regra Oficial do Livro Básico:
+ * - Precisão: 【DES + VIG】
+ * - Dano: 【HR + 0】 físico
+ * - Categoria: Armas de Luta (Brawling)
+ * - Mãos: 1 mão (equipado automaticamente em mãos livres)
+ * - Alcance: Corpo a corpo (ou à distância se modificado por Acromorfose)
+ *
+ * Integração com Atlas Tecno-Fantasia (Acromorfose e Terioformas):
+ * - Acromorfose: +NP Precisão, +[6 + NP × 2] Dano Físico, e escolha da Categoria de Arma.
+ * - Terioformas elementais (Pirófora -> Fogo, Eletrófora -> Raio, Pneumófora -> Ar, Toxicófora -> Veneno).
+ * - Terioforma Polípoda: Concede Múltiplo (3).
+ *
+ * @param {Object} [opcoes={}]
+ * @param {Object} [opcoes.acromorfose] { nvAcromorfose: number, bonusPrecisao: number, bonusDanoFisico: number, categoriaArma: string }
+ * @param {Array<string>} [opcoes.terioformasAtivas=[]]
+ * @returns {Object} Objeto no formato de item de Fabula Ultima
+ */
+export function obterAtaqueDesarmado({ acromorfose = null, terioformasAtivas = [] } = {}) {
+  const nvAcro = parseInt(acromorfose?.nvAcromorfose, 10) || 0;
+  const bonusPrecisaoAcro = nvAcro > 0 ? (parseInt(acromorfose?.bonusPrecisao, 10) || nvAcro) : 0;
+  const bonusDanoAcro = nvAcro > 0 ? (parseInt(acromorfose?.bonusDanoFisico, 10) || (6 + nvAcro * 2)) : 0;
+
+  const categoriaArma = acromorfose?.categoriaArma || 'Armas de Luta';
+  const catLower = categoriaArma.toLowerCase();
+  const ehDistancia = catLower.includes('arco') || catLower.includes('fogo') || catLower.includes('arremesso') || catLower.includes('distancia') || catLower.includes('distância');
+
+  // Verifica elementos de Terioformas
+  let tipoDano = 'fisico';
+  const efeitosTerio = [];
+
+  if (terioformasAtivas.includes('pyrophora')) {
+    tipoDano = 'fogo';
+    efeitosTerio.push('Pirófora: Dano de Fogo (20+ perda de PV = Confuso)');
+  } else if (terioformasAtivas.includes('electrophora')) {
+    tipoDano = 'raio';
+    efeitosTerio.push('Eletrófora: Dano de Raio (20+ perda de PV = Lento)');
+  } else if (terioformasAtivas.includes('pneumophora')) {
+    tipoDano = 'ar';
+    efeitosTerio.push('Pneumófora: Dano de Ar (20+ perda de PV = Fraco)');
+  } else if (terioformasAtivas.includes('toxicophora')) {
+    tipoDano = 'veneno';
+    efeitosTerio.push('Toxicófora: Dano de Veneno (15+ perda de PV = Envenenado)');
+  }
+
+  const temPolypoda = terioformasAtivas.includes('polypoda');
+  if (temPolypoda) {
+    efeitosTerio.push('Polípoda: Múltiplo (3) [alveja até 3 criaturas]');
+  }
+
+  const qualidades = [];
+  if (nvAcro > 0) {
+    qualidades.push(`Acromorfose Nv. ${nvAcro} (+${bonusPrecisaoAcro} Precisão, +${bonusDanoAcro} Dano Físico, categoria: ${categoriaArma})`);
+  }
+  if (efeitosTerio.length > 0) {
+    qualidades.push(efeitosTerio.join(' • '));
+  }
+  if (qualidades.length === 0) {
+    qualidades.push('Golpe desarmado padrão do Livro Básico.');
+  }
+
+  return {
+    id: 'ataque_desarmado',
+    nome: nvAcro > 0 ? 'Ataque Desarmado (Acromorfose)' : 'Ataque Desarmado',
+    tipo: 'Arma Básica',
+    ehDesarmado: true,
+    stats_personalizados: {
+      categoria: categoriaArma,
+      alcance: ehDistancia ? 'distancia' : 'corpo_a_corpo',
+      attr1: 'destreza',
+      attr2: 'vigor',
+      precisao: bonusPrecisaoAcro > 0 ? `(DEX + MIG) + ${bonusPrecisaoAcro}` : '(DEX + MIG)',
+      acerto: bonusPrecisaoAcro,
+      dano: `HR + ${bonusDanoAcro}`,
+      bonus_dano: bonusDanoAcro,
+      tipo_dano: tipoDano,
+      maos: 1,
+      multiplo: temPolypoda ? 3 : undefined,
+      qualidade: qualidades.join(' | ')
+    }
+  };
+}
+
+/**
+ * Cria a representação padronizada de uma Arma Improvisada (Improvised Weapon) de Fabula Ultima.
+ * Regra Oficial do Livro Básico:
+ * - Precisão: 【DES + VIG】
+ * - Dano: 【HR + 2】 físico
+ * - Categoria: Armas de Luta (corpo a corpo) ou Arremesso (à distância)
+ * - Mãos: 1 mão
+ * - Qualidade especial: Destrói-se após o ataque.
+ *
+ * @param {Object} [opcoes={}]
+ * @param {'corpo_a_corpo'|'distancia'} [opcoes.tipoAlcance='corpo_a_corpo']
+ * @returns {Object}
+ */
+export function obterArmaImprovisada({ tipoAlcance = 'corpo_a_corpo' } = {}) {
+  const ehDistancia = tipoAlcance === 'distancia';
+  return {
+    id: 'arma_improvisada',
+    nome: ehDistancia ? 'Arma Improvisada (Arremesso)' : 'Arma Improvisada',
+    tipo: 'Arma Improvisada',
+    ehImprovisada: true,
+    stats_personalizados: {
+      categoria: ehDistancia ? 'Armas de Arremesso' : 'Armas de Luta',
+      alcance: ehDistancia ? 'distancia' : 'corpo_a_corpo',
+      attr1: 'destreza',
+      attr2: 'vigor',
+      precisao: '(DEX + MIG)',
+      acerto: 0,
+      dano: 'HR + 2',
+      bonus_dano: 2,
+      tipo_dano: 'fisico',
+      maos: 1,
+      qualidade: 'Destrói-se após o ataque.'
+    }
+  };
+}

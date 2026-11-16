@@ -1,4 +1,9 @@
-import { calcularEstatisticasVeiculo } from '../domain/fabula/technoFantasyRules';
+import {
+  calcularEstatisticasVeiculo,
+  THERIOFORMS_CATALOG,
+  aplicarPsicocinesePrecisao
+} from '../domain/fabula/technoFantasyRules.js';
+import { aumentarPassoDado } from '../domain/fabula/equipmentRules.js';
 
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
@@ -51,10 +56,48 @@ export function calcularStatusPersonagem(
     return isNaN(num) ? 8 : num;
   };
 
-  const des = converterAtributoParaNumero(atributos.destreza);
-  const ast = converterAtributoParaNumero(atributos.astucia);
-  const vig = converterAtributoParaNumero(atributos.vigor);
-  const von = converterAtributoParaNumero(atributos.vontade);
+  // Identifica classe Mutante e seus dados de Terioformas (Atlas Tecno-Fantasia)
+  const mutanteClass = (classes || []).find((c) => {
+    const nome = (c.nome_classe || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+    return nome.includes('mutant');
+  });
+
+  const habTerio = (mutanteClass?.habilidades || []).find((h) => {
+    const nome = (h.nome || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+    return nome.includes('teriomorfose');
+  });
+
+  const nvTeriomorfose = parseInt(habTerio?.nivel, 10) || 0;
+  const dadosMutante = mutanteClass?.dados_mutante || habTerio?.dados_mutante || ficha?.dados_mutante || {};
+  const terioformasAtivas = Array.isArray(dadosMutante.terioformasAtivas) ? dadosMutante.terioformasAtivas : [];
+
+  let des = converterAtributoParaNumero(atributos.destreza);
+  let ast = converterAtributoParaNumero(atributos.astucia);
+  let vig = converterAtributoParaNumero(atributos.vigor);
+  let von = converterAtributoParaNumero(atributos.vontade);
+
+  // Aplica Terioformas ativas que aumentam passos de atributo (máximo d12)
+  const temTachytheria = terioformasAtivas.includes('tachytheria');
+  const temArpaktida = terioformasAtivas.includes('arpaktida');
+  const temDynamotheria = terioformasAtivas.includes('dynamotheria');
+
+  if (temTachytheria) {
+    des = aumentarPassoDado(des);
+  }
+  if (temArpaktida) {
+    ast = aumentarPassoDado(ast);
+  }
+  if (temDynamotheria) {
+    vig = aumentarPassoDado(vig);
+  }
 
   const mapaAtributos = {
     des,
@@ -352,6 +395,52 @@ export function calcularStatusPersonagem(
   }
 
   defesaTotal = (Number(defesaBase) || 0) + (Number(bonusDefesaItens) || 0) + (Number(bonusEsquivaLadino) || 0);
+
+  // 8. Integração com Terioformas e Habilidades do Mutante (Atlas Tecno-Fantasia)
+  // Placófora: trata Defesa como 13 + [metade do nível de Teriomorfose] se for superior à normal
+  const temPlacophora = terioformasAtivas.includes('placophora');
+  let defPlacophora = null;
+  if (temPlacophora) {
+    defPlacophora = 13 + Math.floor(nvTeriomorfose / 2);
+    if (defPlacophora > defesaTotal) {
+      defesaTotal = defPlacophora;
+    }
+  }
+
+  // Resistências ativas (concedidas por Écdise ou mutações)
+  const resistenciasAtivas = [];
+  if (dadosMutante.resistenciaEcdise) {
+    resistenciasAtivas.push({
+      tipo: dadosMutante.resistenciaEcdise,
+      fonte: 'Écdise'
+    });
+  }
+
+  // Resumo discriminado das Terioformas ativas para exibição de Badges
+  const terioformasAtivasDetalhes = terioformasAtivas.map(chave => {
+    const itemCatalogo = THERIOFORMS_CATALOG.find(t => t.key === chave);
+    let resumoEfeito = '';
+    if (chave === 'placophora') resumoEfeito = `DEF ${13 + Math.floor(nvTeriomorfose / 2)}`;
+    else if (chave === 'dynamotheria') resumoEfeito = '+1 Passo VIG';
+    else if (chave === 'tachytheria') resumoEfeito = '+1 Passo DES';
+    else if (chave === 'arpaktida') resumoEfeito = '+1 Passo AST (+5 Dano Crise)';
+    else if (chave === 'polypoda') resumoEfeito = 'Multi (3) Desarmado';
+    else if (chave === 'electrophora') resumoEfeito = 'Dano Raio (Lento)';
+    else if (chave === 'pyrophora') resumoEfeito = 'Dano Fogo (Confuso)';
+    else if (chave === 'pneumophora') resumoEfeito = 'Dano Ar (Fraco)';
+    else if (chave === 'toxicophora') resumoEfeito = 'Dano Veneno (Envenenado)';
+    else if (chave === 'pterotheria') resumoEfeito = 'Voando';
+    else if (chave === 'amphibia') resumoEfeito = 'Aquático (+5 Cura)';
+    else if (chave === 'neurophagoida') resumoEfeito = 'Biofagia PM';
+
+    return {
+      key: chave,
+      nome: itemCatalogo?.nome?.split('(')[0]?.trim() || chave,
+      nomeCompleto: itemCatalogo?.nome || chave,
+      resumoEfeito
+    };
+  });
+
   mdefTotal = (Number(mdefBase) || 0) + (Number(bonusMDefItens) || 0);
   iniciativaTotal = Number(iniciativaTotal) || 0;
   precisaoBonus = Number(precisaoBonus) || 0;
@@ -387,6 +476,13 @@ export function calcularStatusPersonagem(
     temProficienciaArmasMarciais,
     veiculoAtivo,
     dadosVeiculo: dadosVeiculoInfo,
+    mutanteAtivo: !!mutanteClass,
+    nvTeriomorfose,
+    terioformasAtivas,
+    terioformasAtivasDetalhes,
+    resistenciasAtivas,
+    defesaPlacophoraAtiva: temPlacophora ? defPlacophora : null,
+    dadosMutante
   };
 }
 
@@ -502,13 +598,17 @@ export function rolarAtaqueEDanoArma(
   if (formulaPrecisao) {
     const mapaAtributos = {
       DEX: "destreza",
-      INS: "intuicao",
-      MIG: "vigor",
-      WLP: "vontade",
+      DES: "destreza",
+      INS: "astucia",
       AST: "astucia",
+      INT: "astucia",
+      MIG: "vigor",
+      VIG: "vigor",
+      WLP: "vontade",
+      VON: "vontade",
     };
     const matchAtributos = formulaPrecisao.match(
-      /\(([A-Z]{3})\s*\+\s*([A-Z]{3})\)/,
+      /[([【]([A-Z]{3})\s*\+\s*([A-Z]{3})[)\]】]/,
     );
     if (matchAtributos) {
       if (mapaAtributos[matchAtributos[1]])
@@ -516,10 +616,10 @@ export function rolarAtaqueEDanoArma(
       if (mapaAtributos[matchAtributos[2]])
         attr2Nome = mapaAtributos[matchAtributos[2]];
     }
-    const partes = formulaPrecisao.split(")");
+    const partes = formulaPrecisao.split(/[)\]】]/);
     if (partes.length > 1) {
       const matchBonus = partes[1].match(/\+\s*(\d+)/);
-      if (matchBonus) bonusPrecisaoArma = parseInt(matchBonus[1], 10) || 0;
+      if (matchBonus) bonusPrecisaoArma = Math.max(bonusPrecisaoArma, parseInt(matchBonus[1], 10) || 0);
     }
   }
 
@@ -536,8 +636,25 @@ export function rolarAtaqueEDanoArma(
     return isNaN(num) ? 8 : num;
   };
 
-  const faces1 = extrairFaces(atributosAtuais[attr1Nome]);
-  const faces2 = extrairFaces(atributosAtuais[attr2Nome]);
+  let faces1 = extrairFaces(atributosAtuais[attr1Nome]);
+  let faces2 = extrairFaces(atributosAtuais[attr2Nome]);
+
+  if (opcoesDanoExtra?.usarPsicocinese) {
+    const facesVon = extrairFaces(
+      atributosAtuais.vontade || atributosAtuais.von || atributosAtuais.wlp
+    );
+    const modPsico = aplicarPsicocinesePrecisao({
+      attr1Nome,
+      attr2Nome,
+      faces1,
+      faces2,
+      facesVon
+    });
+    attr1Nome = modPsico.attr1Nome;
+    attr2Nome = modPsico.attr2Nome;
+    faces1 = modPsico.faces1;
+    faces2 = modPsico.faces2;
+  }
 
   const res1 = Math.floor(Math.random() * faces1) + 1;
   const res2 = Math.floor(Math.random() * faces2) + 1;
@@ -635,5 +752,8 @@ export function rolarAtaqueEDanoArma(
     isMulti,
     danoExtraHabilidade,
     danoAdrenalinaFurioso,
+    tipoDano: stats.tipo_dano || 'fisico',
+    multiplo: stats.multiplo || null,
+    usandoPsicocinese: !!opcoesDanoExtra?.usarPsicocinese
   };
 }

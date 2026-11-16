@@ -1,4 +1,4 @@
-import { FaShieldAlt, FaCar } from 'react-icons/fa';
+import { FaShieldAlt, FaCar, FaDna } from 'react-icons/fa';
 import { Card, Badge } from '../../../components/ui';
 import styles from './FichaEstatisticasSecao.module.css';
 
@@ -12,6 +12,9 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
     const mdefFinal = Number(statusFicha.mdefTotal) || 0;
     const iniFinal = Number(statusFicha.iniciativaTotal) || 0;
     const precisaoFinal = Number(statusFicha.precisaoBonus) || 0;
+
+    const temEfeitosMutante = (statusFicha.terioformasAtivasDetalhes && statusFicha.terioformasAtivasDetalhes.length > 0) ||
+        (statusFicha.resistenciasAtivas && statusFicha.resistenciasAtivas.length > 0);
 
     return (
         <Card variant="default" className={styles.container}>
@@ -29,6 +32,9 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                 <div className={styles.statBox}>
                     <span className={styles.statLabel}>DEFESA (DEF)</span>
                     <strong className={`${styles.statValor} ${styles.valDefesa}`}>{defFinal}</strong>
+                    {statusFicha.defesaPlacophoraAtiva && (
+                        <span className={styles.statSub}>Placófora ({statusFicha.defesaPlacophoraAtiva})</span>
+                    )}
                     {veiculoAtivo && dadosVeiculo?.armaduraAtiva && (
                         <span className={styles.statSub}>{dadosVeiculo.armaduraAtiva}</span>
                     )}
@@ -55,6 +61,27 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                     </div>
                 )}
             </div>
+
+            {/* Badges de Terioformas Ativas e Resistências da Ficha */}
+            {temEfeitosMutante && (
+                <div className={styles.badgesEfeitosContainer}>
+                    <span className={styles.badgesEfeitosLabel}>
+                        <FaDna /> Mutações & Terioformas Ativas:
+                    </span>
+                    <div className={styles.badgesEfeitosGrid}>
+                        {statusFicha.terioformasAtivasDetalhes?.map(tf => (
+                            <Badge key={tf.key} variant="core" size="sm" className={styles.terioBadge}>
+                                <FaDna /> {tf.nome} {tf.resumoEfeito ? `(${tf.resumoEfeito})` : ''}
+                            </Badge>
+                        ))}
+                        {statusFicha.resistenciasAtivas?.map((res, idx) => (
+                            <Badge key={idx} variant="gold" size="sm" className={styles.resistenciaBadge}>
+                                <FaShieldAlt /> Resistência: {res.tipo.toUpperCase()} {res.fonte ? `(${res.fonte})` : ''}
+                            </Badge>
+                        ))}
+                    </div>
+                </div>
+            )}
         </Card>
     );
 }

@@ -387,6 +387,32 @@ export const fichaService = {
   },
 
   /**
+   * Inscreve um callback para atualizações em tempo real nas classes da ficha (fichas_classes).
+   * Mantém sincronizadas terioformas, módulos e habilidades especiais.
+   * @param {string|number} fichaId
+   * @param {Function} onUpdate
+   * @returns {Object} subscription channel
+   */
+  subscribeClasses(fichaId, onUpdate) {
+    if (!fichaId) return null;
+    const sufixo = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const channelName = `realtime_classes_${fichaId}_${sufixo}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'fichas_classes', filter: `ficha_id=eq.${fichaId}` },
+        (payload) => {
+          if (onUpdate) onUpdate(payload);
+        }
+      )
+      .subscribe();
+
+    return channel;
+  },
+
+  /**
    * Remove com segurança uma inscrição de canal do Supabase
    * @param {Object} channel
    */
@@ -586,12 +612,13 @@ export const fichaService = {
 
   /**
    * Salva os dados específicos da classe Esper no Supabase
-   * Atualiza a tabela fichas_classes (anexando às habilidades do Esper)
+   * Atualiza a tabela fichas_classes (anexando às habilidades do Esper, especialmente Dons Psíquicos)
    * @param {string|number} fichaId
    * @param {Object} dadosEsper
+   * @param {Array} [classes=[]]
    * @returns {Promise<{sucesso: boolean, error?: any}>}
    */
-  async salvarDadosEsper(fichaId, dadosEsper) {
+  async salvarDadosEsper(fichaId, dadosEsper, classes = []) {
     if (!fichaId) {
       return { sucesso: false, error: new Error('fichaId é obrigatório para salvar Esper.') };
     }
@@ -610,13 +637,31 @@ export const fichaService = {
         );
 
         if (esperClass) {
+          let encontrouHabDons = false;
           const habilidadesAtualizadas = (esperClass.habilidades || []).map(h => {
             const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            if (nomeHab.includes('dadiva') || nomeHab.includes('foco') || nomeHab.includes('psicocinese')) {
+            if (nomeHab.includes('don') || nomeHab.includes('dadiva')) {
+              encontrouHabDons = true;
+              return {
+                ...h,
+                dons_aprendidos: Array.isArray(dadosEsper.donsAprendidos) ? dadosEsper.donsAprendidos : (h.dons_aprendidos || []),
+                dados_esper: dadosEsper
+              };
+            }
+            if (nomeHab.includes('foco') || nomeHab.includes('psicocinese') || nomeHab.includes('hipercognicao') || nomeHab.includes('navegador')) {
               return { ...h, dados_esper: dadosEsper };
             }
             return h;
           });
+
+          if (!encontrouHabDons && Array.isArray(dadosEsper.donsAprendidos) && dadosEsper.donsAprendidos.length > 0) {
+            habilidadesAtualizadas.push({
+              nome: 'Dons Psíquicos',
+              nivel: dadosEsper.donsAprendidos.length || 1,
+              dons_aprendidos: dadosEsper.donsAprendidos,
+              dados_esper: dadosEsper
+            });
+          }
 
           const { error: errUpdate } = await supabase
             .from('fichas_classes')
@@ -625,6 +670,35 @@ export const fichaService = {
 
           if (errUpdate) throw errUpdate;
         }
+      }
+
+      // Sincroniza em memória no array de classes se fornecido
+      if (classes && classes.length > 0) {
+        classes.forEach(c => {
+          const norm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          if (norm.includes('esper')) {
+            c.dados_esper = dadosEsper;
+            if (Array.isArray(c.habilidades)) {
+              let encontrou = false;
+              c.habilidades.forEach(h => {
+                const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                if (nomeHab.includes('don') || nomeHab.includes('dadiva')) {
+                  encontrou = true;
+                  h.dons_aprendidos = Array.isArray(dadosEsper.donsAprendidos) ? dadosEsper.donsAprendidos : (h.dons_aprendidos || []);
+                  h.dados_esper = dadosEsper;
+                }
+              });
+              if (!encontrou && Array.isArray(dadosEsper.donsAprendidos) && dadosEsper.donsAprendidos.length > 0) {
+                c.habilidades.push({
+                  nome: 'Dons Psíquicos',
+                  nivel: dadosEsper.donsAprendidos.length || 1,
+                  dons_aprendidos: dadosEsper.donsAprendidos,
+                  dados_esper: dadosEsper
+                });
+              }
+            }
+          }
+        });
       }
 
       return { sucesso: true };
@@ -636,12 +710,13 @@ export const fichaService = {
 
   /**
    * Salva os dados específicos da classe Mutante no Supabase
-   * Atualiza a tabela fichas_classes (anexando às habilidades do Mutante)
+   * Atualiza a tabela fichas_classes (anexando às habilidades do Mutante, especialmente Teriomorfose)
    * @param {string|number} fichaId
    * @param {Object} dadosMutante
+   * @param {Array} [classes=[]]
    * @returns {Promise<{sucesso: boolean, error?: any}>}
    */
-  async salvarDadosMutante(fichaId, dadosMutante) {
+  async salvarDadosMutante(fichaId, dadosMutante, classes = []) {
     if (!fichaId) {
       return { sucesso: false, error: new Error('fichaId é obrigatório para salvar Mutante.') };
     }
@@ -660,13 +735,31 @@ export const fichaService = {
         );
 
         if (mutanteClass) {
+          let encontrouHabTerio = false;
           const habilidadesAtualizadas = (mutanteClass.habilidades || []).map(h => {
             const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            if (nomeHab.includes('terioforma') || nomeHab.includes('teriomorfose') || nomeHab.includes('acromorfose')) {
+            if (nomeHab.includes('teriomorfose')) {
+              encontrouHabTerio = true;
+              return {
+                ...h,
+                terioformas_aprendidas: dadosMutante.terioformasAprendidas || h.terioformas_aprendidas || [],
+                dados_mutante: dadosMutante
+              };
+            }
+            if (nomeHab.includes('terioforma') || nomeHab.includes('acromorfose') || nomeHab.includes('biofag')) {
               return { ...h, dados_mutante: dadosMutante };
             }
             return h;
           });
+
+          if (!encontrouHabTerio && dadosMutante.terioformasAprendidas) {
+            habilidadesAtualizadas.push({
+              nome: 'Teriomorfose',
+              nivel: dadosMutante.terioformasAprendidas.length || 1,
+              terioformas_aprendidas: dadosMutante.terioformasAprendidas,
+              dados_mutante: dadosMutante
+            });
+          }
 
           const { error: errUpdate } = await supabase
             .from('fichas_classes')
@@ -675,6 +768,35 @@ export const fichaService = {
 
           if (errUpdate) throw errUpdate;
         }
+      }
+
+      // Sincroniza em memória no array de classes se fornecido
+      if (classes && classes.length > 0) {
+        classes.forEach(c => {
+          const norm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          if (norm.includes('mutant')) {
+            c.dados_mutante = dadosMutante;
+            if (Array.isArray(c.habilidades)) {
+              let encontrou = false;
+              c.habilidades.forEach(h => {
+                const nomeHab = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                if (nomeHab.includes('teriomorfose')) {
+                  encontrou = true;
+                  h.terioformas_aprendidas = dadosMutante.terioformasAprendidas || h.terioformas_aprendidas || [];
+                  h.dados_mutante = dadosMutante;
+                }
+              });
+              if (!encontrou && dadosMutante.terioformasAprendidas) {
+                c.habilidades.push({
+                  nome: 'Teriomorfose',
+                  nivel: dadosMutante.terioformasAprendidas.length || 1,
+                  terioformas_aprendidas: dadosMutante.terioformasAprendidas,
+                  dados_mutante: dadosMutante
+                });
+              }
+            }
+          }
+        });
       }
 
       return { sucesso: true };

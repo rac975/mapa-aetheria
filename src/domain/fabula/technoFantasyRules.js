@@ -1,9 +1,9 @@
 /**
- * Fabula Ultima - Regras do Suplemento Techno Fantasy Atlas
+ * Fabula Ultima - Regras do Suplemento Techno Fantasy Atlas (Atlas Tecno-Fantasia)
  *
  * Módulo de Lógica Pura de Domínio para as 3 Classes Oficiais:
- * - Esper (Psíquico / Foco Cognitivo / Dádivas Psíquicas / Relógio de Ondas Cerebrais)
- * - Mutante (Teriomorfose / Terioformas / Acromorfose / Biófago / Écdise)
+ * - Esper (Psíquico / Foco Cognitivo / Dons Psíquicos / Relógio de Ondas Cerebrais)
+ * - Mutante (Teriomorfose / Terioformas / Acromorfose / Biofagia / Écdise / Genoclepse)
  * - Piloto (Veículo Pessoal / Estruturas / Módulos / Configuração Flexível)
  *
  * CONFORME GEMINI.md:
@@ -26,14 +26,15 @@ export const BRAINWAVE_CLOCK_MAX_SECTIONS = 4;
 export const THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT = 2;
 export const COMPRESSION_TECH_IP_COST = 2;
 export const EXTEND_THERIOFORMS_MP_COST = 10;
+export const ECDYSIS_HP_COST = 10;
 
 /**
- * Benefícios gratuitos e habilidades oficiais das 3 classes do Techno Fantasy Atlas.
+ * Benefícios gratuitos e habilidades oficiais das 3 classes do Techno Fantasy Atlas (PT-BR).
  */
 export const TECHNO_FANTASY_CLASSES = {
   esper: {
     nome_classe: 'Esper',
-    descricao: 'Sensitivos psíquicos conectados à rede de almas e ao inconsciente coletivo, capazes de projetar energia mental pura e remodelar a realidade ao seu redor.',
+    descricao: 'Sensitivos mentais capazes de sintonizar a rede de almas e manifestar poderes psíquicos impressionantes, projetando campos cinéticos, telepatia e alterando a realidade perceptiva ao seu redor.',
     beneficios_iniciais: {
       texto: 'Aumente permanentemente seus Pontos de Magia (PM) máximos em 5.',
       hp_bonus: 0,
@@ -45,34 +46,34 @@ export const TECHNO_FANTASY_CLASSES = {
       {
         nome: 'Foco Cognitivo',
         max_nivel: 5,
-        descricao: 'No início do seu turno em conflito, designe como Foco um aliado que possa ouvi-lo ou um inimigo com Confuso, Enfurecido ou Abalado. Receba +[SL] em testes para examiná-lo, +[SL] em Testes de Precisão/Magia contra ele, e ele recupera +[SL × 2] adicionais de PV/PM se você o curar.'
+        descricao: 'No início do seu turno em conflito, escolha um aliado que possa ouvi-lo ou um inimigo visível que esteja sofrendo de Confuso, Enfurecido e/ou Abalado: esse alvo torna-se seu Foco até o início do seu próximo turno. Você recebe +[NP] em testes para examinar seu Foco e em Testes de Precisão e Magia para ataques e magias ofensivas que incluam seu Foco entre os alvos. Se você fizer seu Foco recuperar Pontos de Vida ou Pontos de Magia, ele recupera +[NP × 2] adicionais.'
       },
       {
         nome: 'Hipercognição',
         max_nivel: 5,
-        descricao: 'Reduz o custo em PM de magias e versos que alvejam seu Foco em [SL] PM, ou em [SL × 2] PM se o Foco for o único alvo (custo mínimo de 0 PM).'
+        descricao: 'Reduz o custo total em PM de magias e versos que tenham seu Foco como alvo em [NP] PM (ou em [NP × 2] PM se o seu Foco for o único alvo da magia, até um custo mínimo de 0 PM).'
       },
       {
         nome: 'Navegador',
         max_nivel: 1,
-        descricao: 'Permite comunicação telepática com aliados conscientes a até 1 dia de viagem. Permite realizar Rituais da disciplina Ritualismo sem necessidade de ingredientes raros.'
+        descricao: 'Você pode se comunicar telepaticamente com qualquer aliado consciente a até 1 dia de viagem. Você pode realizar rituais da disciplina Ritualismo sem a necessidade de itens ou ingredientes raros.'
       },
       {
         nome: 'Psicocinese',
         max_nivel: 1,
-        descricao: 'Ao realizar um Teste de Precisão, você pode substituir um dado de atributo por Vontade (VON). Ataques corpo a corpo com armas arcanas ou espadas podem alvejar criaturas voadoras.'
+        descricao: 'Ao realizar um Teste de Precisão com uma arma, você pode substituir um dos dados de atributo por Vontade (VON). Além disso, seus ataques corpo a corpo com armas das categorias arcana ou espada podem alvejar criaturas voadoras.'
       },
       {
-        nome: 'Dádivas Psíquicas',
+        nome: 'Dons Psíquicos',
         max_nivel: 5,
-        descricao: 'Aprenda 1 Dádiva Psíquica para cada nível desta habilidade. Você adquire um Relógio de Ondas Cerebrais de 4 seções. Usar uma dádiva custa 5 × seções preenchidas de PM (mín. 5 PM) e avança o relógio em 1 seção.'
+        descricao: 'Cada nível concede 1 Dom Psíquico do catálogo à sua escolha. Você adquire um Relógio de Ondas Cerebrais de 4 seções (que inicia cada cena vazio). Ao ativar um Dom Psíquico, ele custa 5 × seções preenchidas de PM (mínimo de 5 PM) e preenche 1 seção do seu relógio.'
       }
     ]
   },
 
   mutante: {
     nome_classe: 'Mutante',
-    descricao: 'Seres geneticamente modificados ou aberrantes que reconfiguram sua própria fisiologia em combate através de mutações extremas conhecidas como terioformas.',
+    descricao: 'Indivíduos geneticamente alterados ou modificados biologicamente que reconfiguram sua própria anatomia e fisiologia em pleno combate através de mutações conhecidas como terioformas.',
     beneficios_iniciais: {
       texto: 'Aumente permanentemente seus Pontos de Vida (PV) máximos em 5.',
       hp_bonus: 5,
@@ -84,27 +85,27 @@ export const TECHNO_FANTASY_CLASSES = {
       {
         nome: 'Teriomorfose',
         max_nivel: 6,
-        descricao: 'Aprenda 1 Terioforma para cada nível nesta habilidade. Em conflito, gaste 1 ação e 1/3 do seu PV atual para manifestar até 2 Terioformas simultâneas pela cena inteira.'
+        descricao: 'Cada nível concede 1 Terioforma do catálogo genético à sua escolha. Em conflito, gaste 1 ação e 1/3 do seu PV atual (arredondado para baixo) para manifestar simultaneamente até 2 Terioformas aprendidas pela cena inteira. No final da cena, você pode gastar 10 PM para estender as formas ativas para a próxima cena.'
       },
       {
         nome: 'Acromorfose',
         max_nivel: 3,
-        descricao: 'No início do seu turno, escolha uma categoria de armas: seus ataques desarmados contam como pertencentes a essa categoria. Eles recebem +[SL] em Precisão e +[6 + (SL × 2)] no Dano Físico.'
+        descricao: 'Seus ataques com golpes desarmados causam +[6 + (NP × 2)] de dano e recebem +[NP] em Precisão. No início do seu turno durante um conflito, escolha uma categoria de armas: até o início do seu próximo turno, seus ataques com golpes desarmados contam como pertencentes àquela categoria (se pertencerem a arcos, armas de fogo ou arremesso, contam como ataques à distância em vez de corpo a corpo).'
       },
       {
-        nome: 'Biófago',
-        max_nivel: 5,
-        descricao: 'Enquanto estiver em Crise (PV atual ≤ metade do PV Máximo), ao causar dano a um ou mais inimigos, você recupera [SL × 2] Pontos de Vida imediatamente.'
+        nome: 'Biofagia',
+        max_nivel: 4,
+        descricao: 'Após um de seus ataques ou magias ofensivas fazer com que um ou mais inimigos percam Pontos de Vida, se você estiver em Crise (PV atual ≤ metade do PV Máximo), você pode recuperar [NP × 5] Pontos de Vida.'
       },
       {
         nome: 'Écdise',
-        max_nivel: 4,
-        descricao: 'Reação adaptativa: ao sofrer dano, gaste PV para descartar sua carapaça externa e receber Resistência temporária àquele tipo de dano até o final do próximo turno.'
+        max_nivel: 1,
+        descricao: 'Após você sofrer dano de um tipo diferente de físico, você pode gastar 10 PV para receber Resistência àquele tipo de dano até usar esta habilidade novamente (você não pode usar esta habilidade se isso reduziria seus PV a 0).'
       },
       {
-        nome: 'Genoclepsia',
-        max_nivel: 3,
-        descricao: 'Permite absorver e sintetizar temporariamente terioformas de monstros e espécimes encontrados ou consumidos em batalha.'
+        nome: 'Genoclepse',
+        max_nivel: 2,
+        descricao: 'Quando você causa dano a um ou mais PdMs, você descobre a Espécie deles e o Mestre escolhe uma quantidade de terioformas apropriadas para esses PdMs igual ao seu [NP]. Se você possuir a habilidade Teriomorfose, você pode gastar imediatamente o custo de PV dela para manifestar essas terioformas na cena.'
       }
     ]
   },
@@ -150,96 +151,142 @@ export const TECHNO_FANTASY_CLASSES = {
 };
 
 /**
- * Catálogo Oficial de Dádivas Psíquicas (Psychic Gifts) do Esper
+ * Catálogo Oficial de Dons Psíquicos (Psychic Gifts) do Esper - Techno Fantasy Atlas (PT-BR)
  */
 export const PSYCHIC_GIFTS_CATALOG = [
   {
     key: 'atmocinese',
     nome: 'Atmocinese (Atmokinesis)',
-    gatilho: 'Ao causar dano',
+    gatilho: 'Ao causar dano a uma ou mais criaturas',
     tipos_dano: ['ar', 'raio'],
-    descricao: 'Altera o tipo do dano para Ar ou Raio. Causa dano adicional igual a 2 + seções preenchidas do Relógio de Ondas Cerebrais.'
-  },
-  {
-    key: 'gravitocinese',
-    nome: 'Gravitocinese (Gravitokinesis)',
-    gatilho: 'Ao causar dano',
-    tipos_dano: ['terra', 'fisico'],
-    descricao: 'Altera o tipo do dano para Terra ou Físico. Causa dano adicional de 2 + seções preenchidas. Força criaturas voadoras alvejadas a pousarem imediatamente.'
+    descricao: 'Você pode alterar todo o dano causado para o tipo Ar ou Raio. Se o fizer, você causa dano adicional a cada criatura igual a 2 + o número de seções preenchidas do seu Relógio de Ondas Cerebrais.'
   },
   {
     key: 'fotocinese',
     nome: 'Fotocinese (Photokinesis)',
-    gatilho: 'Ao causar dano',
+    gatilho: 'Ao causar dano a uma ou mais criaturas',
     tipos_dano: ['luz', 'trevas'],
-    descricao: 'Altera o tipo do dano para Luz ou Trevas. Causa dano adicional igual a 2 + seções preenchidas do Relógio de Ondas Cerebrais.'
+    descricao: 'Você pode alterar todo o dano causado para o tipo Luz ou Trevas. Se o fizer, você causa dano adicional a cada criatura igual a 2 + o número de seções preenchidas do seu Relógio de Ondas Cerebrais.'
+  },
+  {
+    key: 'gravitocinese',
+    nome: 'Gravitocinese (Gravitokinesis)',
+    gatilho: 'Ao causar dano a uma ou mais criaturas',
+    tipos_dano: ['fisico', 'terra'],
+    descricao: 'Você pode alterar todo o dano causado para o tipo Físico ou Terra. Se o fizer, você causa dano adicional a cada criatura igual a 2 + o número de seções preenchidas do seu Relógio de Ondas Cerebrais, e cada criatura voadora atingida é forçada a pousar imediatamente.'
   },
   {
     key: 'termocinese',
     nome: 'Termocinese (Thermokinesis)',
-    gatilho: 'Ao causar dano',
+    gatilho: 'Ao causar dano a uma ou mais criaturas',
     tipos_dano: ['fogo', 'gelo'],
-    descricao: 'Altera o tipo do dano para Fogo ou Gelo. Causa dano adicional igual a 2 + seções preenchidas do Relógio de Ondas Cerebrais.'
+    descricao: 'Você pode alterar todo o dano causado para o tipo Fogo ou Gelo. Se o fizer, você causa dano adicional a cada criatura igual a 2 + o número de seções preenchidas do seu Relógio de Ondas Cerebrais.'
   },
   {
     key: 'escudo_psiquico',
     nome: 'Escudo Psíquico (Psychic Shield)',
-    gatilho: 'Ao ser alvejado por ataque ou magia ofensiva',
+    gatilho: 'Após um inimigo visível realizar um Teste de Precisão ou Magia contra você',
     tipos_dano: [],
-    descricao: 'Projeta um escudo cinético de força mental que reduz o dano total recebido em 5 + (seções preenchidas × 2).'
+    descricao: 'Para esse teste, você pode tratar sua Defesa e Defesa Mágica como iguais ao dado do seu atributo Vontade (VON) + (2 × seções preenchidas do Relógio de Ondas Cerebrais), caso esse valor seja superior ao seu valor normal.'
   },
   {
     key: 'retaliacao_psiquica',
     nome: 'Retaliação Psíquica (Psychic Backlash)',
-    gatilho: 'Ao sofrer dano de um inimigo',
-    tipos_dano: ['mental'],
-    descricao: 'Projeta ondas de choque de retorno causando dano em PM ou perda mental ao atacante igual a 5 + seções preenchidas.'
+    gatilho: 'Após um inimigo vencer um Teste Oposto contra você ou causar perda de PV a você',
+    tipos_dano: [],
+    descricao: 'Aquele inimigo perde Pontos de Magia (PM) iguais a 5 + (seções preenchidas do Relógio × 5). Além disso, você escolhe uma opção: o inimigo sofre a condição Abalado ou a condição Confuso.'
+  },
+  {
+    key: 'transferencia_vital',
+    nome: 'Transferência Vital (Life Transference)',
+    gatilho: 'Após você fazer um ou mais inimigos perderem Pontos de Vida',
+    tipos_dano: [],
+    descricao: 'Escolha você mesmo ou um aliado que seja seu Foco. Se o alvo escolhido estiver em Crise, ele recupera uma quantidade de Pontos de Vida (PV) igual a 5 + (seções preenchidas do Relógio × 5).'
+  },
+  {
+    key: 'clarividencia',
+    nome: 'Clarividência (Clairvoyance)',
+    gatilho: 'Quando uma criatura se torna seu Foco ou quando você cria um Elo em relação a um PdM',
+    tipos_dano: [],
+    descricao: 'Você pode fazer uma única pergunta sobre aquele PdM ao Mestre, e o Mestre deve responder com sinceridade. Descreva a manifestação psíquica ou alucinação sensorial através da qual você obteve essa informação. Você só pode usar este dom uma vez para cada PdM.'
   }
 ];
 
 /**
- * Catálogo Oficial de Terioformas (Therioforms) do Mutante
+ * Catálogo Oficial das 12 Terioformas (Therioforms) do Mutante - Techno Fantasy Atlas (PT-BR)
  */
 export const THERIOFORMS_CATALOG = [
   {
     key: 'amphibia',
     nome: 'Anfíbia (Amphibia)',
-    descricao: 'Adaptação anfíbia e hidrodinâmica. Você respira debaixo d\'água, não sofre penalidades em terrenos aquáticos e ganha Resistência a dano de Gelo.'
+    inspiracao: 'Sapos, salamandras, tritões',
+    descricao: 'Você pode respirar debaixo d\'água e seus olhos enxergam perfeitamente em penumbra. Quando você recupera Pontos de Vida, recupera +5 PV adicionais e pode se recuperar imediatamente de um efeito de status à sua escolha.'
   },
   {
     key: 'arpaktida',
     nome: 'Arpactida (Arpaktida)',
-    descricao: 'Garras curvas preênseis e presas afiadas. Bônus de +2 em testes para agarrar ou derrubar inimigos, e seus ataques corpo a corpo ignoram resistência física leve.'
+    inspiracao: 'Aves de rapina, tubarões, lobos',
+    descricao: 'Você considera o dado do seu atributo Astúcia (AST) como de um passo maior (máximo d12). Ao causar dano a uma ou mais criaturas pela primeira vez no seu turno, se ao menos uma delas estiver em Crise, você causa 5 de dano adicional a cada uma dessas criaturas.'
   },
   {
     key: 'dynamotheria',
     nome: 'Dinamotéria (Dynamotheria)',
-    descricao: 'Musculatura hipertrofiada e densidade muscular extrema. Você recebe +4 em todas as rolagens de dano físico e bônus de +2 em testes de Vigor puro.'
+    inspiracao: 'Ursos, elefantes, besouros-rinoceronte',
+    descricao: 'Você considera o dado do seu atributo Vigor (VIG) como de um passo maior (máximo d12). Ao ser bem-sucedido em um Teste para avançar ou regredir um Relógio, se esse Teste incluir Vigor, você pode preencher ou apagar 1 seção adicional daquele Relógio.'
+  },
+  {
+    key: 'electrophora',
+    nome: 'Eletrófora (Electrophora)',
+    inspiracao: 'Enguias elétricas, arraias, peixes-elétricos',
+    descricao: 'Ao causar dano com um ataque ou magia, você pode alterar todo o dano para o tipo Raio. Se for um golpe desarmado e o alvo perder 20 ou mais PV com o ataque, ele também sofre a condição Lento.'
+  },
+  {
+    key: 'neurophagoida',
+    nome: 'Neurofagóide (Neurophagoida)',
+    inspiracao: 'Parasitas, vermes cerebrais, sanguessugas mentais',
+    descricao: 'Modifica sua habilidade Biofagia: ao ativar a Biofagia para recuperar PV, você também recupera Pontos de Magia (PM) iguais a 4 + seu nível na habilidade Biofagia.'
   },
   {
     key: 'placophora',
     nome: 'Placófora (Placophora)',
-    descricao: 'Placas dérmicas e carapaça quitinosa espessa. Sua Defesa natural aumenta em +2 e você não pode sofrer acertos críticos de ataques físicos.'
+    inspiracao: 'Caranguejos, lagostas, tartarugas, tatus',
+    descricao: 'Você pode tratar sua Defesa como sendo igual a 13 + [metade do seu nível na habilidade Teriomorfose, arredondado para baixo] (se esse valor for superior à sua Defesa normal).'
+  },
+  {
+    key: 'pneumophora',
+    nome: 'Pneumófora (Pneumophora)',
+    inspiracao: 'Pássaros marinhos, peixes-voadores, serpentes aladas',
+    descricao: 'Ao causar dano com um ataque ou magia, você pode alterar todo o dano para o tipo Ar. Se for um golpe desarmado e o alvo perder 20 ou mais PV com o ataque, ele também sofre a condição Fraco.'
   },
   {
     key: 'polypoda',
     nome: 'Polípoda (Polypoda)',
-    descricao: 'Membros múltiplos ou tentáculos articulados. Você pode empunhar armas ou itens adicionais e seus ataques corpo a corpo ganham alcance ampliado.'
+    inspiracao: 'Chocos, polvos, lulas, medusas',
+    descricao: 'Seus ataques com golpes desarmados adquirem a propriedade Múltiplo (3) [Multi (3)], permitindo alvejar até 3 criaturas distintas na mesma ação de Ataque.'
   },
   {
     key: 'pterotheria',
     nome: 'Pterotéria (Pterotheria)',
-    descricao: 'Asas membranosas funcionais brotam de sua espinha dorsal. Você adquire a capacidade de voar e ganha imunidade a dano de quedas.'
+    inspiracao: 'Morcegos, pássaros, insetos alados',
+    descricao: 'Você ganha a capacidade de voar. Seus ataques corpo a corpo podem alvejar criaturas voadoras, e você não pode ser alvejado por ataques corpo a corpo de criaturas terrestres (a menos que elas também estejam voando).'
   },
   {
     key: 'pyrophora',
     nome: 'Pirófora (Pyrophora)',
-    descricao: 'Glândulas bioluminescentes incandescentes. Você ganha Resistência a dano de Fogo e emite calor que causa dano a quem entrar em contato corpo a corpo.'
+    inspiracao: 'Besouros-bombardeiros, camarões-pistola, salamandras-de-fogo',
+    descricao: 'Ao causar dano com um ataque ou magia, você pode alterar todo o dano para o tipo Fogo. Se for um golpe desarmado e o alvo perder 20 ou mais PV com o ataque, ele também sofre a condição Confuso.'
   },
   {
-    key: 'toxifera',
-    nome: 'Toxífera (Toxifera)',
-    descricao: 'Glândulas venenosas subcutâneas. Seus ataques desarmados ou naturais podem infligir a condição Envenenado (Poisoned) no alvo ao acertar.'
+    key: 'tachytheria',
+    nome: 'Taquitéria (Tachytheria)',
+    inspiracao: 'Felinos velozes, gazelas, lebres, guepardos',
+    descricao: 'Você considera o dado do seu atributo Destreza (DES) como de um passo maior (máximo d12). Ao ser bem-sucedido em um Teste para avançar ou regredir um Relógio, se esse Teste incluir Destreza, você pode preencher ou apagar 1 seção adicional daquele Relógio.'
+  },
+  {
+    key: 'toxicophora',
+    nome: 'Toxicófora (Toxicophora)',
+    inspiracao: 'Serpentes peçonhentas, aranhas, escorpiões, vespas',
+    descricao: 'Ao causar dano com um ataque ou magia, você pode alterar todo o dano para o tipo Veneno. Se for um golpe desarmado e o alvo perder 15 ou mais PV com o ataque, ele também sofre a condição Envenenado.'
   }
 ];
 
@@ -748,45 +795,209 @@ export function calcularReducaoHypercognition(nivelHabilidade = 0, unicoAlvo = f
 }
 
 /**
- * Processa a aplicação de uma Dádiva Cinética do Esper sobre um ataque.
- * @param {Object} params
- * @param {string} params.giftKey Chave da dádiva (ex: 'atmocinese', 'termocinese', etc.)
- * @param {string} params.tipoEscolhido Tipo elemental selecionado dentre os permitidos pela dádiva
- * @param {number} params.secoesRelogio Seções preenchidas do relógio de ondas cerebrais
- * @param {number} [params.danoBase=0] Dano base da rolagem
- * @returns {{ sucesso: boolean, danoExtra: number, danoTotal: number, tipoDanoFinal: string, novoRelogio: number, custoMp: number, mensagem?: string }}
+ * Calcula a quantidade máxima de Dons Psíquicos que o personagem pode aprender.
+ * Regra Oficial: Cada nível na habilidade Dons Psíquicos concede 1 Dom à sua escolha (máximo 5).
+ * @param {number} nivelHabilidade Nível da habilidade Dons Psíquicos (NP 1 a 5)
+ * @returns {number} Quantidade máxima de dons aprendidos
  */
-export function processarAtivacaoPsychicGift({ giftKey, tipoEscolhido, secoesRelogio = 0, danoBase = 0 }) {
+export function calcularLimiteDonsPsiquicosAprendidos(nivelHabilidade = 0) {
+  return Math.max(0, Math.min(5, parseInt(nivelHabilidade, 10) || 0));
+}
+
+/**
+ * Processa a aplicação ou ativação de um Dom Psíquico do Esper.
+ * Suporta todos os 7 Dons Oficiais do Atlas Tecno-Fantasia:
+ * - Cinéticos (+2+Relógio de dano e conversão elemental): Atmocinese, Fotocinese, Gravitocinese, Termocinese.
+ * - Defesa: Escudo Psíquico (trata Defesa e Def. Mágica como VON + 2×Relógio).
+ * - Reação Ofensiva: Retaliação Psíquica (inimigo perde 5+5×Relógio PM e sofre Abalado/Confuso).
+ * - Cura de Crise: Transferência Vital (recupera 5+5×Relógio PV em você ou aliado em Crise que seja seu Foco).
+ *
+ * @param {Object} params
+ * @param {string} params.giftKey Chave do dom (ex: 'atmocinese', 'escudo_psiquico', etc.)
+ * @param {string} [params.tipoEscolhido] Tipo elemental selecionado dentre os permitidos pelo dom
+ * @param {number} [params.secoesRelogio=0] Seções preenchidas do relógio de ondas cerebrais
+ * @param {number} [params.danoBase=0] Dano base da rolagem (para dons cinéticos)
+ * @param {string} [params.statusEscolhido='Abalado'] Condição para Retaliação Psíquica ('Abalado' ou 'Confuso')
+ * @param {number} [params.dadoVon=8] Tamanho do dado de Vontade do personagem (para Escudo Psíquico)
+ * @returns {Object} Resultado detalhado da ativação
+ */
+export function processarAtivacaoPsychicGift({
+  giftKey,
+  tipoEscolhido,
+  secoesRelogio = 0,
+  danoBase = 0,
+  statusEscolhido = 'Abalado',
+  dadoVon = 8
+}) {
   const gift = PSYCHIC_GIFTS_CATALOG.find(g => g.key === giftKey);
   if (!gift) {
-    return { sucesso: false, mensagem: `Dádiva Psíquica "${giftKey}" não encontrada.` };
+    return { sucesso: false, mensagem: `Dom Psíquico "${giftKey}" não encontrado.` };
   }
 
   const secoes = Math.max(0, Math.min(BRAINWAVE_CLOCK_MAX_SECTIONS, parseInt(secoesRelogio, 10) || 0));
   const custoMp = calcularCustoPsychicGift(secoes);
-  const danoExtra = 2 + secoes;
   const novoRelogio = avancarBrainwaveClock(secoes);
 
+  // 1. Escudo Psíquico
+  if (giftKey === 'escudo_psiquico') {
+    const vonFaces = typeof dadoVon === 'string' ? parseInt(dadoVon.replace('d', ''), 10) || 8 : Number(dadoVon) || 8;
+    const defesaEspecial = vonFaces + (2 * secoes);
+    return {
+      sucesso: true,
+      tipoAcao: 'defesa',
+      giftNome: gift.nome,
+      custoMp,
+      novoRelogio,
+      defesaEspecial,
+      formula: `VON (d${vonFaces}) + (2 × ${secoes} seções) = ${defesaEspecial}`,
+      mensagem: `${gift.nome} ativado! Custo de ${custoMp} PM. Defesa e Def. Mágica tratadas como ${defesaEspecial} para este teste. Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
+    };
+  }
+
+  // 2. Retaliação Psíquica
+  if (giftKey === 'retaliacao_psiquica') {
+    const perdaMpInimigo = 5 + (secoes * 5);
+    const condicao = (statusEscolhido || 'Abalado').toLowerCase().includes('conf') ? 'Confuso' : 'Abalado';
+    return {
+      sucesso: true,
+      tipoAcao: 'retaliacao',
+      giftNome: gift.nome,
+      custoMp,
+      novoRelogio,
+      perdaMpInimigo,
+      condicaoAplicada: condicao,
+      mensagem: `${gift.nome} ativada! Custo de ${custoMp} PM. O inimigo perde ${perdaMpInimigo} PM e sofre a condição ${condicao}! Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
+    };
+  }
+
+  // 3. Transferência Vital
+  if (giftKey === 'transferencia_vital') {
+    const curaPv = 5 + (secoes * 5);
+    return {
+      sucesso: true,
+      tipoAcao: 'cura',
+      giftNome: gift.nome,
+      custoMp,
+      novoRelogio,
+      curaPv,
+      mensagem: `${gift.nome} ativada! Custo de ${custoMp} PM. Você ou o aliado em Crise recupera +${curaPv} PV! Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
+    };
+  }
+
+  // 4. Clarividência
+  if (giftKey === 'clarividencia') {
+    return {
+      sucesso: true,
+      tipoAcao: 'utilidade',
+      giftNome: gift.nome,
+      custoMp,
+      novoRelogio,
+      mensagem: `${gift.nome} ativada! Custo de ${custoMp} PM. Faça uma pergunta sincera sobre o PdM (Foco ou Elo) e o Mestre responderá com a verdade. Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
+    };
+  }
+
+  // 5. Dons Cinéticos (Atmocinese, Fotocinese, Gravitocinese, Termocinese)
+  const danoExtra = 2 + secoes;
   let tipoDanoFinal = tipoEscolhido;
   if (gift.tipos_dano.length > 0 && (!tipoEscolhido || !gift.tipos_dano.includes(tipoEscolhido.toLowerCase()))) {
     tipoDanoFinal = gift.tipos_dano[0];
   }
 
+  const efeitoEspecial = giftKey === 'gravitocinese'
+    ? 'Criaturas voadoras atingidas são forçadas a pousar imediatamente!'
+    : null;
+
   return {
     sucesso: true,
+    tipoAcao: 'dano',
     giftNome: gift.nome,
     custoMp,
     danoExtra,
     danoTotal: Math.max(0, Number(danoBase) || 0) + danoExtra,
     tipoDanoFinal: tipoDanoFinal || 'fisico',
+    efeitoEspecial,
     novoRelogio,
-    mensagem: `${gift.nome} ativada! Gasto de ${custoMp} PM. +${danoExtra} de dano (${tipoDanoFinal}). Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
+    mensagem: `${gift.nome} ativado! Custo de ${custoMp} PM. +${danoExtra} de dano (${(tipoDanoFinal || 'fisico').toUpperCase()}).${efeitoEspecial ? ` ${efeitoEspecial}` : ''} Relógio avançou para ${novoRelogio}/${BRAINWAVE_CLOCK_MAX_SECTIONS}.`
   };
+}
+
+/**
+ * Aplica a regra oficial da habilidade Psicocinese do Esper (Techno Fantasy Atlas):
+ * Ao realizar um Teste de Precisão com uma arma, substitui um dos dados de atributo por Vontade (VON).
+ * @param {Object} params
+ * @param {string} params.attr1Nome Nome do primeiro atributo do teste (ex: 'destreza')
+ * @param {string} params.attr2Nome Nome do segundo atributo do teste (ex: 'astucia')
+ * @param {number} params.faces1 Quantidade de faces do primeiro dado (ex: 8)
+ * @param {number} params.faces2 Quantidade de faces do segundo dado (ex: 6)
+ * @param {number} params.facesVon Quantidade de faces do dado de Vontade do personagem (ex: 10)
+ * @returns {{ attr1Nome: string, attr2Nome: string, faces1: number, faces2: number, substituiu: boolean }}
+ */
+export function aplicarPsicocinesePrecisao({
+  attr1Nome,
+  attr2Nome,
+  faces1,
+  faces2,
+  facesVon
+}) {
+  const norm1 = (attr1Nome || '').toLowerCase();
+  const norm2 = (attr2Nome || '').toLowerCase();
+  const vonVal = Math.max(6, Math.min(12, parseInt(facesVon, 10) || 8));
+
+  // Se attr1 já é vontade e attr2 não é, substitui attr2 por vontade (permite 【VON + VON】)
+  if (norm1 === 'vontade' && norm2 !== 'vontade') {
+    return {
+      attr1Nome,
+      attr2Nome: 'vontade',
+      faces1,
+      faces2: vonVal,
+      substituiu: true
+    };
+  }
+
+  // Se attr2 já é vontade e attr1 não é, substitui attr1 por vontade
+  if (norm2 === 'vontade' && norm1 !== 'vontade') {
+    return {
+      attr1Nome: 'vontade',
+      attr2Nome,
+      faces1: vonVal,
+      faces2,
+      substituiu: true
+    };
+  }
+
+  // Caso nenhum seja vontade, substitui o dado de menor valor para maximizar o teste
+  if (faces1 <= faces2) {
+    return {
+      attr1Nome: 'vontade',
+      attr2Nome,
+      faces1: vonVal,
+      faces2,
+      substituiu: true
+    };
+  } else {
+    return {
+      attr1Nome,
+      attr2Nome: 'vontade',
+      faces1,
+      faces2: vonVal,
+      substituiu: true
+    };
+  }
 }
 
 // =============================================================================
 // 3. FUNÇÕES PURAS - REGRAS DO MUTANTE
 // =============================================================================
+
+/**
+ * Calcula a quantidade máxima de Terioformas que o personagem pode aprender.
+ * Regra Oficial: Cada nível na habilidade Teriomorfose concede 1 Terioforma do catálogo genético (máximo 6).
+ * @param {number} nivelHabilidade Nível da habilidade Teriomorfose (NP 1 a 6)
+ * @returns {number} Quantidade máxima de terioformas aprendidas
+ */
+export function calcularLimiteTerioformasAprendidas(nivelHabilidade = 0) {
+  return Math.max(0, Math.min(6, parseInt(nivelHabilidade, 10) || 0));
+}
 
 /**
  * Calcula o custo em Pontos de Vida (PV) para ativar a Teriomorfose.
@@ -819,6 +1030,59 @@ export function validarManifestacaoTerioformas(terioformasSelecionadas = [], max
 }
 
 /**
+ * Calcula a Defesa concedida pela Terioforma Placófora (Placophora).
+ * Regra Oficial PT-BR: Trata a Defesa como 13 + [metade do NP de Teriomorfose, arredondado para baixo].
+ * @param {number} slTeriomorfose Nível na habilidade Teriomorfose (1 a 6)
+ * @returns {number} Defesa fixa proporcionada pela carapaça
+ */
+export function calcularDefesaPlacophora(slTeriomorfose = 1) {
+  const sl = Math.max(1, Math.min(6, parseInt(slTeriomorfose, 10) || 1));
+  return 13 + Math.floor(sl / 2);
+}
+
+/**
+ * Processa a ativação da habilidade Écdise do Mutante.
+ * Regra Oficial PT-BR:
+ * Após sofrer dano não físico, gaste 10 PV para receber Resistência àquele tipo até usar novamente.
+ * Não pode ser usada se o custo reduziria seus PV a 0.
+ *
+ * @param {Object} params
+ * @param {number} params.pvAtual PV atual do Mutante
+ * @param {string} params.tipoDanoSofrido Tipo de dano sofrido (ex: 'fogo', 'gelo', 'raio')
+ * @returns {{ sucesso: boolean, novoPv: number, custoPv: number, tipoResistencia?: string, mensagem: string }}
+ */
+export function processarEcdise({ pvAtual = 0, tipoDanoSofrido = 'fogo' }) {
+  const pv = Math.max(0, parseInt(pvAtual, 10) || 0);
+  const tipo = (tipoDanoSofrido || 'fogo').toLowerCase().trim();
+
+  if (tipo === 'fisico') {
+    return {
+      sucesso: false,
+      novoPv: pv,
+      custoPv: 0,
+      mensagem: 'A Écdise só pode ser ativada contra tipos de dano não físicos (diferentes de Físico).'
+    };
+  }
+
+  if (pv <= ECDYSIS_HP_COST) {
+    return {
+      sucesso: false,
+      novoPv: pv,
+      custoPv: 0,
+      mensagem: `PV insuficiente para Écdise! É necessário ter mais de ${ECDYSIS_HP_COST} PV para não cair a 0 PV.`
+    };
+  }
+
+  return {
+    sucesso: true,
+    novoPv: pv - ECDYSIS_HP_COST,
+    custoPv: ECDYSIS_HP_COST,
+    tipoResistencia: tipo,
+    mensagem: `Écdise ativada com sucesso! Gasto de ${ECDYSIS_HP_COST} PV. Resistência concedida contra dano do tipo ${tipo.toUpperCase()} até o próximo uso!`
+  };
+}
+
+/**
  * Calcula os bônus passivos da Acromorfose (Akromorphosis) nos ataques desarmados.
  * @param {number} nivelHabilidade Nível da habilidade Acromorfose (SL 1 a 3)
  * @returns {{ bonusPrecisao: number, bonusDanoFisico: number }}
@@ -833,17 +1097,51 @@ export function calcularBonusAkromorphosis(nivelHabilidade = 0) {
 }
 
 /**
- * Processa a cura da habilidade Biófago (Biophage) do Mutante.
- * Regra: Ativa apenas quando em Crise (PV atual ≤ Metade do PV Máximo).
- * Ao causar dano, recupera [SL × 2] PV.
- * @param {number} nivelHabilidade Nível da habilidade Biófago (SL 1 a 5)
+ * Processa a cura da habilidade Biofagia (Biophage) do Mutante conforme regras oficiais PT-BR.
+ * Regra:
+ * - Nível Máximo: 4.
+ * - Ativa apenas quando em Crise (PV atual ≤ Metade do PV Máximo).
+ * - Ao causar dano a um ou mais inimigos, recupera [NP × 5] Pontos de Vida.
+ * - Com a Terioforma Neurofagóide (Neurophagoida) ativa, recupera também [4 + NP] Pontos de Magia (PM).
+ *
+ * @param {number} nivelHabilidade Nível da habilidade Biofagia (NP 1 a 4)
  * @param {boolean} emCrise Se o personagem está atualmente em Crise
- * @returns {number} Quantidade de PV recuperados
+ * @param {boolean} [temNeurophagoida=false] Se a Terioforma Neurofagóide está ativa
+ * @returns {{ curaPv: number, curaMp: number, emCrise: boolean, mensagem: string }}
+ */
+export function processarBiofagiaCura(nivelHabilidade = 0, emCrise = false, temNeurophagoida = false) {
+  if (!emCrise) {
+    return {
+      curaPv: 0,
+      curaMp: 0,
+      emCrise: false,
+      mensagem: 'Biofagia inativa: requer que o personagem esteja em Crise (PV atual ≤ metade do PV Máximo).'
+    };
+  }
+
+  const np = Math.max(0, Math.min(4, parseInt(nivelHabilidade, 10) || 0));
+  const curaPv = np * 5;
+  const curaMp = temNeurophagoida ? 4 + np : 0;
+
+  return {
+    curaPv,
+    curaMp,
+    emCrise: true,
+    mensagem: `Biofagia ativada! Regenerados +${curaPv} PV${curaMp > 0 ? ` e +${curaMp} PM (Neurofagóide)` : ''} com sucesso.`
+  };
+}
+
+/**
+ * Mantém retrocompatibilidade numérica para processarBiophageCura.
+ * Retorna diretamente o valor numérico de PV regenerados ([NP × 5] PV).
+ * @param {number} nivelHabilidade
+ * @param {boolean} emCrise
+ * @returns {number} PV recuperados
  */
 export function processarBiophageCura(nivelHabilidade = 0, emCrise = false) {
   if (!emCrise) return 0;
-  const sl = Math.max(0, Math.min(5, parseInt(nivelHabilidade, 10) || 0));
-  return sl * 2;
+  const np = Math.max(0, Math.min(4, parseInt(nivelHabilidade, 10) || 0));
+  return np * 5;
 }
 
 // =============================================================================
