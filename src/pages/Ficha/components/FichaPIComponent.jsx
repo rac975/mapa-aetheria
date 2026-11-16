@@ -1,12 +1,12 @@
 import { FaBoxOpen, FaPlus, FaMinus, FaCoins, FaFlask, FaHeart, FaMagic, FaShieldAlt, FaBolt } from 'react-icons/fa';
 import { MdWaterDrop } from 'react-icons/md';
-import { supabase } from '../../../services/supabase';
+import { fichaService } from '../../../services/fichaService';
 
 export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
     if (!ficha) return null;
 
-    const piAtual = ficha.pi_atual ?? 6;
-    const piMax = piMaxCalculado ?? ficha.pi_max ?? 6;
+    const piAtual = ficha.pi_atual ?? ficha.ip_atual ?? 6;
+    const piMax = piMaxCalculado ?? ficha.pi_max ?? ficha.ip_max ?? 6;
     const zenitAtual = ficha.zenit ?? 0;
 
     // Função genérica para atualizar PIs e outros recursos no Supabase e estado local
@@ -14,10 +14,11 @@ export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
         const dadosAtualizados = { ...ficha, ...novosDados };
         setFicha(dadosAtualizados);
 
-        await supabase
-            .from('fichas_personagens')
-            .update(novosDados)
-            .eq('id', ficha.id);
+        try {
+            await fichaService.atualizarFicha(ficha.id, novosDados);
+        } catch (error) {
+            console.error('Erro ao atualizar ficha:', error);
+        }
     };
 
     const alterarPI = async (quantidade) => {

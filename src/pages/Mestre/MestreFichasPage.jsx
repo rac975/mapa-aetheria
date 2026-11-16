@@ -18,6 +18,31 @@ import { calcularStatusPersonagem } from '../../utils/calculosFicha';
 import { Card, Button, Badge, Input, Modal, ResourceBar } from '../../components/ui';
 import styles from './MestreFichasPage.module.css';
 
+/**
+ * Processa a ficha calculando os tetos reais de PV, PM e PI (Fabula Ultima)
+ */
+function processarFicha(ficha) {
+  const itens = ficha.itens || [];
+  const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
+
+  const atributos = {
+    destreza: ficha.destreza || 8,
+    astucia: ficha.astucia || 8,
+    vigor: ficha.vigor || 8,
+    vontade: ficha.vontade || 8
+  };
+
+  const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
+
+  return {
+    ...ficha,
+    hp_max_real: statusCalc.pvMax,
+    mp_max_real: statusCalc.mpMax,
+    ip_max_real: statusCalc.piMax,
+    pi_max_real: statusCalc.piMax
+  };
+}
+
 export default function MestreFichasPage({ isMestre }) {
   const [fichas, setFichas] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -35,39 +60,35 @@ export default function MestreFichasPage({ isMestre }) {
 
   useEffect(() => {
     carregarTodasFichas();
+
+    // Subscription em tempo real para sincronização instantânea de PV, PM, PI e dados da ficha
+    const canalFichas = fichaService.subscribeFichasPersonagens((payload) => {
+      if (payload?.eventType === 'UPDATE' && payload?.new) {
+        setFichas((fichasAtuais) =>
+          fichasAtuais.map((f) => {
+            if (f.id === payload.new.id) {
+              return processarFicha({
+                ...f,
+                ...payload.new
+              });
+            }
+            return f;
+          })
+        );
+      } else {
+        carregarTodasFichas();
+      }
+    });
+
+    return () => {
+      fichaService.removeChannel(canalFichas);
+    };
   }, []);
 
   async function carregarTodasFichas() {
     try {
       const fichasData = await fichaService.getFichasCompletasMestre();
-
-      // Para cada ficha, calcula os stats e IP reais
-      const fichasCompletas = (fichasData || []).map((ficha) => {
-        const itens = ficha.itens || [];
-        const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
-
-        const atributos = {
-          destreza: ficha.destreza || 8,
-          astucia: ficha.astucia || 8,
-          vigor: ficha.vigor || 8,
-          vontade: ficha.vontade || 8
-        };
-
-        const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
-
-        const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
-          return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
-        }, 0);
-
-        return {
-          ...ficha,
-          hp_max_real: statusCalc.pvMax,
-          mp_max_real: statusCalc.mpMax,
-          ip_max_real: statusCalc.piMax,
-          ip_atual_calculado: ipAtualCalculado
-        };
-      });
-
+      const fichasCompletas = (fichasData || []).map(processarFicha);
       setFichas(fichasCompletas);
     } finally {
       setCarregando(false);
@@ -101,7 +122,8 @@ export default function MestreFichasPage({ isMestre }) {
       hp_max: 30,
       mp_atual: 20,
       mp_max: 20,
-      ip_atual: 0,
+      pi_atual: 6,
+      ip_atual: 6,
       pi_max: 6,
       nivel: 1
     });
@@ -191,8 +213,8 @@ export default function MestreFichasPage({ isMestre }) {
             const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
             const hpMaxFinal = f.hp_max_real || f.hp_max || 30;
             const mpMaxFinal = f.mp_max_real || f.mp_max || 20;
-            const ipMaxFinal = f.ip_max_real || f.pi_max || 6;
-            const ipAtualFinal = f.ip_atual_calculado ?? f.ip_atual ?? 0;
+            const ipMaxFinal = f.pi_max_real || f.ip_max_real || f.pi_max || 6;
+            const ipAtualFinal = f.pi_atual ?? f.ip_atual ?? ipMaxFinal;
 
             return (
               <Card

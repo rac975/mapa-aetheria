@@ -328,6 +328,31 @@ export const fichaService = {
   },
 
   /**
+   * Inscreve um callback para atualizações em tempo real em todas as fichas de personagens.
+   * Permite que a visão do Mestre (MestreFichasPage) atualize automaticamente PV, PM e PI
+   * sempre que qualquer jogador modificar sua ficha.
+   * @param {Function} onUpdate
+   * @returns {Object} subscription channel
+   */
+  subscribeFichasPersonagens(onUpdate) {
+    const sufixo = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const channelName = `realtime_todas_fichas_${sufixo}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'fichas_personagens' },
+        (payload) => {
+          if (onUpdate) onUpdate(payload);
+        }
+      )
+      .subscribe();
+
+    return channel;
+  },
+
+  /**
    * Remove com segurança uma inscrição de canal do Supabase
    * @param {Object} channel
    */
