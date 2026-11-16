@@ -5,6 +5,7 @@ import { LuUsers, LuSparkles } from 'react-icons/lu';
 import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../../services/supabase';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
+import { calcularStatusPersonagem } from '../../utils/calculosFicha';
 import './MestreFichasPage.css';
 
 export default function MestreFichasPage({ isMestre }) {
@@ -28,18 +29,62 @@ export default function MestreFichasPage({ isMestre }) {
 
     async function carregarTodasFichas() {
         try {
-            const { data, error } = await supabase
+            // Busca as fichas, suas classes e também os itens para calcular o IP correto
+            const { data: fichasData, error } = await supabase
                 .from('fichas_personagens')
                 .select(`
                     *,
                     fichas_classes (
                         nome_classe,
-                        nivel
+                        nivel,
+                        habilidades
                     )
                 `)
                 .order('nome_personagem', { ascending: true });
 
-            if (!error) setFichas(data || []);
+            if (error || !fichasData) {
+                setFichas([]);
+                return;
+            }
+
+            // Para cada ficha, busca os itens equipados para calcular o Inventário de Peso (IP) real
+            const fichasCompletas = await Promise.all(
+                fichasData.map(async (ficha) => {
+                    const { data: itensData } = await supabase
+                        .from('itens_personagem')
+                        .select('*')
+                        .eq('ficha_id', ficha.id);
+
+                    const itens = itensData || [];
+                    const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
+
+                    // Calcula os atributos atuais da ficha
+                    const atributos = {
+                        destreza: ficha.destreza || 8,
+                        astucia: ficha.astucia || 8,
+                        vigor: ficha.vigor || 8,
+                        vontade: ficha.vontade || 8
+                    };
+
+                    // Usa a engine oficial de cálculo de status de Fabula Ultima
+                    const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados);
+
+                    // Calcula o IP atual somando o custo/peso dos itens equipados ou na mochila (conforme regra do seu projeto)
+                    const ipAtualCalculado = itensEquipados.reduce((acc, curr) => {
+                        return acc + (Number(curr.peso) || Number(curr.stats_personalizados?.peso) || 1);
+                    }, 0);
+
+                    return {
+                        ...ficha,
+                        hp_max_real: statusCalc.pvMax,
+                        mp_max_real: statusCalc.mpMax,
+                        ip_max_real: statusCalc.piMax,
+                        ip_atual_calculado: ipAtualCalculado
+                    };
+                })
+            );
+
+            setFichas(fichasCompletas);
         } finally {
             setCarregando(false);
         }
@@ -72,7 +117,7 @@ export default function MestreFichasPage({ isMestre }) {
                 tema: 'Aventura',
                 hp_atual: 30, hp_max: 30,
                 mp_atual: 20, mp_max: 20,
-                ip_atual: 6, pi_max: 6,
+                ip_atual: 0, pi_max: 6,
                 nivel: 1
             }]);
 
@@ -99,23 +144,15 @@ export default function MestreFichasPage({ isMestre }) {
         }
     };
 
-    // Função para baixar o QR Code diretamente como arquivo SVG (sem erro de Canvas/CORS)
     const baixarQRCode = (personagemNome, fichaId) => {
         const svgElement = qrRefs.current[fichaId];
-        if (!svgElement) {
-            console.error("Elemento SVG do QR Code não encontrado para o ID:", fichaId);
-            return;
-        }
+        if (!svgElement) return;
 
         try {
-            // Serializa o elemento SVG para texto/string XML
             const svgData = new XMLSerializer().serializeToString(svgElement);
-
-            // Cria um Blob com o conteúdo do SVG
             const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
 
-            // Cria o link temporário de download
             const downloadLink = document.createElement('a');
             downloadLink.href = url;
             downloadLink.download = `QRCode_${personagemNome.replace(/\s+/g, '_')}.svg`;
@@ -123,16 +160,10 @@ export default function MestreFichasPage({ isMestre }) {
             document.body.appendChild(downloadLink);
             downloadLink.click();
 
-            // Limpa os recursos da memória
             document.body.removeChild(downloadLink);
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Erro ao gerar o download do QR Code:", error);
-            setAlerta({
-                isOpen: true,
-                title: 'Erro no Download',
-                message: 'Não foi possível baixar o QR Code. Tente novamente.'
-            });
         }
     };
 
@@ -166,6 +197,10 @@ export default function MestreFichasPage({ isMestre }) {
                 <div className="mestre-grid-fichas">
                     {fichas.map((f) => {
                         const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
+                        const hpMaxFinal = f.hp_max_real || f.hp_max || 30;
+                        const mpMaxFinal = f.mp_max_real || f.mp_max || 20;
+                        const ipMaxFinal = f.ip_max_real || f.pi_max || 6;
+                        const ipAtualFinal = f.ip_atual_calculado ?? f.ip_atual ?? 0;
 
                         return (
                             <div
@@ -174,7 +209,6 @@ export default function MestreFichasPage({ isMestre }) {
                                 onClick={() => navigate(`/mestre/editar/${f.id}`)}
                                 title="Abrir ficha completa"
                             >
-                                {/* Cabeçalho do Card: Avatar + Nome + Jogador + ID */}
                                 <div className="card-top" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                                     <div className="card-avatar" style={{ width: '54px', height: '54px', borderRadius: '50%', border: '2px solid #d4af37', overflow: 'hidden', background: '#0d0f18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         {f.avatar_url ? (
@@ -197,7 +231,6 @@ export default function MestreFichasPage({ isMestre }) {
                                     </div>
                                 </div>
 
-                                {/* Informações de Classes com Níveis, Peculiaridade/Identidade */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '12px 0', fontSize: '0.85rem' }}>
                                     <p className="identidade-txt" style={{ margin: 0, color: '#c9d1d9' }}>
                                         <em>{f.identidade || 'Sem peculiaridade informada'}</em>
@@ -219,11 +252,11 @@ export default function MestreFichasPage({ isMestre }) {
                                     </div>
                                 </div>
 
-                                {/* Barras de Status, IP, Fábula e Nível Geral */}
+                                {/* Barras de Status recalculadas com precisão matemática */}
                                 <div className="status-bars-preview" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 12px', alignItems: 'center', background: 'rgba(13, 17, 23, 0.5)', padding: '10px 12px', borderRadius: '8px', border: '1px solid #30363d', fontSize: '0.85rem' }}>
-                                    <span title="Pontos de Vida"><FaHeart color="#f85149" /> HP: {f.hp_atual}/{f.hp_max}</span>
-                                    <span title="Pontos de Mana"><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{f.mp_max}</span>
-                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {f.ip_atual}/{f.pi_max}</span>
+                                    <span title="Pontos de Vida"><FaHeart color="#f85149" /> HP: {f.hp_atual}/{hpMaxFinal}</span>
+                                    <span title="Pontos de Mana"><FaMagic color="#58a6ff" /> MP: {f.mp_atual}/{mpMaxFinal}</span>
+                                    <span title="Inventário de Peso (IP)"><strong style={{ color: '#d4af37' }}>📦 IP:</strong> {ipAtualFinal}/{ipMaxFinal}</span>
                                     <span title="Pontos de Fábula"><strong style={{ color: '#d5b8ff' }}>✨ Fábula:</strong> {f.fabula ?? 3}</span>
 
                                     <span className="nivel-tag" style={{ marginLeft: 'auto', background: 'rgba(212, 175, 55, 0.15)', color: '#d4af37', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold' }}>
@@ -231,7 +264,6 @@ export default function MestreFichasPage({ isMestre }) {
                                     </span>
                                 </div>
 
-                                {/* Área do QR Code com Botão de Download integrado */}
                                 <div
                                     className="card-qrcode-container"
                                     onClick={(e) => e.stopPropagation()}
@@ -260,7 +292,7 @@ export default function MestreFichasPage({ isMestre }) {
                                     <button
                                         type="button"
                                         className="btn-secundario"
-                                        onClick={(e) => baixarQRCode(f.nome_personagem, f.id, e)}
+                                        onClick={(e) => { e.stopPropagation(); baixarQRCode(f.nome_personagem, f.id); }}
                                         title="Baixar imagem do QR Code para impressão"
                                         style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#21262d', color: '#d4af37', borderColor: 'rgba(212, 175, 55, 0.4)', cursor: 'pointer', zIndex: 5, position: 'relative' }}
                                     >
@@ -268,7 +300,6 @@ export default function MestreFichasPage({ isMestre }) {
                                     </button>
                                 </div>
 
-                                {/* Ações do Card (Editar + Excluir) */}
                                 <div className="card-actions" style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
                                     <button
                                         type="button"
@@ -289,7 +320,6 @@ export default function MestreFichasPage({ isMestre }) {
                 </div>
             )}
 
-            {/* Modal para Cadastrar Novo Jogador/Crachá */}
             {modalCriarAberto && (
                 <div className="modal-overlay">
                     <div className="modal-box">

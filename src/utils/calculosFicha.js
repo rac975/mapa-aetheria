@@ -4,6 +4,25 @@
  * @param {Array} classes Lista de classes do personagem
  * @param {Array} itensEquipados Lista de itens da tabela itens_personagem que possuem 'slot'
  */
+
+const CONFIG_BONUS_CLASSES = {
+  andarilho: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  arcanista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  atirador: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  elementalista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  entropista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  "guerreiro sombrio": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  erudito: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  espiritualista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  furioso: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  guardiao: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  inventor: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  ladino: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  "mestre de armas": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  orador: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  quimerista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+};
+
 export function calcularStatusPersonagem(
   atributos = {},
   classes = [],
@@ -12,7 +31,6 @@ export function calcularStatusPersonagem(
   const nivelTotal =
     classes.reduce((acc, c) => acc + (parseInt(c.nivel) || 0), 0) || 5;
 
-  // Converte o dado da ficha (ex: "d8", "d10") no seu valor numérico correspondente (8, 10, etc.)
   const converterAtributoParaNumero = (valorAttr) => {
     if (!valorAttr) return 8;
     const str = String(valorAttr).trim().toLowerCase();
@@ -32,25 +50,22 @@ export function calcularStatusPersonagem(
   const von = converterAtributoParaNumero(atributos.vontade);
 
   const mapaAtributos = {
-    des: des,
+    des,
     destreza: des,
-    ast: ast,
+    ast,
     astucia: ast,
-    vig: vig,
+    vig,
     vigor: vig,
-    von: von,
+    von,
     vontade: von,
   };
 
-  // Resolve expressões como "AST + 1" ou "Dado de AST + 1" substituindo AST pelo valor numérico (ex: 8)
   const resolverExpressao = (valorBruto) => {
     if (typeof valorBruto === "number") return valorBruto;
     if (!valorBruto) return 0;
 
     let str = String(valorBruto).trim().toLowerCase();
-
-    str = str.replace(/dado de /g, "");
-    str = str.replace(/dado /g, "");
+    str = str.replace(/dado de /g, "").replace(/dado /g, "");
 
     Object.keys(mapaAtributos).forEach((sigla) => {
       const regex = new RegExp(`\\b${sigla}\\b`, "g");
@@ -65,16 +80,64 @@ export function calcularStatusPersonagem(
     }
   };
 
+  // 1. Acumula os bônus passivos de classe e habilidades de PV
   let bonusHpPorClasse = 0;
   let bonusMpPorClasse = 0;
   let bonusIpPorClasse = 0;
 
-  // 2. Fórmulas Oficiais de PV, MP e PI
-  const pvMax = atributos.vigor * 5 + nivelTotal + bonusHpPorClasse;
-  const mpMax = atributos.vontade * 5 + nivelTotal + bonusMpPorClasse;
+  classes.forEach((c) => {
+    const nomeOriginal = c.nome_classe || "";
+    const nomeNormalizado = nomeOriginal
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
+
+    const configClasse = CONFIG_BONUS_CLASSES[nomeNormalizado];
+    if (configClasse) {
+      bonusHpPorClasse += configClasse.bonusHp || 0;
+      bonusMpPorClasse += configClasse.bonusMp || 0;
+      bonusIpPorClasse += configClasse.bonusIp || 0;
+    }
+
+    // Soma passiva da habilidade "Fortaleza" do Guardião (NP * 3)
+    if (nomeNormalizado.includes("guardiao")) {
+      (c.habilidades || []).forEach((h) => {
+        const nomeHab = (h.nome || "").toLowerCase();
+        const nivelHab = parseInt(h.nivel) || 0;
+        if (nomeHab.includes("fortaleza") && nivelHab > 0) {
+          bonusHpPorClasse += nivelHab * 3;
+        }
+      });
+    }
+
+    // Soma passiva da habilidade "Concentrado" do Erudito (NP * 3 em PM)
+    if (nomeNormalizado.includes("erudito")) {
+      (c.habilidades || []).forEach((h) => {
+        const nomeHab = (h.nome || "").toLowerCase();
+        const nivelHab = parseInt(h.nivel) || 0;
+        if (nomeHab.includes("concentrado") && nivelHab > 0) {
+          bonusMpPorClasse += nivelHab * 3;
+        }
+      });
+    }
+  });
+
+  // (Cole logo após o fechamento do classes.forEach na função calcularStatusPersonagem)
+  // console.log("[DEBUG CÁLCULO HP]", {
+  //   nivelTotal,
+  //   vigor: vig,
+  //   multiplicadorVigor: vig * 5,
+  //   classesLidas: classes.map((c) => ({ nome: c.nome_classe, nivel: c.nivel })),
+  //   bonusHpPorClasse,
+  //   pvMaxCalculadoFinal: vig * 5 + nivelTotal + bonusHpPorClasse,
+  // });
+
+  const pvMax = vig * 5 + nivelTotal + bonusHpPorClasse;
+  const mpMax = von * 5 + nivelTotal + bonusMpPorClasse;
   const piMax = 6 + bonusIpPorClasse;
 
-  // 3. Identificar itens nos slots equipados
+  // 2. Identificar itens nos slots equipados
   const itemMaoDom = itensEquipados.find(
     (i) => i.stats_personalizados?.slot === "mao_dominante",
   );
@@ -88,8 +151,26 @@ export function calcularStatusPersonagem(
     (i) => i.stats_personalizados?.slot === "acessorio",
   );
 
-  // 4. Cálculo de DEF (Defesa Física)
-  // Regra: Se tem armadura, a defesa é FIXADA pelo valor da armadura. Senão, usa DES.
+  // Verificações de equipamentos (Escudos e Armaduras Marciais)
+  const ehEscudoItem = (item) => {
+    if (!item) return false;
+    const tipo = (item.tipo || "").toLowerCase();
+    const stats = item.stats_personalizados || {};
+    return tipo.includes("escudo") || stats.escudo === true;
+  };
+
+  const temEscudoEquipado =
+    ehEscudoItem(itemMaoDom) || ehEscudoItem(itemMaoSec);
+  const temDoisEscudos = ehEscudoItem(itemMaoDom) && ehEscudoItem(itemMaoSec);
+
+  const temArmaduraMarcial = (() => {
+    if (!itemArmadura) return false;
+    const stats = itemArmadura.stats_personalizados || {};
+    const tipo = (itemArmadura.tipo || "").toLowerCase();
+    return stats.marcial === true || tipo.includes("marcial");
+  })();
+
+  // 3. Cálculo de Defesa Física
   let defesaBase = des;
   let bonusDefesaItens = 0;
 
@@ -98,25 +179,59 @@ export function calcularStatusPersonagem(
     const defArmaduraBruta = statsArm.defesa || statsArm.def || 0;
     const defCalculada = resolverExpressao(defArmaduraBruta);
     if (defCalculada > 0) {
-      defesaBase = defCalculada; // Substitui pelo valor fixo da armadura (ex: 11)
+      defesaBase = defCalculada;
     }
   }
 
-  if (itemMaoSec) {
-    const statsSec = itemMaoSec.stats_personalizados || {};
-    bonusDefesaItens += resolverExpressao(statsSec.defesa || statsSec.def || 0);
-  }
-  if (itemAcessorio) {
-    const statsAc = itemAcessorio.stats_personalizados || {};
-    bonusDefesaItens += resolverExpressao(statsAc.defesa || statsAc.def || 0);
+  [itemMaoDom, itemMaoSec, itemAcessorio].forEach((item) => {
+    if (item) {
+      const stats = item.stats_personalizados || {};
+      const defBruta = stats.defesa || stats.def || 0;
+      bonusDefesaItens += resolverExpressao(defBruta);
+    }
+  });
+
+  // 🛡️ VERIFICAÇÃO DA HABILIDADE "ESQUIVA" DO LADINO
+  let bonusEsquivaLadino = 0;
+  if (!temEscudoEquipado && !temArmaduraMarcial) {
+    classes.forEach((c) => {
+      const nomeNormalizado = (c.nome_classe || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toLowerCase();
+
+      if (nomeNormalizado.includes("ladino")) {
+        (c.habilidades || []).forEach((h) => {
+          const nomeHab = (h.nome || "").toLowerCase();
+          const nivelHab = parseInt(h.nivel) || 0;
+          if (nomeHab.includes("esquiva") && nivelHab > 0) {
+            bonusEsquivaLadino += nivelHab;
+          }
+        });
+      }
+    });
   }
 
-  const defesaTotal = defesaBase + bonusDefesaItens;
+  const defesaTotal = defesaBase + bonusDefesaItens + bonusEsquivaLadino;
 
-  // 5. Cálculo de MDEF (Defesa Mágica)
-  // Regra: A base é o AST. Se a armadura/acessório trouxer uma fórmula (ex: "AST + 1"), ela calcula o valor da fórmula.
-  // Se a fórmula retornar um valor válido (> 0), ela substitui a base. Senão, mantém o AST puro.
+  // 🛡️ VERIFICAÇÃO DE "MAESTRIA DEFENSIVA" DO GUARDIÃO (Redução de Dano)
+  let reducaoDano = 0;
+  if (temEscudoEquipado || temArmaduraMarcial) {
+    classes.forEach((c) => {
+      (c.habilidades || []).forEach((h) => {
+        const nomeHab = (h.nome || "").toLowerCase();
+        const nivelHab = parseInt(h.nivel) || 0;
+        if (nomeHab.includes("maestria defensiva") && nivelHab > 0) {
+          reducaoDano += nivelHab;
+        }
+      });
+    });
+  }
+
+  // 4. Cálculo de Defesa Mágica (MDef)
   let mdefBase = ast;
+  let bonusMDefItens = 0;
 
   [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
     if (item) {
@@ -128,16 +243,23 @@ export function calcularStatusPersonagem(
         stats.mdef ||
         stats.defesa_magica ||
         0;
+
       const mdefCalculada = resolverExpressao(mdefBruta);
-      if (mdefCalculada > 0) {
-        mdefBase = mdefCalculada; // Substitui pelo valor da fórmula (ex: 8 + 1 = 9)
+
+      if (
+        typeof mdefBruta === "string" &&
+        mdefBruta.toLowerCase().includes("base")
+      ) {
+        mdefBase = Math.max(mdefBase, mdefCalculada);
+      } else {
+        bonusMDefItens += mdefCalculada;
       }
     }
   });
 
-  const mdefTotal = mdefBase;
+  const mdefTotal = mdefBase + bonusMDefItens;
 
-  // 6. Cálculo de Iniciativa Total
+  // 5. Cálculo de Iniciativa
   let iniciativaTotal = 0;
   [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
     if (item) {
@@ -155,54 +277,255 @@ export function calcularStatusPersonagem(
     defesaTotal,
     mdefTotal,
     iniciativaTotal,
+    reducaoDano,
+    temDoisEscudos,
   };
 }
 
-export function rolarAtaqueEDanoArma(itemArma, atributosAtuais, isMulti = false) {
-    const stats = itemArma.stats_personalizados || {};
-    
-    // Atributos da arma (ex: destreza, astucia)
-    const attr1Nome = stats.attr1 || 'destreza';
-    const attr2Nome = stats.attr2 || 'astucia';
+export function rolarAtaqueEDanoArma(
+  itemArma,
+  atributosAtuais,
+  isMulti = false,
+  classes = [],
+  itensEquipados = [],
+  opcoesDanoExtra = {},
+  emCriseGlobal = false,
+) {
+  const stats = itemArma.stats_personalizados || {};
+  const tipoItem = (itemArma.tipo || "").toLowerCase();
+  const categoriaArma = (
+    stats.categoria ||
+    stats.alcance ||
+    tipoItem
+  ).toLowerCase();
 
-    const extrairFaces = (valorAttr) => {
-        if (!valorAttr) return 8;
-        const str = String(valorAttr).trim().toLowerCase();
-        if (str.startsWith('d')) {
-            const faces = parseInt(str.substring(1), 10);
-            return isNaN(faces) ? 8 : faces;
+  const nomeArmaLower = (itemArma.nome || "").toLowerCase();
+
+  const ehDistancia =
+    categoriaArma.includes("distancia") ||
+    categoriaArma.includes("distância") ||
+    categoriaArma.includes("arco") ||
+    categoriaArma.includes("fogo") ||
+    categoriaArma.includes("arremesso");
+
+  const ehCorpoACorpo = !ehDistancia;
+
+  const ehEscudo = tipoItem.includes("escudo") || stats.escudo === true;
+  const temDuploEscudeiro = classes.some((c) =>
+    (c.habilidades || []).some(
+      (h) =>
+        (h.nome || "").toLowerCase().includes("duplo escudeiro") &&
+        (parseInt(h.nivel) || 0) > 0,
+    ),
+  );
+
+  const qtdEscudos = itensEquipados.filter(
+    (i) =>
+      (i.tipo || "").toLowerCase().includes("escudo") ||
+      i.stats_personalizados?.escudo === true,
+  ).length;
+  const ehEscudosGemeos =
+    ehEscudo &&
+    temDuploEscudeiro &&
+    (itensEquipados.length === 0 || qtdEscudos >= 2);
+
+  let bonusMaestriaCorpo = 0;
+  let bonusMaestriaDistancia = 0;
+  let bonusGolpeDasSombrasExtra = 0;
+  let nivelAdrenalinaFurioso = 0;
+  let temFrenesiFurioso = false;
+
+  classes.forEach((c) => {
+    const nomeClasseNorm = (c.nome_classe || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+    (c.habilidades || []).forEach((h) => {
+      const nomeHab = (h.nome || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const nivelHab = parseInt(h.nivel) || 0;
+
+      if (nivelHab > 0) {
+        if (
+          nomeHab.includes("maestria com armas corpo a corpo") &&
+          ehCorpoACorpo
+        )
+          bonusMaestriaCorpo += nivelHab;
+        if (
+          nomeHab.includes("maestria com armas a distancia") &&
+          ehDistancia
+        )
+          bonusMaestriaDistancia += nivelHab;
+
+        if (
+          nomeHab.includes("golpe das sombras") &&
+          nomeClasseNorm.includes("guerreiro sombrio")
+        ) {
+          bonusGolpeDasSombrasExtra += nivelHab;
         }
-        const num = parseInt(str, 10);
-        return isNaN(num) ? 8 : num;
+
+        if (
+          nomeHab.includes("adrenalina") &&
+          nomeClasseNorm.includes("furioso")
+        ) {
+          nivelAdrenalinaFurioso += nivelHab;
+        }
+        if (nomeHab.includes("frenesi") && nomeClasseNorm.includes("furioso")) {
+          temFrenesiFurioso = true;
+        }
+      }
+    });
+  });
+
+  const bonusPrecisaoClasse =
+    ehEscudosGemeos || ehCorpoACorpo
+      ? bonusMaestriaCorpo
+      : bonusMaestriaDistancia;
+
+  let bonusPrecisaoArma = parseInt(stats.precisao || stats.acerto || 0) || 0;
+  const formulaPrecisao = String(stats.precisao || "").toUpperCase();
+
+  let attr1Nome = ehEscudosGemeos ? "vigor" : stats.attr1 || "destreza";
+  let attr2Nome = ehEscudosGemeos ? "vigor" : stats.attr2 || "astucia";
+
+  if (formulaPrecisao) {
+    const mapaAtributos = {
+      DEX: "destreza",
+      INS: "intuicao",
+      MIG: "vigor",
+      WLP: "vontade",
+      AST: "astucia",
     };
+    const matchAtributos = formulaPrecisao.match(
+      /\(([A-Z]{3})\s*\+\s*([A-Z]{3})\)/,
+    );
+    if (matchAtributos) {
+      if (mapaAtributos[matchAtributos[1]])
+        attr1Nome = mapaAtributos[matchAtributos[1]];
+      if (mapaAtributos[matchAtributos[2]])
+        attr2Nome = mapaAtributos[matchAtributos[2]];
+    }
+    const partes = formulaPrecisao.split(")");
+    if (partes.length > 1) {
+      const matchBonus = partes[1].match(/\+\s*(\d+)/);
+      if (matchBonus) bonusPrecisaoArma = parseInt(matchBonus[1], 10) || 0;
+    }
+  }
 
-    const faces1 = extrairFaces(atributosAtuais[attr1Nome]);
-    const faces2 = extrairFaces(atributosAtuais[attr2Nome]);
+  const bonusPrecisaoTotal = bonusPrecisaoClasse + bonusPrecisaoArma;
 
-    // Rola os dois dados
-    const res1 = Math.floor(Math.random() * faces1) + 1;
-    const res2 = Math.floor(Math.random() * faces2) + 1;
-    const testeAtaque = res1 + res2;
+  const extrairFaces = (valorAttr) => {
+    if (!valorAttr) return 8;
+    const str = String(valorAttr).trim().toLowerCase();
+    if (str.startsWith("d")) {
+      const faces = parseInt(str.substring(1), 10);
+      return isNaN(faces) ? 8 : faces;
+    }
+    const num = parseInt(str, 10);
+    return isNaN(num) ? 8 : num;
+  };
 
-    // 🎯 Captura correta do dado mais alto para o dano
-    const dadoMaisAlto = Math.max(res1, res2);
+  const faces1 = extrairFaces(atributosAtuais[attr1Nome]);
+  const faces2 = extrairFaces(atributosAtuais[attr2Nome]);
 
-    // Bônus fixo da arma (verifica se está em dano_fixo, dano ou bonus_dano)
-    const valorBonusBruto = stats.dano_fixo !== undefined ? stats.dano_fixo : (stats.dano !== undefined ? stats.dano : 0);
-    const bonusDanoFixo = isMulti ? 0 : (parseInt(valorBonusBruto) || 0);
-    
-    const danoTotal = dadoMaisAlto + bonusDanoFixo;
+  const res1 = Math.floor(Math.random() * faces1) + 1;
+  const res2 = Math.floor(Math.random() * faces2) + 1;
+  const testeAtaque = res1 + res2 + bonusPrecisaoTotal;
 
-    return {
-        nomeArma: itemArma.nome,
-        attr1: `${attr1Nome.toUpperCase()} (d${faces1})`,
-        res1,
-        attr2: `${attr2Nome.toUpperCase()} (d${faces2})`,
-        res2,
-        testeAtaque,
-        dadoMaisAlto,
-        bonusDanoFixo,
-        danoTotal,
-        isMulti
-    };
+  const dadoMaisAlto = Math.max(res1, res2);
+
+  let statusCritico = null;
+  if (res1 === 1 && res2 === 1) {
+    statusCritico = "Erro Crítico (Fumble)";
+  } else if (res1 === res2) {
+    if (res1 >= 6) {
+      statusCritico = "Sucesso Crítico!";
+    } else if (
+      temFrenesiFurioso &&
+      (categoriaArma.includes("adaga") ||
+        categoriaArma.includes("luta") ||
+        categoriaArma.includes("malho") ||
+        categoriaArma.includes("arremesso") ||
+        nomeArmaLower.includes("adaga") ||
+        nomeArmaLower.includes("malho") ||
+        nomeArmaLower.includes("soqueira") ||
+        nomeArmaLower.includes("luta"))
+    ) {
+      statusCritico = "Sucesso Crítico (Frenesi)!";
+    }
+  }
+
+  const extrairBonusDano = (valorBruto) => {
+    if (valorBruto === undefined || valorBruto === null) return 0;
+    if (typeof valorBruto === "number") return valorBruto;
+    const str = String(valorBruto).trim();
+    if (str.includes("+")) {
+      const partes = str.split("+");
+      const num = parseInt(partes[partes.length - 1].trim(), 10);
+      return isNaN(num) ? 0 : num;
+    }
+    const numDireto = parseInt(str, 10);
+    return isNaN(numDireto) ? 0 : numDireto;
+  };
+
+  let bonusOriginal = 0;
+  if (ehEscudosGemeos) {
+    let bonusMaestriaDefensiva = 0;
+    classes.forEach((c) => {
+      (c.habilidades || []).forEach((h) => {
+        const nomeHab = (h.nome || "").toLowerCase();
+        const nivelHab = parseInt(h.nivel) || 0;
+        if (nomeHab.includes("maestria defensiva") && nivelHab > 0) {
+          bonusMaestriaDefensiva += nivelHab;
+        }
+      });
+    });
+    bonusOriginal = 5 + bonusMaestriaDefensiva;
+  } else {
+    const valorDanoBruto =
+      stats.dano_fixo !== undefined
+        ? stats.dano_fixo
+        : stats.dano !== undefined
+        ? stats.dano
+        : stats.bonus_dano !== undefined
+        ? stats.bonus_dano
+        : 0;
+    bonusOriginal = extrairBonusDano(valorDanoBruto);
+  }
+
+  let danoExtraHabilidade = 0;
+  if (opcoesDanoExtra.usandoGolpeDasSombras) {
+    const valorDadoVigorRolado = opcoesDanoExtra.resultadoVigorRolado || 0;
+    danoExtraHabilidade += valorDadoVigorRolado + bonusGolpeDasSombrasExtra;
+  }
+
+  let danoAdrenalinaFurioso = 0;
+  if (emCriseGlobal && nivelAdrenalinaFurioso > 0) {
+    danoAdrenalinaFurioso = nivelAdrenalinaFurioso * 2;
+  }
+
+  const bonusDanoFixo = isMulti
+    ? 0
+    : bonusOriginal + danoExtraHabilidade + danoAdrenalinaFurioso;
+  const danoTotal = dadoMaisAlto + bonusDanoFixo;
+
+  return {
+    nomeArma: ehEscudosGemeos ? "Escudos Gêmeos" : itemArma.nome,
+    attr1: `${attr1Nome.toUpperCase()} (d${faces1})`,
+    res1,
+    attr2: `${attr2Nome.toUpperCase()} (d${faces2})`,
+    res2,
+    bonusPrecisaoTotal,
+    testeAtaque,
+    statusCritico,
+    dadoMaisAlto,
+    bonusDanoFixo,
+    danoTotal,
+    isMulti,
+    danoExtraHabilidade,
+    danoAdrenalinaFurioso,
+  };
 }

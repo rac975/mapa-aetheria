@@ -2,11 +2,11 @@ import { FaBoxOpen, FaPlus, FaMinus, FaCoins, FaFlask, FaHeart, FaMagic, FaShiel
 import { MdWaterDrop } from 'react-icons/md';
 import { supabase } from '../../../services/supabase';
 
-export default function FichaPIComponent({ ficha, setFicha }) {
+export default function FichaPIComponent({ ficha, setFicha, piMaxCalculado }) {
     if (!ficha) return null;
 
     const piAtual = ficha.pi_atual ?? 6;
-    const piMax = ficha.pi_max ?? 6;
+    const piMax = piMaxCalculado ?? ficha.pi_max ?? 6;
     const zenitAtual = ficha.zenit ?? 0;
 
     // Função genérica para atualizar PIs e outros recursos no Supabase e estado local

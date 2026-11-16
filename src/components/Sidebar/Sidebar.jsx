@@ -1,13 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaMapMarkedAlt, FaBookOpen, FaShieldAlt, FaJournalWhills, FaIdCard, FaCog, FaKey, FaStore } from 'react-icons/fa';
+import { FaMapMarkedAlt, FaBookOpen, FaShieldAlt, FaJournalWhills, FaIdCard, FaCog, FaKey, FaStore, FaUserShield } from 'react-icons/fa';
 import { LuSwords } from "react-icons/lu";
 import './Sidebar.css';
 
 export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSettings }) {
   const location = useLocation();
 
-  // Função auxiliar para verificar se o link está ativo
-  const isActive = (path) => location.pathname === path ? 'active' : '';
+  // Função auxiliar para verificar se o link está ativo (suporta rotas exatas ou prefixos como /mestre/npcs)
+  const isActive = (path, exact = true) => {
+    if (exact) {
+      return location.pathname === path ? 'active' : '';
+    }
+    return location.pathname.startsWith(path) ? 'active' : '';
+  };
 
   return (
     <>
@@ -30,15 +35,23 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
           <Link to="/combate" className={`sidebar-link ${isActive('/combate')}`}>
             <LuSwords /> <span>Conflito & Relógios</span>
           </Link>
+
+          {/* Links restritos ou alternados pelo Modo Mestre */}
           {isMestre ? (
-            <Link to="/mestre/fichas" className={`sidebar-link ${isActive('/mestre/fichas')}`}>
-              <FaShieldAlt /> <span>Gerenciar Fichas</span>
-            </Link>
+            <>
+              <Link to="/mestre/fichas" className={`sidebar-link ${isActive('/mestre/fichas')}`}>
+                <FaShieldAlt /> <span>Gerenciar Fichas</span>
+              </Link>
+              <Link to="/mestre/npcs" className={`sidebar-link ${isActive('/mestre/npcs', false)}`}>
+                <FaUserShield /> <span>Gerenciar NPCs</span>
+              </Link>
+            </>
           ) : (
             <Link to="/ficha" className={`sidebar-link ${isActive('/ficha')}`}>
               <FaIdCard /> <span>Minha Ficha</span>
             </Link>
           )}
+
           <Link to="/loja" className={`sidebar-link ${isActive('/loja')}`}>
             <FaStore /> <span>Loja</span>
           </Link>
@@ -75,14 +88,24 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
           <LuSwords />
           <span>Conflito</span>
         </Link>
-        <Link to={isMestre ? "/mestre/fichas" : "/ficha"} className={`bottom-nav-item ${isActive(isMestre ? "/mestre/fichas" : "/ficha")}`}>
-          {isMestre ? <FaShieldAlt /> : <FaIdCard />}
-          <span>{isMestre ? "Gerenciar" : "Ficha"}</span>
-        </Link>
+        
+        {/* No mobile, exibe o link de gerenciar NPCs ou Fichas dependendo do mestre */}
+        {isMestre ? (
+          <Link to="/mestre/npcs" className={`bottom-nav-item ${isActive('/mestre/npcs', false)}`}>
+            <FaUserShield />
+            <span>NPCs</span>
+          </Link>
+        ) : (
+          <Link to="/ficha" className={`bottom-nav-item ${isActive('/ficha')}`}>
+            <FaIdCard />
+            <span>Ficha</span>
+          </Link>
+        )}
+
         <Link to="/loja" className={`bottom-nav-item ${isActive('/loja')}`}>
           <FaStore /> <span>Loja</span>
         </Link>
-        {/* Botão extra para abrir as opções/configurações ou menu rápido se precisar */}
+
         <button type="button" className="bottom-nav-item" onClick={onOpenSettings}>
           <FaCog />
           <span>Ajustes</span>

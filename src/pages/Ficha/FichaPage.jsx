@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaSave, FaIdCard, FaSignInAlt } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
@@ -19,12 +19,13 @@ import FichaMochilaSecao from './secoes/FichaMochilaSecao';
 import FichaEstatisticasSecao from './secoes/FichaEstatisticasSecao';
 import FichaPericiasSecao from './secoes/FichaPericiaSecao';
 import FichaPIComponent from './components/FichaPIComponent';
+import FichaProficienciasSecao from './secoes/FichaProficienciasSecao';
 
 // Importação dos subcomponentes de formulário (Edição)
 import FichaFormGeral from './forms/FichaFormGeral';
 import FichaFormPeculiaridade from './forms/FichaFormPeculiaridades';
 import FichaFormAtributos from './forms/FichaFormAtributos';
-import FichaFormRituais from './forms/FichaFormRituais';
+// import FichaFormRituais from './forms/FichaFormRituais';
 import FichaFormClasses from './forms/FichaFormClasses';
 import FichaFormMagias from './forms/FichaFormMagias';
 import FichaFormLacos from './forms/FichaFormLacos';
@@ -56,6 +57,9 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
     const [modificadoresTemporarios, setModificadoresTemporarios] = useState({});
     const [condicoesAtivas, setCondicoesAtivasState] = useState([]);
     const [itensEquipadosParaCalculo, setItensEquipadosParaCalculoState] = useState([]);
+
+    // Estado global que armazena o bônus do Golpe das Sombras para o próximo ataque
+    const [opcoesGolpeAtivo, setOpcoesGolpeAtivo] = useState(null);
 
     const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
 
@@ -195,25 +199,123 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         itensEquipadosParaCalculo
     );
 
+    // ⚡ Cálculo automático do estado de Crise Global (HP atual <= metade do HP máximo)
+    const hpAtualNum = Number(ficha?.hp_atual ?? statusFicha.pvMax);
+    const emCriseGlobal = statusFicha?.pvMax ? hpAtualNum <= Math.floor(statusFicha.pvMax / 2) : false;
+
     const calcularNivelTotal = (classesArray) => {
         return classesArray.reduce((acc, curr) => acc + (parseInt(curr.nivel) || 0), 0);
     };
 
-    const handleAjustarRecurso = async (campo, valor) => {
-        if (!ficha) return;
+    // 🔄 Sincronização robusta dos tetos máximos no banco e no estado local
+    useEffect(() => {
+        if (!ficha?.id || !statusFicha?.pvMax || !statusFicha?.mpMax) return;
+
+        const pvCalculado = statusFicha.pvMax;
+        const mpCalculado = statusFicha.mpMax;
+
+        // Se os tetos no banco/estado diferirem do calculado pelas regras:
+        if (Number(ficha.hp_max) !== Number(pvCalculado) || Number(ficha.mp_max) !== Number(mpCalculado)) {
+            supabase
+                .from('fichas_personagens')
+                .update({
+                    hp_max: pvCalculado,
+                    mp_max: mpCalculado
+                })
+                .eq('id', ficha.id)
+                .then(({ error }) => {
+                    if (error) {
+                        console.error("Erro ao sincronizar tetos no Supabase:", error.message);
+                    } else {
+                        console.log("Tetos máximos sincronizados com sucesso no banco!");
+                        // Atualiza o estado local para evitar loop e refletir o teto novo imediatamente
+                        setFicha(prev => ({
+                            ...prev,
+                            hp_max: pvCalculado,
+                            mp_max: mpCalculado
+                        }));
+                    }
+                });
+        }
+    }, [ficha?.id, ficha?.hp_max, ficha?.mp_max, statusFicha?.pvMax, statusFicha?.mpMax, setFicha]);
+
+    // 1. handleAjustarRecurso declarado ANTES do useEffect que o utiliza
+    const handleAjustarRecurso = useCallback(async (campo, valor) => {
+        const fichaIdReal = id || ficha?.id;
+
+        if (!ficha || !fichaIdReal) {
+            console.error("ID da ficha não encontrado para atualizar o recurso.");
+            return;
+        }
+
         let maximo = 999;
-        if (campo === 'hp_atual') maximo = ficha.hp_max || 999;
-        if (campo === 'mp_atual') maximo = ficha.mp_max || 999;
-        if (campo === 'ip_atual') maximo = ficha.pi_max || 999;
+        if (campo === 'hp_atual') {
+            maximo = statusFicha?.pvMax || 999;
+        } else if (campo === 'mp_atual') {
+            maximo = statusFicha?.mpMax || 999;
+        } else if (campo === 'ip_atual') {
+            maximo = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 999;
+        }
 
-        const novoValor = Math.min(maximo, Math.max(0, (ficha[campo] || 0) + valor));
-        const fichaAtualizada = { ...ficha, [campo]: novoValor };
+        // Pega o valor atual garantindo que ele não ultrapasse o teto recém-calculado
+        const valorBrutoAtual = Number(ficha[campo] !== undefined ? ficha[campo] : maximo);
+        const valorAtual = Math.min(valorBrutoAtual, maximo);
+        const novoValor = Math.min(maximo, Math.max(0, valorAtual + valor));
 
-        setFicha(fichaAtualizada);
-        setFormData(fichaAtualizada);
+        setFicha(prevFicha => {
+            const atualizada = {
+                ...prevFicha,
+                [campo]: novoValor
+            };
+            setFormData(atualizada);
+            return atualizada;
+        });
 
-        await supabase.from('fichas_personagens').update({ [campo]: novoValor }).eq('id', ficha.id);
-    };
+        try {
+            const { error: supabaseError } = await supabase
+                .from('fichas_personagens')
+                .update({ [campo]: novoValor })
+                .eq('id', fichaIdReal);
+
+            if (supabaseError) {
+                console.error("Erro do Supabase ao atualizar recurso:", supabaseError.message);
+            }
+        } catch (err) {
+            console.error("Erro inesperado ao salvar recurso:", err);
+        }
+    }, [ficha, id, statusFicha, setFicha]);
+
+    // 2. useEffect de verificação de teto declarado DEPOIS de handleAjustarRecurso
+    useEffect(() => {
+        if (ficha?.id && statusFicha?.pvMax && Number(ficha.hp_atual) > statusFicha.pvMax) {
+            handleAjustarRecurso('hp_atual', statusFicha.pvMax - Number(ficha.hp_atual));
+        }
+    }, [statusFicha?.pvMax, ficha?.id, ficha?.hp_atual, handleAjustarRecurso]);
+
+    // Sincroniza automaticamente os tetos máximos no banco de forma segura contra tipos (Number vs String)
+    useEffect(() => {
+        if (!ficha?.id || !statusFicha?.pvMax || !statusFicha?.mpMax) return;
+
+        const pvCalculado = statusFicha.pvMax;
+        const mpCalculado = statusFicha.mpMax;
+
+        if (Number(ficha.hp_max) !== Number(pvCalculado) || Number(ficha.mp_max) !== Number(mpCalculado)) {
+            supabase
+                .from('fichas_personagens')
+                .update({
+                    hp_max: pvCalculado,
+                    mp_max: mpCalculado
+                })
+                .eq('id', ficha.id)
+                .then(({ error }) => {
+                    if (error) {
+                        console.error("Erro ao sincronizar tetos no Supabase:", error.message);
+                    } else {
+                        console.log("Tetos máximos sincronizados com sucesso no banco!");
+                    }
+                });
+        }
+    }, [ficha?.id, statusFicha?.pvMax, statusFicha?.mpMax, ficha?.hp_max, ficha?.mp_max]);
 
     const handleSalvarEdicao = async (e) => {
         e.preventDefault();
@@ -233,9 +335,18 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         }
 
         const nivelCalculado = calcularNivelTotal(formClasses);
+
+        const statusCalculadosParaSalvar = calcularStatusPersonagem(
+            atributosAtuaisParaCalculo,
+            formClasses,
+            itensEquipadosParaCalculo
+        );
+
         const dadosParaSalvar = {
             ...formData,
-            nivel: nivelCalculado
+            nivel: nivelCalculado,
+            hp_max: statusCalculadosParaSalvar.pvMax,
+            mp_max: statusCalculadosParaSalvar.mpMax
         };
 
         try {
@@ -334,7 +445,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                     <FichaFormGeral formData={formData} setFormData={setFormData} />
                     <FichaFormPeculiaridade formData={formData} setFormData={setFormData} />
                     <FichaFormAtributos formData={formData} setFormData={setFormData} />
-                    <FichaFormRituais formData={formData} setFormData={setFormData} />
+                    {/* <FichaFormRituais formData={formData} setFormData={setFormData} /> */}
                     <FichaFormClasses formClasses={formClasses} setFormClasses={setFormClasses} formData={formData} setFormData={setFormData} calcularNivelTotal={calcularNivelTotal} />
                     <FichaFormMagias formMagias={formMagias} setFormMagias={setFormMagias} />
                     <FichaFormLacos formData={formData} setFormData={setFormData} setAlerta={setAlerta} />
@@ -349,7 +460,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                     <FichaRecursos ficha={ficha} statusFicha={statusFicha} handleAjustarRecurso={handleAjustarRecurso} />
                     <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
                     <FichaEstatisticasSecao statusFicha={statusFicha} />
-                    <FichaPIComponent ficha={ficha} setFicha={setFicha} />
+                    <FichaPIComponent ficha={ficha} setFicha={setFicha} piMaxCalculado={statusFicha.piMax} />
                     <FichaAtributos
                         ficha={ficha}
                         modificadoresTemporarios={modificadoresTemporarios}
@@ -358,10 +469,25 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                             setAlerta({ isOpen: true, title: `Atributo ${sigla}`, message: `Rolando dado d${valor}...` });
                         }}
                     />
-                    <FichaClassesSecao classes={classes} />
+                    <FichaClassesSecao
+                        fichaId={id || ficha?.id}
+                        ficha={ficha}
+                        classes={classes}
+                        handleAjustarRecurso={handleAjustarRecurso}
+                        pvMaxCalculado={statusFicha.pvMax}
+                        onAtivarGolpe={(opcoes) => {
+                            setOpcoesGolpeAtivo(opcoes);
+                            setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
+                        }}
+                    />
+                    <FichaProficienciasSecao classes={classes} />
                     <FichaEquipamentosSecao
                         fichaId={ficha?.id}
+                        classes={classes}
                         atributosAtuais={atributosAtuaisParaCalculo}
+                        opcoesGolpeAtivo={opcoesGolpeAtivo}
+                        limparGolpeAtivo={() => setOpcoesGolpeAtivo(null)}
+                        emCriseGlobal={emCriseGlobal}
                     />
                     <FichaMagiasSecao magias={magias} />
                     <FichaLacosSecao lacos={ficha?.lacos} />

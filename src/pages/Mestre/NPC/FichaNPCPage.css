@@ -1,0 +1,1029 @@
+/* =====================================================
+00. VARIÁVEIS DE TEMA (DESIGN TOKENS)
+===================================================== */
+:root {
+    --color-bg-main: #0d0f18;
+    --color-bg-card: rgba(22, 27, 34, 0.95);
+    --color-bg-card-alt: rgba(15, 18, 25, 0.95);
+    --color-border: #30363d;
+    --color-gold: #d4af37;
+    --color-gold-glow: rgba(212, 175, 55, 0.25);
+    --color-text-main: #f0f6fc;
+    --color-text-muted: #8b949e;
+    --color-danger: #f85149;
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =====================================================
+1. LAYOUT GERAL E ESTRUTURA PRINCIPAL
+===================================================== */
+.main-content {
+    background: #0d0f18;
+    color: var(--color-text-main);
+    width: 100%;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto !important;
+    height: auto !important;
+}
+
+.lista-npcs-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 16px 80px 16px;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    overflow: visible !important;
+    height: auto !important;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* =====================================================
+02. HEADER DO INDEX DE NPCS / LISTAGEM
+===================================================== */
+.lista-npcs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: linear-gradient(135deg, #161b24 0%, #0f131a 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.lista-npcs-header h1 {
+    font-size: 1.85rem;
+    color: var(--color-text-main);
+    margin: 0 0 6px 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.lista-npcs-header p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* =====================================================
+03. GRID E CARDS DE NPCS (BESTIÁRIO)
+===================================================== */
+.npcs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.npc-card {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transition: var(--transition-smooth);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.npc-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-gold);
+    opacity: 0.5;
+    transition: var(--transition-smooth);
+}
+
+.npc-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.08);
+}
+
+.npc-card:hover::before {
+    opacity: 1;
+}
+
+.npc-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 12px;
+}
+
+.npc-card-header h3 {
+    font-size: 1.2rem;
+    color: var(--color-text-main);
+    margin: 0;
+    font-weight: 700;
+}
+
+.npc-rank-badge {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--color-gold);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.npc-card-info {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0 0 14px 0;
+    text-transform: capitalize;
+}
+
+.npc-card-info span {
+    color: var(--color-text-main);
+    font-weight: 600;
+}
+
+.npc-card-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.npc-card-stats span {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-main);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.npc-card-footer {
+    font-size: 0.8rem;
+    color: var(--color-gold);
+    font-weight: 600;
+    text-align: right;
+    transition: var(--transition-smooth);
+}
+
+.npc-card:hover .npc-card-footer {
+    transform: translateX(3px);
+}
+
+/* =====================================================
+04. ESTADOS ESPECIAIS (LOADING & EMPTY)
+===================================================== */
+.loading-text {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 40px 0;
+}
+
+.empty-state {
+    text-align: center;
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid var(--color-border);
+    padding: 40px 24px;
+    border-radius: 14px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    margin: 40px auto;
+}
+
+.empty-state p {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    margin: 0 0 16px 0;
+}
+
+.link-criar {
+    background: transparent;
+    color: var(--color-gold);
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    transition: var(--transition-smooth);
+}
+
+.link-criar:hover {
+    color: var(--color-text-main);
+}
+
+/* =====================================================
+05. BOTÕES
+===================================================== */
+.btn-novo-npc {
+    background: var(--color-gold);
+    color: var(--color-bg-main);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+}
+
+.btn-novo-npc:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+    background: #e2be41;
+}
+
+/* =====================================================
+06. SCROLLBARS PERSONALIZADAS
+===================================================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0d1117;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-gold);
+    border-radius: 999px;
+}
+
+
+
+/* =====================================================
+07. RESPONSIVIDADE (MOBILE / TABLET)
+===================================================== */
+@media (max-width: 800px) {
+    .lista-npcs-container {
+        padding-bottom: 30px;
+    }
+
+    .lista-npcs-header {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        padding: 18px 16px;
+        gap: 16px;
+    }
+
+    .lista-npcs-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .btn-novo-npc {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 12px !important;
+    }
+
+    .npcs-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* =====================================================
+10. FICHA DE VISUALIZAÇÃO (NPCView)
+===================================================== */
+.npc-view-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.npc-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: linear-gradient(135deg, #161b24 0%, #0f131a 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.npc-title {
+    font-size: 1.85rem;
+    color: var(--color-text-main);
+    margin: 0 0 6px 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.npc-subtitle {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.highlight-text {
+    color: var(--color-text-main);
+    font-weight: 600;
+}
+
+.npc-bonus-box {
+    background: rgba(22, 27, 34, 0.95);
+    border: 1px solid var(--color-border);
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bonus-value {
+    color: var(--color-gold);
+    font-weight: 700;
+}
+
+.tracos-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.traco-card {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.traco-label {
+    font-size: 0.75rem;
+    color: var(--color-gold);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.traco-text {
+    font-size: 0.9rem;
+    color: var(--color-text-main);
+    margin: 0;
+}
+
+.atributos-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.atributo-card {
+    background: linear-gradient(180deg, #111723, #0d1118);
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.atributo-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.atributo-value {
+    font-size: 1.5rem;
+    color: var(--color-gold);
+    font-weight: 800;
+    margin: 6px 0 0 0;
+    text-transform: uppercase;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.stat-card {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.stat-card.center {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.stat-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.stat-title.pv-color {
+    color: var(--color-danger);
+}
+
+.stat-title.pm-color {
+    color: #58a6ff;
+}
+
+.stat-aux {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.stat-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 6px;
+    margin-top: 6px;
+}
+
+.stat-btn {
+    background: #21262d;
+    color: var(--color-text-main);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.stat-btn:hover {
+    background: var(--color-border);
+    color: var(--color-gold);
+}
+
+.stat-numbers {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.stat-numbers.large {
+    font-size: 1.5rem;
+    color: var(--color-gold);
+    margin-top: 4px;
+}
+
+.ataques-view-container,
+.view-card-secao {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ataques-view-container h3,
+.view-card-secao h3 {
+    font-size: 1.1rem;
+    color: var(--color-gold);
+    margin: 0 0 14px 0;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+
+.empty-text {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.ataques-view-list,
+.view-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ataque-view-item,
+.view-item {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.ataque-name {
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.ataque-dado {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-left: 8px;
+}
+
+.ataque-dano-info {
+    font-size: 0.85rem;
+    color: var(--color-gold);
+    font-weight: 600;
+}
+
+.poderes-feiticos-view-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.poder-name {
+    color: var(--color-gold);
+}
+
+.feitico-name {
+    color: #58a6ff;
+}
+
+
+/* =====================================================
+11. FICHA DE EDIÇÃO (NPCEditor)
+===================================================== */
+.npc-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: linear-gradient(135deg, #161b24 0%, #0f131a 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+}
+
+.header-section h2 {
+    font-size: 1.5rem;
+    color: var(--color-gold);
+    margin: 0 0 4px 0;
+}
+
+.header-section p {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.header-section span {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--color-gold);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.col-span-2 {
+    grid-column: span 2;
+}
+
+.patente-section,
+.atributos-section,
+.stats-section,
+.afinidades-section,
+.tracos-section,
+.ataques-section {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.patente-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.atributos-section h3,
+.stats-header h3,
+.afinidades-section h3,
+.tracos-section h3,
+.ataques-header h3 {
+    font-size: 1.1rem;
+    color: var(--color-gold);
+    margin: 0 0 14px 0;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+
+.atributos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+
+.stats-header h3 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+.stats-header span {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+.afinidades-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.tracos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.ataques-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.ataques-header h3 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+.ataques-header button,
+.ataque-item button,
+.item-catalogo button {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--color-gold);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.ataques-header button:hover,
+.item-catalogo button:hover {
+    background: var(--color-gold);
+    color: var(--color-bg-main);
+}
+
+.ataque-item button,
+.item-catalogo button {
+    background: rgba(248, 81, 73, 0.12);
+    color: var(--color-danger);
+    border-color: rgba(248, 81, 73, 0.3);
+}
+
+.ataque-item button:hover,
+.item-catalogo button:hover {
+    background: var(--color-danger);
+    color: #fff;
+}
+
+.ataques-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ataque-item {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.poderes-feiticos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.card-secao {
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid rgba(212, 175, 55, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.card-secao h3 {
+    font-size: 1.1rem;
+    color: var(--color-gold);
+    margin: 0 0 14px 0;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 8px;
+}
+
+.lista-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.item-catalogo {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.item-catalogo strong {
+    color: var(--color-gold);
+}
+
+.item-catalogo p {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    margin: 2px 0 0 0;
+    display: -webkit-box;
+    /* -webkit-line-clamp: 1; */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+
+/* =====================================================
+12. RESPONSIVIDADE ADICIONAL (MOBILE / TABLET)
+===================================================== */
+@media (max-width: 900px) {
+
+    .atributos-container,
+    .stats-container,
+    .form-grid,
+    .atributos-grid,
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .afinidades-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .poderes-feiticos-view-grid,
+    .poderes-feiticos-grid,
+    .patente-section,
+    .tracos-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .ataque-item {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* =====================================================
+13. CLASSES ADICIONAIS (Loading, Voltar e Modos)
+===================================================== */
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(180deg, var(--color-bg-card), var(--color-bg-card-alt));
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 500px;
+    margin: 40px auto;
+    text-align: center;
+    padding: 40px;
+}
+
+.btn-voltar {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition-smooth);
+}
+
+.btn-voltar:hover {
+    background: var(--color-border);
+    color: var(--color-text-main);
+    border-color: rgba(212, 175, 55, 0.25);
+}
+
+/* Agrupamento da barra de topo da Ficha */
+.ficha-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #161b24 0%, #0f131a 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.ficha-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Estilização para o botão de modo edição/visualização */
+.btn-modo {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-modo.editar {
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+    border: 1px solid rgba(88, 166, 255, 0.4);
+}
+
+.btn-modo.editar:hover {
+    background: #58a6ff;
+    color: var(--color-bg-main);
+    box-shadow: 0 6px 16px rgba(88, 166, 255, 0.25);
+}
+
+.btn-modo.salvar {
+    background: rgba(46, 160, 67, 0.2);
+    color: #3fb950;
+    border: 1px solid rgba(46, 160, 67, 0.4);
+}
+
+.btn-modo.salvar:hover {
+    background: #238636;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(46, 160, 67, 0.3);
+}
+
+.btn-excluir {
+    background: rgba(248, 81, 73, 0.12);
+    color: var(--color-danger);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-excluir:hover {
+    background: var(--color-danger);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(248, 81, 73, 0.25);
+}
+
+/* Responsividade da barra de navegação superior */
+@media (max-width: 600px) {
+    .ficha-navbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ficha-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-voltar,
+    .btn-modo,
+    .btn-excluir {
+        width: 100%;
+        justify-content: center;
+    }
+}

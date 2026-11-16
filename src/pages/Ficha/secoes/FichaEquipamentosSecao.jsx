@@ -1,16 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt } from 'react-icons/fa';
+import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt, FaSkull } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha'; // Ajuste o caminho correto para o seu utils
 
-const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
-
-export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }) {
+export default function FichaEquipamentosSecao({ 
+  fichaId, 
+  atributosAtuais = {}, 
+  classes = [], 
+  opcoesGolpeAtivo = null, 
+  limparGolpeAtivo = null,
+  emCriseGlobal = false
+}) {
   const [itensInventario, setItensInventario] = useState([]);
   const [modalSlotAberto, setModalSlotAberto] = useState(null);
   const [itemParaEquiparDireto, setItemParaEquiparDireto] = useState(null);
   const [carregando, setCarregando] = useState(true);
 
-  // Estado do modo de ataque por slot: 'normal' ou 'multi' (substitui o checkbox feio)
   const [modoAtaqueState, setModoAtaqueState] = useState({
     mao_dominante: 'normal',
     mao_secundaria: 'normal'
@@ -92,6 +97,8 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
 
   const equiparItemNoSlot = async (item, slotAlvo) => {
     const tipoItem = (item.tipo || '').toLowerCase();
+    const nomeItem = (item.nome || '').toLowerCase();
+    const ehEscudo = tipoItem.includes('escudo');
 
     if ((slotAlvo === 'mao_dominante' || slotAlvo === 'mao_secundaria') && (tipoItem.includes('armadura') || tipoItem.includes('acessorio'))) {
       alert("Este item não pode ser empunhado nas mãos!");
@@ -104,6 +111,45 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
     if (slotAlvo === 'acessorio' && !tipoItem.includes('acessorio')) {
       alert("Apenas acessórios podem ser equipados neste slot!");
       return;
+    }
+
+    const ehMarcialOuPesado = tipoItem.includes('marcial') ||
+      tipoItem.includes('pesada') ||
+      tipoItem.includes('escudo') ||
+      nomeItem.includes('nodachi') ||
+      nomeItem.includes('martelo de guerra');
+
+    const temDuploEscudeiro = classes.some(c =>
+      (c.habilidades || []).some(h =>
+        (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel) || 0) > 0
+      )
+    );
+
+    if (slotAlvo === 'mao_dominante') {
+      if (tipoItem.includes('armadura') || tipoItem.includes('acessorio')) {
+        alert("Este item não pode ser empunhado nas mãos!");
+        return;
+      }
+      if (ehEscudo && !temDuploEscudeiro) {
+        alert("⛔ Apenas personagens com a habilidade 'Duplo Escudeiro' podem equipar escudos na mão dominante!");
+        return;
+      }
+    }
+
+    if (ehMarcialOuPesado) {
+      const temProficiencia = classes.some(c => {
+        const ben = (c.beneficios || '').toLowerCase();
+        return ben.includes('marcial') ||
+          ben.includes('pesada') ||
+          ben.includes('escudos') ||
+          ben.includes('todos') ||
+          ben.includes('armas corpo a corpo');
+      });
+
+      if (!temProficiencia) {
+        alert("⛔ Bloqueado pelas regras de Fabula Ultima: Seu personagem não possui a proficiência necessária nas classes ativas para equipar este tipo de equipamento marcial/pesado!");
+        return;
+      }
     }
 
     const itemAtualNoSlot = getItemNoSlot(slotAlvo);
@@ -163,119 +209,35 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
     if (!error) carregarItens();
   };
 
-  // 🎲 Lógica completa lendo a fórmula de precisão do banco (ex: '(AST + AST) + 1')
   const executarRolagemArma = (itemArma, slotId) => {
-    const stats = itemArma.stats_personalizados || {};
-
-    // 1. Extrai os atributos e o bônus de precisão da string do banco (ex: '(AST + AST) + 1')
-    const formulaPrecisao = String(stats.precisao || '').toUpperCase();
-
-    let attr1Nome = stats.attr1 || 'destreza';
-    let attr2Nome = stats.attr2 || 'astucia';
-    let bonusPrecisaoArma = 0;
-
-    if (formulaPrecisao) {
-      // Mapeamento das abreviações do Fabula Ultima para os nomes usados no estado de atributos
-      const mapaAtributos = {
-        'DEX': 'destreza',
-        'INS': 'intuicao',
-        'MIG': 'vigor',
-        'WLP': 'vontade',
-        'AST': 'astucia'
-      };
-
-      // Tenta extrair os dois atributos de dentro dos parênteses (ex: AST e AST)
-      const matchAtributos = formulaPrecisao.match(/\(([A-Z]{3})\s*\+\s*([A-Z]{3})\)/);
-      if (matchAtributos) {
-        if (mapaAtributos[matchAtributos[1]]) attr1Nome = mapaAtributos[matchAtributos[1]];
-        if (mapaAtributos[matchAtributos[2]]) attr2Nome = mapaAtributos[matchAtributos[2]];
-      }
-
-      // Tenta extrair o bônus fixo de precisão após o fechamento dos parênteses (ex: o '+ 1')
-      const partes = formulaPrecisao.split(')');
-      if (partes.length > 1) {
-        const resto = partes[1]; // Ex: " + 1"
-        const matchBonus = resto.match(/\+\s*(\d+)/);
-        if (matchBonus) {
-          bonusPrecisaoArma = parseInt(matchBonus[1], 10) || 0;
-        } else {
-          // Se tiver um número direto ou formato alternativo
-          const numAlt = parseInt(resto.trim(), 10);
-          if (!isNaN(numAlt)) bonusPrecisaoArma = numAlt;
-        }
-      }
-    }
-
-    const extrairFaces = (valorAttr) => {
-      if (!valorAttr) return 8;
-      const str = String(valorAttr).trim().toLowerCase();
-      if (str.startsWith('d')) {
-        const faces = parseInt(str.substring(1), 10);
-        return isNaN(faces) ? 8 : faces;
-      }
-      const num = parseInt(str, 10);
-      return isNaN(num) ? 8 : num;
-    };
-
-    const faces1 = extrairFaces(atributosAtuais[attr1Nome]);
-    const faces2 = extrairFaces(atributosAtuais[attr2Nome]);
-
-    const res1 = rolarDado(faces1);
-    const res2 = rolarDado(faces2);
-
-    // Teste de Precisão = Dado 1 + Dado 2 + Bônus fixo extraído da fórmula (ex: + 1)
-    const testeAtaque = res1 + res2 + bonusPrecisaoArma;
-
-    // Verificação de Crítico e Erro Crítico
-    let statusCritico = null;
-    if (res1 === 1 && res2 === 1) {
-      statusCritico = 'Erro Crítico (Fumble)';
-    } else if (res1 === res2 && res1 >= 6) {
-      statusCritico = 'Sucesso Crítico!';
-    }
-
-    const dadoMaisAlto = Math.max(res1, res2);
     const isMulti = modoAtaqueState[slotId] === 'multi';
 
-    // Extrai o bônus de dano numérico de strings como 'RA + 6' ou 'VIG + 4'
-    const extrairBonusDano = (valorBruto) => {
-      if (valorBruto === undefined || valorBruto === null) return 0;
-      if (typeof valorBruto === 'number') return valorBruto;
+    // Delega o cálculo completo (incluindo Adrenalina, Frenesi e Golpe das Sombras) para o utilitário
+    const resultadoCalculado = rolarAtaqueEDanoArma(
+      itemArma,
+      atributosAtuais,
+      isMulti,
+      classes,
+      itensInventario,
+      opcoesGolpeAtivo || {},
+      emCriseGlobal
+    );
 
-      const str = String(valorBruto).trim();
-      if (str.includes('+')) {
-        const partes = str.split('+');
-        const num = parseInt(partes[partes.length - 1].trim(), 10);
-        return isNaN(num) ? 0 : num;
-      }
-      const numDireto = parseInt(str, 10);
-      return isNaN(numDireto) ? 0 : numDireto;
-    };
-
-    const valorDanoBruto = stats.dano_fixo !== undefined ? stats.dano_fixo
-      : stats.dano !== undefined ? stats.dano
-        : stats.bonus_dano !== undefined ? stats.bonus_dano
-          : 0;
-
-    const bonusOriginal = extrairBonusDano(valorDanoBruto);
-    const bonusDanoFixo = isMulti ? 0 : bonusOriginal;
-    const danoTotal = dadoMaisAlto + bonusDanoFixo;
+    const usandoGolpe = !!(opcoesGolpeAtivo && opcoesGolpeAtivo.usandoGolpeDasSombras);
 
     setResultadosRolagem(prev => ({
       ...prev,
       [slotId]: {
-        res1,
-        res2,
-        bonusPrecisaoArma,
-        testeAtaque,
-        statusCritico,
-        dadoMaisAlto,
-        bonusOriginal,
-        bonusDanoFixo,
-        danoTotal,
-        isMulti
+        ...resultadoCalculado,
+        usandoGolpe,
+        danoExtraGolpe: resultadoCalculado.danoExtraHabilidade || 0
       }
     }));
+
+    // Consome o golpe ativo após rolar o ataque
+    if (usandoGolpe && limparGolpeAtivo) {
+      limparGolpeAtivo();
+    }
   };
 
   if (carregando) return <div style={{ color: '#8b949e', padding: '10px' }}>Carregando equipamentos...</div>;
@@ -289,16 +251,31 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
 
   return (
     <div>
-      {/* 1. SEÇÃO DE ITENS EQUIPADOS */}
       <section className="ficha-card-section" style={{ marginBottom: '20px' }}>
-        <h3>🛡️ Itens Equipados</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3>🛡️ Itens Equipados</h3>
+          {opcoesGolpeAtivo && (
+            <span style={{ fontSize: '0.75rem', background: 'rgba(188, 140, 255, 0.2)', border: '1px solid #bc8cff', color: '#bc8cff', padding: '3px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <FaSkull size={10} /> Golpe das Sombras Armado (Dano de Trevas)
+            </span>
+          )}
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginTop: '12px' }}>
           {slotConfig.map(slot => {
             const itemEquipado = getItemNoSlot(slot.id);
-            const isArma = slot.id.includes('mao') && itemEquipado && (itemEquipado.tipo || '').toLowerCase().includes('arma');
+            const tipoItemEquipado = (itemEquipado?.tipo || '').toLowerCase();
+            const temDuploEscudeiro = classes.some(c =>
+              (c.habilidades || []).some(h =>
+                (h.nome || '').toLowerCase().includes('duplo escudeiro') && (parseInt(h.nivel) || 0) > 0
+              )
+            );
             const ultimaRolagem = resultadosRolagem[slot.id];
             const modoAtual = modoAtaqueState[slot.id] || 'normal';
+            const ehArmaOuEscudoAtacavel = slot.id.includes('mao') && itemEquipado && (
+              tipoItemEquipado.includes('arma') ||
+              (slot.id === 'mao_dominante' && tipoItemEquipado.includes('escudo') && temDuploEscudeiro)
+            );
 
             return (
               <div key={slot.id} style={{ background: '#0d0f18', border: '1px solid #30363d', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
@@ -315,11 +292,9 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
                       <div style={{ fontSize: '0.75rem', color: '#d4af37', textTransform: 'uppercase', marginTop: '2px' }}>{itemEquipado.tipo}</div>
                     </div>
 
-                    {/* Controles de Ataque e Seletor de Modo (Substituindo o checkbox simples) */}
-                    {isArma && (
+                    {ehArmaOuEscudoAtacavel && (
                       <div style={{ borderTop: '1px solid #30363d', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
 
-                        {/* Seletor Estilizado de Modo de Ataque */}
                         <div style={{ display: 'flex', background: '#0d1117', border: '1px solid #30363d', borderRadius: '6px', padding: '2px' }}>
                           <button
                             type="button"
@@ -353,11 +328,10 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
                           <FaDice /> Rolar Ataque e Dano
                         </button>
 
-                        {/* 📊 EXIBIÇÃO DETALHADA DIRETAMENTE NO CARD */}
+                        {/* 📊 EXIBIÇÃO DETALHADA E DISCRIMINADA DA PRECISÃO E DANO */}
                         {ultimaRolagem && (
                           <div style={{ background: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.3)', padding: '8px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
 
-                            {/* Alerta de Crítico se houver */}
                             {ultimaRolagem.statusCritico && (
                               <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: ultimaRolagem.statusCritico.includes('Sucesso') ? '#3fb950' : '#f85149', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '3px' }}>
                                 <FaBolt /> {ultimaRolagem.statusCritico}
@@ -365,28 +339,28 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
                             )}
 
                             <div style={{ fontSize: '0.75rem', color: '#f0f6fc', display: 'flex', justifyContent: 'space-between' }}>
-                              <span>Precisão:</span>
-                              <strong>
-                                {ultimaRolagem.res1} + {ultimaRolagem.res2}
-                                {ultimaRolagem.bonusPrecisaoArma !== 0 ? ` ${ultimaRolagem.bonusPrecisaoArma > 0 ? '+' : ''} ${ultimaRolagem.bonusPrecisaoArma}` : ''}
-                                = {ultimaRolagem.testeAtaque}
-                              </strong>
+                              <span>Precisão Final:</span>
+                              <strong style={{ color: '#d4af37' }}>{ultimaRolagem.testeAtaque}</strong>
                             </div>
 
-                            <div style={{ fontSize: '0.75rem', color: '#d4af37', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span>Dano Final:</span>
+                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <div>🧩 Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} (Rolados: {ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
+                              <div>⚔️ Bônus de Precisão Total: +{ultimaRolagem.bonusPrecisaoTotal}</div>
+                            </div>
+
+                            <div style={{ fontSize: '0.75rem', color: '#bc8cff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '2px', paddingTop: '2px' }}>
+                              <span>Dano Final ({ultimaRolagem.usandoGolpe ? 'Trevas 🖤' : 'Normal'}):</span>
                               <strong style={{ fontSize: '0.85rem' }}>{ultimaRolagem.danoTotal}</strong>
                             </div>
 
-                            {/* Detalhamento do cálculo do dano */}
-                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px' }}>
-                              Cálculo: Dado mais alto ({ultimaRolagem.dadoMaisAlto})
-                              {ultimaRolagem.isMulti && ultimaRolagem.bonusOriginal > 0 ? (
-                                <span style={{ color: '#f85149' }}> (Bônus de +{ultimaRolagem.bonusOriginal} zerado por Multiataque)</span>
-                              ) : ultimaRolagem.bonusDanoFixo > 0 ? (
-                                <span> + Bônus Fixo ({ultimaRolagem.bonusDanoFixo}) = {ultimaRolagem.danoTotal}</span>
-                              ) : (
-                                <span> (Sem bônus fixo)</span>
+                            <div style={{ fontSize: '0.65rem', color: '#8b949e', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '3px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
+                              {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo Total: +{ultimaRolagem.bonusDanoFixo}</div>}
+                              {ultimaRolagem.danoAdrenalinaFurioso > 0 && (
+                                <div style={{ color: '#f85149' }}>⚡ Adrenalina (Crise): +{ultimaRolagem.danoAdrenalinaFurioso}</div>
+                              )}
+                              {ultimaRolagem.danoExtraHabilidade > 0 && (
+                                <div style={{ color: '#bc8cff' }}>🖤 Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>
                               )}
                             </div>
                           </div>
@@ -429,7 +403,7 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
         </div>
       </section>
 
-      {/* 2. SEÇÃO DE MOCHILA & INVENTÁRIO (Mantida igual) */}
+      {/* 2. SEÇÃO DE MOCHILA & INVENTÁRIO */}
       <section className="ficha-card-section">
         <h3><FaBoxOpen /> Mochila & Inventário ({itensInventario.length})</h3>
         {itensInventario.length === 0 ? (
@@ -483,7 +457,7 @@ export default function FichaEquipamentosSecao({ fichaId, atributosAtuais = {} }
         )}
       </section>
 
-      {/* MODAL 1 E MODAL 2 MANTIDOS */}
+      {/* MODAIS */}
       {modalSlotAberto && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100 }}>
           <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '12px', padding: '20px', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '12px' }}>

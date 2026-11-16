@@ -1,6 +1,7 @@
 // src/hooks/useFichaData.js
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabase';
+import { calcularStatusPersonagem } from '../utils/calculosFicha';
 
 export function useFichaData(id, navigate) {
     const [ficha, setFicha] = useState(null);
@@ -38,14 +39,36 @@ export function useFichaData(id, navigate) {
             }
             localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
 
-            setFicha(fichaData);
-
-            const [{ data: classesData }, { data: magiasData }] = await Promise.all([
+            // Busca classes e itens para calibrar os máximos corretos na entrada
+            const [{ data: classesData }, { data: magiasData }, { data: itensData }] = await Promise.all([
                 supabase.from('fichas_classes').select('*').eq('ficha_id', fichaData.id),
-                supabase.from('fichas_magias').select('*').eq('ficha_id', fichaData.id)
+                supabase.from('fichas_magias').select('*').eq('ficha_id', fichaData.id),
+                supabase.from('itens_personagem').select('*').eq('ficha_id', fichaData.id)
             ]);
 
-            setClasses(classesData || []);
+            const classesCarregadas = classesData || [];
+            const itensEquipados = (itensData || []).filter(i => i.stats_personalizados?.slot);
+
+            // Atributos atuais para o cálculo inicial
+            const atributosParaCalculo = {
+                destreza: fichaData.destreza,
+                astucia: fichaData.astucia,
+                vigor: fichaData.vigor || 8,
+                vontade: fichaData.vontade || 8
+            };
+
+            // Calcula o teto real baseado nas regras do livro
+            const statusCalculados = calcularStatusPersonagem(atributosParaCalculo, classesCarregadas, itensEquipados);
+
+            // Enriquece o objeto da ficha com os máximos matematicamente corretos
+            const fichaCorrigida = {
+                ...fichaData,
+                hp_max: statusCalculados.pvMax,
+                mp_max: statusCalculados.mpMax
+            };
+
+            setFicha(fichaCorrigida);
+            setClasses(classesCarregadas);
             setMagias(magiasData || []);
 
         } catch (err) {
@@ -60,7 +83,6 @@ export function useFichaData(id, navigate) {
         carregarDados();
     }, [carregarDados]);
 
-    // EXpondo também setClasses e setMagias aqui:
     return { 
         ficha, setFicha, 
         classes, setClasses, 

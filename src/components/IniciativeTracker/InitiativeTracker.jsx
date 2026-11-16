@@ -4,7 +4,7 @@ import { FaUndoAlt } from 'react-icons/fa';
 import UndoToast from '../UndoToast/UndoToast';
 import CustomAlert from '../CustomAlert/CustomAlert';
 import CombatantItem from './CombatantItem';
-import AddParticipantForm from './AddPArticipantForm';
+import AddParticipantForm from './AddParticipantForm';
 import './InitiativeTracker.css';
 
 export default function InitiativeTracker({ isMestre }) {
@@ -27,6 +27,8 @@ export default function InitiativeTracker({ isMestre }) {
 
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
+
+  const [npcCatalogoSelecionado, setNpcCatalogoSelecionado] = useState(null);
 
   useEffect(() => {
     async function carregarDadosIniciais() {
@@ -136,27 +138,47 @@ export default function InitiativeTracker({ isMestre }) {
         ficha_id: fichaEncontrada.id
       };
     } else {
-      if (!nomeInimigo.trim()) {
-        setAlerta({ isOpen: true, title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
-        return;
-      }
+      // Se o Mestre escolheu puxar do catálogo de NPCs salvos:
+      if (npcCatalogoSelecionado && nomeInimigo === '') {
+        novoCombatente = {
+          nome: npcCatalogoSelecionado.nome,
+          tipo: 'inimigo',
+          agiu: false,
+          ordem: novaOrdem,
+          hp_atual: npcCatalogoSelecionado.pv_max || 30,
+          hp_max: npcCatalogoSelecionado.pv_max || 30,
+          mp_atual: npcCatalogoSelecionado.pm_max || 20,
+          mp_max: npcCatalogoSelecionado.pm_max || 20,
+          ip: 0,
+          pontos_fabula: 0,
+          pontos_ultima: 3,
+          dano_acumulado: 0,
+          condicoes: [],
+          ficha_id: null
+        };
+      } else {
+        if (!nomeInimigo.trim()) {
+          setAlerta({ isOpen: true, title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
+          return;
+        }
 
-      novoCombatente = {
-        nome: nomeInimigo.trim(),
-        tipo: 'inimigo',
-        agiu: false,
-        ordem: novaOrdem,
-        hp_atual: Number(hpMaxInput),
-        hp_max: Number(hpMaxInput),
-        mp_atual: Number(mpMaxInput),
-        mp_max: Number(mpMaxInput),
-        ip: 0,
-        pontos_fabula: 0,
-        pontos_ultima: 3,
-        dano_acumulado: 0,
-        condicoes: [],
-        ficha_id: null
-      };
+        novoCombatente = {
+          nome: nomeInimigo.trim(),
+          tipo: 'inimigo',
+          agiu: false,
+          ordem: novaOrdem,
+          hp_atual: Number(hpMaxInput),
+          hp_max: Number(hpMaxInput),
+          mp_atual: Number(mpMaxInput),
+          mp_max: Number(mpMaxInput),
+          ip: 0,
+          pontos_fabula: 0,
+          pontos_ultima: 3,
+          dano_acumulado: 0,
+          condicoes: [],
+          ficha_id: null
+        };
+      }
     }
 
     const { data, error } = await supabase.from('iniciativa_combate').insert([novoCombatente]).select();
@@ -334,6 +356,10 @@ export default function InitiativeTracker({ isMestre }) {
           mpMaxInput={mpMaxInput}
           setMpMaxInput={setMpMaxInput}
           onAddParticipante={addParticipante}
+          onSelecionarNpcCatalogo={(npc) => {
+            setNpcCatalogoSelecionado(npc);
+            setNomeInimigo('');
+          }}
         />
       )}
 

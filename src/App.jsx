@@ -13,6 +13,8 @@ import FichaPage from './pages/Ficha/FichaPage';
 import MestreFichasPage from './pages/Mestre/MestreFichasPage';
 import FichaLoginPage from './pages/Ficha/FichaLoginPage';
 import LojaPage from './pages/Loja/LojaPage';
+import ListaNPCsPage from './pages/Mestre/NPC/ListaNPCsPage';
+import FichaNPCPage from './pages/Mestre/NPC/FichaNPCPage';
 import './App.css';
 
 function App() {
@@ -63,23 +65,26 @@ function App() {
               <Route path="/journal" element={<JournalPage />} />
               <Route path="/combate" element={<CombatPage isMestre={isMestre} />} />
               <Route path="/mestre/fichas" element={<MestreFichasPage isMestre={isMestre} />} />
-              
+
               {/* 2. Passamos setFichaAtiva para o FichaPage atualizar qual personagem está em uso */}
               <Route path="/mestre/editar/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
               <Route path="/ficha/login" element={<FichaLoginPage />} />
               <Route path="/ficha" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
               <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
 
+              <Route path="/mestre/npcs" element={<ListaNPCsPage />} />
+              <Route path="/mestre/npcs/:id" element={<FichaNPCPage />} />
+
               {/* 3. Passamos a ficha ativa e o setFicha por referência para a Loja */}
-              <Route 
-                path="/loja" 
+              <Route
+                path="/loja"
                 element={
-                  <LojaPage 
-                    isMestre={isMestre} 
-                    ficha={fichaAtiva} 
-                    setFicha={setFichaAtiva} 
+                  <LojaPage
+                    isMestre={isMestre}
+                    ficha={fichaAtiva}
+                    setFicha={setFichaAtiva}
                   />
-                } 
+                }
               />
             </Routes>
           </main>

@@ -93,7 +93,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
             } else if (tipoItem.includes('2h') || tipoItem.includes('duas mãos')) {
                 slotFinal = 'mao_dominante';
             } else if (tipoItem.includes('arma') && !tipoItem.includes('armadura')) {
-                slotFinal = slotEscolhido; 
+                slotFinal = slotEscolhido;
             }
         }
 
@@ -174,8 +174,15 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
             return;
         }
 
-        const custoOriginal = itemInv.stats_personalizados?.custo || 100;
-        const valorVenda = Math.floor(custoOriginal / 2);
+        // Leitura blindada priorizando o valor gerado por habilidades (Tesouro da Alma, etc.)
+        const custoOriginal =
+            itemInv.stats_personalizados?.valor_zenites ||
+            itemInv.stats_personalizados?.custo ||
+            100;
+
+        const valorVenda =
+            custoOriginal ||
+            Math.floor((custoOriginal || 100) / 2);
         const zenitAtual = ficha.zenit || 0;
         const novoZenit = zenitAtual + valorVenda;
 
@@ -292,7 +299,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                                         // Oculta chaves de controle indesejadas (slot, equipado, custo, raridade, marcial)
                                                         const chaveLower = chave.toLowerCase();
                                                         if (['slot', 'equipado', 'custo', 'raridade', 'marcial'].includes(chaveLower)) return false;
-                                                        
+
                                                         if (chaveLower === 'efeitos') {
                                                             const val = item.stats[chave];
                                                             return Array.isArray(val) ? val.length > 0 : Boolean(val);
@@ -359,8 +366,13 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
 
                     <div className="loja-grid">
                         {itensInventario.map((itemInv) => {
-                            const custoOriginal = itemInv.stats_personalizados?.custo || 100;
-                            const valorVenda = Math.floor(custoOriginal / 2);
+                            const custoOriginal =
+                                itemInv.stats_personalizados?.valor_zenites ||
+                                itemInv.stats_personalizados?.custo ||
+                                100;
+                            const valorVenda =
+                                custoOriginal ||
+                                Math.floor((custoOriginal || 100) / 2);
                             const estaEquipado = Boolean(itemInv.stats_personalizados?.slot || itemInv.equipado);
 
                             return (
@@ -476,18 +488,18 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                             const ehDuasMaos = tipo.includes('2h') || tipo.includes('duas mãos');
                             return ehArmaPura && !ehDuasMaos;
                         })() && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <label style={{ fontSize: '0.85rem', color: '#8b949e', fontWeight: 'bold' }}>Escolha o slot de mão:</label>
-                                <select
-                                    value={slotEscolhido}
-                                    onChange={(e) => setSlotEscolhido(e.target.value)}
-                                    style={{ background: '#0d1117', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px', borderRadius: '6px', outline: 'none' }}
-                                >
-                                    <option value="mao_dominante">Mão Dominante</option>
-                                    <option value="mao_secundaria">Mão Não Dominante</option>
-                                </select>
-                            </div>
-                        )}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                    <label style={{ fontSize: '0.85rem', color: '#8b949e', fontWeight: 'bold' }}>Escolha o slot de mão:</label>
+                                    <select
+                                        value={slotEscolhido}
+                                        onChange={(e) => setSlotEscolhido(e.target.value)}
+                                        style={{ background: '#0d1117', border: '1px solid #30363d', color: '#c9d1d9', padding: '8px', borderRadius: '6px', outline: 'none' }}
+                                    >
+                                        <option value="mao_dominante">Mão Dominante</option>
+                                        <option value="mao_secundaria">Mão Não Dominante</option>
+                                    </select>
+                                </div>
+                            )}
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                             <button
