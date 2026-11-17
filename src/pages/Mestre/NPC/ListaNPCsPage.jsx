@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull } from 'react-icons/fa';
+import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull, FaTrash } from 'react-icons/fa';
 import { npcService } from '../../../services/npcService';
+import { useToast } from '../../../contexts/ToastContext';
 import { Card, Button, Badge, ResourceBar } from '../../../components/ui';
 import styles from './ListaNPCsPage.module.css';
 
@@ -9,6 +10,29 @@ export default function ListaNPCsPage() {
   const [npcs, setNpcs] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { coldDelete } = useToast();
+
+  const handleExcluirNpc = (npcParaExcluir) => {
+    coldDelete({
+      item: npcParaExcluir,
+      message: (
+        <>
+          NPC <strong>{npcParaExcluir.nome}</strong> foi removido do Bestiário.
+        </>
+      ),
+      onRemove: (it) => {
+        setNpcs(prev => prev.filter(n => n.id !== it.id));
+      },
+      onCommit: async (it) => {
+        const { error } = await npcService.deleteNpc(it.id);
+        if (error) console.error('Erro ao deletar NPC:', error);
+      },
+      onRollback: (it) => {
+        setNpcs(prev => [...prev, it]);
+      },
+      duration: 6000
+    });
+  };
 
   useEffect(() => {
     let active = true;
@@ -163,6 +187,17 @@ export default function ListaNPCsPage() {
                 <span className={styles.openFichaText}>
                   Abrir Ficha <FaArrowRight />
                 </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExcluirNpc(npc);
+                  }}
+                  title="Excluir NPC"
+                >
+                  <FaTrash />
+                </Button>
               </div>
             </Card>
           ))}

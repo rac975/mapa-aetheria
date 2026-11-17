@@ -1,11 +1,14 @@
 import { FaTools, FaTrash, FaCoins } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
+import { useToast } from '../../../contexts/ToastContext';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from '../components/comum/BarraBuscaFiltros';
 import { Button, Badge } from '../../../components/ui';
 import styles from './GerenciarCatalogosRaros.module.css';
 
 export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados }) {
+    const { coldDelete } = useToast();
+
     // Filtra previamente apenas os itens que são raros ou armas customizadas/forjadas
     const itensRarosBase = itensCatalogo.filter(
         item => item.stats?.raridade === 'raro' || (item.tipo === 'arma' && item.stats?.dano)
@@ -22,19 +25,24 @@ export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados 
         itensFiltrados
     } = useBuscaItens(itensRarosBase);
 
-    const deletarItemCatalogo = async (item) => {
-        if (!confirm(`Deseja realmente excluir "${item.nome}" do catálogo?`)) return;
-        
-        const { error } = await supabase
-            .from('itens_catalogo')
-            .delete()
-            .eq('id', item.id);
-
-        if (error) {
-            alert('Erro ao excluir item: ' + error.message);
-        } else {
-            if (recarregarDados) recarregarDados();
-        }
+    const deletarItemCatalogo = (item) => {
+        coldDelete({
+            item,
+            message: <>Item <strong>{item.nome}</strong> foi removido do catálogo.</>,
+            onCommit: async (it) => {
+                const { error } = await lojaService.excluirItemCatalogo(it.id);
+                if (error) {
+                    console.error('Erro ao excluir item do catálogo:', error);
+                    alert('Erro ao excluir item: ' + error.message);
+                } else if (recarregarDados) {
+                    recarregarDados();
+                }
+            },
+            onRollback: () => {
+                if (recarregarDados) recarregarDados();
+            },
+            duration: 6000
+        });
     };
 
     return (
@@ -48,42 +56,41 @@ export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados 
                 </p>
             </header>
 
-            {/* Barra de Busca e Filtros Modular Integrada */}
             <BarraBuscaFiltros
-                busca={busca}
-                setBusca={setBusca}
-                categoriaFiltro={categoriaFiltro}
-                setCategoriaFiltro={setCategoriaFiltro}
+                termoBusca={busca}
+                aoMudarBusca={setBusca}
+                categoriaAtiva={categoriaFiltro}
+                aoMudarCategoria={setCategoriaFiltro}
                 ordenacao={ordenacao}
-                setOrdenacao={setOrdenacao}
+                aoMudarOrdenacao={setOrdenacao}
             />
 
-            <div className={styles.gridItens}>
-                {itensFiltrados.map(item => (
-                    <div key={item.id} className={styles.itemCard}>
-                        <div className={styles.itemInfo}>
-                            <span className={styles.itemNome}>{item.nome}</span>
-                            <div className={styles.itemTags}>
-                                <Badge variant="default" size="sm">{item.tipo}</Badge>
-                                <Badge variant="gold" size="sm">
-                                    <FaCoins /> {item.custo}z
-                                </Badge>
+            <div className={styles.grid}>
+                {itensFiltrados.length === 0 ? (
+                    <div className={styles.vazio}>Nenhum item raro ou customizado encontrado.</div>
+                ) : (
+                    itensFiltrados.map(item => (
+                        <div key={item.id} className={styles.card}>
+                            <div className={styles.cardInfo}>
+                                <div className={styles.cardHeader}>
+                                    <h4 className={styles.cardTitulo}>{item.nome}</h4>
+                                    <Badge variant="gold" size="sm">
+                                        <FaCoins size={10} /> {item.custo} Z
+                                    </Badge>
+                                </div>
+                                <p className={styles.cardDescricao}>{item.descricao || 'Sem descrição.'}</p>
+                            </div>
+                            <div className={styles.cardAcoes}>
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => deletarItemCatalogo(item)}
+                                >
+                                    <FaTrash size={12} /> Excluir
+                                </Button>
                             </div>
                         </div>
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => deletarItemCatalogo(item)}
-                            title="Deletar item do catálogo"
-                        >
-                            <FaTrash size={12} /> Deletar
-                        </Button>
-                    </div>
-                ))}
-                {itensFiltrados.length === 0 && (
-                    <div className={styles.catalogoVazio}>
-                        Nenhum item raro encontrado no catálogo.
-                    </div>
+                    ))
                 )}
             </div>
         </div>

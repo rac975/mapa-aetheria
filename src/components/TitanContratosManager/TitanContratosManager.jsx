@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
-import UndoToast from '../UndoToast/UndoToast';
+import { useToast } from '../../contexts/ToastContext';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 
 export default function TitanContratosManager({ titan, isMestre }) {
@@ -19,11 +19,7 @@ export default function TitanContratosManager({ titan, isMestre }) {
   const [editRecompensa, setEditRecompensa] = useState('');
   const [editDescricao, setEditDescricao] = useState('');
 
-  // Estados para controle do Delete Frio (Undo)
-  const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [mostrarToast, setMostrarToast] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const [progressoKey, setProgressoKey] = useState(0);
+  const { coldDelete } = useToast();
 
   useEffect(() => {
     if (!titan) return;
@@ -97,39 +93,29 @@ export default function TitanContratosManager({ titan, isMestre }) {
     }
   };
 
-  // --- LÓGICA DE DELETE FRIO (UNDO) ---
+  // --- LÓGICA DE DELETE FRIO (UNDO) GLOBAL ---
   const iniciarExclusao = (c) => {
     if (!isMestre) return;
-    if (timeoutId) clearTimeout(timeoutId);
 
-    // Remove temporariamente da tela imediatamente
-    setContratos(prev => prev.filter(item => item.id !== c.id));
-    setItemParaExcluir(c);
-    setMostrarToast(true);
-    setProgressoKey(prev => prev + 1);
-
-    // Agenda a exclusão definitiva no banco para daqui a 6 segundos
-    const timer = setTimeout(async () => {
-      try {
-        const { error } = await supabase.from('contratos').delete().eq('id', c.id);
-        if (error) console.error("Erro ao deletar contrato permanentemente:", error.message);
-      } catch (err) {
-        console.error("Erro na requisição de delete:", err);
-      }
-      setMostrarToast(false);
-      setItemParaExcluir(null);
-    }, 6000);
-
-    setTimeoutId(timer);
-  };
-
-  const desfazerExclusao = () => {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (itemParaExcluir) {
-      setContratos(prev => [...prev, itemParaExcluir]);
-    }
-    setMostrarToast(false);
-    setItemParaExcluir(null);
+    coldDelete({
+      item: c,
+      message: <>Contrato <strong>{c.titulo}</strong> foi removido.</>,
+      onRemove: (it) => {
+        setContratos(prev => prev.filter(item => item.id !== it.id));
+      },
+      onCommit: async (it) => {
+        try {
+          const { error } = await supabase.from('contratos').delete().eq('id', it.id);
+          if (error) console.error("Erro ao deletar contrato permanentemente:", error.message);
+        } catch (err) {
+          console.error("Erro na requisição de delete:", err);
+        }
+      },
+      onRollback: (it) => {
+        setContratos(prev => [...prev, it]);
+      },
+      duration: 6000
+    });
   };
 
   const iniciarEdicao = (c) => {
@@ -282,14 +268,6 @@ export default function TitanContratosManager({ titan, isMestre }) {
           ))}
         </div>
       )}
-
-      {/* Componente Genérico de Delete Frio */}
-      <UndoToast
-        mostrar={mostrarToast}
-        mensagem={<>Contrato <strong>{itemParaExcluir?.titulo}</strong> foi removido.</>}
-        progressoKey={progressoKey}
-        onUndo={desfazerExclusao}
-      />
     </div>
   );
 }

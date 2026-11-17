@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { supabase } from './services/supabase';
+import { ToastProvider } from './contexts/ToastContext';
 import BootScreen from './components/BootScreen/BootScreen';
 import Sidebar from './components/Sidebar/Sidebar';
 import LoginModal from './components/LoginModal/LoginModal';
@@ -48,7 +49,7 @@ function App() {
   };
 
   return (
-    <>
+    <ToastProvider>
       {!iniciado && <BootScreen onComplete={() => setIniciado(true)} />}
       <div className={`app-container ${iniciado ? 'visivel' : 'oculto'}`}>
         <div className="app-layout">
@@ -103,7 +104,7 @@ function App() {
           )}
         </div>
       </div>
-    </>
+    </ToastProvider>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { combatService } from '../services/combatService';
+import { useToast } from '../contexts/ToastContext';
 import {
   alternarTurno,
   aplicarDeltaRecurso,
@@ -19,6 +20,7 @@ export function useCombatTracker(isMestre) {
   const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+  const { coldDelete } = useToast();
 
   // Exclusão com Toast e Undo
   const [itemParaExcluir, setItemParaExcluir] = useState(null);
@@ -180,30 +182,24 @@ export function useCombatTracker(isMestre) {
 
   const iniciarExclusao = useCallback((p) => {
     if (!isMestre) return;
-    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
 
-    setParticipantes(prev => prev.filter(item => item.id !== p.id));
-    setItemParaExcluir(p);
-    setMostrarToast(true);
-    setProgressoKey(prev => prev + 1);
+    coldDelete({
+      item: p,
+      message: `${p.nome} foi removido da cena.`,
+      onRemove: (it) => {
+        setParticipantes(prev => prev.filter(item => item.id !== it.id));
+      },
+      onCommit: async (it) => {
+        await combatService.deleteParticipante(it.id);
+      },
+      onRollback: (it) => {
+        setParticipantes(prev => [...prev, it].sort((a, b) => a.ordem - b.ordem));
+      },
+      duration: 6000
+    });
+  }, [isMestre, coldDelete]);
 
-    const timer = setTimeout(async () => {
-      await combatService.deleteParticipante(p.id);
-      setMostrarToast(false);
-      setItemParaExcluir(null);
-    }, 6000);
-
-    timeoutIdRef.current = timer;
-  }, [isMestre]);
-
-  const desfazerExclusao = useCallback(() => {
-    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
-    if (itemParaExcluir) {
-      setParticipantes(prev => [...prev, itemParaExcluir].sort((a, b) => a.ordem - b.ordem));
-    }
-    setMostrarToast(false);
-    setItemParaExcluir(null);
-  }, [itemParaExcluir]);
+  const desfazerExclusao = useCallback(() => {}, []);
 
   const salvarEdicao = useCallback(async (id) => {
     const payload = {

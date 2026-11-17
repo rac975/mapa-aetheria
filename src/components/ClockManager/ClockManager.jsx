@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../services/supabase';
+import { useToast } from '../../contexts/ToastContext';
 import { FaPlus, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import ClockWidget from '../ClockWidget/ClockWidget';
-import UndoToast from '../UndoToast/UndoToast';
 import './ClockManager.css';
 
 export default function ClocksManager({ isMestre }) {
@@ -12,11 +12,7 @@ export default function ClocksManager({ isMestre }) {
   const [visivel, setVisivel] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Estados de Delete Frio
-  const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [mostrarToast, setMostrarToast] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const [progressoKey, setProgressoKey] = useState(0);
+  const { coldDelete } = useToast();
 
   // Refs para o Drag-to-Scroll (Mobile)
   const sliderRef = useRef(null);
@@ -109,29 +105,25 @@ export default function ClocksManager({ isMestre }) {
 
   const iniciarExclusao = (r) => {
     if (!isMestre) return;
-    if (timeoutId) clearTimeout(timeoutId);
 
-    setRelogios(prev => prev.filter(item => item.id !== r.id));
-    setItemParaExcluir(r);
-    setMostrarToast(true);
-    setProgressoKey(prev => prev + 1);
-
-    const timer = setTimeout(async () => {
-      await supabase.from('relogios').delete().eq('id', r.id);
-      setMostrarToast(false);
-      setItemParaExcluir(null);
-    }, 6000);
-
-    setTimeoutId(timer);
-  };
-
-  const desfazerExclusao = () => {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (itemParaExcluir) {
-      setRelogios(prev => [...prev, itemParaExcluir]);
-    }
-    setMostrarToast(false);
-    setItemParaExcluir(null);
+    coldDelete({
+      item: r,
+      message: <>Relógio <strong>{r.titulo}</strong> foi removido.</>,
+      onRemove: (it) => {
+        setRelogios(prev => prev.filter(item => item.id !== it.id));
+      },
+      onCommit: async (it) => {
+        try {
+          await supabase.from('relogios').delete().eq('id', it.id);
+        } catch (err) {
+          console.error("Erro ao deletar relógio:", err);
+        }
+      },
+      onRollback: (it) => {
+        setRelogios(prev => [...prev, it]);
+      },
+      duration: 6000
+    });
   };
 
   return (
@@ -214,13 +206,6 @@ export default function ClocksManager({ isMestre }) {
           </div>
         </div>
       </div>
-
-      <UndoToast
-        mostrar={mostrarToast}
-        mensagem={<>Relógio <strong>{itemParaExcluir?.titulo}</strong> foi removido.</>}
-        progressoKey={progressoKey}
-        onUndo={desfazerExclusao}
-      />
     </div>
   );
 }

@@ -4,3 +4,4 @@ export { default as Badge } from './Badge/Badge';
 export { default as Input } from './Input/Input';
 export { default as Modal } from './Modal/Modal';
 export { default as ResourceBar } from './ResourceBar/ResourceBar';
+export { default as UndoToast } from './UndoToast';

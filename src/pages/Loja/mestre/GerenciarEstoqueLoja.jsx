@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FaBoxOpen, FaPlus, FaCoins, FaTrash, FaCheck } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
+import { useToast } from '../../../contexts/ToastContext';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from '../components/comum/BarraBuscaFiltros';
 import { Button, Badge, Modal, Card } from '../../../components/ui';
 import styles from './GerenciarEstoqueLoja.module.css';
 
 export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
+    const { coldDelete } = useToast();
     const [lojaSelecionadaEstoqueId, setLojaSelecionadaEstoqueId] = useState(() => {
         return lojas[0]?.id ?? null;
     });
@@ -78,10 +81,23 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
         carregarEstoqueLoja(lojaAtivaId);
     };
 
-    const removerItemDaLoja = async (itemId) => {
+    const removerItemDaLoja = (item) => {
         if (!lojaAtivaId) return;
-        await supabase.from('loja_itens').delete().match({ loja_id: lojaAtivaId, item_id: itemId });
-        carregarEstoqueLoja(lojaAtivaId);
+        coldDelete({
+            item,
+            message: <>Item <strong>{item.nome}</strong> removido do estoque da loja.</>,
+            onRemove: (it) => {
+                setItensDaLojaEstoque(prev => prev.filter(i => i.id !== it.id));
+            },
+            onCommit: async (it) => {
+                await lojaService.removerItemLoja(lojaAtivaId, it.id);
+                carregarEstoqueLoja(lojaAtivaId);
+            },
+            onRollback: () => {
+                carregarEstoqueLoja(lojaAtivaId);
+            },
+            duration: 6000
+        });
     };
 
     const adicionarItensEmLote = async (itensIds) => {
@@ -156,7 +172,7 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
                             <Button
                                 variant="danger"
                                 size="sm"
-                                onClick={() => removerItemDaLoja(item.id)}
+                                onClick={() => removerItemDaLoja(item)}
                                 title="Retirar item desta loja"
                             >
                                 <FaTrash /> Retirar

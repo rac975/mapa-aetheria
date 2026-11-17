@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaExchangeAlt, FaBoxOpen, FaDice, FaBolt, FaSkull, FaBrain } from 'react-icons/fa';
+import { useState, useEffect, useCallback } from 'react';
+import { FaShieldAlt, FaHandHolding, FaRing, FaTimes, FaBoxOpen, FaSkull, FaBrain } from 'react-icons/fa';
 import { fichaService } from '../../../services/fichaService';
 import {
   SLOTS_EQUIPAMENTO,
@@ -8,9 +8,11 @@ import {
 } from '../../../domain/fabula/equipmentRules';
 import { rolarAtaqueEDanoArma } from '../../../utils/calculosFicha';
 import { Card, Button, Badge, Modal } from '../../../components/ui';
+import { useToast } from '../../../contexts/ToastContext';
 import FichaArmasVeiculoSecao from './FichaArmasVeiculoSecao';
 import FichaSlotMaoVazia from './components/FichaSlotMaoVazia';
 import FichaSlotEquipado from './components/FichaSlotEquipado';
+import FichaEquiparModal, { getItemCategoryIcon, formatarNomeSlot } from './components/FichaEquiparModal';
 import styles from './FichaEquipamentosSecao.module.css';
 
 export default function FichaEquipamentosSecao({
@@ -34,30 +36,28 @@ export default function FichaEquipamentosSecao({
   });
 
   const [resultadosRolagem, setResultadosRolagem] = useState({});
-
-  // Verifica se o personagem possui a habilidade Psicocinese (classe Esper)
-  const temPsicocinese = useMemo(() => {
-    return (classes || []).some(c =>
-      (c.habilidades || []).some(h => {
-        const nomeNorm = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        const nv = parseInt(h.nivel, 10) || 0;
-        return nomeNorm.includes('psicocinese') && nv > 0;
-      })
-    );
-  }, [classes]);
-
   const [usarPsicocinese, setUsarPsicocinese] = useState(false);
 
+  const { coldDelete } = useToast();
+
+  const temPsicocinese = classes.some(c =>
+    (c.nome_classe || '').toLowerCase().includes('esper') &&
+    (c.habilidades || []).some(h =>
+      (h.nome || '').toLowerCase().includes('psicocinese') && (parseInt(h.nivel, 10) || 0) > 0
+    )
+  );
+
   const carregarItens = useCallback(async () => {
-    if (!fichaId) {
-      setCarregando(false);
-      return;
-    }
+    if (!fichaId) return;
     try {
-      const data = await fichaService.getItensByFichaId(fichaId);
-      setItensInventario(data || []);
-    } catch (error) {
-      console.error("❌ Erro ao carregar itens_personagem:", error.message);
+      const { data, error } = await fichaService.getItensPersonagem(fichaId);
+      if (error) {
+        console.error("Erro ao carregar itens da ficha:", error);
+      } else {
+        setItensInventario(data || []);
+      }
+    } catch (err) {
+      console.error("Falha na requisição de itens:", err);
     } finally {
       setCarregando(false);
     }
@@ -87,7 +87,6 @@ export default function FichaEquipamentosSecao({
   }, [fichaId, carregarItens]);
 
   const getItemNoSlot = (slotName) => itensInventario.find(i => i.stats_personalizados?.slot === slotName);
-  const itensMochila = itensInventario.filter(i => !i.stats_personalizados?.slot);
 
   const desequiparItem = async (item) => {
     const novosStats = { ...(item.stats_personalizados || {}) };
@@ -103,38 +102,72 @@ export default function FichaEquipamentosSecao({
     }
   };
 
-  const equiparItemNoSlot = async (item, slotAlvo) => {
+  /**
+   * Fluxo de Troca Rápida de Equipamento:
+   * Permite equipar diretamente ou trocar entre slots sem precisar desequipar manualmente antes.
+   */
+  const trocarRapidoItem = async (item, slotAlvo) => {
     const validacao = validarSlotEquipamento({ item, slotAlvo, classes });
     if (!validacao.permitido) {
       alert(validacao.motivo);
       return;
     }
 
-    const ehDuasMaos = isArmaDuasMaos(item);
+    const slotOrigem = item.stats_personalizados?.slot;
     const itemAtualNoSlot = getItemNoSlot(slotAlvo);
-    if (itemAtualNoSlot) {
-      await desequiparItem(itemAtualNoSlot);
-    }
-
-    const slotParaSalvar = ehDuasMaos ? SLOTS_EQUIPAMENTO.MAO_DOMINANTE : slotAlvo;
-    const novosStats = { ...(item.stats_personalizados || {}), slot: slotParaSalvar };
+    const ehDuasMaos = isArmaDuasMaos(item);
 
     try {
+      // Se há um item no slot de destino e o item a equipar veio de outro slot equipado:
+      if (itemAtualNoSlot && slotOrigem && slotOrigem !== slotAlvo) {
+        const validacaoOrigem = validarSlotEquipamento({ item: itemAtualNoSlot, slotAlvo: slotOrigem, classes });
+        if (validacaoOrigem.permitido) {
+          // Troca bidirecional de slots entre os dois itens
+          await fichaService.atualizarItemPersonagem(itemAtualNoSlot.id, {
+            equipado: true,
+            stats_personalizados: {
+              ...(itemAtualNoSlot.stats_personalizados || {}),
+              slot: slotOrigem
+            }
+          });
+        } else {
+          // Se não cabe no slot de origem, vai para a mochila
+          await desequiparItem(itemAtualNoSlot);
+        }
+      } else if (itemAtualNoSlot) {
+        // Desequipa o item do destino para a mochila
+        await desequiparItem(itemAtualNoSlot);
+      }
+
+      // Agora equipa o novo item no slot alvo
+      const slotParaSalvar = ehDuasMaos ? SLOTS_EQUIPAMENTO.MAO_DOMINANTE : slotAlvo;
       await fichaService.atualizarItemPersonagem(item.id, {
         equipado: true,
-        stats_personalizados: novosStats
+        stats_personalizados: {
+          ...(item.stats_personalizados || {}),
+          slot: slotParaSalvar
+        }
       });
 
+      // Se for arma de duas mãos na mão dominante, desocupa a mão secundária se houver
       if (ehDuasMaos) {
         const outraMao = getItemNoSlot(SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
-        if (outraMao) await desequiparItem(outraMao);
+        if (outraMao && outraMao.id !== item.id) {
+          await desequiparItem(outraMao);
+        }
       }
+
       setModalSlotAberto(null);
       setItemParaEquiparDireto(null);
       carregarItens();
-    } catch (error) {
-      alert("Erro ao equipar item: " + error.message);
+    } catch (err) {
+      console.error("Erro na troca rápida de itens:", err);
+      alert("Erro ao equipar item: " + err.message);
     }
+  };
+
+  const equiparItemNoSlot = (item, slotAlvo) => {
+    return trocarRapidoItem(item, slotAlvo);
   };
 
   const lidarComCliqueEquipar = (item) => {
@@ -154,14 +187,31 @@ export default function FichaEquipamentosSecao({
     setItemParaEquiparDireto(item);
   };
 
-  const deletarItem = async (itemId) => {
-    if (!window.confirm("Deseja realmente descartar este item do inventário?")) return;
-    try {
-      await fichaService.deletarItemPersonagem(itemId);
-      carregarItens();
-    } catch (err) {
-      console.error("Erro ao deletar item:", err);
-    }
+  // Exclusão fria via UndoToast global
+  const deletarItem = (item) => {
+    coldDelete({
+      item,
+      message: (
+        <>
+          Item <strong>{item.nome}</strong> descartado do inventário.
+        </>
+      ),
+      onRemove: (it) => {
+        setItensInventario(prev => prev.filter(x => x.id !== it.id));
+      },
+      onCommit: async (it) => {
+        try {
+          await fichaService.deletarItemPersonagem(it.id);
+          carregarItens();
+        } catch (err) {
+          console.error("Erro ao deletar item:", err);
+        }
+      },
+      onRollback: (it) => {
+        setItensInventario(prev => [...prev, it]);
+      },
+      duration: 6000
+    });
   };
 
   const executarRolagemArma = (itemArma, slotId) => {
@@ -199,7 +249,7 @@ export default function FichaEquipamentosSecao({
 
   const slotConfig = [
     { id: SLOTS_EQUIPAMENTO.MAO_DOMINANTE, label: 'Mão Dominante', icone: <FaHandHolding /> },
-    { id: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA, label: 'Mão Não Dominante / Escudo', icone: <FaHandHolding /> },
+    { id: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA, label: 'Mão Não Dominante / Escudo', icone: <FaShieldAlt /> },
     { id: SLOTS_EQUIPAMENTO.ARMADURA, label: 'Armadura', icone: <FaShieldAlt /> },
     { id: SLOTS_EQUIPAMENTO.ACESSORIO, label: 'Acessório', icone: <FaRing /> }
   ];
@@ -317,13 +367,18 @@ export default function FichaEquipamentosSecao({
           <div className={styles.mochilaLista}>
             {itensInventario.map((item) => {
               const estaEquipado = !!item.stats_personalizados?.slot;
+              const categoryMeta = getItemCategoryIcon(item);
+
               return (
                 <div key={item.id} className={styles.mochilaItem}>
                   <div className={styles.mochilaItemDetails}>
+                    <div className={`${styles.itemIconWrapperSmall} ${categoryMeta.className}`}>
+                      {categoryMeta.icon}
+                    </div>
                     <span className={styles.mochilaItemNome}>{item.nome}</span>
                     {item.tipo && <Badge variant="gold" size="sm">{item.tipo}</Badge>}
                     <Badge variant={estaEquipado ? 'core' : 'default'} size="sm">
-                      {estaEquipado ? `Equipado (${item.stats_personalizados.slot.replace('_', ' ')})` : 'Na Mochila'}
+                      {estaEquipado ? `Equipado (${formatarNomeSlot(item.stats_personalizados.slot)})` : 'Na Mochila'}
                     </Badge>
                   </div>
 
@@ -351,7 +406,7 @@ export default function FichaEquipamentosSecao({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => deletarItem(item.id)}
+                      onClick={() => deletarItem(item)}
                       title="Descartar item"
                     >
                       <FaTimes />
@@ -379,38 +434,20 @@ export default function FichaEquipamentosSecao({
         />
       )}
 
-      {/* MODAL 1: Escolher Item da Mochila */}
-      <Modal
+      {/* MODAL 1: Equipar e Troca Rápida de Itens com Indicador de Slot e Ícones por Categoria */}
+      <FichaEquiparModal
         isOpen={!!modalSlotAberto}
         onClose={() => setModalSlotAberto(null)}
-        title="Escolher item da Mochila"
-        size="md"
-      >
-        <div className={styles.modalItensLista}>
-          {itensMochila.length === 0 ? (
-            <p className={styles.mochilaVazia}>Sua mochila está sem itens disponíveis.</p>
-          ) : (
-            itensMochila.map(item => (
-              <div key={item.id} className={styles.modalItemLinha}>
-                <div>
-                  <div className={styles.itemNome}>{item.nome}</div>
-                  <Badge variant="default" size="sm">Tipo: {item.tipo}</Badge>
-                </div>
-                <Button
-                  type="button"
-                  variant="core"
-                  size="sm"
-                  onClick={() => equiparItemNoSlot(item, modalSlotAberto)}
-                >
-                  Equipar Aqui
-                </Button>
-              </div>
-            ))
-          )}
-        </div>
-      </Modal>
+        slotAlvo={modalSlotAberto}
+        slotConfig={slotConfig}
+        itensInventario={itensInventario}
+        classes={classes}
+        onEquipar={equiparItemNoSlot}
+        onDesequipar={desequiparItem}
+        onTrocarRapido={trocarRapidoItem}
+      />
 
-      {/* MODAL 2: Escolher Mão */}
+      {/* MODAL 2: Escolher Mão ao equipar item direto da Mochila */}
       <Modal
         isOpen={!!itemParaEquiparDireto}
         onClose={() => setItemParaEquiparDireto(null)}

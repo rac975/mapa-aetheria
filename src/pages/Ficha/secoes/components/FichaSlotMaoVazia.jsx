@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FaFistRaised, FaDice, FaBolt, FaBoxOpen, FaShieldAlt } from 'react-icons/fa';
+import { FaFistRaised, FaDice, FaBolt, FaBoxOpen } from 'react-icons/fa';
 import { GiBrokenBottle } from 'react-icons/gi';
 import { Badge, Button } from '../../../../components/ui';
 import {
@@ -85,12 +85,22 @@ export default function FichaSlotMaoVazia({
           <div className={styles.slotHeaderTitle}>
             {slotIcon} <span>{slotLabel}</span>
           </div>
-          <Badge variant="default" size="sm">Ocupada</Badge>
+          <Badge variant="default" size="sm">Ocupada (2 Mãos)</Badge>
         </div>
         <div className={styles.ocupadoCard}>
           <span className={styles.ocupadoTexto}>
             Empunhando arma de duas mãos na mão dominante.
           </span>
+        </div>
+        <div className={styles.slotActions}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onAbrirModalEquipar}
+          >
+            <FaBoxOpen /> Trocar Equipamento
+          </Button>
         </div>
       </div>
     );
@@ -98,7 +108,7 @@ export default function FichaSlotMaoVazia({
 
   return (
     <div className={styles.container}>
-      {/* 1. CABEÇALHO DO SLOT */}
+      {/* 1. CABEÇALHO DO SLOT PADRONIZADO */}
       <div className={styles.slotHeader}>
         <div className={styles.slotHeaderTitle}>
           {slotIcon} <span>{slotLabel}</span>
@@ -106,46 +116,49 @@ export default function FichaSlotMaoVazia({
         <Badge variant="core" size="sm">Mão Livre</Badge>
       </div>
 
-      {/* 2. TOGGLE RÁPIDO ENTRE DESARMADO E IMPROVISADA */}
-      <div className={styles.toggleTipoArma}>
-        <button
-          type="button"
-          onClick={() => setTipoArma('desarmado')}
-          className={`${styles.toggleBtn} ${tipoArma === 'desarmado' ? styles.toggleBtnActive : ''}`}
-        >
-          <FaFistRaised /> Ataque Desarmado
-        </button>
-        <button
-          type="button"
-          onClick={() => setTipoArma('improvisada')}
-          className={`${styles.toggleBtn} ${tipoArma === 'improvisada' ? styles.toggleBtnActive : ''}`}
-        >
-          <GiBrokenBottle /> Arma Improvisada
-        </button>
-      </div>
-
-      {/* 3. INFORMAÇÕES DA ARMA SELECIONADA */}
-      <div className={styles.armaInfo}>
-        <div className={styles.armaNomeRow}>
-          <span className={styles.armaNome}>{itemVirtual.nome}</span>
-          <div className={styles.badgesRow}>
-            <Badge variant="gold" size="sm">{stats.categoria}</Badge>
-            <Badge variant="default" size="sm">
-              {stats.alcance === 'distancia' ? 'À Distância' : 'Corpo a Corpo'}
-            </Badge>
-            <Badge variant="default" size="sm">
-              Dano {stats.tipo_dano?.toUpperCase()}
-            </Badge>
-            {stats.multiplo && (
-              <Badge variant="ether" size="sm">Múltiplo ({stats.multiplo})</Badge>
-            )}
+      {/* 2. CARD DO EQUIPAMENTO VIRTUAL (DESARMADO / IMPROVISADA) */}
+      <div className={styles.itemVirtualCard}>
+        {/* Identificação da Arma Virtual */}
+        <div className={styles.itemInfo}>
+          <div className={styles.itemNomeRow}>
+            <span className={styles.itemNome}>{itemVirtual.nome}</span>
+            <div className={styles.badgesRow}>
+              <Badge variant="gold" size="sm">{stats.categoria}</Badge>
+              <Badge variant="default" size="sm">
+                {stats.alcance === 'distancia' ? 'À Distância' : 'Corpo a Corpo'}
+              </Badge>
+              <Badge variant="default" size="sm">
+                {stats.tipo_dano?.toUpperCase() || 'FÍSICO'}
+              </Badge>
+              {stats.multiplo && (
+                <Badge variant="ether" size="sm">Múltiplo ({stats.multiplo})</Badge>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Integração de Acromorfose: Seletor de Categoria e Bônus */}
+        {/* Toggle integrado tipo arma */}
+        <div className={styles.toggleTipoArma}>
+          <button
+            type="button"
+            onClick={() => setTipoArma('desarmado')}
+            className={`${styles.toggleBtn} ${tipoArma === 'desarmado' ? styles.toggleBtnActive : ''}`}
+          >
+            <FaFistRaised /> Ataque Desarmado
+          </button>
+          <button
+            type="button"
+            onClick={() => setTipoArma('improvisada')}
+            className={`${styles.toggleBtn} ${tipoArma === 'improvisada' ? styles.toggleBtnActive : ''}`}
+          >
+            <GiBrokenBottle /> Arma Improvisada
+          </button>
+        </div>
+
+        {/* Opção contextual: Acromorfose */}
         {tipoArma === 'desarmado' && nvAcromorfose > 0 && (
           <div className={styles.acroCategoriaRow}>
-            <span className={styles.acroLabel}>Acromorfose Categoria:</span>
+            <span className={styles.acroLabel}>Acromorfose:</span>
             <select
               value={categoriaArma}
               onChange={(e) => handleMudarCategoria(e.target.value)}
@@ -162,10 +175,10 @@ export default function FichaSlotMaoVazia({
           </div>
         )}
 
-        {/* Seletor de Alcance para Arma Improvisada */}
+        {/* Opção contextual: Arma Improvisada */}
         {tipoArma === 'improvisada' && (
           <div className={styles.acroCategoriaRow}>
-            <span className={styles.acroLabel}>Tipo de Uso:</span>
+            <span className={styles.acroLabel}>Uso:</span>
             <select
               value={tipoAlcanceImprovisada}
               onChange={(e) => setTipoAlcanceImprovisada(e.target.value)}
@@ -177,7 +190,7 @@ export default function FichaSlotMaoVazia({
           </div>
         )}
 
-        {/* Fórmulas Oficiais */}
+        {/* Resumo de Fórmulas */}
         <div className={styles.formulaBox}>
           <div className={styles.formulaLinha}>
             <span>Precisão:</span>
@@ -191,74 +204,74 @@ export default function FichaSlotMaoVazia({
             <div className={styles.qualidadeTexto}>{stats.qualidade}</div>
           )}
         </div>
-      </div>
 
-      {/* 4. ÁREA DE ATAQUE E ROLAGEM */}
-      <div className={styles.ataqueArea}>
-        <div className={styles.modoAtaqueSwitcher}>
-          <button
+        {/* 3. ÁREA DE ATAQUE E ROLAGEM */}
+        <div className={styles.ataqueArea}>
+          <div className={styles.modoAtaqueSwitcher}>
+            <button
+              type="button"
+              onClick={() => setModoAtaque('normal')}
+              className={`${styles.modoAtaqueBtn} ${modoAtaque === 'normal' ? styles.modoAtaqueBtnActive : ''}`}
+            >
+              Ataque Único
+            </button>
+            <button
+              type="button"
+              onClick={() => setModoAtaque('multi')}
+              className={`${styles.modoAtaqueBtn} ${modoAtaque === 'multi' ? styles.modoAtaqueBtnActiveMulti : ''}`}
+            >
+              Multiataque / 2ª Arma
+            </button>
+          </div>
+
+          <Button
             type="button"
-            onClick={() => setModoAtaque('normal')}
-            className={`${styles.modoAtaqueBtn} ${modoAtaque === 'normal' ? styles.modoAtaqueBtnActive : ''}`}
+            variant="core"
+            size="sm"
+            fullWidth
+            onClick={() => onExecutarRolagem(itemVirtual, slotId)}
           >
-            Ataque Único
-          </button>
-          <button
-            type="button"
-            onClick={() => setModoAtaque('multi')}
-            className={`${styles.modoAtaqueBtn} ${modoAtaque === 'multi' ? styles.modoAtaqueBtnActiveMulti : ''}`}
-          >
-            Multiataque / 2ª Arma
-          </button>
-        </div>
+            <FaDice /> Rolar Ataque e Dano
+          </Button>
 
-        <Button
-          type="button"
-          variant="core"
-          size="sm"
-          fullWidth
-          onClick={() => onExecutarRolagem(itemVirtual, slotId)}
-        >
-          <FaDice /> Rolar Ataque e Dano
-        </Button>
-
-        {/* Resultado Detalhado */}
-        {ultimaRolagem && (
-          <div className={styles.resultadoCard}>
-            {ultimaRolagem.statusCritico && (
-              <div className={`${styles.criticoBanner} ${ultimaRolagem.statusCritico.includes('Sucesso') ? styles.criticoSucesso : styles.criticoFalha}`}>
-                <FaBolt /> {ultimaRolagem.statusCritico}
-              </div>
-            )}
-            <div className={styles.resultadoLinha}>
-              <span>Precisão Final:</span>
-              <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
-            </div>
-            <div className={styles.detalhesDiscriminados}>
-              <div>Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
-              <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
-              {ultimaRolagem.usandoPsicocinese && (
-                <div>
-                  <Badge variant="ether" size="sm">Psicocinese (VON)</Badge>
+          {/* Resultado Detalhado */}
+          {ultimaRolagem && (
+            <div className={styles.resultadoCard}>
+              {ultimaRolagem.statusCritico && (
+                <div className={`${styles.criticoBanner} ${ultimaRolagem.statusCritico.includes('Sucesso') ? styles.criticoSucesso : styles.criticoFalha}`}>
+                  <FaBolt /> {ultimaRolagem.statusCritico}
                 </div>
               )}
+              <div className={styles.resultadoLinha}>
+                <span>Precisão Final:</span>
+                <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
+              </div>
+              <div className={styles.detalhesDiscriminados}>
+                <div>Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
+                <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
+                {ultimaRolagem.usandoPsicocinese && (
+                  <div>
+                    <Badge variant="ether" size="sm">Psicocinese (VON)</Badge>
+                  </div>
+                )}
+              </div>
+              <div className={styles.resultadoLinha}>
+                <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : ultimaRolagem.tipoDano || 'Físico'}):</span>
+                <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
+              </div>
+              <div className={styles.detalhesDiscriminados}>
+                <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
+                {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
+                {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
+                {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
+                {ultimaRolagem.multiplo && <div>Propriedade: Alveja até {ultimaRolagem.multiplo} criaturas</div>}
+              </div>
             </div>
-            <div className={styles.resultadoLinha}>
-              <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : ultimaRolagem.tipoDano || 'Físico'}):</span>
-              <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
-            </div>
-            <div className={styles.detalhesDiscriminados}>
-              <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
-              {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
-              {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
-              {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
-              {ultimaRolagem.multiplo && <div>Propriedade: Alveja até {ultimaRolagem.multiplo} criaturas</div>}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* 5. AÇÕES DO SLOT */}
+      {/* 4. AÇÕES DO SLOT PADRONIZADAS */}
       <div className={styles.slotActions}>
         <Button
           type="button"

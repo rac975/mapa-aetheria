@@ -294,6 +294,20 @@
   flex-wrap: wrap;
 }
 
+.itemIconWrapperSmall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-border-gold-bright);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
 .mochilaItemNome {
   font-size: var(--font-size-sm);
   font-weight: 700;

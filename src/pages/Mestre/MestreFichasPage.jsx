@@ -13,6 +13,7 @@ import {
 import { LuUsers, LuSparkles } from 'react-icons/lu';
 import { QRCodeSVG } from 'qrcode.react';
 import { fichaService } from '../../services/fichaService';
+import { useToast } from '../../contexts/ToastContext';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
 import { Card, Button, Badge, Input, Modal, ResourceBar } from '../../components/ui';
@@ -47,6 +48,7 @@ export default function MestreFichasPage({ isMestre }) {
   const [fichas, setFichas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
+  const { coldDelete } = useToast();
 
   const [nomeJogador, setNomeJogador] = useState('');
   const [nomePersonagem, setNomePersonagem] = useState('');
@@ -143,12 +145,27 @@ export default function MestreFichasPage({ isMestre }) {
     }
   };
 
-  const handleDeletarFicha = async (id, e) => {
+  const handleDeletarFicha = (ficha, e) => {
     e.stopPropagation();
-    if (confirm('Tem certeza que deseja apagar esta ficha e revogar o crachá?')) {
-      await fichaService.deletarFicha(id);
-      carregarTodasFichas();
-    }
+    coldDelete({
+      item: ficha,
+      message: (
+        <>
+          Ficha de <strong>{ficha.nome_personagem || 'Personagem'}</strong> foi removida.
+        </>
+      ),
+      onRemove: (it) => {
+        setFichas(prev => prev.filter(f => f.id !== it.id));
+      },
+      onCommit: async (it) => {
+        await fichaService.deletarFicha(it.id);
+        carregarTodasFichas();
+      },
+      onRollback: () => {
+        carregarTodasFichas();
+      },
+      duration: 6000
+    });
   };
 
   const baixarQRCode = (personagemNome, fichaId) => {
@@ -345,7 +362,7 @@ export default function MestreFichasPage({ isMestre }) {
                   <Button
                     variant="danger"
                     size="sm"
-                    onClick={(e) => handleDeletarFicha(f.id, e)}
+                    onClick={(e) => handleDeletarFicha(f, e)}
                   >
                     <FaTrash /> Excluir
                   </Button>

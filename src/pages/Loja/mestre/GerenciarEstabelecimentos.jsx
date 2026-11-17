@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { FaStore, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
+import { useToast } from '../../../contexts/ToastContext';
 import { Button, Modal, Input } from '../../../components/ui';
 import styles from './GerenciarEstabelecimentos.module.css';
 
@@ -11,6 +13,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
     const [cidadeLoja, setCidadeLoja] = useState('');
     const [descLoja, setDescLoja] = useState('');
     const [salvando, setSalvando] = useState(false);
+    const { coldDelete } = useToast();
 
     const salvarLoja = async (e) => {
         e.preventDefault();
@@ -33,14 +36,24 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
         }
     };
 
-    const excluirLoja = async (id) => {
-        if (!confirm("Deseja apagar esta loja e todo o seu estoque?")) return;
-        const { error } = await supabase.from('lojas').delete().eq('id', id);
-        if (error) {
-            alert('Erro ao excluir loja: ' + error.message);
-        } else {
-            if (recarregarDados) recarregarDados();
-        }
+    const excluirLoja = (loja) => {
+        coldDelete({
+            item: loja,
+            message: <>Loja <strong>{loja.nome}</strong> foi removida.</>,
+            onCommit: async (l) => {
+                const { error } = await lojaService.excluirLoja(l.id);
+                if (error) {
+                    console.error('Erro ao excluir loja:', error);
+                    alert('Erro ao excluir loja: ' + error.message);
+                } else if (recarregarDados) {
+                    recarregarDados();
+                }
+            },
+            onRollback: () => {
+                if (recarregarDados) recarregarDados();
+            },
+            duration: 6000
+        });
     };
 
     const fecharModalLoja = () => {
@@ -99,7 +112,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
                             <Button
                                 variant="danger"
                                 size="sm"
-                                onClick={() => excluirLoja(loja.id)}
+                                onClick={() => excluirLoja(loja)}
                             >
                                 <FaTrash size={12} /> Excluir
                             </Button>

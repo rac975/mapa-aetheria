@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useImperativeHandle, forwardRef, useRef } from 'react';
-import { supabase } from '../../../services/supabase';
+import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { cronicaService } from '../../../services/cronicaService';
+import { useToast } from '../../../contexts/ToastContext';
 import CronicaCard from '../CronicasCard/CronicasCard';
 import CronicaBusca from '../CronicasBusca/CronicasBusca';
 import CronicasModal from '../CronicasModal/CronicasModal';
-import UndoToast from '../../UndoToast/UndoToast';
 import CustomAlert from '../../CustomAlert/CustomAlert';
 
 const CronicasManager = forwardRef(({ isMestre }, ref) => {
@@ -22,12 +22,8 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
   const [conteudo, setConteudo] = useState('');
   const [tags, setTags] = useState('');
 
-  // Estados de Delete Frio (Undo) usando useRef para evitar perda de referência do timer
-  const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [mostrarToast, setMostrarToast] = useState(false);
-  const [progressoKey, setProgressoKey] = useState(0);
-  const timeoutRef = useRef(null);
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+  const { coldDelete } = useToast();
 
   useImperativeHandle(ref, () => ({
     abrirModalCriacao
@@ -44,15 +40,12 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
 
   const buscarCronicas = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('cronicas')
-        .select('*')
-        .order('data', { ascending: false });
+      const { data: lista, error } = await cronicaService.getCronicas();
 
       if (error) throw error;
-      const lista = data || [];
-      setCronicas(lista);
-      processarTagsUnicas(lista);
+      const res = lista || [];
+      setCronicas(res);
+      processarTagsUnicas(res);
     } catch (error) {
       console.error('Erro ao buscar crônicas:', error.message);
     } finally {
@@ -63,18 +56,12 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
   useEffect(() => {
     buscarCronicas();
 
-    const channel = supabase
-      .channel('realtime_cronicas')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'cronicas' },
-        () => { buscarCronicas(); }
-      )
-      .subscribe();
+    const channel = cronicaService.subscribeCronicas(() => {
+      buscarCronicas();
+    });
 
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      supabase.removeChannel(channel);
+      cronicaService.removeChannel(channel);
     };
   }, [buscarCronicas]);
 
@@ -82,23 +69,17 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
     setCronicaEditando(null);
     setSessao('');
     setTitulo('');
-
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoje.getDate()).padStart(2, '0');
-
-    setData(`${ano}-${mes}-${dia}`);
+    setData(new Date().toISOString().split('T')[0]);
     setConteudo('');
     setTags('');
     setModalAberto(true);
   };
 
   const abrirModalEdicao = (cronica) => {
-    setCronicaEditando(cronica.id);
+    setCronicaEditando(cronica);
     setSessao(cronica.sessao || '');
     setTitulo(cronica.titulo || '');
-    setData(cronica.data || '');
+    setData(cronica.data ? cronica.data.split('T')[0] : '');
     setConteudo(cronica.conteudo || '');
     setTags(cronica.tags || '');
     setModalAberto(true);
@@ -106,19 +87,29 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
 
   const salvarCronica = async (e) => {
     e.preventDefault();
-    if (!sessao || !titulo || !conteudo) return;
+    if (!titulo.trim() || !conteudo.trim()) {
+      setAlerta({
+        isOpen: true,
+        title: 'Campos Obrigatórios',
+        message: 'Por favor, preencha o Título e o Conteúdo.'
+      });
+      return;
+    }
 
     try {
+      const dados = {
+        sessao: sessao.trim() || null,
+        titulo: titulo.trim(),
+        data: data || new Date().toISOString(),
+        conteudo: conteudo.trim(),
+        tags: tags.trim() || null
+      };
+
       if (cronicaEditando) {
-        const { error } = await supabase
-          .from('cronicas')
-          .update({ sessao, titulo, data, conteudo, tags })
-          .eq('id', cronicaEditando);
+        const { error } = await cronicaService.atualizarCronica(cronicaEditando.id, dados);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('cronicas')
-          .insert([{ sessao, titulo, data, conteudo, tags }]);
+        const { error } = await cronicaService.criarCronica(dados);
         if (error) throw error;
       }
 
@@ -126,52 +117,41 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
       buscarCronicas();
     } catch (error) {
       console.error('Erro ao salvar crônica:', error.message);
-      // Correção aqui: acionar o state do alerta em vez de inserir JSX solto
       setAlerta({
         isOpen: true,
         title: 'Erro ao Salvar',
-        message: 'Não foi possível salvar a crônica no banco de dados.'
+        message: 'Não foi possível salvar a crônica. Tente novamente.'
       });
     }
   };
 
-  // --- LÓGICA DE DELETE FRIO (UNDO) COM useRef ---
+  // --- LÓGICA DE DELETE FRIO (UNDO) GLOBAL ---
   const iniciarExclusao = (c) => {
     if (!isMestre) return;
 
-    // Se já houver um timer pendente de outra exclusão anterior, executa o delete dela imediatamente antes de iniciar a nova
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    setCronicas(prev => prev.filter(item => item.id !== c.id));
-    setItemParaExcluir(c);
-    setMostrarToast(true);
-    setProgressoKey(prev => prev + 1);
-
-    timeoutRef.current = setTimeout(async () => {
-      try {
-        const { error } = await supabase.from('cronicas').delete().eq('id', c.id);
-        if (error) throw error;
-      } catch (error) {
-        console.error('Erro ao excluir crônica permanentemente:', error.message);
-      }
-      setMostrarToast(false);
-      setItemParaExcluir(null);
-      timeoutRef.current = null;
-    }, 6000);
-  };
-
-  const desfazerExclusao = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (itemParaExcluir) {
-      setCronicas(prev => [itemParaExcluir, ...prev]);
-    }
-    setMostrarToast(false);
-    setItemParaExcluir(null);
+    coldDelete({
+      item: c,
+      message: (
+        <>
+          Crônica <strong>{c.titulo}</strong> foi removida.
+        </>
+      ),
+      onRemove: (item) => {
+        setCronicas(prev => prev.filter(x => x.id !== item.id));
+      },
+      onCommit: async (item) => {
+        try {
+          const { error } = await cronicaService.excluirCronica(item.id);
+          if (error) throw error;
+        } catch (error) {
+          console.error('Erro ao excluir crônica permanentemente:', error.message);
+        }
+      },
+      onRollback: (item) => {
+        setCronicas(prev => [item, ...prev]);
+      },
+      duration: 6000
+    });
   };
 
   const cronicasFiltradas = cronicas.filter((cronica) => {
@@ -219,12 +199,6 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
         tagsDisponiveis={tagsDisponiveis}
       />
 
-      <UndoToast
-        mostrar={mostrarToast}
-        mensagem={<>Crônica <strong>{itemParaExcluir?.titulo}</strong> foi removida.</>}
-        progressoKey={progressoKey}
-        onUndo={desfazerExclusao}
-      />
       <CustomAlert
         isOpen={alerta.isOpen}
         title={alerta.title}

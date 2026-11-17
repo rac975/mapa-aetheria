@@ -153,13 +153,6 @@ export default function InitiativeTracker({ isMestre }) {
       >
         <p className={styles.modalMessage}>{alerta.message}</p>
       </Modal>
-
-      <UndoToast
-        mostrar={mostrarToast}
-        mensagem={<><strong>{itemParaExcluir?.nome}</strong> foi removido.</>}
-        progressoKey={progressoKey}
-        onUndo={desfazerExclusao}
-      />
     </Card>
   );
 }

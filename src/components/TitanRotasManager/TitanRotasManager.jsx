@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
-import UndoToast from '../UndoToast/UndoToast';
+import { useToast } from '../../contexts/ToastContext';
 import { 
   FaPlus, 
   FaTrash, 
@@ -29,11 +29,7 @@ export default function TitanRotasManager({ titan, isMestre }) {
   const [nivelAmeaca, setNivelAmeaca] = useState('baixo');
   const [descricao, setDescricao] = useState('');
 
-  // Estados para controle do Delete Frio (Undo)
-  const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [mostrarToast, setMostrarToast] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
-  const [progressoKey, setProgressoKey] = useState(0);
+  const { coldDelete } = useToast();
 
   // Mapeia o Dado e IP base com base na Ameaça escolhida
   const getDadosPorAmeaca = (ameaca) => {
@@ -125,39 +121,29 @@ export default function TitanRotasManager({ titan, isMestre }) {
     }
   };
 
-  // --- LÓGICA DE DELETE FRIO (UNDO) ---
+  // --- LÓGICA DE DELETE FRIO (UNDO) GLOBAL ---
   const iniciarExclusao = (r) => {
     if (!isMestre) return;
-    if (timeoutId) clearTimeout(timeoutId);
 
-    // Remove temporariamente da tela imediatamente
-    setRotas(prev => prev.filter(item => item.id !== r.id));
-    setItemParaExcluir(r);
-    setMostrarToast(true);
-    setProgressoKey(prev => prev + 1);
-
-    // Agenda a exclusão definitiva no banco para daqui a 6 segundos
-    const timer = setTimeout(async () => {
-      try {
-        const { error } = await supabase.from('rotas_titas').delete().eq('id', r.id);
-        if (error) console.error("Erro ao deletar rota permanentemente:", error.message);
-      } catch (err) {
-        console.error("Erro na requisição de delete:", err);
-      }
-      setMostrarToast(false);
-      setItemParaExcluir(null);
-    }, 6000);
-
-    setTimeoutId(timer);
-  };
-
-  const desfazerExclusao = () => {
-    if (timeoutId) clearTimeout(timeoutId);
-    if (itemParaExcluir) {
-      setRotas(prev => [...prev, itemParaExcluir]);
-    }
-    setMostrarToast(false);
-    setItemParaExcluir(null);
+    coldDelete({
+      item: r,
+      message: <>Rota <strong>{r.nome_rota}</strong> foi removida.</>,
+      onRemove: (it) => {
+        setRotas(prev => prev.filter(item => item.id !== it.id));
+      },
+      onCommit: async (it) => {
+        try {
+          const { error } = await supabase.from('rotas_titas').delete().eq('id', it.id);
+          if (error) console.error("Erro ao deletar rota permanentemente:", error.message);
+        } catch (err) {
+          console.error("Erro na requisição de delete:", err);
+        }
+      },
+      onRollback: (it) => {
+        setRotas(prev => [...prev, it]);
+      },
+      duration: 6000
+    });
   };
 
   const getTipoRotaInfo = (tipo) => {
@@ -285,14 +271,6 @@ export default function TitanRotasManager({ titan, isMestre }) {
           })}
         </div>
       )}
-
-      {/* Componente Genérico de Delete Frio */}
-      <UndoToast
-        mostrar={mostrarToast}
-        mensagem={<>Rota <strong>{itemParaExcluir?.nome_rota}</strong> foi removida.</>}
-        progressoKey={progressoKey}
-        onUndo={desfazerExclusao}
-      />
     </div>
   );
 }

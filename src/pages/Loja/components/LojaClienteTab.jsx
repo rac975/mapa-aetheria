@@ -9,12 +9,15 @@ import {
     FaPrint
 } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
+import { useToast } from '../../../contexts/ToastContext';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from './comum/BarraBuscaFiltros';
 import { Button, Card, Badge, Modal } from '../../../components/ui';
 import styles from './LojaClienteTab.module.css';
 
 export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
+    const { coldDelete } = useToast();
     const {
         busca,
         setBusca,
@@ -195,32 +198,31 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         const zenitAtual = ficha.zenit || 0;
         const novoZenit = zenitAtual + valorVenda;
 
-        if (!window.confirm(`Deseja vender "${itemInv.nome}" por ${valorVenda} zênites (metade do valor)?`)) {
-            return;
-        }
-
-        try {
-            const { error: erroFicha } = await supabase
-                .from('fichas_personagens')
-                .update({ zenit: novoZenit })
-                .eq('id', ficha.id);
-
-            if (erroFicha) throw erroFicha;
-
-            const { error: erroDel } = await supabase
-                .from('itens_personagem')
-                .delete()
-                .eq('id', itemInv.id);
-
-            if (erroDel) throw erroDel;
-
-            setFicha(prev => ({ ...prev, zenit: novoZenit }));
-            setItensInventario(prev => prev.filter(i => i.id !== itemInv.id));
-
-            alert(`💰 Venda realizada com sucesso! Você recebeu ${valorVenda} zênites.`);
-        } catch (err) {
-            alert("Erro ao vender item: " + err.message);
-        }
+        coldDelete({
+            item: itemInv,
+            message: <>Item <strong>{itemInv.nome}</strong> vendido por {valorVenda} zênites.</>,
+            onRemove: () => {
+                setFicha(prev => ({ ...prev, zenit: novoZenit }));
+                setItensInventario(prev => prev.filter(i => i.id !== itemInv.id));
+            },
+            onCommit: async (it) => {
+                try {
+                    const { error } = await lojaService.venderItemFicha({
+                        fichaId: ficha.id,
+                        itemId: it.id,
+                        novoZenit
+                    });
+                    if (error) throw error;
+                } catch (err) {
+                    console.error("Erro ao efetivar venda:", err);
+                }
+            },
+            onRollback: (it) => {
+                setFicha(prev => ({ ...prev, zenit: zenitAtual }));
+                setItensInventario(prev => [...prev, it]);
+            },
+            duration: 6000
+        });
     };
 
     const getRaridadeVariant = (raridade) => {

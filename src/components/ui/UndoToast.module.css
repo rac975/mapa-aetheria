@@ -1,0 +1,108 @@
+/* ==========================================================================
+   UNDOTOAST MODULE CSS - FABULA ULTIMA & XENOBLADE CHRONICLES THEME
+   ========================================================================== */
+
+.undoPortalContainer {
+  position: fixed;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: auto;
+  min-width: 320px;
+  max-width: calc(100vw - 32px);
+  animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.undoCard {
+  background: var(--color-bg-elevated);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card), 0 10px 30px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.undoContent {
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.undoMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  line-height: 1.4;
+}
+
+.undoMessage strong {
+  color: var(--color-border-gold-bright);
+}
+
+.btnUndo {
+  background: linear-gradient(135deg, var(--color-border-gold), var(--color-border-gold-bright));
+  color: var(--color-text-inverse);
+  border: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  box-shadow: 0 0 10px var(--color-border-gold-glow);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btnUndo:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 14px var(--color-border-gold-bright);
+}
+
+.undoProgressBar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-border-gold), var(--color-ether-cyan));
+  width: 100%;
+  animation-name: shrinkProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-duration: var(--toast-duration, 5000ms);
+}
+
+@keyframes shrinkProgress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translate(-50%, 20px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@media print {
+  .undoPortalContainer {
+    display: none !important;
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { npcService } from '../services/npcService';
+import { useToast } from '../contexts/ToastContext';
 
 // Cache compartilhado em memória para catálogos estáticos (evita refetching repetido)
 let cachedCatalogos = null;
@@ -120,24 +121,35 @@ export function useNPCManager(npcId, options = {}) {
     return true;
   }, [npcId]);
 
+  const { showUndoToast } = useToast();
+
   /**
-   * Exclui o NPC atual após confirmação
-   * @param {string} [mensagemConfirmacao]
+   * Exclui o NPC atual após confirmação com UndoToast
    * @returns {Promise<boolean>}
    */
-  const excluirNpc = useCallback(async (mensagemConfirmacao = 'Tem certeza que deseja excluir este NPC do Bestiário?') => {
-    if (!window.confirm(mensagemConfirmacao)) return false;
-
-    const { error: delErr } = await npcService.deleteNpc(npcId);
-    if (!delErr) {
-      if (onNavigateAwayRef.current) onNavigateAwayRef.current();
-      return true;
-    } else {
-      console.error('Erro ao excluir NPC:', delErr);
-      setError(delErr);
-      return false;
+  const excluirNpc = useCallback(async () => {
+    const npcSalvo = npc;
+    if (onNavigateAwayRef.current) {
+      onNavigateAwayRef.current();
     }
-  }, [npcId]);
+
+    showUndoToast({
+      message: `NPC "${npcSalvo?.nome || 'Adversário'}" foi excluído do Bestiário.`,
+      duration: 6000,
+      onConfirm: async () => {
+        const { error: delErr } = await npcService.deleteNpc(npcId);
+        if (delErr) {
+          console.error('Erro ao excluir NPC permanentemente:', delErr);
+          setError(delErr);
+        }
+      },
+      onUndo: () => {
+        console.log('Exclusão de NPC revertida.');
+      }
+    });
+
+    return true;
+  }, [npc, npcId, showUndoToast]);
 
   return {
     npc,
