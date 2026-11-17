@@ -99,6 +99,46 @@
   transform: scale(1.1);
 }
 
+.fabulaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badgeMiniControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: var(--space-1);
+}
+
+.badgeMiniBtn {
+  background: var(--color-bg-surface-hover);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-ether-cyan);
+  border-radius: var(--radius-sm);
+  padding: 1px 4px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.badgeMiniBtn:hover:not(:disabled) {
+  background: var(--color-bg-surface-active);
+  border-color: var(--color-ether-cyan);
+  color: var(--color-text-main);
+  transform: scale(1.12);
+}
+
+.badgeMiniBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .condicoesStrip {
   display: flex;
   align-items: center;
@@ -192,6 +232,7 @@
 
   .headerActionsGroup,
   .zenitGearBtn,
+  .badgeMiniControls,
   .backBtn,
   [data-print="false"],
   .no-print {

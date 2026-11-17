@@ -10,7 +10,10 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Container que abriga as páginas/visões */
@@ -32,33 +35,11 @@
 
 @media (max-width: 800px) {
 
-  /* 1. Trava a janela do navegador e oculta a scrollbar lateral global */
+  /* 1. Ajustes de html e body no mobile sem travar o scroll da página */
   html,
   body {
-    height: 100% !important;
-    overflow: hidden !important;
-    scrollbar-width: none !important;
-  }
-
-  *,
-  *::before,
-  *::after {
-    scrollbar-width: none !important;
-    /* Firefox */
-    -ms-overflow-style: none !important;
-    /* Internet Explorer e Edge antigo */
-  }
-
-  /* Chrome, Safari, Edge moderno e Opera */
-  *::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
-    display: none !important;
+    min-height: 100%;
+    overflow-x: hidden;
   }
 
   /* 2. Container principal unificado para TODAS as páginas */
@@ -70,17 +51,9 @@
     /* 65px (barra inferior) + 20px (respiro ideal) = 85px embaixo */
     padding: 16px 16px 85px 16px !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     box-sizing: border-box !important;
-
-    /* Oculta a scrollbar no mobile em todas as páginas */
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-
-  .main-content::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* 3. Painel Lateral (Titan Sidebar / Drawer) no Mobile */

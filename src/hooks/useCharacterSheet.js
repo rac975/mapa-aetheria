@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fichaService } from '../services/fichaService';
+import { playerSessionService } from '../services/playerSessionService';
 import { calcularStatusPersonagem } from '../utils/calculosFicha';
 import { calcularNivelTotal } from '../domain/fabula/characterProgression';
 import {
@@ -61,6 +62,14 @@ export function useCharacterSheet(id, navigate) {
     setErro('');
 
     try {
+      // Verificação de expiração de sessão do jogador (permanência / inatividade)
+      const statusSessao = playerSessionService.verificarExpiracao();
+      if (statusSessao.expirada) {
+        playerSessionService.encerrarSessao(statusSessao.mensagem);
+        if (navigate) navigate('/ficha/login', { replace: true });
+        return;
+      }
+
       const tokenAtual = localStorage.getItem('aetheria_jogador_token');
       if (!id && !tokenAtual) {
         if (navigate) navigate('/ficha/login', { replace: true });
@@ -74,7 +83,7 @@ export function useCharacterSheet(id, navigate) {
       }
 
       if (fichaData.jogador_token) {
-        localStorage.setItem('aetheria_jogador_token', fichaData.jogador_token);
+        playerSessionService.iniciarSessao(fichaData.jogador_token, fichaData.id, fichaData.nome_personagem);
       }
       localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
 
@@ -276,27 +285,46 @@ export function useCharacterSheet(id, navigate) {
     }
   }, [ficha?.id, ficha?.hp_max, ficha?.mp_max, ficha?.pi_max, statusFicha?.pvMax, statusFicha?.mpMax, statusFicha?.piMax]);
 
-  // 6. Manipulação de Recursos (HP, MP, IP)
+  // 6. Manipulação de Recursos (HP, MP, IP, Fábula, EXP)
   const ajustarRecurso = useCallback(async (campo, valor) => {
     if (!ficha?.id) return;
 
     let maximo = 999;
+    let fallback = 0;
+
     if (campo === 'hp_atual') {
       maximo = statusFicha?.pvMax || 999;
+      fallback = maximo;
     } else if (campo === 'mp_atual') {
       maximo = statusFicha?.mpMax || 999;
-    } else if (campo === 'ip_atual') {
-      maximo = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 999;
+      fallback = maximo;
+    } else if (campo === 'ip_atual' || campo === 'pi_atual') {
+      maximo = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 6;
+      fallback = maximo;
+    } else if (campo === 'fabula') {
+      maximo = 99;
+      fallback = 3;
+    } else if (campo === 'exp') {
+      maximo = 10;
+      fallback = 0;
     }
 
-    const valorBrutoAtual = Number(ficha[campo] !== undefined ? ficha[campo] : maximo);
+    const valorBrutoAtual = Number(ficha[campo] !== undefined && ficha[campo] !== null ? ficha[campo] : fallback);
     const valorAtual = Math.min(valorBrutoAtual, maximo);
     const novoValor = Math.min(maximo, Math.max(0, valorAtual + valor));
 
-    setFicha(prev => ({ ...prev, [campo]: novoValor }));
+    const dadosAtualizar = { [campo]: novoValor };
+    if (campo === 'ip_atual') {
+      dadosAtualizar.pi_atual = novoValor;
+    } else if (campo === 'pi_atual') {
+      dadosAtualizar.ip_atual = novoValor;
+    }
+
+    setFicha(prev => ({ ...prev, ...dadosAtualizar }));
+    playerSessionService.registrarAtividade();
 
     try {
-      await fichaService.atualizarFicha(ficha.id, { [campo]: novoValor });
+      await fichaService.atualizarFicha(ficha.id, dadosAtualizar);
     } catch (err) {
       console.error('Erro ao salvar recurso:', err);
     }

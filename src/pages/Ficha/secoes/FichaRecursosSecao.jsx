@@ -14,6 +14,7 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
   const hpAtualSeguro = Math.min(Math.max(ficha.hp_atual ?? hpMaxCalculado, 0), hpMaxCalculado);
   const mpAtualSeguro = Math.min(Math.max(ficha.mp_atual ?? mpMaxCalculado, 0), mpMaxCalculado);
   const piAtualSeguro = Math.min(Math.max(ficha.ip_atual ?? ficha.pi_atual ?? piMaxCalculado, 0), piMaxCalculado);
+  const expAtualSeguro = Math.min(Math.max(Number(ficha.exp ?? 0), 0), 10);
 
   const emCrise = hpAtualSeguro <= Math.floor(hpMaxCalculado / 2);
 
@@ -153,6 +154,42 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
             className={styles.adjustBtn}
             onClick={() => handleAjustarRecurso('ip_atual', 1)}
             title="Recuperar +1 PI"
+          >
+            <FaPlus />
+          </Button>
+        </div>
+      </div>
+
+      {/* 4. EXPERIÊNCIA (XP) - BARRA DE 10 PONTOS / SEGMENTOS */}
+      <div className={styles.resourceCard}>
+        <ResourceBar
+          type="exp"
+          current={expAtualSeguro}
+          max={10}
+          segments={10}
+          label="Experiência (XP)"
+          showValues={true}
+        />
+        <div className={styles.cardControls}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className={styles.adjustBtn}
+            onClick={() => handleAjustarRecurso('exp', -1)}
+            disabled={expAtualSeguro <= 0}
+            title="Reduzir -1 XP"
+          >
+            <FaMinus />
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            className={styles.adjustBtn}
+            onClick={() => handleAjustarRecurso('exp', 1)}
+            disabled={expAtualSeguro >= 10}
+            title="Adicionar +1 XP"
           >
             <FaPlus />
           </Button>

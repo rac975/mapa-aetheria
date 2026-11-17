@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaPrint, FaCog } from 'react-icons/fa';
+import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaPrint, FaCog, FaPlus, FaMinus } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../../constants/condicoes';
-import { fichaService } from '../../../services/fichaService';
-import { Button, Badge, Modal, Input } from '../../../components/ui';
+import { playerSessionService } from '../../../services/playerSessionService';
+import { Button, Badge } from '../../../components/ui';
+import ModalZenit from './components/ModalZenit';
 import styles from './FichaHeader.module.css';
 
 export default function FichaHeader({
@@ -14,61 +15,22 @@ export default function FichaHeader({
     onToggleEdit,
     nivelAtual,
     condicoesAtivas = [],
-    setFicha
+    setFicha,
+    handleAjustarRecurso
 }) {
     const navigate = useNavigate();
     const tokenJogadorSalvo = localStorage.getItem('aetheria_jogador_token');
     const ehJogadorLogado = !!tokenJogadorSalvo && !isMestre;
 
-    // Estados para o Modal de Gerenciamento de Zênites
     const [modalZenitAberto, setModalZenitAberto] = useState(false);
-    const [tipoAjuste, setTipoAjuste] = useState('adicionar');
-    const [valorZenit, setValorZenit] = useState('');
-    const [motivoZenit, setMotivoZenit] = useState('');
-    const [processandoZenit, setProcessandoZenit] = useState(false);
 
     const handleLogout = () => {
-        localStorage.removeItem('aetheria_jogador_token');
+        playerSessionService.encerrarSessao();
         navigate('/ficha/login', { replace: true });
     };
 
     const handleImprimir = () => {
         window.print();
-    };
-
-    const lidarComTransacaoZenit = async (e) => {
-        e.preventDefault();
-        const qtd = parseInt(valorZenit, 10);
-        if (isNaN(qtd) || qtd <= 0) {
-            alert("Insira um valor válido maior que zero.");
-            return;
-        }
-
-        const zenitAtual = ficha?.zenit || 0;
-        const novoZenit = tipoAjuste === 'adicionar' ? zenitAtual + qtd : zenitAtual - qtd;
-
-        if (novoZenit < 0) {
-            alert("O personagem não tem zênites suficientes para essa retirada!");
-            return;
-        }
-
-        setProcessandoZenit(true);
-        try {
-            await fichaService.atualizarZenit(ficha.id, novoZenit);
-
-            if (setFicha) {
-                setFicha(prev => ({ ...prev, zenit: novoZenit }));
-            }
-
-            alert(`✨ Transação realizada! ${tipoAjuste === 'adicionar' ? `+${qtd}` : `-${qtd}`} zênites (${motivoZenit || 'Sem motivo especificado'}).`);
-            setModalZenitAberto(false);
-            setValorZenit('');
-            setMotivoZenit('');
-        } catch (err) {
-            alert("Erro ao atualizar zênites: " + err.message);
-        } finally {
-            setProcessandoZenit(false);
-        }
     };
 
     if (!ficha) return null;
@@ -116,17 +78,32 @@ export default function FichaHeader({
                                 title="Gerenciar Zênites"
                                 className={styles.zenitGearBtn}
                                 aria-label="Gerenciar Zênites"
-                            >
-                            <FaCog/>
-                            </button>
+                            ><FaCog/></button>
                         </Badge>
 
                         <Badge variant="default" size="md">
                             EXP: {ficha?.exp || 0}/10
                         </Badge>
 
-                        <Badge variant="ether" size="md">
-                            Fábula: {ficha?.fabula || 3}
+                        <Badge variant="ether" size="md" className={styles.fabulaBadge}>
+                            <span>Fábula: {ficha?.fabula ?? 3}</span>
+                            <div className={styles.badgeMiniControls} data-print="false">
+                                <button
+                                    type="button"
+                                    className={styles.badgeMiniBtn}
+                                    onClick={() => handleAjustarRecurso?.('fabula', -1)}
+                                    disabled={Number(ficha?.fabula ?? 3) <= 0}
+                                    title="Gastar Ponto de Fábula (-1)"
+                                    aria-label="Gastar Ponto de Fábula"
+                                ><FaMinus /></button>
+                                <button
+                                    type="button"
+                                    className={styles.badgeMiniBtn}
+                                    onClick={() => handleAjustarRecurso?.('fabula', 1)}
+                                    title="Adicionar Ponto de Fábula (+1)"
+                                    aria-label="Adicionar Ponto de Fábula"
+                                ><FaPlus /></button>
+                            </div>
                         </Badge>
                     </div>
 
@@ -180,68 +157,12 @@ export default function FichaHeader({
             </div>
 
             {/* MODAL DE TRANSAÇÃO DE ZÊNITES */}
-            <Modal
+            <ModalZenit
                 isOpen={modalZenitAberto}
                 onClose={() => setModalZenitAberto(false)}
-                title="Gerenciar Zênites"
-                size="sm"
-            >
-                <form onSubmit={lidarComTransacaoZenit} className={styles.zenitModalForm}>
-                    <div className={styles.zenitTypeSwitcher}>
-                        <button
-                            type="button"
-                            onClick={() => setTipoAjuste('adicionar')}
-                            className={`${styles.zenitTypeBtn} ${tipoAjuste === 'adicionar' ? styles.zenitTypeBtnActiveAdd : ''}`}
-                        >
-                            ➕ Adicionar
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setTipoAjuste('remover')}
-                            className={`${styles.zenitTypeBtn} ${tipoAjuste === 'remover' ? styles.zenitTypeBtnActiveSub : ''}`}
-                        >
-                            ➖ Retirar
-                        </button>
-                    </div>
-
-                    <Input
-                        label="Quantidade de Zênites:"
-                        type="number"
-                        min="1"
-                        placeholder="Ex: 200"
-                        value={valorZenit}
-                        onChange={(e) => setValorZenit(e.target.value)}
-                        required
-                    />
-
-                    <Input
-                        label="Motivo / Descrição (Opcional):"
-                        type="text"
-                        placeholder="Ex: Recompensa de missão, Tesouro..."
-                        value={motivoZenit}
-                        onChange={(e) => setMotivoZenit(e.target.value)}
-                    />
-
-                    <div className={styles.modalFooterActions}>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setModalZenitAberto(false)}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant={tipoAjuste === 'adicionar' ? 'core' : 'danger'}
-                            size="sm"
-                            disabled={processandoZenit}
-                        >
-                            {processandoZenit ? 'Salvando...' : 'Confirmar'}
-                        </Button>
-                    </div>
-                </form>
-            </Modal>
+                ficha={ficha}
+                setFicha={setFicha}
+            />
         </header>
     );
 }

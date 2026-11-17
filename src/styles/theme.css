@@ -174,3 +174,30 @@
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   SCROLLBAR TEMÁTICA GLOBAL (JRPG / FABULA ULTIMA)
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(197, 160, 89, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-gold);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-gold-muted) var(--color-bg-base);
+}

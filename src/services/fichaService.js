@@ -79,6 +79,31 @@ export const fichaService = {
   },
 
   /**
+   * Valida e busca ficha para autenticação do jogador por Token ou ID (QR Code)
+   * @param {Object} params
+   * @param {string} [params.token]
+   * @param {string|number} [params.id]
+   * @returns {Promise<any>}
+   */
+  async getFichaParaIdentificacao({ token, id }) {
+    let query = supabase
+      .from('fichas_personagens')
+      .select('id, jogador_token, nome_personagem');
+
+    if (token) {
+      query = query.eq('jogador_token', token);
+    } else if (id) {
+      query = query.eq('id', id);
+    } else {
+      return null;
+    }
+
+    const { data, error } = await query.single();
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Busca as classes vinculadas a uma ficha
    * @param {string|number} fichaId
    * @returns {Promise<Array<any>>}

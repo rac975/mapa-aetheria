@@ -4,6 +4,7 @@ import { FaSave, FaIdCard, FaSignInAlt } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { useCharacterSheet } from '../../hooks/useCharacterSheet';
+import { usePlayerSession } from '../../hooks/usePlayerSession';
 import { Button, Card } from '../../components/ui';
 
 // Importação das subcomponentes de visualização
@@ -63,6 +64,14 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
     // Estado global que armazena o bônus do Golpe das Sombras para o próximo ataque
     const [opcoesGolpeAtivo, setOpcoesGolpeAtivo] = useState(null);
     const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+
+    // Monitoramento automático de tempo de permanência e inatividade da sessão do jogador
+    usePlayerSession({
+        isMestre,
+        onSessaoExpirada: () => {
+            navigate('/ficha/login', { replace: true });
+        }
+    });
 
     // Sincronização com estado do Mestre
     useEffect(() => {
@@ -141,6 +150,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                 condicoesAtivas={condicoesAtivas}
                 statusCalculados={statusFicha}
                 setFicha={setFicha}
+                handleAjustarRecurso={ajustarRecurso}
                 onToggleEdit={() => {
                     if (!editando) {
                         setFormData(ficha);
@@ -156,17 +166,8 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                     <FichaFormGeral formData={formData} setFormData={setFormData} />
                     <FichaFormPeculiaridade formData={formData} setFormData={setFormData} />
                     <FichaFormAtributos formData={formData} setFormData={setFormData} />
-                    <FichaFormClasses
-                        formClasses={formClasses}
-                        setFormClasses={setFormClasses}
-                        formData={formData}
-                        setFormData={setFormData}
-                    />
-                    <FichaFormRituais
-                        formData={formData}
-                        setFormData={setFormData}
-                        formClasses={formClasses}
-                    />
+                    <FichaFormClasses formClasses={formClasses} setFormClasses={setFormClasses} formData={formData} setFormData={setFormData} />
+                    <FichaFormRituais formData={formData} setFormData={setFormData} formClasses={formClasses} />
                     <FichaFormLacos formData={formData} setFormData={setFormData} setAlerta={setAlerta} />
                     <FichaFormMochila formData={formData} setFormData={setFormData} />
 
@@ -178,11 +179,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                 </form>
             ) : (
                 <div className={styles.viewContent}>
-                    <FichaRecursos
-                        ficha={ficha}
-                        statusFicha={statusFicha}
-                        handleAjustarRecurso={ajustarRecurso}
-                    />
+                    <FichaRecursos ficha={ficha} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
                     <ExibirPeculiaridadeFicha ficha={ficha} />
                     <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
                     <FichaEstatisticasSecao statusFicha={statusFicha} />
@@ -207,12 +204,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                             setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
                         }}
                     />
-                    <FichaPoderesHeroicosSecao
-                        fichaId={id || ficha?.id}
-                        ficha={ficha}
-                        setFicha={setFicha}
-                        classes={classes}
-                    />
+                    <FichaPoderesHeroicosSecao fichaId={id || ficha?.id} ficha={ficha} setFicha={setFicha} classes={classes} />
                     <FichaProficienciasSecao classes={classes} />
                     <FichaEquipamentosSecao
                         fichaId={ficha?.id}
@@ -225,12 +217,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         onAtualizarMutante={atualizarDadosMutante}
                     />
                     <FichaMagiasSecao magias={magias} />
-                    <FichaRituaisSecao
-                        ficha={ficha}
-                        classes={classes}
-                        atributos={atributosAtuaisParaCalculo}
-                        handleAjustarRecurso={ajustarRecurso}
-                    />
+                    <FichaRituaisSecao ficha={ficha} classes={classes} atributos={atributosAtuaisParaCalculo} handleAjustarRecurso={ajustarRecurso} />
                     <FichaLacosSecao lacos={ficha?.lacos} />
                     <FichaMochilaSecao mochila={ficha?.mochila} notas={ficha?.notas} />
                 </div>
@@ -240,7 +227,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                 isOpen={alerta.isOpen}
                 title={alerta.title}
                 message={alerta.message}
-                onClose={() => setAlerta({ ...alerta, isOpen: false })}
+                onClose={() => setAlerta({ isOpen: false, title: '', message: '' })}
             />
         </div>
     );

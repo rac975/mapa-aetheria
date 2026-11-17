@@ -80,6 +80,54 @@
   box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
 }
 
+.expTrack .fill {
+  background: linear-gradient(90deg, rgba(243, 156, 18, 0.7) 0%, var(--color-border-gold-bright) 100%);
+  box-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+}
+
+/* Modo segmentado por pontos (ex: 10 pontos de XP / PI) */
+.segmentsTrack {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+  height: 12px;
+  align-items: center;
+}
+
+.segment {
+  flex: 1;
+  height: 100%;
+  background: rgba(6, 17, 34, 0.85);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.pvTrack .segmentFilled {
+  background: linear-gradient(180deg, rgba(46, 204, 113, 0.9) 0%, var(--color-pv) 100%);
+  border-color: var(--color-pv);
+  box-shadow: var(--shadow-glow-green);
+}
+
+.pmTrack .segmentFilled {
+  background: linear-gradient(180deg, rgba(0, 180, 255, 0.9) 0%, var(--color-pm) 100%);
+  border-color: var(--color-pm);
+  box-shadow: 0 0 8px rgba(0, 180, 255, 0.5);
+}
+
+.piTrack .segmentFilled {
+  background: linear-gradient(180deg, rgba(243, 156, 18, 0.9) 0%, var(--color-pi) 100%);
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 8px var(--color-pi-glow);
+}
+
+.expTrack .segmentFilled {
+  background: linear-gradient(180deg, var(--color-border-gold-bright) 0%, var(--color-pi) 100%);
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 8px var(--color-border-gold-glow);
+}
+
 /* Destaque quando em CRISE */
 .criseActive .track {
   border-color: var(--color-crise-bright);
@@ -142,6 +190,18 @@
 
   .fill {
     background: #555555 !important;
+    box-shadow: none !important;
+  }
+
+  .segmentsTrack .segment {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .segmentsTrack .segmentFilled {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
     box-shadow: none !important;
   }
 
