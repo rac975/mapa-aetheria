@@ -3,7 +3,11 @@ import {
   aplicarPsicocinesePrecisao
 } from '../domain/fabula/technoFantasyRules.js';
 import { fichaService } from '../services/fichaService.js';
-import { aumentarPassoDado } from '../domain/fabula/equipmentRules.js';
+import {
+  aumentarPassoDado,
+  extrairStatsArmadura,
+  extrairStatsItemDefensivo
+} from '../domain/fabula/equipmentRules.js';
 import {
   calcularBonusPassivosPoderesHeroicos,
   extrairHeroicAndQuirksDaFicha
@@ -200,37 +204,6 @@ export function calcularStatusPersonagem(
     von = Math.min(von, converterAtributoParaNumero(ficha.vontade));
   }
 
-  const mapaAtributos = {
-    des,
-    destreza: des,
-    ast,
-    astucia: ast,
-    vig,
-    vigor: vig,
-    von,
-    vontade: von,
-  };
-
-  const resolverExpressao = (valorBruto) => {
-    if (typeof valorBruto === "number") return valorBruto;
-    if (!valorBruto) return 0;
-
-    let str = String(valorBruto).trim().toLowerCase();
-    str = str.replace(/dado de /g, "").replace(/dado /g, "");
-
-    Object.keys(mapaAtributos).forEach((sigla) => {
-      const regex = new RegExp(`\\b${sigla}\\b`, "g");
-      str = str.replace(regex, mapaAtributos[sigla]);
-    });
-
-    try {
-      const resultado = eval(str);
-      return isNaN(resultado) ? 0 : parseInt(resultado, 10);
-    } catch {
-      return 0;
-    }
-  };
-
   // 1. Acumula os bônus passivos de classe e habilidades de PV
   let bonusHpPorClasse = 0;
   let bonusMpPorClasse = 0;
@@ -340,31 +313,20 @@ export function calcularStatusPersonagem(
     ehEscudoItem(itemMaoDom) || ehEscudoItem(itemMaoSec);
   const temDoisEscudos = ehEscudoItem(itemMaoDom) && ehEscudoItem(itemMaoSec);
 
-  const temArmaduraMarcial = (() => {
-    if (!itemArmadura) return false;
-    const stats = itemArmadura.stats_personalizados || {};
-    const tipo = (itemArmadura.tipo || "").toLowerCase();
-    return stats.marcial === true || tipo.includes("marcial");
-  })();
+  const statsArmadura = extrairStatsArmadura(itemArmadura, des);
+  const temArmaduraMarcial = statsArmadura.ehMarcial;
 
   // 3. Cálculo de Defesa Física
-  let defesaBase = des;
-  let bonusDefesaItens = 0;
-
-  if (itemArmadura) {
-    const statsArm = itemArmadura.stats_personalizados || {};
-    const defArmaduraBruta = statsArm.defesa || statsArm.def || 0;
-    const defCalculada = resolverExpressao(defArmaduraBruta);
-    if (defCalculada > 0) {
-      defesaBase = defCalculada;
-    }
-  }
+  // Regra Oficial Fabula Ultima:
+  // Armadura Marcial define a Defesa Base como valor fixo (ex: 10, 11, etc.), substituindo DES.
+  // Armadura Leve mantém a Defesa Base igual a DES e soma o bônus fixo da armadura (+1, +2, etc.).
+  let defesaBase = statsArmadura.defesaBase;
+  let bonusDefesaItens = statsArmadura.bonusDefesaArmadura;
 
   [itemMaoDom, itemMaoSec, itemAcessorio].forEach((item) => {
     if (item) {
-      const stats = item.stats_personalizados || {};
-      const defBruta = stats.defesa || stats.def || 0;
-      bonusDefesaItens += resolverExpressao(defBruta);
+      const statsDef = extrairStatsItemDefensivo(item);
+      bonusDefesaItens += statsDef.bonusDef;
     }
   });
 
@@ -408,42 +370,25 @@ export function calcularStatusPersonagem(
   }
 
   // 4. Cálculo de Defesa Mágica (MDef)
+  // Base é o dado de Astúcia + bônus de armaduras, escudos e acessórios
   let mdefBase = ast;
-  let bonusMDefItens = 0;
+  let bonusMDefItens = statsArmadura.bonusMDefArmadura;
 
-  [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
+  [itemMaoDom, itemMaoSec, itemAcessorio].forEach((item) => {
     if (item) {
-      const stats = item.stats_personalizados || {};
-      const mdefBruta =
-        stats["defesa magica"] ||
-        stats["defesa mágica"] ||
-        stats.mdefesa ||
-        stats.mdef ||
-        stats.defesa_magica ||
-        0;
-
-      const mdefCalculada = resolverExpressao(mdefBruta);
-
-      if (
-        typeof mdefBruta === "string" &&
-        mdefBruta.toLowerCase().includes("base")
-      ) {
-        mdefBase = Math.max(mdefBase, mdefCalculada);
-      } else {
-        bonusMDefItens += mdefCalculada;
-      }
+      const statsDef = extrairStatsItemDefensivo(item);
+      bonusMDefItens += statsDef.bonusMDef;
     }
   });
 
   let mdefTotal = mdefBase + bonusMDefItens;
 
-  // 5. Cálculo de Iniciativa Base (+ bônus de Poderes Heróicos como Alta Velocidade)
-  let iniciativaTotal = bonusHeroicos.bonusIniciativa || 0;
-  [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach((item) => {
+  // 5. Cálculo de Iniciativa Base (+ bônus de Poderes Heróicos como Alta Velocidade + penalidades de equipamentos)
+  let iniciativaTotal = (bonusHeroicos.bonusIniciativa || 0) + statsArmadura.penalidadeIniciativa;
+  [itemMaoDom, itemMaoSec, itemAcessorio].forEach((item) => {
     if (item) {
-      const stats = item.stats_personalizados || {};
-      const iniBruta = stats.iniciativa || stats.ini || stats.Iniciativa || 0;
-      iniciativaTotal += parseInt(iniBruta) || 0;
+      const statsDef = extrairStatsItemDefensivo(item);
+      iniciativaTotal += statsDef.modIni;
     }
   });
 

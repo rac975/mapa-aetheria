@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-5) var(--space-10) var(--space-5);
+  padding: var(--space-5) var(--space-5) 6rem var(--space-5);
   color: var(--color-text-main);
   display: flex;
   flex-direction: column;
@@ -107,6 +107,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  padding-bottom: 2rem;
 }
 
 .editQuickNav {
@@ -161,11 +162,45 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  padding-bottom: 2rem;
+}
+
+.tabContentArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.tabPane {
+  width: 100%;
+}
+
+.tabPaneActive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: fadeInPane 0.25s ease-out;
+}
+
+.tabPaneHidden {
+  display: none;
+}
+
+@keyframes fadeInPane {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 960px) {
   .pageContainer {
-    padding: var(--space-3) var(--space-2) var(--space-8) var(--space-2);
+    padding: var(--space-3) var(--space-2) 5rem var(--space-2);
     gap: var(--space-4);
   }
 
@@ -205,6 +240,17 @@
   .gridRowTwoCols {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 4mm !important;
+  }
+
+  /* Na impressão física, todas as abas ficam visíveis e organizadas */
+  .tabPaneHidden.printVisible,
+  .tabPaneActive.printVisible {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4mm !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 5mm !important;
   }
 
   .saveFloatingBar,

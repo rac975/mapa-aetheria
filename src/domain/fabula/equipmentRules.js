@@ -59,7 +59,7 @@ export function dadoParaNumero(valorAttr) {
  * @returns {number}
  */
 export function resolverValorNumerico(valorBruto, mapaAtributos = {}) {
-  if (typeof valorBruto === 'number') return isNaN(valorBruto) ? 0 : valorBruto;
+  if (typeof valorBruto === 'number') return isNaN(valorBruto) ? 0 : Math.floor(valorBruto);
   if (!valorBruto) return 0;
 
   let str = String(valorBruto).trim().toLowerCase();
@@ -70,20 +70,19 @@ export function resolverValorNumerico(valorBruto, mapaAtributos = {}) {
     str = str.replace(regex, String(mapaAtributos[sigla]));
   });
 
-  // Tenta parsing direto de inteiros com sinal (+2, -1, 10)
+  // Tenta parsing direto de inteiro
   const parseSimples = Number(str);
   if (!isNaN(parseSimples)) {
-    return parseSimples;
+    return Math.floor(parseSimples);
   }
 
-  // Sanitiza para operações aritméticas simples apenas (+, -, *, / e números)
-  const expressaoLimpa = str.replace(/[^0-9+\-*/().\s]/g, '');
-  try {
-    const resultado = Function(`"use strict"; return (${expressaoLimpa || 0})`)();
-    return typeof resultado === 'number' && !isNaN(resultado) ? Math.floor(resultado) : 0;
-  } catch {
-    return 0;
+  // Avaliação aritmética segura para adições e subtrações simples (ex: "8 + 1", "+2", "-1")
+  const tokens = str.match(/([+-]?\s*\d+)/g);
+  if (tokens) {
+    return tokens.reduce((acc, t) => acc + (parseInt(t.replace(/\s+/g, ''), 10) || 0), 0);
   }
+
+  return 0;
 }
 
 /**
@@ -105,9 +104,21 @@ export function isEscudo(item) {
  */
 export function isArmaduraMarcial(item) {
   if (!item) return false;
-  const stats = item.stats_personalizados || {};
+  const stats = item.stats_personalizados || item.stats || {};
   const tipo = (item.tipo || '').toLowerCase();
-  return stats.marcial === true || tipo.includes('marcial') || tipo.includes('pesada');
+  const nome = (item.nome || '').toLowerCase();
+  return (
+    stats.marcial === true ||
+    tipo.includes('marcial') ||
+    tipo.includes('pesada') ||
+    (tipo.includes('armadura') && (
+      nome.includes('placas') ||
+      nome.includes('cota de malha') ||
+      nome.includes('couraça') ||
+      nome.includes('cuirass') ||
+      nome.includes('gibão')
+    ))
+  );
 }
 
 /**
@@ -242,6 +253,133 @@ export function validarSlotEquipamento({ item, slotAlvo, classes = [] }) {
 }
 
 /**
+ * Extrai e normaliza as estatísticas defensivas de uma armadura conforme Fabula Ultima.
+ * - Armadura Leve: Base é a Destreza do personagem (DES) + bônus da armadura (ex: +1, +2).
+ * - Armadura Marcial: A armadura substitui a Destreza por uma Defesa Fixa (ex: DEF 10, 11, 12). O dado de DES NÃO é somado!
+ * 
+ * Se o campo de defesa de uma armadura marcial contiver "DES + 11", "+11" ou "11",
+ * ela é tratada estritamente como DEF Fixa 11, evitando o salto errôneo para 19 (8 + 11).
+ * 
+ * @param {Object} itemArmadura Item equipado no slot de armadura
+ * @param {number} dadoDes Valor numérico do dado de Destreza (ex: 8)
+ * @returns {{
+ *   ehMarcial: boolean,
+ *   defesaBase: number,
+ *   bonusDefesaArmadura: number,
+ *   bonusMDefArmadura: number,
+ *   penalidadeIniciativa: number
+ * }}
+ */
+export function extrairStatsArmadura(itemArmadura, dadoDes = 8) {
+  if (!itemArmadura) {
+    return {
+      ehMarcial: false,
+      defesaBase: dadoDes,
+      bonusDefesaArmadura: 0,
+      bonusMDefArmadura: 0,
+      penalidadeIniciativa: 0
+    };
+  }
+
+  const stats = itemArmadura.stats_personalizados || itemArmadura.stats || {};
+  const ehMarcialExplicitamente = isArmaduraMarcial(itemArmadura);
+
+  const defBruta = stats.defesa ?? stats.def ?? 0;
+  const mdefBruta =
+    stats['defesa magica'] ??
+    stats['defesa mágica'] ??
+    stats.mdefesa ??
+    stats.mdef ??
+    stats.defesa_magica ??
+    0;
+  const iniBruta = stats.iniciativa ?? stats.ini ?? stats.Iniciativa ?? 0;
+
+  const textoDef = String(defBruta).trim();
+  const contemDesExplicito = /\b(des|destreza)\b/i.test(textoDef);
+
+  let numeroDef = 0;
+  const matchNumero = textoDef.match(/-?\d+/);
+  if (matchNumero) {
+    numeroDef = parseInt(matchNumero[0], 10) || 0;
+  } else if (typeof defBruta === 'number') {
+    numeroDef = Math.floor(defBruta);
+  }
+
+  // Em Fabula Ultima: Armaduras marciais possuem DEF fixa (>= 9 ou marcial declarado).
+  // Armaduras leves concedem bônus pequeno (+0 a +3).
+  const ehMarcial = ehMarcialExplicitamente || (!contemDesExplicito && numeroDef >= 9);
+
+  let defesaBase = dadoDes;
+  let bonusDefesaArmadura = 0;
+
+  if (ehMarcial) {
+    // Armadura Marcial: Defesa fixa substitui o dado de Destreza.
+    // NUNCA soma Destreza com a armadura marcial (ex: 8 + 11 = 19 nunca ocorre).
+    defesaBase = numeroDef > 0 ? numeroDef : 10;
+    bonusDefesaArmadura = 0;
+  } else {
+    // Armadura Leve: Base é a Destreza do personagem. O valor da armadura é um bônus.
+    defesaBase = dadoDes;
+    bonusDefesaArmadura = numeroDef;
+  }
+
+  let bonusMDefArmadura = 0;
+  const matchMDef = String(mdefBruta).match(/-?\d+/);
+  if (matchMDef) {
+    bonusMDefArmadura = parseInt(matchMDef[0], 10) || 0;
+  } else if (typeof mdefBruta === 'number') {
+    bonusMDefArmadura = Math.floor(mdefBruta);
+  }
+
+  const penalidadeIniciativa = parseInt(iniBruta, 10) || 0;
+
+  return {
+    ehMarcial,
+    defesaBase,
+    bonusDefesaArmadura,
+    bonusMDefArmadura,
+    penalidadeIniciativa
+  };
+}
+
+/**
+ * Extrai o bônus de Defesa, Defesa Mágica e Iniciativa de itens secundários, escudos ou acessórios.
+ * @param {Object} item
+ * @returns {{ bonusDef: number, bonusMDef: number, modIni: number, ehEscudo: boolean }}
+ */
+export function extrairStatsItemDefensivo(item) {
+  if (!item) return { bonusDef: 0, bonusMDef: 0, modIni: 0, ehEscudo: false };
+
+  const stats = item.stats_personalizados || item.stats || {};
+  const ehEsc = isEscudo(item);
+
+  const defBruta = stats.defesa ?? stats.def ?? 0;
+  const mdefBruta =
+    stats['defesa magica'] ??
+    stats['defesa mágica'] ??
+    stats.mdefesa ??
+    stats.mdef ??
+    stats.defesa_magica ??
+    0;
+  const iniBruta = stats.iniciativa ?? stats.ini ?? stats.Iniciativa ?? 0;
+
+  const matchDef = String(defBruta).match(/-?\d+/);
+  const bonusDef = matchDef ? parseInt(matchDef[0], 10) || 0 : (typeof defBruta === 'number' ? Math.floor(defBruta) : 0);
+
+  const matchMDef = String(mdefBruta).match(/-?\d+/);
+  const bonusMDef = matchMDef ? parseInt(matchMDef[0], 10) || 0 : (typeof mdefBruta === 'number' ? Math.floor(mdefBruta) : 0);
+
+  const modIni = parseInt(iniBruta, 10) || 0;
+
+  return {
+    bonusDef,
+    bonusMDef,
+    modIni,
+    ehEscudo: ehEsc
+  };
+}
+
+/**
  * Calcula a Defesa Física (DEF), Defesa Mágica (M.DEF) e modificador de Iniciativa a partir dos atributos e itens equipados.
  * @param {Object} params
  * @param {Object} params.atributos { destreza, astucia, vigor, vontade }
@@ -249,6 +387,7 @@ export function validarSlotEquipamento({ item, slotAlvo, classes = [] }) {
  * @param {Array} params.classes Classes do personagem (para habilidades como Esquiva do Ladino)
  * @returns {{
  *   defesaBase: number,
+ *   bonusDefesaArmadura: number,
  *   bonusDefesaItens: number,
  *   bonusEsquivaLadino: number,
  *   defesaTotal: number,
@@ -264,47 +403,27 @@ export function validarSlotEquipamento({ item, slotAlvo, classes = [] }) {
 export function calcularDefesasEIniciativa({ atributos = {}, itensEquipados = [], classes = [] }) {
   const des = dadoParaNumero(atributos.destreza);
   const ast = dadoParaNumero(atributos.astucia);
-  const vig = dadoParaNumero(atributos.vigor);
-  const von = dadoParaNumero(atributos.vontade);
-
-  const mapaAtributos = {
-    des, destreza: des,
-    ast, astucia: ast,
-    vig, vigor: vig,
-    von, vontade: von
-  };
 
   const itemMaoDom = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.MAO_DOMINANTE);
   const itemMaoSec = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
   const itemArmadura = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.ARMADURA);
   const itemAcessorio = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.ACESSORIO);
 
-  const temEscudoEquipado = isEscudo(itemMaoDom) || isEscudo(itemMaoSec);
-  const temDoisEscudos = isEscudo(itemMaoDom) && isEscudo(itemMaoSec);
-  const temArmaduraMarc = isArmaduraMarcial(itemArmadura);
+  const statsArmadura = extrairStatsArmadura(itemArmadura, des);
+  const statsMaoDom = extrairStatsItemDefensivo(itemMaoDom);
+  const statsMaoSec = extrairStatsItemDefensivo(itemMaoSec);
+  const statsAcessorio = extrairStatsItemDefensivo(itemAcessorio);
+
+  const temEscudoEquipado = statsMaoDom.ehEscudo || statsMaoSec.ehEscudo;
+  const temDoisEscudos = statsMaoDom.ehEscudo && statsMaoSec.ehEscudo;
+  const temArmaduraMarc = statsArmadura.ehMarcial;
 
   // 1. Defesa Física:
-  // Se houver armadura com defesa fixa (como armadura marcial), usa-se a defesa da armadura como base.
-  // Caso contrário, a base é o dado de Destreza.
-  let defesaBase = des;
-  let bonusDefesaItens = 0;
-
-  if (itemArmadura) {
-    const statsArm = itemArmadura.stats_personalizados || {};
-    const defArmaduraBruta = statsArm.defesa ?? statsArm.def ?? 0;
-    const defCalculada = resolverValorNumerico(defArmaduraBruta, mapaAtributos);
-    if (defCalculada > 0) {
-      defesaBase = defCalculada;
-    }
-  }
-
-  [itemMaoDom, itemMaoSec, itemAcessorio].forEach(item => {
-    if (item) {
-      const stats = item.stats_personalizados || {};
-      const defBruta = stats.defesa ?? stats.def ?? 0;
-      bonusDefesaItens += resolverValorNumerico(defBruta, mapaAtributos);
-    }
-  });
+  // Base é DES (para leve/sem armadura) ou DEF Fixa (para marcial)
+  const defesaBase = statsArmadura.defesaBase;
+  const bonusDefesaArmadura = statsArmadura.bonusDefesaArmadura;
+  const bonusDefesaOutrosItens = statsMaoDom.bonusDef + statsMaoSec.bonusDef + statsAcessorio.bonusDef;
+  const bonusDefesaItens = bonusDefesaArmadura + bonusDefesaOutrosItens;
 
   // Habilidade "Esquiva" do Ladino: +SL em Defesa se não estiver usando escudo nem armadura marcial
   let bonusEsquivaLadino = 0;
@@ -330,45 +449,25 @@ export function calcularDefesasEIniciativa({ atributos = {}, itensEquipados = []
 
   const defesaTotal = defesaBase + bonusDefesaItens + bonusEsquivaLadino;
 
-  // 2. Defesa Mágica (M.DEF):
-  // Base é o dado de Astúcia + bônus de itens (armadura, escudos, acessórios)
-  let mdefBase = ast;
-  let bonusMDefItens = 0;
-
-  [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach(item => {
-    if (item) {
-      const stats = item.stats_personalizados || {};
-      const mdefBruta =
-        stats['defesa magica'] ??
-        stats['defesa mágica'] ??
-        stats.mdefesa ??
-        stats.mdef ??
-        stats.defesa_magica ??
-        0;
-
-      const mdefCalculada = resolverValorNumerico(mdefBruta, mapaAtributos);
-      if (typeof mdefBruta === 'string' && mdefBruta.toLowerCase().includes('base')) {
-        mdefBase = Math.max(mdefBase, mdefCalculada);
-      } else {
-        bonusMDefItens += mdefCalculada;
-      }
-    }
-  });
-
+  // 2. Defesa Mágica (M.DEF): Base é sempre AST + bônus somados
+  const mdefBase = ast;
+  const bonusMDefItens =
+    statsArmadura.bonusMDefArmadura +
+    statsMaoDom.bonusMDef +
+    statsMaoSec.bonusMDef +
+    statsAcessorio.bonusMDef;
   const mdefTotal = mdefBase + bonusMDefItens;
 
-  // 3. Penalidade / Modificador de Iniciativa total vindo dos itens
-  let iniciativaTotal = 0;
-  [itemArmadura, itemMaoSec, itemMaoDom, itemAcessorio].forEach(item => {
-    if (item) {
-      const stats = item.stats_personalizados || {};
-      const iniBruta = stats.iniciativa ?? stats.ini ?? stats.Iniciativa ?? 0;
-      iniciativaTotal += parseInt(iniBruta, 10) || 0;
-    }
-  });
+  // 3. Modificador de Iniciativa total vindo dos itens (penalidades de armaduras marciais e escudos)
+  const iniciativaTotal =
+    statsArmadura.penalidadeIniciativa +
+    statsMaoDom.modIni +
+    statsMaoSec.modIni +
+    statsAcessorio.modIni;
 
   return {
     defesaBase,
+    bonusDefesaArmadura,
     bonusDefesaItens,
     bonusEsquivaLadino,
     defesaTotal,
