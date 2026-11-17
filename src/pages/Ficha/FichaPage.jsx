@@ -13,6 +13,7 @@ import FichaAtributos from './secoes/FichaAtributosSecao';
 import FichaClassesSecao from './secoes/FichaClassesSecao';
 import FichaEquipamentosSecao from './secoes/FichaEquipamentosSecao';
 import FichaMagiasSecao from './secoes/FichaMagiasSecao';
+import FichaRituaisSecao from './secoes/FichaRituaisSecao';
 import FichaLacosSecao from './secoes/FichaLacosSecao';
 import FichaMochilaSecao from './secoes/FichaMochilaSecao';
 import FichaEstatisticasSecao from './secoes/FichaEstatisticasSecao';
@@ -26,6 +27,7 @@ import FichaFormGeral from './forms/FichaFormGeral';
 import FichaFormPeculiaridade, { ExibirPeculiaridadeFicha } from './forms/FichaFormPeculiaridades';
 import FichaFormAtributos from './forms/FichaFormAtributos';
 import FichaFormClasses from './forms/FichaFormClasses';
+import FichaFormRituais from './forms/FichaFormRituais';
 import FichaFormLacos from './forms/FichaFormLacos';
 import FichaFormMochila from './forms/FichaFormMochila';
 
@@ -160,6 +162,11 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         formData={formData}
                         setFormData={setFormData}
                     />
+                    <FichaFormRituais
+                        formData={formData}
+                        setFormData={setFormData}
+                        formClasses={formClasses}
+                    />
                     <FichaFormLacos formData={formData} setFormData={setFormData} setAlerta={setAlerta} />
                     <FichaFormMochila formData={formData} setFormData={setFormData} />
 
@@ -218,6 +225,12 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         onAtualizarMutante={atualizarDadosMutante}
                     />
                     <FichaMagiasSecao magias={magias} />
+                    <FichaRituaisSecao
+                        ficha={ficha}
+                        classes={classes}
+                        atributos={atributosAtuaisParaCalculo}
+                        handleAjustarRecurso={ajustarRecurso}
+                    />
                     <FichaLacosSecao lacos={ficha?.lacos} />
                     <FichaMochilaSecao mochila={ficha?.mochila} notas={ficha?.notas} />
                 </div>
