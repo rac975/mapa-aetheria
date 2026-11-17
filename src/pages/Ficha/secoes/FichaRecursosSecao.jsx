@@ -8,7 +8,6 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
   // Tetos calculados com fallbacks seguros
   const hpMaxCalculado = statusFicha?.pvMax || ficha.hp_max || ficha.pv_max || 30;
   const mpMaxCalculado = statusFicha?.mpMax || ficha.mp_max || ficha.pm_max || 30;
-  const piMaxCalculado = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 6;
 
   // Valores atuais respeitando limites (e Dosagem Precisa até 150% do máximo)
   const permiteDosagem = Boolean(statusFicha?.naturalFantasy?.temDosagemPrecisa);
@@ -16,7 +15,6 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
   const tetoPmEfetivo = permiteDosagem ? Math.floor(mpMaxCalculado * 1.5) : mpMaxCalculado;
   const hpAtualSeguro = Math.min(Math.max(ficha.hp_atual ?? hpMaxCalculado, 0), Math.max(tetoPvEfetivo, Number(ficha.hp_atual || 0)));
   const mpAtualSeguro = Math.min(Math.max(ficha.mp_atual ?? mpMaxCalculado, 0), Math.max(tetoPmEfetivo, Number(ficha.mp_atual || 0)));
-  const piAtualSeguro = Math.min(Math.max(ficha.ip_atual ?? ficha.pi_atual ?? piMaxCalculado, 0), piMaxCalculado);
   const expAtualSeguro = Math.min(Math.max(Number(ficha.exp ?? 0), 0), 10);
 
   const emCrise = hpAtualSeguro <= Math.floor(hpMaxCalculado / 2);
@@ -130,40 +128,7 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
         </div>
       </div>
 
-      {/* 3. PONTOS DE INVENTÁRIO (PI) */}
-      <div className={styles.resourceCard}>
-        <ResourceBar
-          type="pi"
-          current={piAtualSeguro}
-          max={piMaxCalculado}
-          label="Pontos de Inventário (PI)"
-          showValues={true}
-        />
-        <div className={styles.cardControls}>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className={styles.adjustBtn}
-            onClick={() => handleAjustarRecurso('ip_atual', -1)}
-            title="Usar -1 PI"
-          >
-            <FaMinus />
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="sm"
-            className={styles.adjustBtn}
-            onClick={() => handleAjustarRecurso('ip_atual', 1)}
-            title="Recuperar +1 PI"
-          >
-            <FaPlus />
-          </Button>
-        </div>
-      </div>
-
-      {/* 4. EXPERIÊNCIA (XP) - BARRA DE 10 PONTOS / SEGMENTOS */}
+      {/* 3. EXPERIÊNCIA (XP) - BARRA DE 10 PONTOS / SEGMENTOS */}
       <div className={styles.resourceCard}>
         <ResourceBar
           type="exp"

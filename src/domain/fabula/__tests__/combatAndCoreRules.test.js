@@ -27,6 +27,12 @@ import {
   extrairPerfilRolagemCombatente,
   rolarDadosCombate
 } from '../combatRules.js';
+import {
+  calcularDefesasEIniciativa,
+  extrairStatsArmadura,
+  extrairStatsItemDefensivo,
+  SLOTS_EQUIPAMENTO
+} from '../equipmentRules.js';
 
 function assert(condition, message) {
   if (!condition) {
@@ -289,5 +295,86 @@ assert(
   rolagemOpostaGuarda.bonusGuarda === 2 && rolagemOpostaGuarda.total === 11,
   'Teste Oposto em postura de Guarda aplica automaticamente +2 (5+4+2=11)'
 );
+
+console.log('--- 6. Testando Regras de Armaduras, Escudos e Cálculo de Defesas ---');
+const attrsPadrao = { destreza: 'd8', astucia: 'd8', vigor: 'd8', vontade: 'd8' };
+
+// 6.1 Sem Armadura
+const defSemArmadura = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [], classes: [] });
+assert(defSemArmadura.defesaTotal === 8, 'Sem armadura: DEF = DES (8)');
+assert(defSemArmadura.mdefTotal === 8, 'Sem armadura: M.DEF = AST (8)');
+assert(defSemArmadura.iniciativaTotal === 0, 'Sem armadura: Iniciativa = 0');
+
+// 6.2 Armadura Leve (+1 DEF, +1 MDEF, -1 Ini)
+const itemArmaduraLeve = {
+  nome: 'Traje de Viagem',
+  tipo: 'Armadura Leve',
+  stats_personalizados: { slot: SLOTS_EQUIPAMENTO.ARMADURA, defesa: '+1', 'defesa magica': '+1', iniciativa: -1 }
+};
+const statsExtLeve = extrairStatsArmadura(itemArmaduraLeve, 8);
+assert(statsExtLeve.ehMarcial === false && statsExtLeve.defesaBase === 8 && statsExtLeve.bonusDefesaArmadura === 1, 'extrairStatsArmadura identifica armadura leve');
+
+const defLeve = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraLeve], classes: [] });
+assert(defLeve.defesaTotal === 9, 'Armadura Leve (+1): DEF = DES (8) + 1 = 9');
+assert(defLeve.mdefTotal === 9, 'Armadura Leve (+1): M.DEF = AST (8) + 1 = 9');
+assert(defLeve.iniciativaTotal === -1, 'Armadura Leve: penalidade de iniciativa -1');
+
+// 6.3 Armadura Marcial (DEF Fixa 11, Ini -3) - Garante que NUNCA vire 19 (8 + 11)!
+const itemArmaduraMarcial = {
+  nome: 'Cota de Malha',
+  tipo: 'Armadura Marcial',
+  stats_personalizados: { slot: SLOTS_EQUIPAMENTO.ARMADURA, marcial: true, defesa: 11, iniciativa: -3 }
+};
+const statsExtMarcial = extrairStatsArmadura(itemArmaduraMarcial, 8);
+assert(statsExtMarcial.ehMarcial === true && statsExtMarcial.defesaBase === 11 && statsExtMarcial.bonusDefesaArmadura === 0, 'extrairStatsArmadura identifica marcial com DEF Fixa');
+
+const defMarcial = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraMarcial], classes: [] });
+assert(defMarcial.defesaTotal === 11, 'Armadura Marcial (11): DEF Fixa = 11 (NUNCA salta para 19)');
+assert(defMarcial.defesaBase === 11, 'Armadura Marcial substitui DES por 11 na defesa base');
+assert(defMarcial.iniciativaTotal === -3, 'Armadura Marcial: penalidade de iniciativa -3');
+
+// 6.4 Armadura Marcial com string "DES + 11" - Parser corrige automaticamente para DEF Fixa 11
+const itemArmaduraMarcialString = {
+  nome: 'Armadura de Placas',
+  tipo: 'Armadura Marcial',
+  stats_personalizados: { slot: SLOTS_EQUIPAMENTO.ARMADURA, marcial: true, defesa: 'DES + 11', iniciativa: -4 }
+};
+const defMarcialStr = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraMarcialString], classes: [] });
+assert(defMarcialStr.defesaTotal === 11, 'Armadura Marcial com string DES + 11 é normalizada para DEF Fixa 11 (evita 19)');
+
+// 6.5 Armadura Marcial + Escudo de Bronze (+2 DEF)
+const itemEscudoBronze = {
+  nome: 'Escudo de Bronze',
+  tipo: 'Escudo',
+  stats_personalizados: { slot: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA, escudo: true, defesa: 2 }
+};
+const statsExtEscudo = extrairStatsItemDefensivo(itemEscudoBronze);
+assert(statsExtEscudo.ehEscudo === true && statsExtEscudo.bonusDef === 2, 'extrairStatsItemDefensivo identifica escudo e bônus');
+const defMarcialEscudo = calcularDefesasEIniciativa({
+  atributos: attrsPadrao,
+  itensEquipados: [itemArmaduraMarcial, itemEscudoBronze],
+  classes: []
+});
+assert(defMarcialEscudo.defesaTotal === 13, 'Armadura Marcial (11) + Escudo (+2) = 13 DEF');
+assert(defMarcialEscudo.temEscudoEquipado === true, 'Detecta escudo equipado');
+
+// 6.6 Armadura Leve (+1 DEF) + Escudo de Bronze (+2 DEF)
+const defLeveEscudo = calcularDefesasEIniciativa({
+  atributos: attrsPadrao,
+  itensEquipados: [itemArmaduraLeve, itemEscudoBronze],
+  classes: []
+});
+assert(defLeveEscudo.defesaTotal === 11, 'Armadura Leve (+1) + Escudo (+2) + DES 8 = 11 DEF');
+
+// 6.7 Interação com Habilidade Esquiva do Ladino
+const classesLadino = [{ nome_classe: 'Ladino', nivel: 5, habilidades: [{ nome: 'Esquiva', nivel: 2 }] }];
+const defLadinoSemNada = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraLeve], classes: classesLadino });
+assert(defLadinoSemNada.defesaTotal === 11, 'Esquiva Nv 2 ativa com armadura leve e sem escudo (8 + 1 + 2 = 11)');
+
+const defLadinoComEscudo = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraLeve, itemEscudoBronze], classes: classesLadino });
+assert(defLadinoComEscudo.defesaTotal === 11, 'Esquiva Nv 2 desativa quando escudo é equipado (8 + 1 + 2 + 0 = 11)');
+
+const defLadinoComMarcial = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraMarcial], classes: classesLadino });
+assert(defLadinoComMarcial.defesaTotal === 11, 'Esquiva Nv 2 desativa quando armadura marcial é equipada (DEF Fixa 11)');
 
 console.log('TODOS OS TESTES CORE BOOK E COMBATE PASSARAM COM SUCESSO!');
