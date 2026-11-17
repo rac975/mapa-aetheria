@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaShieldAlt, FaBookOpen, FaMagic, FaBoxOpen, FaHeart } from 'react-icons/fa';
+import { FaShieldAlt, FaBookOpen, FaMagic, FaHeart } from 'react-icons/fa';
 import FichaRecursos from '../secoes/FichaRecursosSecao';
 import FichaAtributos from '../secoes/FichaAtributosSecao';
 import FichaClassesSecao from '../secoes/FichaClassesSecao';
@@ -71,14 +71,6 @@ export default function FichaViewGrid({
       badgeVariantActive: 'gold'
     },
     {
-      id: 'inventario',
-      label: 'Inventário & Perícias',
-      icone: <FaBoxOpen />,
-      badge: `${statusFicha?.piMax || 6} PI Max`,
-      badgeVariant: 'default',
-      badgeVariantActive: 'gold'
-    },
-    {
       id: 'diario',
       label: 'Laços & Diário',
       icone: <FaHeart />,
@@ -90,7 +82,8 @@ export default function FichaViewGrid({
 
   return (
     <div className={styles.viewContent}>
-      {/* 1. HUD OPERACIONAL FIXO: Recursos, Estatísticas Calculadas e Atributos Básicos */}
+      {/* 1. HUD OPERACIONAL FIXO: Visão Geral Consolidada */}
+      {/* Linha 1: Recursos Vitais e Estatísticas de Combate */}
       <div className={styles.gridRowTwoCols}>
         <FichaRecursos
           ficha={ficha}
@@ -100,6 +93,20 @@ export default function FichaViewGrid({
         <FichaEstatisticasSecao statusFicha={statusFicha} />
       </div>
 
+      {/* Linha 2: Pontos de Inventário (PI) e Perícias Táticas / Testes Combinados */}
+      <div className={styles.gridRowTwoCols}>
+        <FichaPIComponent
+          ficha={ficha}
+          setFicha={setFicha}
+          piMaxCalculado={statusFicha?.piMax}
+          statusFicha={statusFicha}
+          classes={classes}
+          onAtualizarDadosClasse={atualizarDadosClasseLocal}
+        />
+        <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
+      </div>
+
+      {/* Linha 3: Atributos Básicos e Modificadores Temporários */}
       <FichaAtributos
         ficha={ficha}
         atributosCalculados={statusFicha?.atributosCalculados}
@@ -109,7 +116,7 @@ export default function FichaViewGrid({
         onRolarDado={onRolarDado}
       />
 
-      {/* 2. BARRA DE NAVEGAÇÃO POR ABAS TÁTICAS */}
+      {/* 2. BARRA DE NAVEGAÇÃO POR ABAS TÁTICAS (4 ABAS LIMPAS) */}
       <FichaTabsNav
         tabs={tabsConfig}
         activeTab={activeTab}
@@ -207,31 +214,6 @@ export default function FichaViewGrid({
               handleAjustarRecurso={ajustarRecurso}
             />
           </FichaDrawer>
-        </section>
-
-        {/* ABA: INVENTÁRIO & PERÍCIAS */}
-        <section
-          className={`${styles.tabPane} ${activeTab === 'inventario' ? styles.tabPaneActive : styles.tabPaneHidden} ${styles.printVisible}`}
-        >
-          <div className={styles.gridRowTwoCols}>
-            <FichaPIComponent
-              ficha={ficha}
-              setFicha={setFicha}
-              piMaxCalculado={statusFicha?.piMax}
-              statusFicha={statusFicha}
-              classes={classes}
-              onAtualizarDadosClasse={atualizarDadosClasseLocal}
-            />
-            <FichaDrawer
-              titulo="Perícias Táticas & Testes Combinados"
-              icone={<FaBoxOpen />}
-              badge="Regra Oficial"
-              badgeVariant="gold"
-              isOpenDefault={true}
-            >
-              <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
-            </FichaDrawer>
-          </div>
         </section>
 
         {/* ABA: LAÇOS & DIÁRIO */}

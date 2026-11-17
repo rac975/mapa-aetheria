@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaDice } from 'react-icons/fa';
-import { Card, Button } from '../../../components/ui';
+import { Card, Button, Badge } from '../../../components/ui';
 import styles from './FichaPericiaSecao.module.css';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
@@ -65,10 +65,15 @@ export default function FichaPericiasSecao({ atributos = {} }) {
     return (
         <Card variant="default" className={styles.container}>
             <div className={styles.innerFlex}>
-                {/* Título Compacto */}
-                <h3 className={styles.title}>
-                    <FaDice className={styles.titleIcon} /> Testes Frequentes
-                </h3>
+                {/* Cabeçalho Consolidado com Badge */}
+                <div className={styles.headerRow}>
+                    <h3 className={styles.title}>
+                        <FaDice className={styles.titleIcon} /> Perícias Táticas & Testes
+                    </h3>
+                    <Badge variant="gold" size="md">
+                        Regra Oficial
+                    </Badge>
+                </div>
 
                 {/* Combobox + Botão de Rolar */}
                 <div className={styles.controlsWrapper}>
@@ -76,6 +81,7 @@ export default function FichaPericiasSecao({ atributos = {} }) {
                         value={periciaSelecionada}
                         onChange={(e) => setPericiaSelecionada(e.target.value)}
                         className={styles.selectCircunstancia}
+                        aria-label="Selecionar circunstância para teste de perícia"
                     >
                         <option value="">Selecione uma circunstância...</option>
                         {periciasComuns.map((grupo, gIdx) => (
@@ -100,19 +106,20 @@ export default function FichaPericiasSecao({ atributos = {} }) {
                     </Button>
                 </div>
 
-                {/* Barrinha Simples de Resultado Inline */}
+                {/* Resultado Inline ou Placeholder */}
                 {ultimaRolagem ? (
                     <div className={styles.resultadoBox}>
                         <span className={styles.resultadoTitulo} title={ultimaRolagem.titulo}>
                             {ultimaRolagem.titulo}
                         </span>
                         <span className={styles.resultadoValores}>
-                            {ultimaRolagem.res1} + {ultimaRolagem.res2} = <strong className={styles.resultadoTotal}>{ultimaRolagem.total}</strong>
+                            {ultimaRolagem.sigla}: {ultimaRolagem.res1} + {ultimaRolagem.res2} ={' '}
+                            <strong className={styles.resultadoTotal}>{ultimaRolagem.total}</strong>
                         </span>
                     </div>
                 ) : (
                     <div className={styles.resultadoVazio}>
-                        Nenhum teste realizado
+                        Selecione uma circunstância acima para rolar teste combinado
                     </div>
                 )}
             </div>
