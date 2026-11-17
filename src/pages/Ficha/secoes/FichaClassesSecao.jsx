@@ -13,6 +13,7 @@ export default function FichaClassesSecao({
   fichaId,
   ficha,
   classes,
+  atributosAtuais = {},
   itensEquipados = [],
   handleAjustarRecurso,
   pvMaxCalculado,
@@ -21,6 +22,7 @@ export default function FichaClassesSecao({
   nivelTotal = 5,
   onAtualizarMutante,
   onAtualizarDadosClasse,
+  onElevarAtributoTemporario,
   onAtivarGolpe
 }) {
   const [companheiro, setCompanheiro] = useState(null);
@@ -123,6 +125,7 @@ export default function FichaClassesSecao({
                 fichaId={fichaId}
                 ficha={ficha}
                 classes={classes}
+                atributosAtuais={atributosAtuais}
                 itensEquipados={itensEquipados}
                 handleAjustarRecurso={handleAjustarRecurso}
                 hpMaxCalculado={hpMaxCalculado}
@@ -132,6 +135,7 @@ export default function FichaClassesSecao({
                 nivelTotal={nivelTotal}
                 onAtualizarMutante={onAtualizarMutante}
                 onAtualizarDadosClasse={onAtualizarDadosClasse}
+                onElevarAtributoTemporario={onElevarAtributoTemporario}
                 onAtivarGolpe={onAtivarGolpe}
               />
 

@@ -24,6 +24,30 @@
   display: block;
 }
 
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.badgeItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
 @media print {
   .container {
     background: transparent !important;

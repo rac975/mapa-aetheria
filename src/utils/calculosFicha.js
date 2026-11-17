@@ -26,6 +26,10 @@ import {
   extrairBeneficioInicialInvocador,
   extrairEfeitosAtivosNaturalFantasy
 } from '../domain/fabula/naturalFantasyRules.js';
+import {
+  calcularPassivosCoreClasses,
+  calcularBonusGolpeBaixo
+} from '../domain/fabula/coreClassRules.js';
 
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
@@ -709,6 +713,12 @@ export function calcularStatusPersonagem(
     resistenciasAtivas,
     imunidadesCondicaoAtivas: efeitosNF.imunidadesCondicaoNF || [],
     naturalFantasy: efeitosNF,
+    corePassivos: calcularPassivosCoreClasses({
+      classes,
+      ficha,
+      itensEquipados,
+      emCrise: emCriseCalculado
+    }),
     defesaPlacophoraAtiva: temPlacophora ? defPlacophora : null,
     dadosMutante,
     sinergias: {
@@ -1003,7 +1013,17 @@ export function rolarAtaqueEDanoArma(
   const danoDancarinoGuerra = ehCategoriaDancarinoGuerra ? sinergiasArma.bonusDanoDancarinoGuerra : 0;
   const danoDecretoBispo = sinergiasArma.bonusDanoDecreto;
   const danoBeladona = efeitosNFArma.floralista?.bonusDanoVenenoBeladona || 0;
-  const danoSinergiaExtra = (parseInt(opcoesDanoExtra?.bonusDanoExtra, 10) || 0) + danoBeladona;
+  const corePassivosArma = calcularPassivosCoreClasses({
+    classes,
+    itensEquipados,
+    emCrise: emCriseGlobal
+  });
+  const danoGolpeBaixo = calcularBonusGolpeBaixo(
+    corePassivosArma.nvGolpeBaixo,
+    opcoesDanoExtra?.condicoesAlvo || opcoesDanoExtra?.qtdCondicoesAlvo || 0,
+    !isMulti
+  );
+  const danoSinergiaExtra = (parseInt(opcoesDanoExtra?.bonusDanoExtra, 10) || 0) + danoBeladona + danoGolpeBaixo;
 
   const bonusDanoFixo = (isMulti ? 0 : bonusOriginal) +
     danoExtraHabilidade +

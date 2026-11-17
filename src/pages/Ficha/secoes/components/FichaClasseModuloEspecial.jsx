@@ -41,6 +41,7 @@ export default function FichaClasseModuloEspecial({
   fichaId,
   ficha,
   classes,
+  atributosAtuais = {},
   itensEquipados = [],
   handleAjustarRecurso,
   hpMaxCalculado,
@@ -50,38 +51,128 @@ export default function FichaClasseModuloEspecial({
   nivelTotal = 5,
   onAtualizarMutante,
   onAtualizarDadosClasse,
+  onElevarAtributoTemporario,
   onAtivarGolpe
 }) {
   const nomeClasse = (classe.nome_classe || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+  const realFichaId = fichaId || ficha?.id;
 
   return (
     <>
-      {nomeClasse.includes('inventor') && <ExibirInventor fichaId={fichaId} ficha={classe} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('ladino') && <ExibirLadino fichaId={fichaId} ficha={classe} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('atirador') && <ExibirAtirador fichaId={fichaId} ficha={classe} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('elementalista') && <ExibirElementalista ficha={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('quimerista') && <ExibirQuimerista fichaId={fichaId} ficha={classe} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('furioso') && <ExibirFurioso ficha={classe} handleAjustarRecurso={handleAjustarRecurso} emCriseGlobal={emCrise} />}
+      {nomeClasse.includes('inventor') && (
+        <ExibirInventor
+          fichaId={realFichaId}
+          ficha={ficha}
+          classe={classe}
+          classes={classes}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('ladino') && (
+        <ExibirLadino
+          fichaId={realFichaId}
+          ficha={ficha}
+          classe={classe}
+          classes={classes}
+          atributosAtuais={atributosAtuais}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('atirador') && (
+        <ExibirAtirador
+          fichaId={realFichaId}
+          ficha={ficha}
+          classe={classe}
+          classes={classes}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('elementalista') && (
+        <ExibirElementalista
+          ficha={ficha}
+          classe={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('quimerista') && (
+        <ExibirQuimerista
+          fichaId={realFichaId}
+          ficha={ficha}
+          classe={classe}
+          classes={classes}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('furioso') && (
+        <ExibirFurioso
+          ficha={ficha}
+          classe={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+          emCriseGlobal={emCrise}
+          atributosAtuais={atributosAtuais}
+          onElevarAtributoTemporario={onElevarAtributoTemporario}
+        />
+      )}
       {nomeClasse.includes('guerreiro sombrio') && (
         <ExibirGuerreiroSombrio
-          ficha={classe}
+          ficha={ficha}
+          classe={classe}
           handleAjustarRecurso={handleAjustarRecurso}
-          vigorValor={ficha?.vigor || 8}
+          vigorValor={atributosAtuais?.vigor || ficha?.vigor || 8}
           emCriseGlobal={emCrise}
           classes={classes}
           onAtivarGolpe={onAtivarGolpe}
         />
       )}
-      {nomeClasse.includes('orador') && <ExibirOrador ficha={ficha} classeObjeto={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('arcanista') && <ExibirArcanista ficha={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('erudito') && <ExibirErudito ficha={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('mestre de armas') && <ExibirMestreArmas ficha={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('entropista') && <ExibirEntropista classeObjeto={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('espiritualista') && <ExibirEspiritualista classeObjeto={classe} handleAjustarRecurso={handleAjustarRecurso} />}
-      {nomeClasse.includes('guardiao') && <ExibirGuardiao ficha={classe} />}
+      {nomeClasse.includes('orador') && (
+        <ExibirOrador
+          ficha={ficha}
+          classeObjeto={classe}
+          classes={classes}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('arcanista') && (
+        <ExibirArcanista
+          fichaId={realFichaId}
+          ficha={ficha}
+          classe={classe}
+          classes={classes}
+          emCriseGlobal={emCrise}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('erudito') && (
+        <ExibirErudito
+          ficha={ficha}
+          classe={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('mestre de armas') && (
+        <ExibirMestreArmas
+          ficha={ficha}
+          classe={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('entropista') && (
+        <ExibirEntropista
+          classeObjeto={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('espiritualista') && (
+        <ExibirEspiritualista
+          ficha={ficha}
+          classeObjeto={classe}
+          handleAjustarRecurso={handleAjustarRecurso}
+        />
+      )}
+      {nomeClasse.includes('guardiao') && <ExibirGuardiao classe={classe} ficha={classe} />}
       {nomeClasse.includes('esper') && (
         <ExibirEsper
           ficha={ficha}

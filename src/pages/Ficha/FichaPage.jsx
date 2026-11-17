@@ -80,15 +80,6 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         if (ficha && setFichaGlobal) setFichaGlobal(ficha);
     }, [ficha, setFichaGlobal]);
 
-    // Carrega os dados para os formulários de edição
-    useEffect(() => {
-        if (ficha && !editando) {
-            setFormData(ficha);
-            setFormClasses(classes);
-            setFormMagias(magias);
-        }
-    }, [ficha, classes, magias, editando]);
-
     // Dispara o salvamento da edição através do hook
     const handleSalvarEdicao = async (e) => {
         e.preventDefault();
@@ -207,6 +198,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         fichaId={id || ficha?.id}
                         ficha={ficha}
                         classes={classes}
+                        atributosAtuais={atributosAtuaisParaCalculo}
                         itensEquipados={itensEquipados}
                         handleAjustarRecurso={ajustarRecurso}
                         pvMaxCalculado={statusFicha.pvMax}
@@ -215,6 +207,12 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         nivelTotal={statusFicha.nivelTotal}
                         onAtualizarMutante={atualizarDadosMutante}
                         onAtualizarDadosClasse={atualizarDadosClasseLocal}
+                        onElevarAtributoTemporario={(attr) => {
+                            setModificadoresTemporarios((prev) => ({
+                                ...prev,
+                                [attr]: (prev[attr] || 0) + 1
+                            }));
+                        }}
                         onAtivarGolpe={(opcoes) => {
                             setOpcoesGolpeAtivo(opcoes);
                             setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });

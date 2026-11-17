@@ -61,6 +61,11 @@
   filter: grayscale(0.7);
 }
 
+.itemCard.turnActiveCard {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 0 1px var(--color-border-gold), 0 0 18px var(--color-border-gold-glow);
+}
+
 .itemMainRow {
   display: flex;
   align-items: center;

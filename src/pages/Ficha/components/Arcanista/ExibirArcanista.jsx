@@ -2,46 +2,42 @@ import React, { useState, useEffect } from 'react';
 import { FaStar, FaPlus, FaBook } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { calcularBonusEscalaArcanista } from '../../../../domain/fabula/classRules';
+import { calcularInvocacaoArcano } from '../../../../domain/fabula/coreClassRules';
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import { Button } from '../../../../components/ui';
+import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
 import ArcanoAtivoPainel from './ArcanoAtivoPainel';
 import ArcanosForms from './ArcanosForms';
 import ArcanosLista from './ArcanosLista';
 import styles from './ExibirArcanista.module.css';
 
-export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustarRecurso }) {
+export default function ExibirArcanista({ fichaId, ficha, classe, classes, emCriseGlobal = false, handleAjustarRecurso }) {
   const [catalogo, setCatalogo] = useState([]);
-  const [arcanosVinculados, setArcanosVinculados] = useState(() => ficha?.arcanos_vinculados || []);
+  const [arcanosVinculados, setArcanosVinculados] = useState(() => classe?.arcanos_vinculados || ficha?.arcanos_vinculados || []);
   const [arcanoAtivoIdx, setArcanoAtivoIdx] = useState(null);
-  const [emCrise, setEmCrise] = useState(false);
-  const [modoAdicao, setModoAdicao] = useState(null); // 'catalogo' | 'custom' | null
+  const [simularCrise, setSimularCrise] = useState(false);
+  const [modoAdicao, setModoAdicao] = useState(null);
   const [selecionadoCatalogo, setSelecionadoCatalogo] = useState('');
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
+  const [novoCustom, setNovoCustom] = useState({ nome: '', dominios: '', fundir: '', dispensar_nome: '', dispensar_efeito: '' });
 
-  const [novoCustom, setNovoCustom] = useState({
-    nome: '',
-    dominios: '',
-    fundir: '',
-    dispensar_nome: '',
-    dispensar_efeito: '',
-  });
-
-  // Carrega o catálogo oficial via fichaService
   useEffect(() => {
+    let active = true;
     async function carregarCatalogo() {
       const { data, error } = await fichaService.getCatalogoArcanos();
-      if (!error && data) {
+      if (active && !error && data) {
         setCatalogo(data);
         if (data.length > 0) setSelecionadoCatalogo(data[0].id);
       }
     }
     carregarCatalogo();
+    return () => { active = false; };
   }, []);
 
-  // Nível total do personagem e escala de bônus (Nv. 20+ e Nv. 40+)
   const nivelTotal = calcularNivelTotal(classes) || 5;
   const bonusEscalaNivel = calcularBonusEscalaArcanista(nivelTotal);
 
-  const habs = ficha?.habilidades || [];
+  const habs = classe?.habilidades || ficha?.habilidades || [];
   const getNivel = (termo) => {
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
@@ -52,24 +48,23 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
   const nvEmergencial = getNivel('arcano emergencial');
   const nvCirculo = getNivel('circulo arcano');
   const nvRegeneracao = getNivel('regeneracao arcana');
+  const emCriseEfetivo = Boolean(emCriseGlobal || simularCrise);
+  const { custoPm: custoInvocacao, curaRegeneracao } = calcularInvocacaoArcano({
+    nvArcanoEmergencial: nvEmergencial,
+    nvRegeneracaoArcana: nvRegeneracao,
+    emCrise: emCriseEfetivo
+  });
 
-  const custoInvocacao = Math.max(0, 40 - (emCrise ? nvEmergencial * 5 : 0));
-  const curaRegeneracao = nvRegeneracao * 5;
+  const fecharAlerta = () => setAlerta({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
-  // Persiste os arcanos vinculados dentro do JSON da classe via fichaService
   const salvarNoBanco = async (novaLista) => {
     setArcanosVinculados(novaLista);
-    if (!fichaId || !classes) return;
-
-    const classesAtualizadas = classes.map((c) => {
-      const norm = (c.nome_classe || '').toLowerCase();
-      if (norm.includes('arcanista')) {
-        return { ...c, arcanos_vinculados: novaLista };
-      }
-      return c;
-    });
-
-    const { error } = await fichaService.atualizarClassesPersonagem(fichaId, classesAtualizadas);
+    const idReal = fichaId || ficha?.id;
+    if (!idReal || !classes) return;
+    const classesAtualizadas = classes.map((c) =>
+      (c.nome_classe || '').toLowerCase().includes('arcanista') ? { ...c, arcanos_vinculados: novaLista } : c
+    );
+    const { error } = await fichaService.atualizarClassesPersonagem(idReal, classesAtualizadas);
     if (error) console.error('Erro ao salvar Arcanos vinculados:', error.message);
   };
 
@@ -77,7 +72,7 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
     const item = catalogo.find((a) => a.id === selecionadoCatalogo);
     if (!item) return;
     if (arcanosVinculados.some((a) => a.nome === item.nome)) {
-      alert('Este Arcano já está vinculado!');
+      setAlerta({ isOpen: true, type: 'warning', title: 'Arcano Duplicado', message: 'Este Arcano já está vinculado!' });
       return;
     }
     salvarNoBanco([...arcanosVinculados, item]);
@@ -93,98 +88,90 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
   };
 
   const removerVinculo = (idx) => {
-    if (!window.confirm('Remover este Arcano da lista vinculada?')) return;
-    const novaLista = arcanosVinculados.filter((_, i) => i !== idx);
-    salvarNoBanco(novaLista);
-    if (arcanoAtivoIdx === idx) setArcanoAtivoIdx(null);
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Remover Vínculo Arcano',
+      message: 'Deseja remover este Arcano da lista vinculada?',
+      onConfirm: () => {
+        salvarNoBanco(arcanosVinculados.filter((_, i) => i !== idx));
+        if (arcanoAtivoIdx === idx) setArcanoAtivoIdx(null);
+      }
+    });
   };
 
   const invocarArcano = (idx) => {
     if (arcanoAtivoIdx !== null) {
-      alert('Você já está fundido a um Arcano! Dispense o atual antes de invocar outro.');
+      setAlerta({ isOpen: true, type: 'warning', title: 'Arcano Ativo', message: 'Dispense o Arcano atual antes de invocar outro.' });
+      return;
+    }
+    const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
+    if (mpAtual < custoInvocacao) {
+      setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: `Invocar requer ${custoInvocacao} PM (você possui ${mpAtual} PM).` });
       return;
     }
     const arcano = arcanosVinculados[idx];
     const msgCura = curaRegeneracao > 0 ? ` e recuperar ${curaRegeneracao} PV (Regeneração Arcana)` : '';
-    if (!window.confirm(`Gastar ${custoInvocacao} PM para invocar ${arcano.nome}${msgCura}?`)) return;
-
-    if (handleAjustarRecurso) {
-      if (custoInvocacao > 0) handleAjustarRecurso('mp_atual', -custoInvocacao);
-      if (curaRegeneracao > 0) handleAjustarRecurso('hp_atual', curaRegeneracao);
-    }
-    setArcanoAtivoIdx(idx);
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: `Invocar ${arcano.nome}`,
+      message: `Gastar ${custoInvocacao} PM para invocar ${arcano.nome}${msgCura}?`,
+      onConfirm: () => {
+        if (handleAjustarRecurso) {
+          if (custoInvocacao > 0) handleAjustarRecurso('mp_atual', -custoInvocacao);
+          if (curaRegeneracao > 0) handleAjustarRecurso('hp_atual', curaRegeneracao);
+        }
+        setArcanoAtivoIdx(idx);
+      }
+    });
   };
 
   const dispensarArcano = (voluntario = true) => {
-    if (voluntario && nvCirculo > 0) {
-      alert(`Círculo Arcano: Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis (pagando até ${nvCirculo * 5} PM) sem gastar ação!`);
-    }
     setArcanoAtivoIdx(null);
+    if (voluntario && nvCirculo > 0) {
+      setAlerta({
+        isOpen: true,
+        type: 'info',
+        title: 'Círculo Arcano Ativo',
+        message: `Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis sem usar ação (custo até ${nvCirculo * 5} PM, pagando seu custo em PM).`
+      });
+    }
   };
 
   const arcanoAtivo = arcanoAtivoIdx !== null ? arcanosVinculados[arcanoAtivoIdx] : null;
 
   return (
     <div className={styles.container}>
-      {/* Cabeçalho e Controles */}
       <div className={styles.header}>
-        <div className={styles.title}>
-          <FaStar /> Grimório de Arcanos
-        </div>
-
+        <div className={styles.title}><FaStar /> Grimório de Arcanos</div>
         <div className={styles.headerActions}>
-          {nvEmergencial > 0 && (
-            <Button
-              type="button"
-              variant={emCrise ? 'danger' : 'ghost'}
-              size="sm"
-              onClick={() => setEmCrise(!emCrise)}
-            >
-              {emCrise ? `Em Crise (-${nvEmergencial * 5} PM)` : 'Simular Crise'}
+          {nvEmergencial > 0 && !emCriseGlobal && (
+            <Button type="button" variant={simularCrise ? 'danger' : 'ghost'} size="sm" onClick={() => setSimularCrise(!simularCrise)}>
+              {simularCrise ? `Em Crise (-${nvEmergencial * 5} PM)` : 'Simular Crise'}
             </Button>
           )}
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setModoAdicao(modoAdicao === 'catalogo' ? null : 'catalogo')}
-          >
+          {nvEmergencial > 0 && emCriseGlobal && (
+            <Button type="button" variant="danger" size="sm" disabled>
+              Crise Ativa (-{nvEmergencial * 5} PM)
+            </Button>
+          )}
+          <Button type="button" variant="secondary" size="sm" onClick={() => setModoAdicao(modoAdicao === 'catalogo' ? null : 'catalogo')}>
             <FaBook size={10} /> + Catálogo
           </Button>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setModoAdicao(modoAdicao === 'custom' ? null : 'custom')}
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={() => setModoAdicao(modoAdicao === 'custom' ? null : 'custom')}>
             <FaPlus size={10} /> + Custom
           </Button>
         </div>
       </div>
 
-      {/* Resumo de Custos e Escala */}
       <div className={styles.resumoGrid}>
-        <span className={styles.resumoItem}>
-          Invocação: <strong>{custoInvocacao} PM</strong>
-        </span>
-        {nvRegeneracao > 0 && (
-          <span className={styles.resumoItemGreen}>
-            Regeneração: <strong>+{curaRegeneracao} PV</strong> ao invocar
-          </span>
-        )}
-        {bonusEscalaNivel > 0 && (
-          <span className={styles.resumoItemGold}>
-            Dano de Dispensa (Nv. {nivelTotal}): <strong>+{bonusEscalaNivel}</strong>
-          </span>
-        )}
+        <span className={styles.resumoItem}>Invocação: <strong>{custoInvocacao} PM</strong></span>
+        {nvRegeneracao > 0 && <span className={styles.resumoItemGreen}>Regeneração: <strong>+{curaRegeneracao} PV</strong> ao invocar</span>}
+        {bonusEscalaNivel > 0 && <span className={styles.resumoItemGold}>Dano de Dispensa (Nv. {nivelTotal}): <strong>+{bonusEscalaNivel}</strong></span>}
       </div>
 
-      {/* Painel do Arcano Atualmente Fundido */}
       <ArcanoAtivoPainel arcanoAtivo={arcanoAtivo} onDispensar={dispensarArcano} />
-
-      {/* Seletor / Formulário de Adição */}
       <ArcanosForms
         modoAdicao={modoAdicao}
         onFecharModo={() => setModoAdicao(null)}
@@ -196,8 +183,6 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
         setNovoCustom={setNovoCustom}
         onVincularCustom={vincularCustom}
       />
-
-      {/* Lista de Arcanos Vinculados */}
       <ArcanosLista
         arcanosVinculados={arcanosVinculados}
         arcanoAtivoIdx={arcanoAtivoIdx}
@@ -205,6 +190,8 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
         onInvocarArcano={invocarArcano}
         onRemoverVinculo={removerVinculo}
       />
+
+      <CustomAlert isOpen={alerta.isOpen} type={alerta.type} title={alerta.title} message={alerta.message} onConfirm={alerta.onConfirm} onClose={fecharAlerta} />
     </div>
   );
 }

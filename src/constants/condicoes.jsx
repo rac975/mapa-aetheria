@@ -4,17 +4,20 @@ import {
   FaSpider,
   FaBolt,
   FaWeightHanging,
-  FaHeartBroken,
-  FaEyeSlash,
+  FaFire,
+  FaDizzy,
 } from "react-icons/fa";
 
+/**
+ * 6 Condições (Status Effects) Oficiais de Fabula Ultima (Livro Básico).
+ */
 export const CONDICOES_DISPONIVEIS = [
-  { id: "envenenado", label: "Envenenado", icon: <FaSpider /> },
-  { id: "atordoado", label: "Atordoado", icon: <FaBolt /> },
-  { id: "vulneravel", label: "Vulnerável", icon: <FaHeartBroken /> },
-  { id: "lento", label: "Lento", icon: <FaWeightHanging /> },
-  { id: "fraco", label: "Fraco", icon: <FaSkull /> },
-  { id: "dominado", label: "Dominado", icon: <FaEyeSlash /> },
+  { id: "abalado", label: "Abalado (VON-1)", icon: <FaDizzy /> },
+  { id: "atordoado", label: "Atordoado (AST-1)", icon: <FaBolt /> },
+  { id: "enfurecido", label: "Enfurecido (DES/AST-1)", icon: <FaFire /> },
+  { id: "envenenado", label: "Envenenado (VIG/VON-1)", icon: <FaSpider /> },
+  { id: "fraco", label: "Fraco (VIG-1)", icon: <FaSkull /> },
+  { id: "lento", label: "Lento (DES-1)", icon: <FaWeightHanging /> },
 ];
 
 export const getCondicaoIcon = (id) => {

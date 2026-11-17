@@ -35,6 +35,49 @@
   gap: var(--space-1);
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.modifiersBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+}
+
+.modifiersLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.modifierBtn {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--space-2);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modifierBtnActive {
+  background: rgba(var(--color-crise-rgb), 0.2);
+  border-color: var(--color-crise);
+  color: var(--color-crise-text);
+  font-weight: 700;
+}
+
 .title {
   margin: 0;
   font-family: var(--font-family-serif);

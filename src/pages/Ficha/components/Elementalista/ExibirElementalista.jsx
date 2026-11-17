@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { FaFire, FaBolt, FaMountain } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
+import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
 import styles from './ExibirElementalista.module.css';
 
-export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
+export default function ExibirElementalista({ ficha, classe, handleAjustarRecurso }) {
   const [custoExtraCataclismo, setCustoExtraCataclismo] = useState(10);
-  const [tipoArmaLamina, setTipoArmaLamina] = useState('des'); // 'des' ou 'outro'
+  const [tipoArmaLamina, setTipoArmaLamina] = useState('des');
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
-  const habs = ficha?.habilidades || [];
+  const habs = classe?.habilidades || ficha?.habilidades || [];
   const getNivel = (termo) => {
     const h = habs.find((item) =>
       (item.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(termo)
@@ -21,115 +23,85 @@ export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
   const nvLamina = getNivel('lamina magica');
   const nvMagiaElemental = getNivel('magia elemental');
 
-  if (nvArtilharia + nvCataclismo + nvRitualista + nvLamina + nvMagiaElemental === 0) {
-    return null;
-  }
+  if (nvArtilharia + nvCataclismo + nvRitualista + nvLamina + nvMagiaElemental === 0) return null;
 
-  // Cálculos baseados no Nível do Poder (NP)
   const bonusArtilharia = nvArtilharia * 2;
-  const maxPmCataclismo = nvCataclismo * 10; // NP x 10 (Máximo 50 no Nv 5)
-  const danoExtraCataclismo = Math.floor(custoExtraCataclismo / 10) * 5; // +5 de dano para cada 10 PM
-  
-  const maxPmLamina = nvLamina * 20; // NP x 20
-  const bonusAtributoLamina = tipoArmaLamina === 'des' ? nvLamina : 0; // Se DEX, soma NP ao teste
+  const maxPmCataclismo = nvCataclismo * 10;
+  const danoExtraCataclismo = Math.floor(custoExtraCataclismo / 10) * 5;
+  const maxPmLamina = nvLamina * 20;
+  const bonusAtributoLamina = tipoArmaLamina === 'des' ? nvLamina : 0;
+
+  const fecharAlerta = () => setAlerta({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
   const usarCataclismo = () => {
     if (!handleAjustarRecurso) return;
-
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
     if (mpAtual < custoExtraCataclismo) {
-      window.alert(`MP insuficiente! O custo extra selecionado é de ${custoExtraCataclismo} PM.`);
+      setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: `Você tem ${mpAtual} PM e o Cataclismo selecionado exige +${custoExtraCataclismo} PM.` });
       return;
     }
 
-    if (window.confirm(`Aplicar Cataclismo (+${custoExtraCataclismo} PM)?\n\nIsso aumentará o dano do feitiço instantâneo em +${danoExtraCataclismo} pontos de dano elemental.`)) {
-      handleAjustarRecurso('mp_atual', -custoExtraCataclismo);
-      window.alert(`💥 Cataclismo aplicado com sucesso! ${custoExtraCataclismo} PM consumidos e +${danoExtraCataclismo} de dano adicionado.`);
-    }
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Aplicar Cataclismo',
+      message: `Gastar +${custoExtraCataclismo} PM para adicionar +${danoExtraCataclismo} pontos de dano ao feitiço instantâneo com arma arcana equipada?`,
+      onConfirm: () => handleAjustarRecurso('mp_atual', -custoExtraCataclismo)
+    });
   };
 
-  // Gera dinamicamente as opções do Cataclismo baseadas no nível da habilidade (10 em 10 até maxPmCataclismo)
   const opcoesCataclismo = [];
   for (let pm = 10; pm <= maxPmCataclismo; pm += 10) {
-    const dano = (pm / 10) * 5;
     opcoesCataclismo.push(
-      <option key={pm} value={pm}>
-        {pm} PM (+{dano} Dano)
-      </option>
+      <option key={pm} value={pm}>{pm} PM (+{(pm / 10) * 5} Dano)</option>
     );
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.title}>
-          <FaFire /> Domínio Elemental — Elementalista
-        </div>
-
-        {nvRitualista > 0 && (
-          <span className={styles.ritualistaBadge}>
-            ✨ Ritualismo Elemental Ativo (AST + VON)
-          </span>
-        )}
+        <div className={styles.title}><FaFire /> Domínio Elemental — Elementalista</div>
+        {nvRitualista > 0 && <span className={styles.ritualistaBadge}>✨ Ritualismo Elemental Ativo (AST + VON)</span>}
       </div>
 
       <div className={styles.passivasRow}>
         {nvArtilharia > 0 && (
-          <span className={styles.artilhariaBadge}>
-            🎯 Artilharia Mágica Ativa (+{bonusArtilharia} em Testes de Magia Ofensiva com Arma Arcana)
-          </span>
+          <span className={styles.artilhariaBadge}>🎯 Artilharia Mágica (+{bonusArtilharia} em Magia Ofensiva com Arma Arcana)</span>
         )}
       </div>
 
-      {/* Seção de Cataclismo */}
       {nvCataclismo > 0 && (
         <div className={styles.cardBox}>
-          <div className={styles.cataclismoTitle}>
-            <FaBolt /> Cataclismo (Até +{maxPmCataclismo} PM):
-          </div>
+          <div className={styles.cataclismoTitle}><FaBolt /> Cataclismo (Até +{maxPmCataclismo} PM):</div>
           <div className={styles.actionRow}>
-            <label className={styles.label}>PM Extra a Gastar:</label>
-            <select
-              value={custoExtraCataclismo}
-              onChange={(e) => setCustoExtraCataclismo(Number(e.target.value))}
-              className={styles.select}
-            >
+            <label className={styles.label}>PM Extra:</label>
+            <select value={custoExtraCataclismo} onChange={(e) => setCustoExtraCataclismo(Number(e.target.value))} className={styles.select}>
               {opcoesCataclismo}
             </select>
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              onClick={usarCataclismo}
-            >
+            <Button type="button" variant="danger" size="sm" onClick={usarCataclismo}>
               Lançar Cataclismo (+{danoExtraCataclismo} Dano)
             </Button>
           </div>
         </div>
       )}
 
-      {/* Seção de Lâmina Mágica */}
       {nvLamina > 0 && (
         <div className={styles.cardBox}>
-          <div className={styles.laminaTitle}>
-            <FaMountain /> Lâmina Mágica (Limite máx. feitiço: {maxPmLamina} PM):
-          </div>
+          <div className={styles.laminaTitle}><FaMountain /> Lâmina Mágica (Até {maxPmLamina} PM):</div>
           <div className={styles.actionRow}>
-            <span className={styles.label}>Tipo de Arma Equipada:</span>
-            <select
-              value={tipoArmaLamina}
-              onChange={(e) => setTipoArmaLamina(e.target.value)}
-              className={styles.select}
-            >
-              <option value="des">Usa Destreza (Bônus de Atributo: +{bonusAtributoLamina})</option>
-              <option value="outro">Outro Atributo (Sem bônus extra de DES)</option>
+            <span className={styles.label}>Arma Equipada:</span>
+            <select value={tipoArmaLamina} onChange={(e) => setTipoArmaLamina(e.target.value)} className={styles.select}>
+              <option value="des">Usa Destreza (+{bonusAtributoLamina} Magia)</option>
+              <option value="outro">Outro Atributo (+0 Magia)</option>
             </select>
           </div>
           <div className={styles.infoText}>
-            ℹ️ Permite usar a fórmula de Precisão da arma física no teste de Magia para feitiços de alvo único. Se incluir Destreza, ganha bônus igual ao nível da habilidade (+{nvLamina}).
+            ℹ️ Usa a fórmula de Precisão da arma equipada para feitiços de alvo único (≤ {maxPmLamina} PM); se incluir Destreza, soma +{nvLamina} no Teste de Magia.
           </div>
         </div>
       )}
+
+      <CustomAlert isOpen={alerta.isOpen} type={alerta.type} title={alerta.title} message={alerta.message} onConfirm={alerta.onConfirm} onClose={fecharAlerta} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaCogs } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { Badge } from '../../../../components/ui';
+import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
 import InventorRamosResumo from './InventorRamosResumo';
 import InventorAlquimiaSecao from './InventorAlquimiaSecao';
 import InventorInfusoesSecao from './InventorInfusoesSecao';
@@ -10,27 +11,19 @@ import styles from './ExibirInventor.module.css';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
-export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarRecurso }) {
-  // Estados da Alquimia
+export default function ExibirInventor({ classes, ficha, classe, fichaId, handleAjustarRecurso }) {
   const [tipoMistura, setTipoMistura] = useState('basica');
   const [resultadoAlquimia, setResultadoAlquimia] = useState(null);
-
-  // Estados de Infusões
   const [infusaoSelecionada, setInfusaoSelecionada] = useState(null);
-
-  // Estado de carregamento do Magicanhão
   const [criandoCanhao, setCriandoCanhao] = useState(false);
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert' });
 
-  // 1. Encontra a classe Inventor e suas habilidades
-  const classeInventor = classes?.find(c => (c.nome_classe || '').toLowerCase().includes('inventor'));
+  const classeInventor = classe || classes?.find((c) => (c.nome_classe || '').toLowerCase().includes('inventor'));
   const nivelInventor = classeInventor ? (parseInt(classeInventor.nivel, 10) || 1) : 0;
-
   if (nivelInventor <= 0) return null;
 
-  // 2. Localiza a habilidade "Engenhocas" e os ramos escolhidos
-  const habEngenhocas = (classeInventor?.habilidades || []).find(h => (h.nome || '').toLowerCase().includes('engenhocas'));
+  const habEngenhocas = (classeInventor?.habilidades || []).find((h) => (h.nome || '').toLowerCase().includes('engenhocas'));
   const nivelEngenhocas = habEngenhocas ? (parseInt(habEngenhocas.nivel, 10) || 0) : 0;
-
   if (nivelEngenhocas <= 0) return null;
 
   const ramos = habEngenhocas?.ramos || {};
@@ -116,37 +109,33 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
     const idPersonagem = fichaId || ficha?.id;
 
     if (!idPersonagem) {
-      alert("❌ Erro: ID da ficha de personagem não encontrado!");
+      setAlerta({ isOpen: true, type: 'error', title: 'Erro', message: 'ID da ficha de personagem não encontrado!' });
       return;
     }
 
     setCriandoCanhao(true);
 
     try {
-      // 1. Verifica se já existem itens nas mãos
       const itensEquipados = await fichaService.getItensByFichaId(idPersonagem);
-
-      const ocupado = (itensEquipados || []).some(i => {
+      const ocupado = (itensEquipados || []).some((i) => {
         const slot = i.stats_personalizados?.slot;
         return slot === 'mao_dominante' || slot === 'mao_secundaria';
       });
 
       if (ocupado) {
-        alert("⛔ Regra do Magicanhão: Seus dois espaços de mão precisam estar completamente vazios para criar e equipar o magicanhão!");
+        setAlerta({ isOpen: true, type: 'warning', title: 'Mãos Ocupadas', message: 'Regra do Magicanhão: seus dois espaços de mão precisam estar vazios para criar e equipar o magicanhão!' });
         setCriandoCanhao(false);
         return;
       }
 
-      // 2. Remove qualquer magicanhão anterior criado
       const idsParaRemover = (itensEquipados || [])
-        .filter(i => (i.nome || '').toLowerCase().includes('magicanhão'))
-        .map(i => i.id);
+        .filter((i) => (i.nome || '').toLowerCase().includes('magicanhão'))
+        .map((i) => i.id);
 
       if (idsParaRemover.length > 0) {
         await fichaService.deletarItensPersonagemPorIds(idsParaRemover);
       }
 
-      // 3. Insere o novo Magicanhão vinculado à ficha
       const novoCanhao = {
         ficha_id: idPersonagem,
         nome: 'Magicanhão',
@@ -165,10 +154,10 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
       const { error: erroInsercao } = await fichaService.addItemPersonagem(novoCanhao);
       if (erroInsercao) throw erroInsercao;
 
-      alert("💥 Magicanhão criado, equipado nas suas mãos vazias e pronto para disparar!");
+      setAlerta({ isOpen: true, type: 'success', title: 'Magicanhão Criado', message: 'Magicanhão criado, equipado nas mãos vazias e pronto para disparar!' });
     } catch (err) {
-      console.error("Erro ao criar magicanhão:", err.message);
-      alert("Erro ao criar o magicanhão. Verifique o console.");
+      console.error('Erro ao criar magicanhão:', err.message);
+      setAlerta({ isOpen: true, type: 'error', title: 'Erro', message: 'Erro ao criar o magicanhão: ' + err.message });
     } finally {
       setCriandoCanhao(false);
     }
@@ -228,6 +217,14 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
           criandoCanhao={criandoCanhao}
         />
       )}
+
+      <CustomAlert
+        isOpen={alerta.isOpen}
+        type={alerta.type}
+        title={alerta.title}
+        message={alerta.message}
+        onClose={() => setAlerta((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

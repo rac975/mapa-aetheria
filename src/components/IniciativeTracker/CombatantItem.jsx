@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   FaShieldAlt, FaSkull, FaChevronUp, FaChevronDown, FaTrashAlt,
-  FaCheck, FaTimes, FaMinus, FaPlus, FaHeartbeat, FaMagic, FaStar, FaBoxOpen
+  FaCheck, FaTimes, FaMinus, FaPlus, FaHeartbeat, FaMagic, FaStar, FaBoxOpen, FaPlay
 } from 'react-icons/fa';
 import { Badge, Button, Input, ResourceBar } from '../ui';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
@@ -12,12 +12,14 @@ export default function CombatantItem({
   p,
   index,
   totalParticipantes,
+  participantes = [],
   isMestre,
   isEditando,
   editForm,
   setEditForm,
   fichasDisponiveis,
   onToggleTurno,
+  onAtivarTurno,
   onSalvarEdicao,
   onCancelarEdicao,
   onMoverItem,
@@ -31,22 +33,26 @@ export default function CombatantItem({
   const condicoesAtivas = p.condicoes || [];
 
   const fichaCorrespondente = fichasDisponiveis.find(
-    f => f.id === p.ficha_id || f.nome_personagem?.toLowerCase() === p.nome?.toLowerCase()
+    (f) => f.id === p.ficha_id || f.nome_personagem?.toLowerCase() === p.nome?.toLowerCase()
   );
   const avatarUrl = fichaCorrespondente?.avatar_url;
   const defesaHeroi = fichaCorrespondente?.defesa || 10;
   const mdefHeroi = fichaCorrespondente?.mdef || 10;
 
+  const alvoProtegido = p.protegendo_id
+    ? participantes.find((item) => String(item.id) === String(p.protegendo_id))
+    : null;
+
   const itemClasses = [
     styles.itemCard,
     p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
+    p.turno_atual && !estaDerrotado ? styles.turnActiveCard : '',
     p.agiu ? styles.turnCompleted : '',
     estaDerrotado ? styles.isDefeated : ''
   ].filter(Boolean).join(' ');
 
   return (
     <div className={itemClasses} onClick={() => !isEditando && onToggleTurno(p.id, p.agiu)}>
-      {/* LINHA 1: Identidade, Nome, Badges de Estado e Controles */}
       <div className={styles.itemMainRow}>
         <input
           type="checkbox"
@@ -76,12 +82,32 @@ export default function CombatantItem({
           <div className={styles.infoPrincipalWrapper}>
             <span className={styles.nome}>{p.nome}</span>
             <div className={styles.badgesEstadoInline}>
+              {p.turno_atual && !estaDerrotado && <Badge variant="gold" size="sm"><FaPlay /> NO TURNO</Badge>}
+              {p.guardando && !estaDerrotado && (
+                <Badge variant="ether" size="sm">
+                  <FaShieldAlt /> {alvoProtegido ? `GUARDA (Cobre ${alvoProtegido.nome})` : 'EM GUARDA'}
+                </Badge>
+              )}
               {estaDerrotado && <Badge variant="default" size="sm">CAÍDO</Badge>}
               {emCrise && !estaDerrotado && <Badge variant="crise" size="sm">CRISE</Badge>}
               <Badge variant={p.tipo === 'heroi' ? 'core' : 'crise'} size="sm">
                 {p.tipo === 'heroi' ? <><FaShieldAlt /> Herói</> : <><FaSkull /> Inimigo</>}
               </Badge>
             </div>
+          </div>
+        )}
+
+        {!isEditando && !estaDerrotado && !p.agiu && onAtivarTurno && (
+          <div className={styles.noPrint} onClick={(e) => e.stopPropagation()}>
+            <Button
+              type="button"
+              variant={p.turno_atual ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => onAtivarTurno(p)}
+              title="Destacar como turno atual (encerra Guarda anterior)"
+            >
+              <FaPlay />
+            </Button>
           </div>
         )}
 
@@ -103,22 +129,20 @@ export default function CombatantItem({
         )}
       </div>
 
-      {/* LINHA 2: Condições Ativas */}
       {condicoesAtivas.length > 0 && !isEditando && (
         <div className={styles.condicoesStrip}>
-          {condicoesAtivas.map(cId => {
-            const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
+          {condicoesAtivas.map((cId) => {
+            const condObj = CONDICOES_DISPONIVEIS.find((item) => item.id === cId);
             return (
               <span key={cId} className={`${styles.condicaoChip} ${styles['cond_' + cId] || ''}`}>
                 {getCondicaoIcon(cId)}
-                <span>{condObj?.label}</span>
+                <span>{condObj?.label || cId}</span>
               </span>
             );
           })}
         </div>
       )}
 
-      {/* LINHA 3: Estatísticas Públicas com ResourceBar */}
       {!isEditando && p.tipo === 'heroi' && (
         <div className={styles.statsHeroiGrid}>
           <ResourceBar type="pv" current={p.hp_atual} max={p.hp_max} label="PV" isCrise={emCrise} />
@@ -140,7 +164,6 @@ export default function CombatantItem({
         </div>
       )}
 
-      {/* PAINEL DE CONTROLE DO MESTRE (Abaixo dos dados do combatente) */}
       {isMestre && !isEditando && (
         <div className={`${styles.mestreStatsBar} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
           <div className={styles.mestreStatsBarRow}>
@@ -183,7 +206,7 @@ export default function CombatantItem({
           <div className={styles.condicoesSelectorGroup}>
             <span className={styles.condicoesTitle}>Gerenciar Condições:</span>
             <div className={styles.condicoesButtons}>
-              {CONDICOES_DISPONIVEIS.map(c => {
+              {CONDICOES_DISPONIVEIS.map((c) => {
                 const ativo = condicoesAtivas.includes(c.id);
                 return (
                   <button

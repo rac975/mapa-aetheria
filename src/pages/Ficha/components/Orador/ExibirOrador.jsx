@@ -1,87 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { calcularDadosOrador } from '../../../../domain/fabula/coreClassRules';
+import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
 import OradorHeader from './OradorHeader';
 import OradorHabilidadesCards from './OradorHabilidadesCards';
 import styles from './ExibirOrador.module.css';
 
-export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso }) {
-  const dadosClasse = classeObjeto || ficha;
-  const nivelOrador = parseInt(dadosClasse?.nivel, 10) || 1;
+export default function ExibirOrador({ ficha, classeObjeto, classes = [], handleAjustarRecurso }) {
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
+  const listaClasses = classes?.length > 0 ? classes : (classeObjeto ? [classeObjeto] : []);
+  const nivelOrador = parseInt((classeObjeto || ficha)?.nivel, 10) || 1;
+  const dadosOrador = calcularDadosOrador(listaClasses);
 
   const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
   const mpMaxPermitido = Number(ficha?.mp_max ?? 99);
-  const mpValido = mpAtual > mpMaxPermitido ? mpMaxPermitido : mpAtual;
+  const mpValido = Math.min(mpAtual, mpMaxPermitido);
   const fabulaPontos = Number(ficha?.fabula ?? 0);
 
-  // --- CÁLCULOS DAS HABILIDADES DO ORADOR ---
-  
+  const fecharAlerta = () => setAlerta({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
+
   const usarAliadoInesperado = () => {
     if (fabulaPontos < 1) {
-      window.alert(`Pontos de Fábula insuficientes! Você tem ${fabulaPontos} PF (Exige 1 PF).`);
+      setAlerta({ isOpen: true, type: 'warning', title: 'Pontos de Fábula Insuficientes', message: `Você tem ${fabulaPontos} PF (Aliado Inesperado exige 1 PF).` });
       return;
     }
-
-    if (window.confirm("Usar Aliado Inesperado (Custo: 1 Ponto de Fábula)? Declarar que um NPC ou elemento inesperado surge para ajudar o grupo.")) {
-      if (handleAjustarRecurso) {
-        handleAjustarRecurso('fabula', -1);
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Usar Aliado Inesperado',
+      message: 'Gastar 1 Ponto de Fábula para tornar solícita uma criatura não-hostil presente na cena?',
+      onConfirm: () => {
+        if (handleAjustarRecurso) handleAjustarRecurso('fabula', -1);
       }
-      window.alert("🌟 Aliado Inesperado ativado! 1 Ponto de Fábula descontado.");
-    }
+    });
   };
 
-  const perdaPmCondenar = nivelOrador * 2;
-  const bonusAstVonCondenar = nivelOrador;
-
   const usarCondenar = () => {
-    if (!handleAjustarRecurso) {
-      console.error("handleAjustarRecurso não foi fornecido!");
-      return;
-    }
-
+    if (!handleAjustarRecurso) return;
     if (mpValido < 5) {
-      window.alert(`MP insuficiente! Você tem ${mpValido} PM e Condenar exige 5 PM.`);
+      setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: `Você tem ${mpValido} PM e Condenar exige 5 PM.` });
       return;
     }
-
-    if (window.confirm(`Usar Condenar (Custo: 5 PM)? Teste oposto de AST + VON com bônus de +${bonusAstVonCondenar}. Alvo perde ${perdaPmCondenar} PM e ganha fraqueza de dano.`)) {
-      handleAjustarRecurso('mp_atual', -5);
-      window.alert(`⚖️ Condenar ativado! 5 PM descontados.`);
-    }
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Usar Condenar (5 PM)',
+      message: `Teste oposto de AST + VON (+${dadosOrador.bonusTesteCondenar}). Em sucesso, o inimigo perde ${dadosOrador.perdaPmCondenar} PM, fica Abalado/Atordoado e sofre +${dadosOrador.bonusDanoCondenar} de dano adicional até seu próximo turno.`,
+      onConfirm: () => handleAjustarRecurso('mp_atual', -5)
+    });
   };
 
   const usarConfioEmVoce = () => {
     if (fabulaPontos < 1) {
-      window.alert(`Pontos de Fábula insuficientes! Você tem ${fabulaPontos} PF (Exige 1 PF).`);
+      setAlerta({ isOpen: true, type: 'warning', title: 'Pontos de Fábula Insuficientes', message: `Você tem ${fabulaPontos} PF (Confio em Você exige 1 PF).` });
       return;
     }
-
-    if (window.confirm("Usar Confio em Você (Custo: 1 Ponto de Fábula)? Permite que um aliado re-role um dado em um teste.")) {
-      if (handleAjustarRecurso) {
-        handleAjustarRecurso('fabula', -1);
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Usar Confio em Você (1 PF)',
+      message: `Gastar 1 PF para invocar Traço/Laço de outro PJ em um teste (e se tiver Laço com ele, recupera +${dadosOrador.curaPmConfioComLaco} PM)?`,
+      onConfirm: () => {
+        if (handleAjustarRecurso) handleAjustarRecurso('fabula', -1);
       }
-      window.alert("🤝 Confio em Você ativado! 1 Ponto de Fábula descontado.");
-    }
+    });
   };
-
-  const curaEncorajar = nivelOrador * 5;
 
   const usarEncorajar = () => {
-    if (!handleAjustarRecurso) {
-      console.error("handleAjustarRecurso não foi fornecido!");
-      return;
-    }
-
+    if (!handleAjustarRecurso) return;
     if (mpValido < 5) {
-      window.alert(`MP insuficiente! Você tem ${mpValido} PM e Encorajar exige 5 PM.`);
+      setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: `Você tem ${mpValido} PM e Encorajar exige 5 PM.` });
       return;
     }
-
-    if (window.confirm(`Usar Encorajar (Custo: 5 PM)? Escolha um aliado para recuperar ${curaEncorajar} PV e subir um passo em um Atributo até o próximo turno.`)) {
-      handleAjustarRecurso('mp_atual', -5);
-      window.alert(`🗣️ Encorajar ativado! 5 PM descontados.`);
-    }
+    setAlerta({
+      isOpen: true,
+      type: 'confirm',
+      title: 'Usar Encorajar (5 PM)',
+      message: `Gastar 5 PM para que um aliado recupere ${dadosOrador.curaPvEncorajar} PV e eleve um atributo em 1 passo até seu próximo turno?`,
+      onConfirm: () => handleAjustarRecurso('mp_atual', -5)
+    });
   };
-
-  const bonusPersuasivo = nivelOrador;
 
   return (
     <div className={styles.container}>
@@ -95,20 +92,26 @@ export default function ExibirOrador({ ficha, classeObjeto, handleAjustarRecurso
       <OradorHabilidadesCards
         usarAliadoInesperado={usarAliadoInesperado}
         usarCondenar={usarCondenar}
-        perdaPmCondenar={perdaPmCondenar}
+        perdaPmCondenar={dadosOrador.perdaPmCondenar}
         usarConfioEmVoce={usarConfioEmVoce}
         usarEncorajar={usarEncorajar}
-        curaEncorajar={curaEncorajar}
+        curaEncorajar={dadosOrador.curaPvEncorajar}
       />
 
-      {/* Persuasivo (Passiva) */}
-      <div className={styles.passivaBox}>
-        <h4 className={styles.passivaHeader}>
-          <span>Persuasivo (Passiva)</span>
-          <span className={styles.passivaBonus}>Bônus: +{bonusPersuasivo}</span>
-        </h4>
-        <p className={styles.cardDesc}>Você ganha bônus em testes sociais e interações baseadas em Astúcia e Vontade de acordo com o nível na classe.</p>
-      </div>
+      {dadosOrador.nvPersuasivo > 0 && (
+        <div className={styles.persuasivoBadge}>
+          <strong>Persuasivo (Nv. {dadosOrador.nvPersuasivo}):</strong> Ao passar em testes sociais de Relógio, gaste até {dadosOrador.maxPmPersuasivo} PM (+1 seção a cada 20 PM).
+        </div>
+      )}
+
+      <CustomAlert
+        isOpen={alerta.isOpen}
+        type={alerta.type}
+        title={alerta.title}
+        message={alerta.message}
+        onConfirm={alerta.onConfirm}
+        onClose={fecharAlerta}
+      />
     </div>
   );
 }

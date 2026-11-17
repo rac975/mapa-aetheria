@@ -9,6 +9,7 @@ import {
 } from '../domain/fabula/heroicAndQuirksRules';
 import { extrairEfeitosSimbolosAtivos } from '../domain/fabula/highFantasyRules';
 import { extrairEfeitosAtivosNaturalFantasy } from '../domain/fabula/naturalFantasyRules';
+import { calcularModificadoresCondicoesOficiais } from '../domain/fabula/coreClassRules';
 
 const PROGRESSAO_DADOS = [6, 8, 10, 12, 20];
 
@@ -20,28 +21,7 @@ const PROGRESSAO_DADOS = [6, 8, 10, 12, 20];
  * @returns {Object}
  */
 export function calcularModificadoresCondicoes(condicoes = [], imunidades = []) {
-  const mods = {};
-  const imunes = new Set((Array.isArray(imunidades) ? imunidades : []).map((c) => String(c).toLowerCase()));
-  const ativa = (id) => condicoes.includes(id) && !imunes.has(id);
-
-  if (ativa('abalado')) mods.vontade = (mods.vontade || 0) - 1;
-  if (ativa('atordoado')) mods.astucia = (mods.astucia || 0) - 1;
-  if (ativa('enfurecido')) {
-    mods.destreza = (mods.destreza || 0) - 1;
-    mods.astucia = (mods.astucia || 0) - 1;
-  }
-  if (ativa('envenenado')) {
-    mods.vigor = (mods.vigor || 0) - 1;
-    mods.vontade = (mods.vontade || 0) - 1;
-  }
-  if (ativa('fraco')) {
-    mods.destreza = (mods.destreza || 0) - 1;
-    mods.astucia = (mods.astucia || 0) - 1;
-    mods.vigor = (mods.vigor || 0) - 1;
-    mods.vontade = (mods.vontade || 0) - 1;
-  }
-  if (ativa('lento')) mods.destreza = (mods.destreza || 0) - 1;
-  return mods;
+  return calcularModificadoresCondicoesOficiais(condicoes, imunidades);
 }
 
 /**

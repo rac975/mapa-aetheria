@@ -92,7 +92,8 @@ export function processarGolpeDasSombras(ficha, classes, valorMaximoVigor = 8) {
   // 2. Rola o dado atual de Vigor (ex: d8 sorteia de 1 a 8)
   const resultadoVigorRolado = Math.floor(Math.random() * valorMaximoVigor) + 1;
 
-  const pvAtual = ficha?.pv_atual ?? 100;
+  const pvBruto = ficha?.hp_atual ?? ficha?.pv_atual;
+  const pvAtual = pvBruto !== undefined && pvBruto !== null ? Number(pvBruto) : 0;
 
   // 3. Regra: Se isto reduzir os PV a 0 ou menos, o golpe não pode ser feito (ou impede a morte instantânea)
   if (pvAtual - resultadoVigorRolado <= 0) {

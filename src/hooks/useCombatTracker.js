@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { combatService } from '../services/combatService';
 import { useToast } from '../contexts/ToastContext';
 import {
@@ -6,97 +6,267 @@ import {
   aplicarDeltaRecurso,
   alternarCondicao,
   reordenarParticipantes,
-  construirCombatente
+  construirCombatente,
+  resolverAcaoCombate
 } from '../domain/fabula/combatRules';
 
 /**
- * Hook customizado para gerenciar estado, ações e sincronização em tempo real do combate
- * 
- * Regra Arquitetural (GEMINI.md):
- * Centraliza estados locais, erros, chamadas aos Services e subscriptions de realtime.
+ * Hook customizado para gerenciar estado, ações rápidas, modificadores, relógios
+ * e sincronização em tempo real do combate via Supabase Realtime.
  */
 export function useCombatTracker(isMestre) {
   const [participantes, setParticipantes] = useState([]);
   const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
+  const [estadoCombate, setEstadoCombate] = useState({ id: 1, rodada: 1, em_combate: true, modificadores_globais: {} });
+  const [relogios, setRelogios] = useState([]);
+  const [acoesFeed, setAcoesFeed] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert' });
   const { coldDelete } = useToast();
 
-  // Exclusão com Toast e Undo
-  const [itemParaExcluir, setItemParaExcluir] = useState(null);
-  const [mostrarToast, setMostrarToast] = useState(false);
-  const [progressoKey, setProgressoKey] = useState(0);
-  const timeoutIdRef = useRef(null);
-
-  // Edição inline
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
 
-  const carregarDados = useCallback(async () => {
-    try {
-      const [fichasRes, iniciativaRes] = await Promise.all([
-        combatService.getFichasPersonagens(),
-        combatService.getParticipantes()
-      ]);
-
-      if (fichasRes.data) {
-        setFichasDisponiveis(fichasRes.data);
-      }
-      if (iniciativaRes.data) {
-        setParticipantes(iniciativaRes.data);
-      }
-    } catch (err) {
-      console.error('Erro ao carregar dados de combate:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   const recarregarParticipantes = useCallback(async () => {
     const { data } = await combatService.getParticipantes();
-    if (data) {
-      setParticipantes(data);
-    }
+    if (data) setParticipantes(data);
+  }, []);
+
+  const recarregarRelogios = useCallback(async () => {
+    const { data } = await combatService.getRelogiosCombate();
+    if (data) setRelogios(data);
+  }, []);
+
+  const recarregarAcoes = useCallback(async () => {
+    const { data } = await combatService.getAcoesCombate(30);
+    if (data) setAcoesFeed(data);
   }, []);
 
   useEffect(() => {
-    carregarDados();
+    let ativo = true;
 
-    const subscription = combatService.subscribeIniciativa(() => {
+    async function inicializarCombate() {
+      try {
+        const [fichasRes, iniciativaRes, estadoRes, relogiosRes, acoesRes] = await Promise.all([
+          combatService.getFichasPersonagens(),
+          combatService.getParticipantes(),
+          combatService.getEstadoCombate(),
+          combatService.getRelogiosCombate(),
+          combatService.getAcoesCombate(30)
+        ]);
+
+        if (!ativo) return;
+        if (fichasRes.data) setFichasDisponiveis(fichasRes.data);
+        if (iniciativaRes.data) setParticipantes(iniciativaRes.data);
+        if (estadoRes.data) setEstadoCombate(estadoRes.data);
+        if (relogiosRes.data) setRelogios(relogiosRes.data);
+        if (acoesRes.data) setAcoesFeed(acoesRes.data);
+      } catch (err) {
+        console.error('Erro ao carregar dados de combate:', err);
+      } finally {
+        if (ativo) setIsLoading(false);
+      }
+    }
+
+    inicializarCombate();
+
+    const subIniciativa = combatService.subscribeIniciativa(() => {
       recarregarParticipantes();
+    });
+    const subEstado = combatService.subscribeEstadoCombate(
+      (novoEstado) => {
+        if (novoEstado) setEstadoCombate(novoEstado);
+      },
+      () => recarregarRelogios()
+    );
+    const subAcoes = combatService.subscribeAcoesCombate(() => {
+      recarregarAcoes();
     });
 
     return () => {
-      subscription.unsubscribe();
-      if (timeoutIdRef.current) {
-        clearTimeout(timeoutIdRef.current);
-      }
+      ativo = false;
+      subIniciativa.unsubscribe();
+      subEstado.unsubscribe();
+      subAcoes.unsubscribe();
     };
-  }, [carregarDados, recarregarParticipantes]);
+  }, [recarregarParticipantes, recarregarRelogios, recarregarAcoes]);
 
   const toggleTurno = useCallback(async (id, statusAtual) => {
     const novoStatus = alternarTurno(statusAtual);
-    setParticipantes(prev => prev.map(p => p.id === id ? { ...p, agiu: novoStatus } : p));
-    await combatService.updateParticipante(id, { agiu: novoStatus });
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, agiu: novoStatus, turno_atual: false } : p)));
+    await combatService.updateParticipante(id, { agiu: novoStatus, turno_atual: false });
   }, []);
+
+  const ativarTurnoParticipante = useCallback(async (participante) => {
+    if (!participante?.id) return;
+    // Ao iniciar seu próximo turno, o efeito da ação Guarda anterior expira automaticamente
+    setParticipantes((prev) =>
+      prev.map((p) =>
+        p.id === participante.id
+          ? { ...p, turno_atual: true, guardando: false, protegendo_id: null }
+          : { ...p, turno_atual: false }
+      )
+    );
+    await combatService.definirTurnoAtivo(participante.id, participantes.map((p) => p.id));
+    if (participante.guardando || participante.protegendo_id) {
+      await combatService.updateParticipante(participante.id, { guardando: false, protegendo_id: null });
+    }
+  }, [participantes]);
 
   const resetRodada = useCallback(async () => {
     if (!isMestre) return;
-    setParticipantes(prev => prev.map(p => ({ ...p, agiu: false })));
-    await combatService.resetRodada(participantes.map(p => p.id));
-  }, [isMestre, participantes]);
+    const novaRodada = (Number(estadoCombate?.rodada) || 1) + 1;
+    setParticipantes((prev) =>
+      prev.map((p) => ({ ...p, agiu: false, guardando: false, protegendo_id: null, turno_atual: false }))
+    );
+    setEstadoCombate((prev) => ({ ...prev, rodada: novaRodada }));
+    await combatService.resetRodada(participantes.map((p) => p.id), novaRodada);
+    await combatService.registrarAcaoCombate({
+      autor_nome: 'Mestre',
+      autor_tipo: 'sistema',
+      acao_codigo: 'NOVA_RODADA',
+      acao_titulo: `Rodada ${novaRodada} Iniciada`,
+      detalhes: 'Todos os combatentes recuperaram seus turnos e posturas de Guarda encerraram.',
+      metadata: { rodada: novaRodada }
+    });
+  }, [isMestre, participantes, estadoCombate?.rodada]);
 
   const restaurarTudoCena = useCallback(async () => {
     if (!isMestre) return;
-    const atualizados = participantes.map(p => ({
-      ...p,
-      agiu: false,
-      hp_atual: p.hp_max,
-      mp_atual: p.mp_max
-    }));
-    setParticipantes(atualizados);
+    setParticipantes((prev) =>
+      prev.map((p) => ({
+        ...p,
+        agiu: false,
+        guardando: false,
+        protegendo_id: null,
+        turno_atual: false,
+        dano_acumulado: 0,
+        condicoes: [],
+        modificadores: {},
+        hp_atual: p.hp_max,
+        mp_atual: p.mp_max
+      }))
+    );
+    setEstadoCombate((prev) => ({ ...prev, rodada: 1, modificadores_globais: {} }));
     await combatService.restaurarCena(participantes);
+    await combatService.registrarAcaoCombate({
+      autor_nome: 'Mestre',
+      autor_tipo: 'sistema',
+      acao_codigo: 'RESTAURAR_CENA',
+      acao_titulo: 'Cena Restaurada',
+      detalhes: 'PV, PM, condições, modificadores e contagem de rodadas foram reiniciados.',
+      metadata: {}
+    });
   }, [isMestre, participantes]);
+
+  const atualizarModificadorGlobal = useCallback(async (novosMods) => {
+    if (!isMestre) return;
+    const combinados = { ...(estadoCombate?.modificadores_globais || {}), ...novosMods };
+    setEstadoCombate((prev) => ({ ...prev, modificadores_globais: combinados }));
+    await combatService.updateEstadoCombate({ modificadores_globais: combinados });
+  }, [isMestre, estadoCombate?.modificadores_globais]);
+
+  const executarAcaoRapida = useCallback(async ({
+    acaoCodigo,
+    atorId,
+    alvoId = null,
+    relogioId = null,
+    custoPm = 0,
+    custoPi = 0,
+    custoPf = 0,
+    danoAplicado = 0,
+    curaAplicada = 0,
+    recursoCura = 'pv',
+    tipoDano = 'fisico',
+    afinidadeAlvo = 'normal',
+    condicaoAlvo = null,
+    avancoRelogio = 0,
+    notaLivre = '',
+    marcarTurnoConcluido = true
+  }) => {
+    const ator = participantes.find((p) => String(p.id) === String(atorId));
+    const alvo = alvoId ? participantes.find((p) => String(p.id) === String(alvoId)) : null;
+
+    const resultado = resolverAcaoCombate({
+      acaoCodigo,
+      ator,
+      alvo,
+      custoPm,
+      custoPi,
+      custoPf,
+      danoAplicado,
+      curaAplicada,
+      recursoCura,
+      tipoDano,
+      afinidadeAlvo,
+      condicaoAlvo,
+      avancoRelogio,
+      notaLivre,
+      marcarTurnoConcluido,
+      modificadoresCena: estadoCombate?.modificadores_globais || {}
+    });
+
+    if (!resultado.valido) {
+      setAlerta({ isOpen: true, type: 'warning', title: 'Ação Não Permitida', message: resultado.erro });
+      return false;
+    }
+
+    // 1. Atualiza estado otimista e persiste ator
+    if (Object.keys(resultado.updatesAtor).length > 0) {
+      setParticipantes((prev) => prev.map((p) => (p.id === ator.id ? { ...p, ...resultado.updatesAtor } : p)));
+      await combatService.updateParticipante(ator.id, resultado.updatesAtor);
+
+      if (ator.tipo === 'heroi' && ator.ficha_id) {
+        const camposSync = ['hp_atual', 'mp_atual', 'ip', 'pontos_fabula'];
+        for (const campo of camposSync) {
+          if (resultado.updatesAtor[campo] !== undefined) {
+            await combatService.updateRecursoFicha(ator.ficha_id, campo, resultado.updatesAtor[campo]);
+          }
+        }
+      }
+    }
+
+    // 2. Persiste alvo (se diferente do ator)
+    if (resultado.updatesAlvo && resultado.alvoId && resultado.alvoId !== ator.id) {
+      const alvoObj = participantes.find((p) => p.id === resultado.alvoId);
+      setParticipantes((prev) => prev.map((p) => (p.id === resultado.alvoId ? { ...p, ...resultado.updatesAlvo } : p)));
+      await combatService.updateParticipante(resultado.alvoId, resultado.updatesAlvo);
+
+      if (alvoObj?.tipo === 'heroi' && alvoObj.ficha_id) {
+        for (const campo of ['hp_atual', 'mp_atual']) {
+          if (resultado.updatesAlvo[campo] !== undefined) {
+            await combatService.updateRecursoFicha(alvoObj.ficha_id, campo, resultado.updatesAlvo[campo]);
+          }
+        }
+      }
+    }
+
+    // 3. Avança Relógio de Conflito (Objetivo)
+    if (resultado.deltaRelogio !== 0 && relogioId) {
+      const relogioAlvo = relogios.find((r) => String(r.id) === String(relogioId));
+      if (relogioAlvo) {
+        const novasFatias = Math.max(0, Math.min(relogioAlvo.fatias_total, (Number(relogioAlvo.fatias_atuais) || 0) + resultado.deltaRelogio));
+        setRelogios((prev) => prev.map((r) => (r.id === relogioAlvo.id ? { ...r, fatias_atuais: novasFatias } : r)));
+        await combatService.avancarRelogioCombate(relogioAlvo.id, novasFatias);
+      }
+    }
+
+    // 4. Dispara registro no feed em tempo real
+    if (resultado.logEntry) {
+      const { data } = await combatService.registrarAcaoCombate(resultado.logEntry);
+      if (data) {
+        setAcoesFeed((prev) => [data, ...prev].slice(0, 30));
+      }
+    }
+
+    return true;
+  }, [participantes, estadoCombate?.modificadores_globais, relogios]);
+
+  const limparHistoricoAcoes = useCallback(async () => {
+    if (!isMestre) return;
+    setAcoesFeed([]);
+    await combatService.limparAcoesCombate();
+  }, [isMestre]);
 
   const addParticipante = useCallback(async ({
     tipo,
@@ -107,27 +277,19 @@ export function useCombatTracker(isMestre) {
     npcCatalogoSelecionado
   }) => {
     if (!isMestre) return false;
-
     const novaOrdem = participantes.length > 0 ? participantes[participantes.length - 1].ordem + 1 : 0;
     let novoCombatente = null;
 
     if (tipo === 'heroi') {
-      const fichaEncontrada = fichasDisponiveis.find(f => f.id === fichaSelecionadaId);
+      const fichaEncontrada = fichasDisponiveis.find((f) => f.id === fichaSelecionadaId);
       if (!fichaEncontrada) {
-        setAlerta({ isOpen: true, title: 'Atenção', message: 'Selecione uma ficha válida.' });
+        setAlerta({ isOpen: true, type: 'warning', title: 'Atenção', message: 'Selecione uma ficha válida.' });
         return false;
       }
-
-      const jaExiste = participantes.some(p => p.nome.toLowerCase() === fichaEncontrada.nome_personagem.toLowerCase());
-      if (jaExiste) {
-        setAlerta({
-          isOpen: true,
-          title: 'Herói Duplicado',
-          message: `O herói "${fichaEncontrada.nome_personagem}" já está na ordem de combate!`
-        });
+      if (participantes.some((p) => p.nome.toLowerCase() === fichaEncontrada.nome_personagem.toLowerCase())) {
+        setAlerta({ isOpen: true, type: 'warning', title: 'Herói Duplicado', message: `O herói "${fichaEncontrada.nome_personagem}" já está na cena!` });
         return false;
       }
-
       novoCombatente = construirCombatente({
         tipo: 'heroi',
         nome: fichaEncontrada.nome_personagem,
@@ -139,42 +301,33 @@ export function useCombatTracker(isMestre) {
         pontosUltima: 0,
         fichaId: fichaEncontrada.id
       });
+    } else if (npcCatalogoSelecionado && (!nomeInimigo || nomeInimigo.trim() === '')) {
+      novoCombatente = construirCombatente({
+        tipo: 'inimigo',
+        nome: npcCatalogoSelecionado.nome,
+        ordem: novaOrdem,
+        hpMax: npcCatalogoSelecionado.pv_max || 30,
+        mpMax: npcCatalogoSelecionado.pm_max || 20,
+        pontosUltima: 3
+      });
     } else {
-      if (npcCatalogoSelecionado && (!nomeInimigo || nomeInimigo.trim() === '')) {
-        novoCombatente = construirCombatente({
-          tipo: 'inimigo',
-          nome: npcCatalogoSelecionado.nome,
-          ordem: novaOrdem,
-          hpMax: npcCatalogoSelecionado.pv_max || 30,
-          mpMax: npcCatalogoSelecionado.pm_max || 20,
-          ip: 0,
-          pontosFabula: 0,
-          pontosUltima: 3,
-          fichaId: null
-        });
-      } else {
-        if (!nomeInimigo || !nomeInimigo.trim()) {
-          setAlerta({ isOpen: true, title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
-          return false;
-        }
-
-        novoCombatente = construirCombatente({
-          tipo: 'inimigo',
-          nome: nomeInimigo.trim(),
-          ordem: novaOrdem,
-          hpMax: Number(hpMaxInput),
-          mpMax: Number(mpMaxInput),
-          ip: 0,
-          pontosFabula: 0,
-          pontosUltima: 3,
-          fichaId: null
-        });
+      if (!nomeInimigo || !nomeInimigo.trim()) {
+        setAlerta({ isOpen: true, type: 'warning', title: 'Campo Vazio', message: 'Digite o nome do inimigo.' });
+        return false;
       }
+      novoCombatente = construirCombatente({
+        tipo: 'inimigo',
+        nome: nomeInimigo.trim(),
+        ordem: novaOrdem,
+        hpMax: Number(hpMaxInput),
+        mpMax: Number(mpMaxInput),
+        pontosUltima: 3
+      });
     }
 
     const { data, error } = await combatService.addParticipante(novoCombatente);
     if (!error && data && data.length > 0) {
-      setParticipantes(prev => [...prev, data[0]]);
+      setParticipantes((prev) => [...prev, data[0]]);
       return true;
     }
     return false;
@@ -182,24 +335,15 @@ export function useCombatTracker(isMestre) {
 
   const iniciarExclusao = useCallback((p) => {
     if (!isMestre) return;
-
     coldDelete({
       item: p,
       message: `${p.nome} foi removido da cena.`,
-      onRemove: (it) => {
-        setParticipantes(prev => prev.filter(item => item.id !== it.id));
-      },
-      onCommit: async (it) => {
-        await combatService.deleteParticipante(it.id);
-      },
-      onRollback: (it) => {
-        setParticipantes(prev => [...prev, it].sort((a, b) => a.ordem - b.ordem));
-      },
+      onRemove: (it) => setParticipantes((prev) => prev.filter((item) => item.id !== it.id)),
+      onCommit: async (it) => { await combatService.deleteParticipante(it.id); },
+      onRollback: (it) => setParticipantes((prev) => [...prev, it].sort((a, b) => a.ordem - b.ordem)),
       duration: 6000
     });
   }, [isMestre, coldDelete]);
-
-  const desfazerExclusao = useCallback(() => {}, []);
 
   const salvarEdicao = useCallback(async (id) => {
     const payload = {
@@ -209,24 +353,20 @@ export function useCombatTracker(isMestre) {
       ip: Number(editForm.ip),
       pontos_fabula: Number(editForm.pontos_fabula)
     };
-
-    setParticipantes(prev => prev.map(p => p.id === id ? { ...p, ...payload } : p));
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...payload } : p)));
     setEditandoId(null);
     await combatService.updateParticipante(id, payload);
   }, [editForm]);
 
-  const cancelarEdicao = useCallback(() => {
-    setEditandoId(null);
-  }, []);
+  const cancelarEdicao = useCallback(() => setEditandoId(null), []);
 
   const alterarRecurso = useCallback(async (id, campo, valorAtual, delta, maximo = null) => {
     if (!isMestre) return;
     const novoValor = aplicarDeltaRecurso(valorAtual, delta, maximo, 0);
-
-    setParticipantes(prev => prev.map(p => p.id === id ? { ...p, [campo]: novoValor } : p));
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, [campo]: novoValor } : p)));
     await combatService.updateParticipante(id, { [campo]: novoValor });
 
-    const participanteAtual = participantes.find(p => p.id === id);
+    const participanteAtual = participantes.find((p) => p.id === id);
     if (participanteAtual && participanteAtual.tipo === 'heroi' && participanteAtual.ficha_id) {
       await combatService.updateRecursoFicha(participanteAtual.ficha_id, campo, novoValor);
     }
@@ -234,14 +374,9 @@ export function useCombatTracker(isMestre) {
 
   const toggleCondicao = useCallback(async (p, condicaoId) => {
     if (!isMestre) return;
-    const atuais = p.condicoes || [];
-    const novasCondicoes = alternarCondicao(atuais, condicaoId);
-
-    setParticipantes(prev => prev.map(item => item.id === p.id ? { ...item, condicoes: novasCondicoes } : item));
-    const { error } = await combatService.updateParticipante(p.id, { condicoes: novasCondicoes });
-    if (error) {
-      console.error('Erro ao atualizar condições no banco:', error.message);
-    }
+    const novasCondicoes = alternarCondicao(p.condicoes || [], condicaoId);
+    setParticipantes((prev) => prev.map((item) => (item.id === p.id ? { ...item, condicoes: novasCondicoes } : item)));
+    await combatService.updateParticipante(p.id, { condicoes: novasCondicoes });
   }, [isMestre]);
 
   const moverItem = useCallback(async (index, direcao) => {
@@ -251,28 +386,29 @@ export function useCombatTracker(isMestre) {
     await combatService.salvarNovaOrdem(novaLista);
   }, [isMestre, participantes]);
 
-  const fecharAlerta = useCallback(() => {
-    setAlerta(prev => ({ ...prev, isOpen: false }));
-  }, []);
+  const fecharAlerta = useCallback(() => setAlerta((prev) => ({ ...prev, isOpen: false })), []);
 
   return {
     participantes,
     fichasDisponiveis,
+    estadoCombate,
+    relogios,
+    acoesFeed,
     isLoading,
     alerta,
     fecharAlerta,
-    itemParaExcluir,
-    mostrarToast,
-    progressoKey,
     editandoId,
     editForm,
     setEditForm,
     toggleTurno,
+    ativarTurnoParticipante,
     resetRodada,
     restaurarTudoCena,
+    atualizarModificadorGlobal,
+    executarAcaoRapida,
+    limparHistoricoAcoes,
     addParticipante,
     iniciarExclusao,
-    desfazerExclusao,
     salvarEdicao,
     cancelarEdicao,
     alterarRecurso,
