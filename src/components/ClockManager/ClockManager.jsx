@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FaPlus, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaPlus, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaClock } from 'react-icons/fa';
+import { Badge, Button } from '../ui';
 import { combatService } from '../../services/combatService';
 import { useToast } from '../../contexts/ToastContext';
 import ClockWidget from '../ClockWidget/ClockWidget';
@@ -11,6 +12,7 @@ export default function ClockManager({ isMestre }) {
   const [fatiasTotal, setFatiasTotal] = useState(4);
   const [visivel, setVisivel] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mostrarFormCriacao, setMostrarFormCriacao] = useState(false);
 
   const { coldDelete } = useToast();
 
@@ -46,9 +48,7 @@ export default function ClockManager({ isMestre }) {
   }, [carregarRelogios]);
 
   const handlePointerDown = (e) => {
-    if (window.innerWidth > 800) return;
     if (e.target.closest('button, [data-clock-slice="true"]')) return;
-
     const slider = sliderRef.current;
     if (!slider) return;
 
@@ -68,7 +68,7 @@ export default function ClockManager({ isMestre }) {
   };
 
   const handlePointerMove = (e) => {
-    if (!isDown.current || window.innerWidth > 800) return;
+    if (!isDown.current) return;
     const slider = sliderRef.current;
     if (!slider) return;
 
@@ -103,14 +103,13 @@ export default function ClockManager({ isMestre }) {
     if (!error && data?.[0]) {
       setRelogios((prev) => [...prev, data[0]]);
       setTituloRelogio('');
+      setMostrarFormCriacao(false);
     }
   };
 
   const atualizarRelogio = async (id, novasFatias) => {
-    const { error } = await combatService.atualizarRelogio(id, { fatias_atuais: novasFatias });
-    if (!error) {
-      setRelogios((prev) => prev.map((r) => (r.id === id ? { ...r, fatias_atuais: novasFatias } : r)));
-    }
+    setRelogios((prev) => prev.map((r) => (r.id === id ? { ...r, fatias_atuais: novasFatias } : r)));
+    await combatService.atualizarRelogio(id, { fatias_atuais: novasFatias });
   };
 
   const iniciarExclusao = (r) => {
@@ -139,89 +138,121 @@ export default function ClockManager({ isMestre }) {
   const relogiosExibidos = relogios.filter((r) => isMestre || r.visivel);
 
   return (
-    <section className={`${styles.combatBox} ${isCollapsed ? styles.collapsed : ''}`}>
-      <div className={styles.boxHeader} onClick={() => setIsCollapsed((prev) => !prev)}>
-        <h2 className={styles.boxTitle}>Relógios de Perigo & Eventos</h2>
-        <button
-          type="button"
-          className={styles.collapseBtn}
-          title={isCollapsed ? 'Expandir' : 'Retrair'}
-          aria-expanded={!isCollapsed}
-        >
-          {isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
-        </button>
-      </div>
-
-      <div className={styles.combatContentBody}>
-        <p className={styles.boxHint}>
-          {isMestre
-            ? 'Crie e controle a progressão de perigos e eventos na cena.'
-            : 'Acompanhe os relógios ativos na aventura.'}
-        </p>
-
-        {isMestre && (
-          <form onSubmit={criarRelogio} className={styles.formCreateClock}>
-            <div className={styles.formMainRow}>
-              <input
-                type="text"
-                placeholder="Nome do Perigo (ex: Ritual Arcano)"
-                value={tituloRelogio}
-                onChange={(e) => setTituloRelogio(e.target.value)}
-                required
-              />
-              <select value={fatiasTotal} onChange={(e) => setFatiasTotal(Number(e.target.value))}>
-                <option value={4}>4 Fatias (Simples)</option>
-                <option value={6}>6 Fatias (Médio)</option>
-                <option value={8}>8 Fatias (Complexo)</option>
-                <option value={12}>12 Fatias (Épico)</option>
-              </select>
-
-              <button
-                type="button"
-                className={`${styles.visibilityToggleBtn} ${visivel ? styles.isVisible : ''}`}
-                onClick={() => setVisivel((prev) => !prev)}
-                title={visivel ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
-              >
-                {visivel ? <FaEye /> : <FaEyeSlash />}
-                <span>{visivel ? 'Visível' : 'Oculto'}</span>
-              </button>
-
-              <button type="submit" className={styles.btnSubmitClock}>
-                <FaPlus /> Adicionar Relógio
-              </button>
-            </div>
-          </form>
-        )}
-
+    <section className={`${styles.clockBarContainer} ${isCollapsed ? styles.collapsed : ''}`}>
+      <div className={styles.clockBarTop}>
         <div
-          ref={sliderRef}
-          className={styles.clocksContainerWrapper}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUpOrCancel}
-          onPointerCancel={handlePointerUpOrCancel}
-          onPointerMove={handlePointerMove}
-          onClickCapture={handleClickCapture}
+          className={styles.brandCluster}
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          title={isCollapsed ? 'Expandir barra de relógios' : 'Recolher barra de relógios'}
         >
-          <div className={styles.clocksGrid}>
+          <FaClock className={styles.clockIcon} />
+          <h2 className={styles.barTitle}>Relógios</h2>
+          <Badge variant="gold" size="sm">{relogiosExibidos.length}</Badge>
+        </div>
+
+        {!isCollapsed ? (
+          <div
+            ref={sliderRef}
+            className={styles.clocksStripWrapper}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUpOrCancel}
+            onPointerCancel={handlePointerUpOrCancel}
+            onPointerMove={handlePointerMove}
+            onClickCapture={handleClickCapture}
+          >
+            <div className={styles.clocksHorizontalStrip}>
+              {relogiosExibidos.length === 0 ? (
+                <span className={styles.emptyInlineText}>Nenhum relógio de perigo ativo na cena.</span>
+              ) : (
+                relogiosExibidos.map((r) => (
+                  <ClockWidget
+                    key={r.id}
+                    titulo={r.titulo}
+                    fatiasTotal={r.fatias_total}
+                    fatiasAtuais={r.fatias_atuais}
+                    visivel={r.visivel}
+                    isMestre={isMestre}
+                    onUpdate={(val) => atualizarRelogio(r.id, val)}
+                    onDelete={() => iniciarExclusao(r)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className={styles.collapsedSummaryStrip} onClick={() => setIsCollapsed(false)}>
             {relogiosExibidos.length === 0 ? (
-              <p className={styles.emptyText}>Nenhum relógio ativo na cena.</p>
+              <span className={styles.emptyInlineText}>Sem relógios ativos</span>
             ) : (
               relogiosExibidos.map((r) => (
-                <ClockWidget
-                  key={r.id}
-                  titulo={r.titulo}
-                  fatiasTotal={r.fatias_total}
-                  fatiasAtuais={r.fatias_atuais}
-                  visivel={r.visivel}
-                  isMestre={isMestre}
-                  onUpdate={(val) => atualizarRelogio(r.id, val)}
-                  onDelete={() => iniciarExclusao(r)}
-                />
+                <span key={r.id} className={styles.miniSummaryChip}>
+                  {r.titulo}: <strong>{r.fatias_atuais}/{r.fatias_total}</strong>
+                </span>
               ))
             )}
           </div>
+        )}
+
+        <div className={styles.barActions}>
+          {isMestre && (
+            <Button
+              type="button"
+              variant={mostrarFormCriacao ? 'core' : 'ghost'}
+              size="sm"
+              onClick={() => {
+                setMostrarFormCriacao((v) => !v);
+                if (isCollapsed) setIsCollapsed(false);
+              }}
+              title="Criar novo relógio de perigo ou evento"
+            >
+              <FaPlus /> <span className={styles.btnLabelDesktop}>Novo</span>
+            </Button>
+          )}
+          <button
+            type="button"
+            className={styles.collapseBtn}
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            title={isCollapsed ? 'Expandir relógios' : 'Minimizar relógios'}
+            aria-expanded={!isCollapsed}
+          >
+            {isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
+          </button>
         </div>
       </div>
+
+      {isMestre && mostrarFormCriacao && !isCollapsed && (
+        <form onSubmit={criarRelogio} className={styles.formCreateClock}>
+          <div className={styles.formMainRow}>
+            <input
+              type="text"
+              placeholder="Nome do Perigo (ex: Ritual Arcano, Colapso da Ruína)"
+              value={tituloRelogio}
+              onChange={(e) => setTituloRelogio(e.target.value)}
+              required
+            />
+            <select value={fatiasTotal} onChange={(e) => setFatiasTotal(Number(e.target.value))}>
+              <option value={4}>4 Fatias (Simples)</option>
+              <option value={6}>6 Fatias (Médio)</option>
+              <option value={8}>8 Fatias (Complexo)</option>
+              <option value={12}>12 Fatias (Épico)</option>
+            </select>
+
+            <button
+              type="button"
+              className={`${styles.visibilityToggleBtn} ${visivel ? styles.isVisible : ''}`}
+              onClick={() => setVisivel((prev) => !prev)}
+              title={visivel ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
+            >
+              {visivel ? <FaEye /> : <FaEyeSlash />}
+              <span>{visivel ? 'Visível' : 'Oculto'}</span>
+            </button>
+
+            <Button type="submit" variant="primary" size="sm">
+              <FaPlus /> Criar
+            </Button>
+          </div>
+        </form>
+      )}
     </section>
   );
 }

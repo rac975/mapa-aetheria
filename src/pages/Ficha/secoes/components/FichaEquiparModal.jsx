@@ -8,6 +8,7 @@ import styles from './FichaEquiparModal.module.css';
 /**
  * Retorna o ícone e a classe temática para a categoria de equipamento
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function getItemCategoryIcon(item) {
   const tipo = (item?.tipo || '').toLowerCase();
   const nome = (item?.nome || '').toLowerCase();
@@ -47,6 +48,7 @@ export function getItemCategoryIcon(item) {
   };
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function formatarNomeSlot(slotId) {
   switch (slotId) {
     case 'mao_dominante':

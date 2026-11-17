@@ -2,28 +2,36 @@
   background-color: var(--color-bg-base);
   color: var(--color-text-main);
   width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
   min-height: 100%;
-  padding: var(--space-8);
+  padding: var(--space-3) var(--space-6) var(--space-6);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-3);
   font-family: var(--font-family-sans);
 }
 
 .combat-header {
   border-bottom: 1px solid var(--color-border-gold-muted);
-  padding-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .combat-header h1 {
   color: var(--color-text-gold);
   font-family: var(--font-family-serif);
-  font-size: var(--font-size-2xl);
+  font-size: var(--font-size-lg);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin: 0 0 var(--space-2) 0;
+  gap: var(--space-2);
+  margin: 0;
   letter-spacing: 0.05em;
   text-shadow: var(--shadow-glow-gold);
 }
@@ -31,16 +39,16 @@
 .combat-header p {
   color: var(--color-text-muted);
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
 }
 
 @media (max-width: 800px) {
   .combat-page {
-    padding: 0 0 var(--space-6) 0;
-    gap: var(--space-4);
+    padding: var(--space-3) var(--space-3) var(--space-6);
+    gap: var(--space-3);
   }
 
   .combat-header h1 {
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-base);
   }
 }

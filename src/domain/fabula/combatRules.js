@@ -1,8 +1,11 @@
 import {
   CONDICOES_OFICIAIS,
+  PROGRESSAO_DADOS_ATRIBUTO,
   calcularModificadoresCondicoesOficiais,
+  calcularPassivosCoreClasses,
   normalizarTextoCore
 } from './coreClassRules.js';
+import { calcularBonusPassivosPoderesHeroicos } from './heroicAndQuirksRules.js';
 
 /**
  * Fabula Ultima - Regras de Combate e Iniciativa
@@ -135,7 +138,8 @@ export function construirCombatente({
   ip = 0,
   pontosFabula = 0,
   pontosUltima = 0,
-  fichaId = null
+  fichaId = null,
+  npcId = null
 }) {
   const hp = Math.max(1, Number(hpMax) || 1);
   const mp = Math.max(0, Number(mpMax) || 0);
@@ -158,7 +162,7 @@ export function construirCombatente({
     guardando: false,
     protegendo_id: null,
     turno_atual: false,
-    modificadores: {}
+    modificadores: npcId ? { npc_id: npcId } : {}
   };
 }
 
@@ -418,24 +422,28 @@ export const MANOBRAS_TATICAS_OFICIAIS = {
   MULTI_ATAQUE: {
     codigo: 'MULTI_ATAQUE',
     titulo: 'Ataque Multi (Alvos Múltiplos)',
+    consomeTurno: true,
     custoBonusDano: 'Remove o bônus fixo da arma (+0), mantendo RA + bônus externos.',
     efeito: 'Permite atingir até Multi (N) alvos com um único Teste de Precisão.'
   },
   COBERTURA_GUARDA: {
     codigo: 'COBERTURA_GUARDA',
     titulo: 'Cobrir Aliado em Guarda',
+    consomeTurno: true,
     custoBonusDano: 'Ação Guarda no turno.',
     efeito: 'Aliado escolhido não pode ser alvo de ataques corpo a corpo até o início do próximo turno (e ganha Resistência total com Guarda-Costas).'
   },
   DUAS_ARMAS: {
     codigo: 'DUAS_ARMAS',
     titulo: 'Combate com Duas Armas',
+    consomeTurno: true,
     custoBonusDano: 'Duas armas de 1 mão equipadas; ambos os ataques têm RA = 0.',
     efeito: 'Realiza dois ataques na mesma ação Ataque (mão dominante e mão secundária).'
   },
   TIRO_AVISO_QUEBRA_OSSOS: {
     codigo: 'TIRO_AVISO_QUEBRA_OSSOS',
     titulo: 'Manobra de Debilitação (Tiro de Aviso / Quebra-Ossos)',
+    consomeTurno: true,
     custoBonusDano: 'Abre mão de causar dano ao acertar.',
     efeito: 'Impõe condição (Abalado/Lento/Atordoado/Fraco) ou drena (NP × 10) PM dos alvos atingidos.'
   }
@@ -616,7 +624,10 @@ export function resolverAcaoCombate({
   modificadoresCena = {}
 } = {}) {
   const codigoNorm = String(acaoCodigo || 'ATAQUE').toUpperCase();
-  const acaoInfo = ACOES_CONFLITO_OFICIAIS[codigoNorm] || REACOES_COMBATE_OFICIAIS[codigoNorm];
+  const acaoInfo =
+    ACOES_CONFLITO_OFICIAIS[codigoNorm] ||
+    REACOES_COMBATE_OFICIAIS[codigoNorm] ||
+    MANOBRAS_TATICAS_OFICIAIS[codigoNorm];
   if (!acaoInfo) {
     return { valido: false, erro: `Ação de conflito desconhecida: ${acaoCodigo}`, updatesAtor: {}, updatesAlvo: null, deltaRelogio: 0, logEntry: null };
   }
@@ -656,7 +667,7 @@ export function resolverAcaoCombate({
 
   const resumoPartes = [];
 
-  if (codigoNorm === 'GUARDAR') {
+  if (codigoNorm === 'GUARDAR' || codigoNorm === 'COBERTURA_GUARDA') {
     updatesAtor.guardando = true;
     if (alvo && alvo.id && alvo.id !== ator.id) {
       updatesAtor.protegendo_id = alvo.id;
@@ -753,7 +764,7 @@ export function resolverAcaoCombate({
   if (pfGasto > 0) resumoPartes.push(`-${pfGasto} PF`);
   if (notaLivre && notaLivre.trim()) resumoPartes.push(notaLivre.trim());
 
-  const detalhes = resumoPartes.length > 0 ? resumoPartes.join(' • ') : acaoInfo.resumo;
+  const detalhes = resumoPartes.length > 0 ? resumoPartes.join(' • ') : (acaoInfo.resumo || acaoInfo.efeito);
 
   return {
     valido: true,
@@ -781,3 +792,468 @@ export function resolverAcaoCombate({
     }
   };
 }
+
+// =============================================================================
+// SISTEMA DE ROLAGEM DE DADOS INTEGRADA AO COMBATE (FICHAS E NPCS)
+// =============================================================================
+
+export const ATRIBUTOS_CONFLITO = {
+  des: { key: 'des', campoFicha: 'destreza', sigla: 'DES', nome: 'Destreza' },
+  ast: { key: 'ast', campoFicha: 'astucia', sigla: 'AST', nome: 'Astúcia' },
+  vig: { key: 'vig', campoFicha: 'vigor', sigla: 'VIG', nome: 'Vigor' },
+  von: { key: 'von', campoFicha: 'vontade', sigla: 'VON', nome: 'Vontade' }
+};
+
+export const TESTES_RAPIDOS_PADRAO = [
+  { codigo: 'INICIATIVA', titulo: 'Iniciativa / Percepção', attr1: 'des', attr2: 'ast', isOposto: true },
+  { codigo: 'RES_FISICA', titulo: 'Resistência Física', attr1: 'vig', attr2: 'vig', isOposto: false },
+  { codigo: 'RES_MENTAL', titulo: 'Resistência Mental', attr1: 'von', attr2: 'von', isOposto: false },
+  { codigo: 'ESTUDO', titulo: 'Estudo (ND 10/13/16)', attr1: 'ast', attr2: 'ast', isOposto: false, ndSugerido: 10 },
+  { codigo: 'IMPEDIMENTO', titulo: 'Impedimento / Disputa', attr1: 'des', attr2: 'vig', isOposto: true }
+];
+
+/**
+ * Converte valor de dado textual ou numérico (ex: 'd8', 'D10', 8) em número de faces válido.
+ * @param {string|number} valor
+ * @param {number} [padrao=8]
+ * @returns {number}
+ */
+export function extrairFacesDadoCombate(valor, padrao = 8) {
+  if (!valor) return padrao;
+  if (typeof valor === 'number') {
+    return PROGRESSAO_DADOS_ATRIBUTO.includes(valor) ? valor : padrao;
+  }
+  const limpo = parseInt(String(valor).replace(/\D/g, ''), 10);
+  return PROGRESSAO_DADOS_ATRIBUTO.includes(limpo) ? limpo : padrao;
+}
+
+/**
+ * Aplica variação de passos na progressão oficial de dados de Fabula Ultima [6, 8, 10, 12, 20].
+ * @param {number} facesBase
+ * @param {number} [deltaPassos=0]
+ * @param {number} [tetoFaces=20]
+ * @returns {number}
+ */
+export function aplicarPassosDadoCombate(facesBase, deltaPassos = 0, tetoFaces = 20) {
+  const faces = extrairFacesDadoCombate(facesBase, 8);
+  const idxBase = Math.max(0, PROGRESSAO_DADOS_ATRIBUTO.indexOf(faces));
+  const idxTeto = Math.max(0, PROGRESSAO_DADOS_ATRIBUTO.indexOf(tetoFaces));
+  const idxFinal = Math.max(0, Math.min(idxTeto, idxBase + (Number(deltaPassos) || 0)));
+  return PROGRESSAO_DADOS_ATRIBUTO[idxFinal];
+}
+
+/**
+ * Normaliza siglas ou nomes de atributos para uma das chaves canônicas: 'des' | 'ast' | 'vig' | 'von'.
+ * @param {string} attr
+ * @param {string} [fallback='des']
+ * @returns {string}
+ */
+export function normalizarChaveAtributo(attr, fallback = 'des') {
+  const norm = normalizarTextoCore(String(attr || ''));
+  if (norm.startsWith('des') || norm.startsWith('dex') || norm.startsWith('agi')) return 'des';
+  if (norm.startsWith('ast') || norm.startsWith('ins') || norm.startsWith('int')) return 'ast';
+  if (norm.startsWith('vig') || norm.startsWith('mig') || norm.startsWith('for')) return 'vig';
+  if (norm.startsWith('von') || norm.startsWith('wlp') || norm.startsWith('esp')) return 'von';
+  return fallback;
+}
+
+/**
+ * Extrai atributos de fórmula textual de precisão (ex: "[DES + VIG] +1" -> { attr1: 'des', attr2: 'vig', bonus: 1 }).
+ * @param {Object} stats
+ * @returns {{ attr1: string, attr2: string, bonus: number }}
+ */
+function extrairFormulaArmaItem(stats = {}) {
+  let attr1 = normalizarChaveAtributo(stats.attr1 || 'des', 'des');
+  let attr2 = normalizarChaveAtributo(stats.attr2 || 'vig', 'vig');
+  let bonus = parseInt(stats.precisao || stats.acerto || 0, 10) || 0;
+
+  const formula = String(stats.precisao || '').toUpperCase();
+  if (formula) {
+    const matchAttrs = formula.match(/[([【]\s*([A-Z]{3})\s*\+\s*([A-Z]{3})\s*[)\]】]/);
+    if (matchAttrs) {
+      attr1 = normalizarChaveAtributo(matchAttrs[1], attr1);
+      attr2 = normalizarChaveAtributo(matchAttrs[2], attr2);
+    }
+    const partes = formula.split(/[)\]】]/);
+    if (partes.length > 1) {
+      const matchBonus = partes[1].match(/\+\s*(\d+)/);
+      if (matchBonus) {
+        bonus = Math.max(bonus, parseInt(matchBonus[1], 10) || 0);
+      }
+    }
+  }
+
+  return { attr1, attr2, bonus };
+}
+
+/**
+ * Extrai o perfil completo de rolagem de um combatente (Herói ou NPC)
+ * puxando automaticamente os atributos reais, penalidades de condições ativas,
+ * armas equipadas/ataques básicos e magias/feitiços cadastrados.
+ * @param {Object} params
+ * @param {Object} [params.combatente={}]
+ * @param {Object|null} [params.ficha=null]
+ * @param {Object|null} [params.npc=null]
+ * @param {Object} [params.modificadoresCena={}]
+ * @returns {Object}
+ */
+export function extrairPerfilRolagemCombatente({
+  combatente = {},
+  ficha = null,
+  npc = null,
+  modificadoresCena = {}
+} = {}) {
+  const condicoes = Array.isArray(combatente?.condicoes) ? combatente.condicoes : [];
+  const modsCondicoesBrutos = calcularModificadoresCondicoesOficiais(condicoes);
+  const modsCondicoes = {
+    des: modsCondicoesBrutos.destreza || 0,
+    ast: modsCondicoesBrutos.astucia || 0,
+    vig: modsCondicoesBrutos.vigor || 0,
+    von: modsCondicoesBrutos.vontade || 0
+  };
+
+  const emCrise = calcularStatusCrise(combatente?.hp_atual, combatente?.hp_max);
+  const guardando = Boolean(combatente?.guardando);
+  const decretoDanoExtra = Number(modificadoresCena?.decretoDanoExtra) || 0;
+
+  // 1. Determina atributos base (Ficha do Herói ou Ficha do NPC)
+  let desBase = 8;
+  let astBase = 8;
+  let vigBase = 8;
+  let vonBase = 8;
+
+  if (ficha) {
+    const classesFicha = Array.isArray(ficha.classes) ? ficha.classes : (Array.isArray(ficha.fichas_classes) ? ficha.fichas_classes : []);
+    const nivelTotal = classesFicha.reduce((acc, c) => acc + (parseInt(c?.nivel, 10) || 0), 0) || Number(ficha.nivel) || 5;
+    const bonusHeroicos = calcularBonusPassivosPoderesHeroicos(ficha.poderes_heroicos || [], nivelTotal);
+
+    desBase = aplicarPassosDadoCombate(ficha.destreza, bonusHeroicos.aumentosAtributo?.destreza || 0, 12);
+    astBase = aplicarPassosDadoCombate(ficha.astucia, bonusHeroicos.aumentosAtributo?.astucia || 0, 12);
+    vigBase = aplicarPassosDadoCombate(ficha.vigor, bonusHeroicos.aumentosAtributo?.vigor || 0, 12);
+    vonBase = aplicarPassosDadoCombate(ficha.vontade, bonusHeroicos.aumentosAtributo?.vontade || 0, 12);
+  } else if (npc?.atributos) {
+    desBase = extrairFacesDadoCombate(npc.atributos.des, 8);
+    astBase = extrairFacesDadoCombate(npc.atributos.ast, 8);
+    vigBase = extrairFacesDadoCombate(npc.atributos.vig, 8);
+    vonBase = extrairFacesDadoCombate(npc.atributos.von, 8);
+  }
+
+  const atributosBase = { des: desBase, ast: astBase, vig: vigBase, von: vonBase };
+  const atributosAtuais = {
+    des: aplicarPassosDadoCombate(desBase, modsCondicoes.des, 20),
+    ast: aplicarPassosDadoCombate(astBase, modsCondicoes.ast, 20),
+    vig: aplicarPassosDadoCombate(vigBase, modsCondicoes.vig, 20),
+    von: aplicarPassosDadoCombate(vonBase, modsCondicoes.von, 20)
+  };
+
+  // 2. Extrai armas / ataques e magias
+  const armas = [];
+  const magias = [];
+
+  if (ficha) {
+    const classesFicha = Array.isArray(ficha.classes) ? ficha.classes : (Array.isArray(ficha.fichas_classes) ? ficha.fichas_classes : []);
+    const todosItens = Array.isArray(ficha.itens) ? ficha.itens : [];
+    const itensEquipados = todosItens.filter((i) => i.equipado || i.stats_personalizados?.slot);
+    const passivosCore = calcularPassivosCoreClasses({
+      classes: classesFicha,
+      ficha,
+      itensEquipados,
+      emCrise
+    });
+
+    const nivelTotal = classesFicha.reduce((acc, c) => acc + (parseInt(c?.nivel, 10) || 0), 0) || Number(ficha.nivel) || 5;
+    const temFeiticoPoderoso = (ficha.poderes_heroicos || []).some((p) => {
+      const txt = normalizarTextoCore(typeof p === 'string' ? p : `${p?.key || ''} ${p?.nome || ''}`);
+      return txt.includes('feitico poderoso');
+    });
+    const bonusFeiticoPoderoso = temFeiticoPoderoso ? (nivelTotal >= 40 ? 10 : 5) : 0;
+
+    // Armas equipadas nas mãos
+    const armasMaos = itensEquipados.filter((i) => {
+      const slot = i.stats_personalizados?.slot;
+      const tipo = normalizarTextoCore(i.tipo || '');
+      const ehEscudo = tipo.includes('escudo') || i.stats_personalizados?.escudo === true;
+      return (slot === 'mao_dominante' || slot === 'mao_secundaria' || tipo.includes('arma')) && !ehEscudo;
+    });
+
+    armasMaos.forEach((item, idx) => {
+      const stats = item.stats_personalizados || {};
+      const alcanceTexto = normalizarTextoCore(`${stats.alcance || ''} ${stats.categoria || ''} ${item.tipo || ''}`);
+      const ehDistancia =
+        alcanceTexto.includes('distancia') ||
+        alcanceTexto.includes('arco') ||
+        alcanceTexto.includes('fogo') ||
+        alcanceTexto.includes('arremesso') ||
+        alcanceTexto.includes('besta');
+
+      const { attr1, attr2, bonus: bonusArma } = extrairFormulaArmaItem(stats);
+      const bonusMaestria = ehDistancia ? passivosCore.bonusPrecisaoDistancia : passivosCore.bonusPrecisaoCorpoACorpo;
+
+      const valorDanoBruto = stats.dano_fixo ?? stats.dano ?? stats.bonus_dano ?? 5;
+      let danoArma = 0;
+      if (typeof valorDanoBruto === 'number') {
+        danoArma = valorDanoBruto;
+      } else {
+        const str = String(valorDanoBruto);
+        const matchDano = str.includes('+') ? str.split('+').pop() : str;
+        danoArma = parseInt(matchDano, 10) || 0;
+      }
+
+      armas.push({
+        id: item.id || `arma_${idx}`,
+        nome: item.nome || 'Arma Equipada',
+        attr1,
+        attr2,
+        bonusPrecisao: bonusArma + bonusMaestria,
+        bonusDano: danoArma + passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
+        tipoDano: normalizarTextoCore(stats.tipo_dano || 'fisico') || 'fisico',
+        alcance: ehDistancia ? 'distancia' : 'corpo_a_corpo',
+        isPadrao: false
+      });
+    });
+
+    // Golpe Desarmado sempre disponível
+    armas.push({
+      id: 'desarmado',
+      nome: 'Golpe Desarmado',
+      attr1: 'des',
+      attr2: 'vig',
+      bonusPrecisao: passivosCore.bonusPrecisaoCorpoACorpo,
+      bonusDano: passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
+      tipoDano: 'fisico',
+      alcance: 'corpo_a_corpo',
+      isPadrao: armas.length === 0
+    });
+
+    // Magias da ficha
+    const listaMagias = Array.isArray(ficha.magias) ? ficha.magias : [];
+    listaMagias.forEach((m, idx) => {
+      const matchPm = String(m.custo_mp || '').match(/\d+/);
+      const custoBase = matchPm ? parseInt(matchPm[0], 10) || 0 : 10;
+      magias.push({
+        id: m.id || `magia_${idx}`,
+        nome: m.nome || 'Feitiço',
+        attr1: 'ast',
+        attr2: 'von',
+        bonusPrecisao: passivosCore.bonusTesteArtilhariaMagica,
+        bonusDano: bonusFeiticoPoderoso + decretoDanoExtra,
+        custoPm: modificadoresCena?.decretoDobrarPm ? custoBase * 2 : custoBase,
+        ofensiva: true,
+        descricao: m.descricao || ''
+      });
+    });
+  } else {
+    // NPC do catálogo ou Inimigo manual
+    const nivelNpc = Number(npc?.nivel) || 5;
+    const bonusPrecisaoNivel = Math.floor(nivelNpc / 10);
+    const bonusDanoNivel = nivelNpc >= 60 ? 15 : nivelNpc >= 40 ? 10 : nivelNpc >= 20 ? 5 : 0;
+
+    const ataquesNpc = Array.isArray(npc?.ataques_basicos) ? npc.ataques_basicos : [];
+    ataquesNpc.forEach((atk, idx) => {
+      armas.push({
+        id: `npc_atk_${idx}`,
+        nome: atk.nome || `Ataque ${idx + 1}`,
+        attr1: normalizarChaveAtributo(atk.atributo_dado1 || 'des', 'des'),
+        attr2: normalizarChaveAtributo(atk.atributo_dado2 || 'vig', 'vig'),
+        bonusPrecisao: (Number(atk.bonus_precisao) || 0) + bonusPrecisaoNivel,
+        bonusDano: (Number(atk.bonus_dano) || 5) + bonusDanoNivel + decretoDanoExtra,
+        tipoDano: normalizarTextoCore(atk.tipo_dano || 'fisico') || 'fisico',
+        alcance: 'corpo_a_corpo',
+        isPadrao: idx === 0
+      });
+    });
+
+    if (armas.length === 0) {
+      armas.push({
+        id: 'npc_padrao',
+        nome: 'Ataque Básico',
+        attr1: 'des',
+        attr2: 'vig',
+        bonusPrecisao: bonusPrecisaoNivel,
+        bonusDano: 5 + bonusDanoNivel + decretoDanoExtra,
+        tipoDano: 'fisico',
+        alcance: 'corpo_a_corpo',
+        isPadrao: true
+      });
+    }
+
+    const feiticosNpc = Array.isArray(npc?.feiticos) ? npc.feiticos : [];
+    feiticosNpc.forEach((f, idx) => {
+      const custoBase = parseInt(String(f.pm_custo || 10).replace(/\D/g, ''), 10) || 10;
+      magias.push({
+        id: `npc_mag_${idx}`,
+        nome: f.nome || `Feitiço ${idx + 1}`,
+        attr1: 'ast',
+        attr2: 'von',
+        bonusPrecisao: bonusPrecisaoNivel,
+        bonusDano: 5 + bonusDanoNivel + decretoDanoExtra,
+        custoPm: modificadoresCena?.decretoDobrarPm ? custoBase * 2 : custoBase,
+        ofensiva: true,
+        descricao: f.descricao || ''
+      });
+    });
+  }
+
+  return {
+    possuiFichaVinculada: Boolean(ficha || npc),
+    origemNome: ficha?.nome_personagem || npc?.nome || combatente?.nome || 'Combatente',
+    atributosBase,
+    atributosAtuais,
+    modsCondicoes,
+    defesa: Number(ficha?.defesa ?? npc?.defesa ?? atributosAtuais.des),
+    mdef: Number(ficha?.mdef ?? npc?.defesa_magica ?? atributosAtuais.ast),
+    iniciativaMod: Number(npc?.iniciativa ?? 0),
+    bonusGuardaOposto: guardando ? 2 : 0,
+    emCrise,
+    armas,
+    magias
+  };
+}
+
+/**
+ * Executa uma rolagem oficial de Fabula Ultima (2 dados de Atributo + Modificador)
+ * para Testes de Atributo, Resistência, Iniciativa, Ataques com Armas ou Feitiços,
+ * gerando o resultado detalhado e a entrada para o Feed de Ações em tempo real.
+ * @param {Object} params
+ * @returns {Object}
+ */
+export function rolarDadosCombate({
+  combatente = {},
+  perfil = null,
+  categoria = 'atributo',
+  titulo = 'Teste de Atributo',
+  attr1 = 'des',
+  attr2 = 'des',
+  bonusTeste = 0,
+  bonusDano = 0,
+  calcularDano = false,
+  zerarHr = false,
+  isMulti = false,
+  isOposto = false,
+  tipoDano = 'fisico',
+  custoPm = 0,
+  ndAlvo = null,
+  valoresFixos = null
+} = {}) {
+  const k1 = normalizarChaveAtributo(attr1, 'des');
+  const k2 = normalizarChaveAtributo(attr2, 'des');
+
+  const faces1 = perfil?.atributosAtuais?.[k1] || 8;
+  const faces2 = perfil?.atributosAtuais?.[k2] || 8;
+  const sigla1 = ATRIBUTOS_CONFLITO[k1]?.sigla || 'DES';
+  const sigla2 = ATRIBUTOS_CONFLITO[k2]?.sigla || 'DES';
+
+  const d1 = valoresFixos?.d1 !== undefined
+    ? Number(valoresFixos.d1)
+    : Math.floor(Math.random() * faces1) + 1;
+  const d2 = valoresFixos?.d2 !== undefined
+    ? Number(valoresFixos.d2)
+    : Math.floor(Math.random() * faces2) + 1;
+
+  const bonusGuarda = isOposto && (perfil?.bonusGuardaOposto || combatente?.guardando) ? 2 : 0;
+  const modificadorTotal = (Number(bonusTeste) || 0) + bonusGuarda;
+  const total = d1 + d2 + modificadorTotal;
+
+  const hrBruto = Math.max(d1, d2);
+  const hr = zerarHr ? 0 : hrBruto;
+
+  const isFumble = d1 === 1 && d2 === 1;
+  const isCritico = !isFumble && d1 === d2 && d1 >= 6;
+  const statusCritico = isCritico
+    ? 'Sucesso Crítico!'
+    : isFumble
+      ? 'Erro Crítico (Fumble)!'
+      : null;
+
+  const bonusDanoEfetivo = isMulti ? 0 : (Number(bonusDano) || 0);
+  const danoTotal = calcularDano ? Math.max(0, hr + bonusDanoEfetivo) : null;
+
+  const sucessoNd = ndAlvo !== null
+    ? (!isFumble && (isCritico || total >= Number(ndAlvo)))
+    : null;
+
+  const modStr = modificadorTotal !== 0
+    ? (modificadorTotal > 0 ? ` + ${modificadorTotal}` : ` - ${Math.abs(modificadorTotal)}`)
+    : '';
+
+  const formulaDados = `[${sigla1} d${faces1}: ${d1} + ${sigla2} d${faces2}: ${d2}]${modStr}`;
+  const partesDetalhe = [
+    `${formulaDados} = ${total}`,
+    `HR: ${hr}`
+  ];
+
+  if (calcularDano && danoTotal !== null) {
+    partesDetalhe.push(`Dano: ${danoTotal} (${tipoDano})`);
+  }
+  if (bonusGuarda > 0) {
+    partesDetalhe.push('Guarda (+2 Oposto)');
+  }
+  if (ndAlvo !== null) {
+    partesDetalhe.push(sucessoNd ? `Sucesso (ND ${ndAlvo})` : `Falha (ND ${ndAlvo})`);
+  }
+  if (statusCritico) {
+    partesDetalhe.push(statusCritico);
+  }
+
+  const detalhes = partesDetalhe.join(' • ');
+  const nomeAutor = combatente?.nome || perfil?.origemNome || 'Combatente';
+
+  return {
+    autorNome: nomeAutor,
+    categoria,
+    titulo,
+    attr1: k1,
+    attr2: k2,
+    sigla1,
+    sigla2,
+    faces1,
+    faces2,
+    d1,
+    d2,
+    modificadorTotal,
+    bonusGuarda,
+    total,
+    hr,
+    calcularDano,
+    bonusDanoEfetivo,
+    danoTotal,
+    tipoDano,
+    custoPm: Number(custoPm) || 0,
+    isCritico,
+    isFumble,
+    statusCritico,
+    sucessoNd,
+    formulaDados,
+    detalhes,
+    logEntry: {
+      combatente_id: combatente?.id || null,
+      autor_nome: nomeAutor,
+      autor_tipo: combatente?.tipo || 'heroi',
+      acao_codigo: 'ROLAGEM_DADOS',
+      acao_titulo: `🎲 ${titulo}`,
+      detalhes,
+      metadata: {
+        rolagem: {
+          categoria,
+          titulo,
+          sigla1,
+          faces1,
+          d1,
+          sigla2,
+          faces2,
+          d2,
+          modificadorTotal,
+          total,
+          hr,
+          calcularDano,
+          danoTotal,
+          tipoDano,
+          isCritico,
+          isFumble,
+          statusCritico
+        }
+      }
+    }
+  };
+}
+

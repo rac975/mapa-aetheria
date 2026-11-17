@@ -1,0 +1,378 @@
+.diceDrawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: rgba(6, 13, 23, 0.94);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  cursor: default;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.headerTitleCluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.headerIcon {
+  color: var(--color-ether-cyan);
+  font-size: var(--font-size-sm);
+}
+
+.drawerTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.closeBtn:hover {
+  color: var(--color-text-main);
+  background: var(--color-bg-surface);
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.subTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.atributosRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.attrChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.attrChip:hover {
+  border-color: var(--color-border-gold);
+}
+
+.attrChipSelected {
+  border-color: var(--color-ether-cyan);
+  background: rgba(var(--color-ether-cyan-rgb), 0.14);
+  box-shadow: 0 0 10px rgba(var(--color-ether-cyan-rgb), 0.2);
+}
+
+.attrChipDebuff {
+  border-color: var(--color-crise);
+}
+
+.attrSigla {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.attrDado {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.attrChipDebuff .attrDado,
+.debuffMark {
+  color: var(--color-crise-bright);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.customRollControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.attrSelect {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  outline: none;
+}
+
+.plusSign {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: var(--font-size-xs);
+}
+
+.modInputWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+}
+
+.modLabel {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.modInput {
+  width: 42px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.opostoLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.presetsStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.presetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(var(--color-bg-surface-rgb), 0.7);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  color: var(--color-text-main);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.presetBtn:hover {
+  border-color: var(--color-ether-cyan);
+  color: var(--color-ether-cyan);
+  background: rgba(var(--color-ether-cyan-rgb), 0.12);
+}
+
+.presetIcon {
+  color: var(--color-border-gold);
+  font-size: 11px;
+}
+
+.presetFormula {
+  font-family: var(--font-family-mono);
+  font-size: 0.65rem;
+  color: var(--color-text-gold);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+}
+
+.itemsRollGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-2);
+}
+
+.weaponRollBtn,
+.spellRollBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 6px var(--space-2);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.weaponRollBtn:hover {
+  border-color: var(--color-border-gold);
+  background: var(--color-bg-surface-hover);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.spellRollBtn:hover {
+  border-color: var(--color-ether-cyan);
+  background: var(--color-bg-surface-hover);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+.weaponTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.weaponName {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weaponFormula {
+  font-family: var(--font-family-mono);
+  font-size: 0.68rem;
+  color: var(--color-text-gold);
+}
+
+.resultBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: linear-gradient(90deg, rgba(56, 239, 239, 0.12), rgba(10, 25, 47, 0.92));
+  border: 1px solid var(--color-ether-cyan);
+  border-radius: var(--radius-sm);
+}
+
+.resultCrit {
+  background: linear-gradient(90deg, rgba(0, 245, 160, 0.18), rgba(10, 25, 47, 0.92));
+  border-color: var(--color-core-green);
+}
+
+.resultFumble {
+  background: linear-gradient(90deg, rgba(231, 76, 60, 0.22), rgba(10, 25, 47, 0.92));
+  border-color: var(--color-crise);
+}
+
+.resultLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resultTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-gold);
+}
+
+.resultFormula {
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-main);
+}
+
+.resultNumbers {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(6, 13, 23, 0.8);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  min-width: 48px;
+}
+
+.statBoxDamage {
+  border-color: var(--color-crise);
+  background: rgba(var(--color-crise-rgb), 0.16);
+}
+
+.statBoxLabel {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.statBoxValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-ether-cyan);
+}
+
+.statBoxHr {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gold);
+}
+
+.statBoxDmgValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: #ff8577;
+}
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+}

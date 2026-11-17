@@ -75,16 +75,16 @@ export function useMutante({
   const dadosMutanteSalvos = classeObj?.dados_mutante || habTerio?.dados_mutante || ficha?.dados_mutante || {};
   const terioSalvasIniciais = habTerio?.terioformas_aprendidas || dadosMutanteSalvos.terioformasAprendidas || [];
 
+  function maxDonsLimit(limit) {
+    return limit > 0 ? limit : undefined;
+  }
+
   const [terioformasAprendidas, setTerioformasAprendidas] = useState(() => {
     if (Array.isArray(terioSalvasIniciais) && terioSalvasIniciais.length > 0) {
       return terioSalvasIniciais.slice(0, maxDonsLimit(maxTerioformas));
     }
     return [];
   });
-
-  function maxDonsLimit(limit) {
-    return limit > 0 ? limit : undefined;
-  }
 
   const [terioformasAtivas, setTerioformasAtivas] = useState(dadosMutanteSalvos.terioformasAtivas || []);
   const [teriomorfoseManifestada, setTeriomorfoseManifestada] = useState(dadosMutanteSalvos.teriomorfoseManifestada || false);

@@ -8,12 +8,64 @@ import { supabase } from './supabase.js';
  */
 export const combatService = {
   /**
-   * Busca todas as fichas de personagens para seleção no combate.
+   * Busca todas as fichas de personagens completas (atributos, classes, itens e magias)
+   * para seleção e rolagem de dados integrada no combate.
    */
   async getFichasPersonagens() {
+    const [fichasRes, itensRes, magiasRes] = await Promise.all([
+      supabase
+        .from('fichas_personagens')
+        .select(`
+          *,
+          fichas_classes (
+            nome_classe,
+            nivel,
+            beneficios,
+            habilidades,
+            dados_floralista,
+            dados_gourmet,
+            dados_invocador,
+            dados_mercador
+          )
+        `)
+        .order('nome_personagem', { ascending: true }),
+      supabase.from('itens_personagem').select('*'),
+      supabase.from('fichas_magias').select('*')
+    ]);
+
+    if (fichasRes.error || !fichasRes.data) {
+      return await supabase
+        .from('fichas_personagens')
+        .select('*')
+        .order('nome_personagem', { ascending: true });
+    }
+
+    const todosItens = itensRes.data || [];
+    const todasMagias = magiasRes.data || [];
+
+    const dataEnriquecida = fichasRes.data.map((ficha) => {
+      const itensFicha = todosItens.filter((i) => String(i.ficha_id) === String(ficha.id));
+      const magiasFicha = todasMagias.filter((m) => String(m.ficha_id) === String(ficha.id));
+      return {
+        ...ficha,
+        classes: ficha.fichas_classes || [],
+        itens: itensFicha,
+        magias: magiasFicha
+      };
+    });
+
+    return { data: dataEnriquecida, error: null };
+  },
+
+  /**
+   * Busca todos os NPCs/adversários do catálogo do Mestre para combate e rolagem de dados.
+   */
+  async getNpcsCombate() {
     return await supabase
-      .from('fichas_personagens')
-      .select('id, nome_personagem, hp_max, mp_max, pi_max, fabula, avatar_url, defesa, mdef');
+      .from('npcs_mestre')
+      .select('*')
+      .eq('tipo_registro', 'npc_mestre')
+      .order('created_at', { ascending: false });
   },
 
   /**

@@ -7,16 +7,19 @@ import {
   alternarCondicao,
   reordenarParticipantes,
   construirCombatente,
-  resolverAcaoCombate
+  resolverAcaoCombate,
+  extrairPerfilRolagemCombatente,
+  rolarDadosCombate
 } from '../domain/fabula/combatRules';
 
 /**
- * Hook customizado para gerenciar estado, ações rápidas, modificadores, relógios
- * e sincronização em tempo real do combate via Supabase Realtime.
+ * Hook customizado para gerenciar estado, ações rápidas, modificadores, relógios,
+ * rolagens de dados integradas e sincronização em tempo real do combate via Supabase Realtime.
  */
 export function useCombatTracker(isMestre) {
   const [participantes, setParticipantes] = useState([]);
   const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
+  const [npcsDisponiveis, setNpcsDisponiveis] = useState([]);
   const [estadoCombate, setEstadoCombate] = useState({ id: 1, rodada: 1, em_combate: true, modificadores_globais: {} });
   const [relogios, setRelogios] = useState([]);
   const [acoesFeed, setAcoesFeed] = useState([]);
@@ -47,8 +50,9 @@ export function useCombatTracker(isMestre) {
 
     async function inicializarCombate() {
       try {
-        const [fichasRes, iniciativaRes, estadoRes, relogiosRes, acoesRes] = await Promise.all([
+        const [fichasRes, npcsRes, iniciativaRes, estadoRes, relogiosRes, acoesRes] = await Promise.all([
           combatService.getFichasPersonagens(),
+          combatService.getNpcsCombate(),
           combatService.getParticipantes(),
           combatService.getEstadoCombate(),
           combatService.getRelogiosCombate(),
@@ -57,6 +61,7 @@ export function useCombatTracker(isMestre) {
 
         if (!ativo) return;
         if (fichasRes.data) setFichasDisponiveis(fichasRes.data);
+        if (npcsRes.data) setNpcsDisponiveis(npcsRes.data);
         if (iniciativaRes.data) setParticipantes(iniciativaRes.data);
         if (estadoRes.data) setEstadoCombate(estadoRes.data);
         if (relogiosRes.data) setRelogios(relogiosRes.data);
@@ -308,7 +313,8 @@ export function useCombatTracker(isMestre) {
         ordem: novaOrdem,
         hpMax: npcCatalogoSelecionado.pv_max || 30,
         mpMax: npcCatalogoSelecionado.pm_max || 20,
-        pontosUltima: 3
+        pontosUltima: 3,
+        npcId: npcCatalogoSelecionado.id
       });
     } else {
       if (!nomeInimigo || !nomeInimigo.trim()) {
@@ -386,11 +392,78 @@ export function useCombatTracker(isMestre) {
     await combatService.salvarNovaOrdem(novaLista);
   }, [isMestre, participantes]);
 
+  const obterPerfilRolagem = useCallback((combatente) => {
+    if (!combatente) return null;
+    const fichaCorrespondente = combatente.tipo === 'heroi'
+      ? fichasDisponiveis.find(
+          (f) =>
+            String(f.id) === String(combatente.ficha_id) ||
+            f.nome_personagem?.toLowerCase() === combatente.nome?.toLowerCase()
+        )
+      : null;
+
+    const npcIdVinculado = combatente.modificadores?.npc_id;
+    const npcCorrespondente = combatente.tipo !== 'heroi'
+      ? npcsDisponiveis.find(
+          (n) =>
+            (npcIdVinculado && String(n.id) === String(npcIdVinculado)) ||
+            n.nome?.toLowerCase() === combatente.nome?.toLowerCase()
+        )
+      : null;
+
+    return extrairPerfilRolagemCombatente({
+      combatente,
+      ficha: fichaCorrespondente || null,
+      npc: npcCorrespondente || null,
+      modificadoresCena: estadoCombate?.modificadores_globais || {}
+    });
+  }, [fichasDisponiveis, npcsDisponiveis, estadoCombate?.modificadores_globais]);
+
+  const rolarDadosNoCombate = useCallback(async (opcoes = {}) => {
+    const {
+      combatente,
+      exibirPopup = true,
+      ...restoOpcoes
+    } = opcoes;
+
+    const combatenteAlvo = combatente || participantes.find((p) => String(p.id) === String(opcoes.combatenteId));
+    if (!combatenteAlvo) return null;
+
+    const perfil = opcoes.perfil || obterPerfilRolagem(combatenteAlvo);
+    const resultado = rolarDadosCombate({
+      combatente: combatenteAlvo,
+      perfil,
+      ...restoOpcoes
+    });
+
+    if (resultado.logEntry) {
+      const { data } = await combatService.registrarAcaoCombate(resultado.logEntry);
+      if (data) {
+        setAcoesFeed((prev) => [data, ...prev].slice(0, 30));
+      } else {
+        setAcoesFeed((prev) => [{ id: `local_${Date.now()}`, ...resultado.logEntry }, ...prev].slice(0, 30));
+      }
+    }
+
+    if (exibirPopup) {
+      const tipoAlerta = resultado.isCritico ? 'success' : resultado.isFumble ? 'error' : 'info';
+      setAlerta({
+        isOpen: true,
+        type: tipoAlerta,
+        title: `🎲 ${resultado.autorNome} — ${resultado.titulo}`,
+        message: resultado.detalhes
+      });
+    }
+
+    return resultado;
+  }, [participantes, obterPerfilRolagem]);
+
   const fecharAlerta = useCallback(() => setAlerta((prev) => ({ ...prev, isOpen: false })), []);
 
   return {
     participantes,
     fichasDisponiveis,
+    npcsDisponiveis,
     estadoCombate,
     relogios,
     acoesFeed,
@@ -413,6 +486,8 @@ export function useCombatTracker(isMestre) {
     cancelarEdicao,
     alterarRecurso,
     toggleCondicao,
-    moverItem
+    moverItem,
+    obterPerfilRolagem,
+    rolarDadosNoCombate
   };
 }
