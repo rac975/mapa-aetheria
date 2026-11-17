@@ -1,11 +1,12 @@
 import React from 'react';
 import { FaSlidersH, FaCheck, FaExclamationTriangle, FaArrowDown } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
-import { VEHICLE_MODULES_CATALOG } from '../../../../domain/fabula/technoFantasyRules';
+import { obterModuloPorId } from '../../../../domain/fabula/technoFantasyRules';
 import styles from './ExibirPiloto.module.css';
 
 export default function PilotoModulosAtivos({
   modulosAtivos = [],
+  catalogoModulos = [],
   slotsUsados = 0,
   slotsMaximos = 3,
   onDesativarModulo,
@@ -15,7 +16,7 @@ export default function PilotoModulosAtivos({
   const ultrapassou = slotsUsados > slotsMaximos;
 
   const modulosObjetos = modulosAtivos
-    .map((id) => VEHICLE_MODULES_CATALOG.find((m) => m.id === id))
+    .map((id) => obterModuloPorId(id, catalogoModulos))
     .filter(Boolean);
 
   return (
@@ -94,7 +95,7 @@ export default function PilotoModulosAtivos({
 
       <div className={styles.printOnly}>
         <strong>Módulos Ativos ({slotsUsados}/{slotsMaximos} slots):</strong>{' '}
-        {modulosObjetos.map(m => `${m.nome} (${m.slot_cost || 1} slots)`).join(', ')}
+        {modulosObjetos.map((m) => `${m.nome} (${m.slot_cost || 1} slots)`).join(', ')}
       </div>
     </div>
   );

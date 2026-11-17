@@ -7,6 +7,7 @@ import styles from './ExibirEsper.module.css';
 
 export default function ExibirEsper(props) {
   const {
+    catalogoDons,
     nivelEsper,
     nvFocoCognitivo,
     nvHipercognicao,
@@ -288,6 +289,7 @@ export default function ExibirEsper(props) {
       <EsperDonsModal
         isOpen={isModalDonsOpen}
         onClose={() => setIsModalDonsOpen(false)}
+        catalogoDons={catalogoDons}
         donsAprendidos={donsAprendidos}
         maxDons={maxDons}
         nvDons={nvDons}

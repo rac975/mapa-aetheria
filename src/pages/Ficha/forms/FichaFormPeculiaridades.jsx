@@ -14,7 +14,8 @@ import styles from './FichaFormPeculiaridades.module.css';
 const ABAS_PECULIARIDADES = [
   { key: 'todas', label: 'Todos os Atlas' },
   { key: 'alta_fantasia', label: FONTES_MANUAIS.ALTA_FANTASIA },
-  { key: 'tecno_fantasia', label: FONTES_MANUAIS.TECNO_FANTASIA }
+  { key: 'tecno_fantasia', label: FONTES_MANUAIS.TECNO_FANTASIA },
+  { key: 'fantasia_natural', label: FONTES_MANUAIS.FANTASIA_NATURAL }
 ];
 
 /**
@@ -125,6 +126,10 @@ export default function FichaFormPeculiaridade({ formData = {}, setFormData }) {
     () => catalogo.filter((q) => q.categoria === 'tecno_fantasia'),
     [catalogo]
   );
+  const fantasiaNaturalList = useMemo(
+    () => catalogo.filter((q) => q.categoria === 'fantasia_natural'),
+    [catalogo]
+  );
 
   const aplicarPeculiaridadeDoCatalogo = (quirk) => {
     if (!quirk) return;
@@ -201,7 +206,7 @@ export default function FichaFormPeculiaridade({ formData = {}, setFormData }) {
       <div className={styles.ruleNote}>{REGRAS_OFICIAIS_RESUMO.peculiaridades.regraOpcional}</div>
 
       <div className={styles.catalogSelectorBox}>
-        <label className={styles.label}>Escolher Peculiaridade Oficial (Alta Fantasia / Tecno-Fantasia)</label>
+        <label className={styles.label}>Escolher Peculiaridade Oficial (Alta Fantasia / Tecno-Fantasia / Fantasia Natural)</label>
         <select
           value={peculiaridadeOficialAtual?.key || ''}
           onChange={handleSelectChange}
@@ -215,6 +220,11 @@ export default function FichaFormPeculiaridade({ formData = {}, setFormData }) {
           </optgroup>
           <optgroup label={FONTES_MANUAIS.TECNO_FANTASIA}>
             {tecnoFantasiaList.map((q) => (
+              <option key={q.key} value={q.key}>{q.nome} — {q.resumo}</option>
+            ))}
+          </optgroup>
+          <optgroup label={FONTES_MANUAIS.FANTASIA_NATURAL}>
+            {fantasiaNaturalList.map((q) => (
               <option key={q.key} value={q.key}>{q.nome} — {q.resumo}</option>
             ))}
           </optgroup>

@@ -1,11 +1,16 @@
 import React from 'react';
 import { FaTools } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
-import { VEHICLE_FRAMES } from '../../../../domain/fabula/technoFantasyRules';
+import { obterEstruturaVeiculo } from '../../../../domain/fabula/technoFantasyRules';
 import styles from './ExibirPiloto.module.css';
 
-export default function PilotoEstruturaCard({ frameKey, onChangeFrame }) {
-  const frameAtual = VEHICLE_FRAMES[frameKey] || VEHICLE_FRAMES.exoesqueleto;
+const CHAVES_PADRAO = ['exoesqueleto', 'mecha', 'corcel'];
+
+export default function PilotoEstruturaCard({ frameKey, catalogoEstruturas = [], onChangeFrame }) {
+  const frameAtual = obterEstruturaVeiculo(frameKey, catalogoEstruturas);
+  const listaEstruturas = Array.isArray(catalogoEstruturas) && catalogoEstruturas.length > 0
+    ? catalogoEstruturas
+    : CHAVES_PADRAO.map((k) => obterEstruturaVeiculo(k, []));
 
   return (
     <div className={styles.section}>
@@ -17,7 +22,7 @@ export default function PilotoEstruturaCard({ frameKey, onChangeFrame }) {
       </div>
 
       <div className={styles.frameButtonsRow}>
-        {Object.values(VEHICLE_FRAMES).map((f) => (
+        {listaEstruturas.map((f) => (
           <Button
             key={f.key}
             variant={frameKey === f.key ? 'core' : 'ghost'}

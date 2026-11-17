@@ -1,16 +1,40 @@
+import { useEffect, useState } from 'react';
 import { FaDna, FaCheck } from 'react-icons/fa';
 import { Modal, Button, Badge } from '../../../../components/ui';
-import { THERIOFORMS_CATALOG } from '../../../../domain/fabula/technoFantasyRules';
+import { fichaService } from '../../../../services/fichaService';
 import styles from './ExibirMutante.module.css';
 
 export default function MutanteTerioformasModal({
   isOpen,
   onClose,
+  catalogoTerioformas = [],
   terioformasAprendidas = [],
   maxTerioformas = 0,
   nvTeriomorfose = 0,
   onToggleTerioforma
 }) {
+  const [catalogoInterno, setCatalogoInterno] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(catalogoTerioformas) && catalogoTerioformas.length > 0) {
+      setCatalogoInterno(catalogoTerioformas);
+      return;
+    }
+    let cancelado = false;
+    fichaService
+      .getCatalogoTerioformas()
+      .then((dados) => {
+        if (!cancelado && Array.isArray(dados)) {
+          setCatalogoInterno(dados);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar Terioformas no modal:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, [catalogoTerioformas]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -36,7 +60,7 @@ export default function MutanteTerioformasModal({
         </div>
 
         <div className={styles.terioModalGrid}>
-          {THERIOFORMS_CATALOG.map((tf) => {
+          {catalogoInterno.map((tf) => {
             const isSelected = terioformasAprendidas.includes(tf.key);
             return (
               <div

@@ -20,7 +20,8 @@ const FILTROS_FONTE = [
   { key: null, label: 'Todos os Manuais' },
   { key: FONTES_MANUAIS.LIVRO_BASICO, label: FONTES_MANUAIS.LIVRO_BASICO },
   { key: FONTES_MANUAIS.ALTA_FANTASIA, label: FONTES_MANUAIS.ALTA_FANTASIA },
-  { key: FONTES_MANUAIS.TECNO_FANTASIA, label: FONTES_MANUAIS.TECNO_FANTASIA }
+  { key: FONTES_MANUAIS.TECNO_FANTASIA, label: FONTES_MANUAIS.TECNO_FANTASIA },
+  { key: FONTES_MANUAIS.FANTASIA_NATURAL, label: FONTES_MANUAIS.FANTASIA_NATURAL }
 ];
 
 export default function FichaPoderesHeroicosSecao({ fichaId, ficha, setFicha, classes = [] }) {

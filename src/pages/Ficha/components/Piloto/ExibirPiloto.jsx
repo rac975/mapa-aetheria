@@ -11,6 +11,8 @@ import styles from './ExibirPiloto.module.css';
 
 export default function ExibirPiloto(props) {
   const {
+    catalogoEstruturas,
+    catalogoModulos,
     nomeVeiculo,
     setNomeVeiculo,
     frameKey,
@@ -59,6 +61,7 @@ export default function ExibirPiloto(props) {
 
       <PilotoEstruturaCard
         frameKey={frameKey}
+        catalogoEstruturas={catalogoEstruturas}
         onChangeFrame={setFrameKey}
       />
 
@@ -74,6 +77,7 @@ export default function ExibirPiloto(props) {
 
       <PilotoModulosAtivos
         modulosAtivos={modulosAtivos}
+        catalogoModulos={catalogoModulos}
         slotsUsados={stats.slotsUsados}
         slotsMaximos={stats.slotsMaximos}
         onDesativarModulo={handleDesativarModulo}
@@ -83,6 +87,7 @@ export default function ExibirPiloto(props) {
       <PilotoModulosReserva
         modulosReserva={modulosReserva}
         modulosAtivos={modulosAtivos}
+        catalogoModulos={catalogoModulos}
         totalModulosPermitidos={totalModulosPermitidos}
         slVeiculoPessoal={slVeiculoPessoal}
         onAtivarModulo={handleAtivarModulo}
@@ -93,6 +98,7 @@ export default function ExibirPiloto(props) {
       <PilotoCatalogoModal
         isOpen={modalCatalogoAberto}
         onClose={() => setModalCatalogoAberto(false)}
+        catalogoModulos={catalogoModulos}
         modulosReserva={modulosReserva}
         modulosAtivos={modulosAtivos}
         onAdicionar={handleAdicionarAoHangar}

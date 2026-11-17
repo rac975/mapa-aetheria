@@ -1,12 +1,13 @@
 import React from 'react';
 import { FaBoxes, FaPlus, FaArrowUp, FaTrash } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
-import { VEHICLE_MODULES_CATALOG } from '../../../../domain/fabula/technoFantasyRules';
+import { obterModuloPorId } from '../../../../domain/fabula/technoFantasyRules';
 import styles from './ExibirPiloto.module.css';
 
 export default function PilotoModulosReserva({
   modulosReserva = [],
   modulosAtivos = [],
+  catalogoModulos = [],
   totalModulosPermitidos = 3,
   slVeiculoPessoal = 1,
   onAtivarModulo,
@@ -14,7 +15,7 @@ export default function PilotoModulosReserva({
   onAbrirCatalogo
 }) {
   const modulosObjetos = modulosReserva
-    .map((id) => VEHICLE_MODULES_CATALOG.find((m) => m.id === id))
+    .map((id) => obterModuloPorId(id, catalogoModulos))
     .filter(Boolean);
 
   const totalEmPosse = modulosReserva.length + modulosAtivos.length;

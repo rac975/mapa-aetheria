@@ -8,6 +8,10 @@ import { supabase } from './supabase.js';
 export const fichaService = {
   _catalogoPoderesCache: null,
   _catalogoPeculiaridadesCache: null,
+  _catalogoDonsPsiquicosCache: null,
+  _catalogoTerioformasCache: null,
+  _catalogoVeiculosEstruturasCache: null,
+  _catalogoVeiculosModulosCache: null,
 
   /**
    * Busca todas as fichas com classes e itens para exibição pelo Mestre
@@ -338,6 +342,91 @@ export const fichaService = {
       );
     }
     return this._catalogoPeculiaridadesCache;
+  },
+
+  /**
+   * Busca o catálogo oficial de Dons Psíquicos (Esper) diretamente da tabela catalogo_dons_psiquicos
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoDonsPsiquicos() {
+    if (!this._catalogoDonsPsiquicosCache) {
+      const { data, error } = await supabase
+        .from('catalogo_dons_psiquicos')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_dons_psiquicos no Supabase:', error);
+        throw error;
+      }
+      this._catalogoDonsPsiquicosCache = data || [];
+    }
+    return this._catalogoDonsPsiquicosCache;
+  },
+
+  /**
+   * Busca o catálogo oficial de Terioformas (Mutante) diretamente da tabela catalogo_terioformas
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoTerioformas() {
+    if (!this._catalogoTerioformasCache) {
+      const { data, error } = await supabase
+        .from('catalogo_terioformas')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_terioformas no Supabase:', error);
+        throw error;
+      }
+      this._catalogoTerioformasCache = data || [];
+    }
+    return this._catalogoTerioformasCache;
+  },
+
+  /**
+   * Busca o catálogo oficial de Estruturas de Veículo (Piloto) diretamente da tabela catalogo_veiculos_estruturas
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoVeiculosEstruturas() {
+    if (!this._catalogoVeiculosEstruturasCache) {
+      const { data, error } = await supabase
+        .from('catalogo_veiculos_estruturas')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_veiculos_estruturas no Supabase:', error);
+        throw error;
+      }
+      this._catalogoVeiculosEstruturasCache = data || [];
+    }
+    return this._catalogoVeiculosEstruturasCache;
+  },
+
+  /**
+   * Busca o catálogo oficial de Módulos de Veículo (Piloto) diretamente da tabela catalogo_veiculos_modulos
+   * @param {string} [tipo] Filtro opcional por tipo ('armadura', 'arma', 'escudo', 'suporte')
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoVeiculosModulos(tipo = null) {
+    if (!this._catalogoVeiculosModulosCache) {
+      const { data, error } = await supabase
+        .from('catalogo_veiculos_modulos')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        console.error('Erro ao buscar catalogo_veiculos_modulos no Supabase:', error);
+        throw error;
+      }
+      this._catalogoVeiculosModulosCache = data || [];
+    }
+
+    if (tipo && tipo !== 'todos') {
+      return this._catalogoVeiculosModulosCache.filter((m) => m.tipo === tipo);
+    }
+    return this._catalogoVeiculosModulosCache;
   },
 
   /**

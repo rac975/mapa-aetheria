@@ -1,8 +1,8 @@
 import {
   calcularEstatisticasVeiculo,
-  THERIOFORMS_CATALOG,
   aplicarPsicocinesePrecisao
 } from '../domain/fabula/technoFantasyRules.js';
+import { fichaService } from '../services/fichaService.js';
 import { aumentarPassoDado } from '../domain/fabula/equipmentRules.js';
 import {
   calcularBonusPassivosPoderesHeroicos,
@@ -388,7 +388,9 @@ export function calcularStatusPersonagem(
       Array.isArray(dadosVeiculo.modulosAtivos) ? dadosVeiculo.modulosAtivos : [],
       { des, int: ast, vig, von },
       slVeiculo,
-      dadosVeiculo.customizacoes || {}
+      dadosVeiculo.customizacoes || {},
+      fichaService._catalogoVeiculosEstruturasCache || [],
+      fichaService._catalogoVeiculosModulosCache || []
     );
 
     // Se o veículo tiver módulo de blindagem ativa, substitui as defesas base pelas do veículo
@@ -453,8 +455,9 @@ export function calcularStatusPersonagem(
   }
 
   // Resumo discriminado das Terioformas ativas para exibição de Badges
+  const catalogoTerioformasCache = fichaService._catalogoTerioformasCache || [];
   const terioformasAtivasDetalhes = terioformasAtivas.map(chave => {
-    const itemCatalogo = THERIOFORMS_CATALOG.find(t => t.key === chave);
+    const itemCatalogo = catalogoTerioformasCache.find(t => t.key === chave);
     let resumoEfeito = '';
     if (chave === 'placophora') resumoEfeito = `DEF ${13 + Math.floor(nvTeriomorfose / 2)}`;
     else if (chave === 'dynamotheria') resumoEfeito = '+1 Passo VIG';

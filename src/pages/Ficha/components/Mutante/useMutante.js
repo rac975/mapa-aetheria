@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
 import {
-  THERIOFORMS_CATALOG,
   THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT,
   calcularCustoAtivacaoTeriomorfose,
   validarManifestacaoTerioformas,
@@ -22,6 +21,24 @@ export function useMutante({
   pvMaxCalculado,
   onAtualizarMutante
 }) {
+  const [catalogoTerioformas, setCatalogoTerioformas] = useState([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    fichaService
+      .getCatalogoTerioformas()
+      .then((dados) => {
+        if (!cancelado && Array.isArray(dados)) {
+          setCatalogoTerioformas(dados);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar catálogo de Terioformas:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
   const classeObj =
     classe ||
     classeObjeto ||
@@ -44,7 +61,7 @@ export function useMutante({
   const nvTeriomorfose = parseInt(habTerio?.nivel, 10) || 0;
   const maxTerioformas = calcularLimiteTerioformasAprendidas(nvTeriomorfose);
   const nvAcromorfose = getNivel('acromorfose');
-  const nvBiofagia = getNivel('biofag'); // Compatível com Biofagia e Biófago
+  const nvBiofagia = getNivel('biofag');
   const nvEcdise = getNivel('ecdise');
   const nvGenoclepse = getNivel('genocleps');
 
@@ -58,10 +75,14 @@ export function useMutante({
 
   const [terioformasAprendidas, setTerioformasAprendidas] = useState(() => {
     if (Array.isArray(terioSalvasIniciais) && terioSalvasIniciais.length > 0) {
-      return terioSalvasIniciais.slice(0, maxTerioformas > 0 ? maxTerioformas : undefined);
+      return terioSalvasIniciais.slice(0, maxDonsLimit(maxTerioformas));
     }
-    return maxTerioformas > 0 ? THERIOFORMS_CATALOG.slice(0, maxTerioformas).map((t) => t.key) : [];
+    return [];
   });
+
+  function maxDonsLimit(limit) {
+    return limit > 0 ? limit : undefined;
+  }
 
   const [terioformasAtivas, setTerioformasAtivas] = useState(dadosMutanteSalvos.terioformasAtivas || []);
   const [teriomorfoseManifestada, setTeriomorfoseManifestada] = useState(dadosMutanteSalvos.teriomorfoseManifestada || false);
@@ -70,6 +91,10 @@ export function useMutante({
   const [tipoDanoEcdise, setTipoDanoEcdise] = useState('fogo');
   const [isModalTerioOpen, setIsModalTerioOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
+
+  const terioformasAprendidasObjetos = useMemo(() => {
+    return catalogoTerioformas.filter((tf) => terioformasAprendidas.includes(tf.key));
+  }, [catalogoTerioformas, terioformasAprendidas]);
 
   const custoTeriomorfose = calcularCustoAtivacaoTeriomorfose(pvAtual);
   const bonusAcro = calcularBonusAkromorphosis(nvAcromorfose);
@@ -193,6 +218,8 @@ export function useMutante({
   };
 
   return {
+    catalogoTerioformas,
+    terioformasAprendidasObjetos,
     nivelMutante,
     nvTeriomorfose,
     maxTerioformas,

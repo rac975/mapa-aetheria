@@ -19,7 +19,8 @@ export const MAX_PECULIARIDADES_POR_PERSONAGEM = 1;
 export const FONTES_MANUAIS = {
   LIVRO_BASICO: 'Livro Básico',
   ALTA_FANTASIA: 'Atlas Alta Fantasia',
-  TECNO_FANTASIA: 'Atlas Tecno-Fantasia'
+  TECNO_FANTASIA: 'Atlas Tecno-Fantasia',
+  FANTASIA_NATURAL: 'Atlas Fantasia Natural'
 };
 
 export const CATEGORIAS_PODERES_HEROICOS = {
@@ -103,7 +104,14 @@ const SINONIMOS_HABILIDADES = {
   'olhos de aguia': ['olhos de aguia', 'eagle eyes', 'olho de aguia'],
   'genoclepse': ['genoclepse', 'genoclepsis'],
   'imitacao magica': ['imitacao magica', 'spell mimicry'],
-  'compressao tecnologica': ['compressao tecnologica', 'tech compression']
+  'compressao tecnologica': ['compressao tecnologica', 'tech compression'],
+  'alta velocidade': ['alta velocidade', 'high speed'],
+  'quebra-ossos': ['quebra-ossos', 'quebra ossos', 'bone crusher'],
+  'confio em voce': ['confio em voce', 'encorajar', 'encourage', 'lean on me'],
+  'invocacao': ['invocacao', 'invocation'],
+  'cloromancia': ['cloromancia', 'chloromancy'],
+  'ventos do comercio': ['ventos do comercio', 'winds of trade'],
+  'verdadeiro tesouro': ['verdadeiro tesouro', 'real treasure']
 };
 
 /**

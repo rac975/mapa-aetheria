@@ -82,7 +82,10 @@ export function useCharacterSheet(id, navigate) {
         fichaService.getClassesByFichaId(fichaData.id),
         fichaService.getMagiasByFichaId(fichaData.id),
         fichaService.getItensByFichaId(fichaData.id),
-        fichaService.getCondicoesCombate(fichaData.id)
+        fichaService.getCondicoesCombate(fichaData.id),
+        fichaService.getCatalogoTerioformas().catch(() => []),
+        fichaService.getCatalogoVeiculosEstruturas().catch(() => []),
+        fichaService.getCatalogoVeiculosModulos().catch(() => [])
       ]);
 
       setFicha(fichaData);

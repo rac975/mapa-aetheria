@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { FaBrain, FaCheck, FaTimes, FaSave } from 'react-icons/fa';
 import { Modal, Button, Badge } from '../../../../components/ui';
-import { PSYCHIC_GIFTS_CATALOG } from '../../../../domain/fabula/technoFantasyRules';
+import { fichaService } from '../../../../services/fichaService';
 import styles from './ExibirEsper.module.css';
 
 export default function EsperDonsModal({
   isOpen,
   onClose,
+  catalogoDons = [],
   donsAprendidos = [],
   maxDons = 0,
   nvDons = 0,
@@ -15,6 +16,27 @@ export default function EsperDonsModal({
 }) {
   const [selecionados, setSelecionados] = useState([]);
   const [mensagemAviso, setMensagemAviso] = useState('');
+  const [catalogoInterno, setCatalogoInterno] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(catalogoDons) && catalogoDons.length > 0) {
+      setCatalogoInterno(catalogoDons);
+      return;
+    }
+    let cancelado = false;
+    fichaService
+      .getCatalogoDonsPsiquicos()
+      .then((dados) => {
+        if (!cancelado && Array.isArray(dados)) {
+          setCatalogoInterno(dados);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar Dons Psíquicos no modal:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, [catalogoDons]);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +106,7 @@ export default function EsperDonsModal({
         )}
 
         <div className={styles.donsModalGrid}>
-          {PSYCHIC_GIFTS_CATALOG.map((dom) => {
+          {catalogoInterno.map((dom) => {
             const isSelected = selecionados.includes(dom.key);
             return (
               <div

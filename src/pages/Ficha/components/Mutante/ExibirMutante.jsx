@@ -1,12 +1,13 @@
 import { FaDna, FaHeart, FaFistRaised, FaShieldAlt, FaExclamationTriangle, FaCheck, FaRedo, FaBookOpen } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
-import { THERIOFORMS_CATALOG, THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT } from '../../../../domain/fabula/technoFantasyRules';
+import { THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT } from '../../../../domain/fabula/technoFantasyRules';
 import { useMutante } from './useMutante';
 import MutanteTerioformasModal from './MutanteTerioformasModal';
 import styles from './ExibirMutante.module.css';
 
 export default function ExibirMutante(props) {
   const {
+    catalogoTerioformas, terioformasAprendidasObjetos,
     nivelMutante, nvTeriomorfose, maxTerioformas, nvAcromorfose, nvBiofagia, nvEcdise,
     limiteCrise, isCrise, pvAtual, terioformasAprendidas, terioformasAtivas,
     teriomorfoseManifestada, categoriaArma, setCategoriaArma, handleSetCategoriaArma, resistenciaEcdise,
@@ -15,10 +16,6 @@ export default function ExibirMutante(props) {
     handleToggleTerioformaAprendida, handleToggleTerioformaAtiva,
     handleAtivarTeriomorfose, handleEncerrarCena, handleCuraBiofagia, handleAtivarEcdise
   } = useMutante(props);
-
-  const terioformasAprendidasObjetos = THERIOFORMS_CATALOG.filter((tf) =>
-    terioformasAprendidas.includes(tf.key)
-  );
 
   return (
     <div className={styles.container}>
@@ -220,6 +217,7 @@ export default function ExibirMutante(props) {
       <MutanteTerioformasModal
         isOpen={isModalTerioOpen}
         onClose={() => setIsModalTerioOpen(false)}
+        catalogoTerioformas={catalogoTerioformas}
         terioformasAprendidas={terioformasAprendidas}
         maxTerioformas={maxTerioformas}
         nvTeriomorfose={nvTeriomorfose}

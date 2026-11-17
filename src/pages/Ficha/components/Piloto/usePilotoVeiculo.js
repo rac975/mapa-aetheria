@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
 import {
   COMPRESSION_TECH_IP_COST,
@@ -19,6 +19,28 @@ export function usePilotoVeiculo({
   handleAjustarRecurso
 }) {
   const fichaIdReal = fichaId || ficha?.id;
+
+  const [catalogoEstruturas, setCatalogoEstruturas] = useState([]);
+  const [catalogoModulos, setCatalogoModulos] = useState([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    Promise.all([
+      fichaService.getCatalogoVeiculosEstruturas(),
+      fichaService.getCatalogoVeiculosModulos()
+    ])
+      .then(([estruturas, modulos]) => {
+        if (!cancelado) {
+          if (Array.isArray(estruturas)) setCatalogoEstruturas(estruturas);
+          if (Array.isArray(modulos)) setCatalogoModulos(modulos);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar catálogos de veículo do Piloto:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const classeObj =
     classe ||
@@ -88,7 +110,9 @@ export function usePilotoVeiculo({
     Array.isArray(modulosAtivos) ? modulosAtivos : [],
     atributos,
     slVeiculoPessoal,
-    customizacoes
+    customizacoes,
+    catalogoEstruturas,
+    catalogoModulos
   );
 
   const handleAtivarModulo = (modId) => {
@@ -101,7 +125,9 @@ export function usePilotoVeiculo({
         modulosParaAtivar: [modId],
         nivelHabilidade: nvConfigFlexivel,
         frameKey,
-        nivelPilotoOuSl: slVeiculoPessoal
+        nivelPilotoOuSl: slVeiculoPessoal,
+        catalogoEstruturas,
+        catalogoModulos
       });
       if (!res.sucesso) {
         window.alert(res.mensagem);
@@ -111,7 +137,9 @@ export function usePilotoVeiculo({
       const validacao = validarConfiguracaoVeiculo({
         frameKey,
         modulosAtivosIds: novosAtivos,
-        nivelPilotoOuSl: slVeiculoPessoal
+        nivelPilotoOuSl: slVeiculoPessoal,
+        catalogoEstruturas,
+        catalogoModulos
       });
       if (!validacao.valido) {
         window.alert(validacao.erros.join('\n'));
@@ -225,6 +253,8 @@ export function usePilotoVeiculo({
   };
 
   return {
+    catalogoEstruturas,
+    catalogoModulos,
     nomeVeiculo,
     setNomeVeiculo,
     frameKey,

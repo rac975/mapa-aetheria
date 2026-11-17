@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FaPlus, FaCheck } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
 import Modal from '../../../../components/ui/Modal/Modal';
-import { VEHICLE_MODULES_CATALOG } from '../../../../domain/fabula/technoFantasyRules';
+import { fichaService } from '../../../../services/fichaService';
 import styles from './ExibirPiloto.module.css';
 
 const TABS = [
@@ -15,24 +15,45 @@ const TABS = [
 export default function PilotoCatalogoModal({
   isOpen,
   onClose,
+  catalogoModulos = [],
   modulosReserva = [],
   modulosAtivos = [],
   onAdicionar
 }) {
   const [categoria, setCategoria] = useState('todos');
+  const [catalogoInterno, setCatalogoInterno] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(catalogoModulos) && catalogoModulos.length > 0) {
+      setCatalogoInterno(catalogoModulos);
+      return;
+    }
+    let cancelado = false;
+    fichaService
+      .getCatalogoVeiculosModulos()
+      .then((dados) => {
+        if (!cancelado && Array.isArray(dados)) {
+          setCatalogoInterno(dados);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar módulos de veículo no modal:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, [catalogoModulos]);
 
   const todosModulos = useMemo(() => {
-    // Filtra duplicatas com o mesmo ID
     const unique = [];
     const seen = new Set();
-    VEHICLE_MODULES_CATALOG.forEach((m) => {
+    catalogoInterno.forEach((m) => {
       if (!seen.has(m.id)) {
         seen.add(m.id);
         unique.push(m);
       }
     });
     return unique;
-  }, []);
+  }, [catalogoInterno]);
 
   const modulosFiltrados = useMemo(() => {
     if (categoria === 'todos') return todosModulos;

@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
 import {
   BRAINWAVE_CLOCK_MAX_SECTIONS,
-  PSYCHIC_GIFTS_CATALOG,
   calcularCustoPsychicGift,
   avancarBrainwaveClock,
   resetarBrainwaveClock,
@@ -19,6 +18,24 @@ export function useEsper({
   classes,
   handleAjustarRecurso
 }) {
+  const [catalogoDons, setCatalogoDons] = useState([]);
+
+  useEffect(() => {
+    let cancelado = false;
+    fichaService
+      .getCatalogoDonsPsiquicos()
+      .then((dados) => {
+        if (!cancelado && Array.isArray(dados)) {
+          setCatalogoDons(dados);
+        }
+      })
+      .catch((err) => console.error('Erro ao carregar catálogo de Dons Psíquicos:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
   const classeObj =
     classe ||
     classeObjeto ||
@@ -60,7 +77,6 @@ export function useEsper({
   const [tipoAlvo, setTipoAlvo] = useState(dadosEsperSalvos.tipoAlvo || 'aliado');
   const [unicoAlvo, setUnicoAlvo] = useState(true);
 
-  // Dom selecionado para ativação imediata
   const [dadivaKey, setDadivaKey] = useState(() => {
     if (donsAprendidos.length > 0) return donsAprendidos[0];
     return dadosEsperSalvos.dadivaKey || 'atmocinese';
@@ -74,14 +90,13 @@ export function useEsper({
   const reducaoHiper = calcularReducaoHypercognition(nvHipercognicao, unicoAlvo);
 
   const dadivaSelecionada = useMemo(() => {
-    return PSYCHIC_GIFTS_CATALOG.find((g) => g.key === dadivaKey) || PSYCHIC_GIFTS_CATALOG[0];
-  }, [dadivaKey]);
+    return catalogoDons.find((g) => g.key === dadivaKey) || catalogoDons[0] || null;
+  }, [catalogoDons, dadivaKey]);
 
-  // Lista dos dons efetivamente disponíveis para o jogador utilizar
   const donsDisponiveis = useMemo(() => {
-    if (donsAprendidos.length === 0) return PSYCHIC_GIFTS_CATALOG;
-    return PSYCHIC_GIFTS_CATALOG.filter((g) => donsAprendidos.includes(g.key));
-  }, [donsAprendidos]);
+    if (donsAprendidos.length === 0) return catalogoDons;
+    return catalogoDons.filter((g) => donsAprendidos.includes(g.key));
+  }, [catalogoDons, donsAprendidos]);
 
   const salvarEsper = async (novosDados = {}) => {
     const fichaIdReal = ficha?.id || classeObj?.ficha_id;
@@ -156,6 +171,8 @@ export function useEsper({
 
     const resultado = processarAtivacaoPsychicGift({
       giftKey: dadivaKey,
+      giftObjeto: dadivaSelecionada,
+      catalogoDons,
       tipoEscolhido: tipoDano,
       secoesRelogio: relogioSecoes,
       danoBase: 0,
@@ -174,6 +191,7 @@ export function useEsper({
   };
 
   return {
+    catalogoDons,
     nivelEsper,
     nvFocoCognitivo,
     nvHipercognicao,
