@@ -3,16 +3,28 @@
    ===================================================== */
 
 .container {
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-4);
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .innerFlex {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  justify-content: space-between;
+}
+
+.headerRow {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .title {
@@ -22,7 +34,7 @@
   gap: var(--space-2);
   color: var(--color-border-gold-bright);
   font-family: var(--font-family-serif);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-md);
   white-space: nowrap;
 }
 
@@ -34,12 +46,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex: 1;
-  max-width: 500px;
+  width: 100%;
 }
 
 .selectCircunstancia {
   width: 100%;
+  flex: 1;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-main);
@@ -69,17 +81,20 @@
 .resultadoBox {
   background: rgba(197, 160, 89, 0.12);
   border: 1px solid var(--color-border-gold-glow);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: var(--space-2);
+  margin-top: auto;
 }
 
 .resultadoTitulo {
   font-size: var(--font-size-xs);
   color: var(--color-border-gold-bright);
-  max-width: 140px;
+  font-weight: 600;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -93,12 +108,20 @@
 .resultadoTotal {
   color: var(--color-core-green);
   font-weight: 700;
+  font-size: var(--font-size-md);
+  margin-left: var(--space-1);
 }
 
 .resultadoVazio {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   font-style: italic;
+  padding: var(--space-2);
+  text-align: center;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-gold-muted);
+  margin-top: auto;
 }
 
 /* =====================================================
