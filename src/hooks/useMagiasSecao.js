@@ -52,6 +52,10 @@ export function useMagiasSecao({
     const bonusDanoDecreto = sinergias.bonusDanoDecreto || 0;
     const decretoDobrarPmAtivo = Boolean(sinergias.decretoDobrarPmAtivo);
     const nvConsumir = sinergias.nvConsumir || 0;
+    const nf = statusFicha?.naturalFantasy || {};
+    const bonusCuraHarmoniaElemental = nf.invocador?.bonusCuraHarmonia || 0;
+    const bonusDanoPragaElemental = nf.invocador?.bonusDanoPragaAtiva || 0;
+    const limitePmJardinagemMarcial = nf.floralista?.limitePmJardinagemMarcial || 0;
 
     const bonusTesteMagia = bonusArtilharia + bonusFocoTeste + (qtdSimbolosVerdade * 2);
 
@@ -60,6 +64,9 @@ export function useMagiasSecao({
       nvCataclismo,
       maxCataclismoPm,
       bonusPoderCurativo,
+      bonusCuraHarmoniaElemental,
+      bonusDanoPragaElemental,
+      limitePmJardinagemMarcial,
       bonusFeiticoPoderoso,
       nvSimbolosMagicos,
       limitePmSimbolosMagicos,

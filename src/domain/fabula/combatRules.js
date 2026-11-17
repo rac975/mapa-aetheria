@@ -176,9 +176,10 @@ export function reordenarParticipantes(lista, indexOrigem, direcao) {
 
 /**
  * Calcula modificadores consolidados de cura/drenagem durante conflitos considerando
- * Símbolo do Desespero, Toque Pessoal (Simbolista), Foco Cognitivo (Esper) e Roque do Rei (Comandante).
+ * Símbolo do Desespero, Toque Pessoal (Simbolista), Foco Cognitivo (Esper), Roque do Rei (Comandante),
+ * Harmonia Elemental (Invocador), Data de Validade (Mercador) e Dosagem Precisa (Gourmet/Mercador).
  * @param {Object} params
- * @returns {{ valorFinal: number, detalhes: Array<string> }}
+ * @returns {{ valorFinal: number, convertidoEmDano: boolean, danoVeneno: number, limitePercentualMax: number, detalhes: Array<string> }}
  */
 export function calcularCuraEfetivaEmConflito({
   curaBase = 0,
@@ -187,10 +188,30 @@ export function calcularCuraEfetivaEmConflito({
   bloqueadoPorRoqueDoRei = false,
   bonusToquePessoal = 0,
   bonusFocoCognitivo = 0,
-  bonusRoqueReiPm = 0
+  bonusRoqueReiPm = 0,
+  bonusHarmoniaElementalPv = 0,
+  usarDataDeValidade = false,
+  danoDataDeValidade = 0,
+  temDosagemPrecisa = false
 } = {}) {
+  if (tipoRecurso === 'pv' && usarDataDeValidade && danoDataDeValidade > 0) {
+    return {
+      valorFinal: 0,
+      convertidoEmDano: true,
+      danoVeneno: danoDataDeValidade,
+      limitePercentualMax: 100,
+      detalhes: [`Data de Validade: Convertido em ${danoDataDeValidade} de dano de veneno`]
+    };
+  }
+
   if (bloqueadoPorRoqueDoRei) {
-    return { valorFinal: 0, detalhes: ['Bloqueado por Roque do Rei'] };
+    return {
+      valorFinal: 0,
+      convertidoEmDano: false,
+      danoVeneno: 0,
+      limitePercentualMax: 100,
+      detalhes: ['Bloqueado por Roque do Rei']
+    };
   }
 
   let total = Math.max(0, parseInt(curaBase, 10) || 0);
@@ -204,6 +225,10 @@ export function calcularCuraEfetivaEmConflito({
     total += bonusFocoCognitivo;
     detalhes.push(`Foco Cognitivo (+${bonusFocoCognitivo})`);
   }
+  if (tipoRecurso === 'pv' && bonusHarmoniaElementalPv > 0) {
+    total += bonusHarmoniaElementalPv;
+    detalhes.push(`Harmonia Elemental (+${bonusHarmoniaElementalPv} PV)`);
+  }
   if (tipoRecurso === 'pm' && bonusRoqueReiPm > 0) {
     total += bonusRoqueReiPm;
     detalhes.push(`Roque do Rei (+${bonusRoqueReiPm} PM)`);
@@ -212,8 +237,17 @@ export function calcularCuraEfetivaEmConflito({
     total = Math.floor(total / 2);
     detalhes.push('Símbolo do Desespero (÷2)');
   }
+  if (temDosagemPrecisa) {
+    detalhes.push('Dosagem Precisa (até 150% do máximo)');
+  }
 
-  return { valorFinal: total, detalhes };
+  return {
+    valorFinal: total,
+    convertidoEmDano: false,
+    danoVeneno: 0,
+    limitePercentualMax: temDosagemPrecisa ? 150 : 100,
+    detalhes
+  };
 }
 
 /**

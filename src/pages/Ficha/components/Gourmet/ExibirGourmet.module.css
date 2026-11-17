@@ -1,0 +1,308 @@
+.container {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerActions,
+.badgesRow,
+.selectsRow,
+.saborBtns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ativaBox {
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.section {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.saboresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.saborBox {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.saborLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.saborQtd {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-gold);
+}
+
+.composerBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.selectCompact {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  outline: none;
+  min-width: 155px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.previewBox {
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(var(--color-core-green-rgb), 0.25);
+  border-left: 3px solid var(--color-text-gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.previewTexto {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  line-height: 1.4;
+}
+
+.emptyBox {
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.feedbackBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.erroBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-crise-bright);
+  background: rgba(var(--color-crise-rgb), 0.14);
+  border: 1px solid var(--color-crise);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Modal */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.modalInfoBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.catalogGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-2);
+  max-height: 58vh;
+  overflow-y: auto;
+}
+
+.catalogCard {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.catalogCardSelected {
+  border-color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.1);
+}
+
+.catalogCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.catalogCardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.catalogCardDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.printOnly {
+  display: none;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .title,
+  .sectionTitle,
+  .saborLabel,
+  .saborQtd,
+  .previewTexto {
+    color: #000000 !important;
+  }
+
+  .section,
+  .saborBox,
+  .previewBox,
+  .ativaBox {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+  }
+
+  .headerActions,
+  .saborBtns,
+  .selectsRow,
+  .checkboxLabel,
+  .feedbackBox,
+  .erroBox,
+  button,
+  select {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-size-xs) !important;
+    color: #000000 !important;
+    border-top: 1px dashed #666666;
+    padding-top: var(--space-2);
+  }
+}

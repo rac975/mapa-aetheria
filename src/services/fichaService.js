@@ -16,6 +16,10 @@ export const fichaService = {
   _catalogoVirtuosoTonsCache: null,
   _catalogoDancasCache: null,
   _catalogoSimbolosCache: null,
+  _catalogoFloralistaMagiseedsCache: null,
+  _catalogoGourmetCache: null,
+  _catalogoInvocadorElementaisCache: null,
+  _catalogoMercadorItensCache: null,
 
   /**
    * Busca todas as fichas com classes e itens para exibição pelo Mestre
@@ -514,6 +518,65 @@ export const fichaService = {
   },
 
   /**
+   * Busca o catálogo oficial de Magissementes (Floralista) diretamente da tabela catalogo_floralista_magiseeds
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoFloralistaMagiseeds() {
+    return this._carregarCatalogoComCache('_catalogoFloralistaMagiseedsCache', 'catalogo_floralista_magiseeds', 'nome');
+  },
+
+  /**
+   * Busca o catálogo oficial de Sabores, Ingredientes e Efeitos de Iguaria (Gourmet) da tabela catalogo_gourmet_ingredientes_receitas
+   * @param {string|null} [categoria=null] Filtro opcional ('sabor', 'efeito_iguaria', 'especialidade_casa', 'ingrediente_exemplo')
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoGourmetIngredientesReceitas(categoria = null) {
+    const lista = await this._carregarCatalogoComCache(
+      '_catalogoGourmetCache',
+      'catalogo_gourmet_ingredientes_receitas',
+      'id'
+    );
+    if (categoria && categoria !== 'todas') {
+      return lista.filter((item) => item.categoria === categoria);
+    }
+    return lista;
+  },
+
+  /**
+   * Busca o catálogo oficial de Mananciais e Invocações Elementais (Invocador) da tabela catalogo_invocador_elementais
+   * @param {string|null} [manancialKey=null] Filtro opcional ('ar', 'terra', 'fogo', 'raio', 'agua')
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoInvocadorElementais(manancialKey = null) {
+    const lista = await this._carregarCatalogoComCache(
+      '_catalogoInvocadorElementaisCache',
+      'catalogo_invocador_elementais',
+      'id'
+    );
+    if (manancialKey && manancialKey !== 'todos') {
+      return lista.filter((item) => item.manancial_key === manancialKey);
+    }
+    return lista;
+  },
+
+  /**
+   * Busca o catálogo oficial de Usos de Pontos de Comércio, Prosperidade e Itens Raros (Mercador) da tabela catalogo_mercador_itens
+   * @param {string|null} [categoria=null] Filtro opcional ('uso_comercio', 'prosperidade', 'equipamento_raro')
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoMercadorItens(categoria = null) {
+    const lista = await this._carregarCatalogoComCache(
+      '_catalogoMercadorItensCache',
+      'catalogo_mercador_itens',
+      'id'
+    );
+    if (categoria && categoria !== 'todas') {
+      return lista.filter((item) => item.categoria === categoria);
+    }
+    return lista;
+  },
+
+  /**
    * Atualiza o status e slot de um item de equipamento do personagem
    * @param {string|number} itemId
    * @param {Object} dados { equipado, stats_personalizados }
@@ -566,7 +629,11 @@ export const fichaService = {
         nome_classe: c.nome_classe,
         nivel: c.nivel,
         beneficios: c.beneficios,
-        habilidades: c.habilidades || []
+        habilidades: c.habilidades || [],
+        dados_floralista: c.dados_floralista || {},
+        dados_gourmet: c.dados_gourmet || {},
+        dados_invocador: c.dados_invocador || {},
+        dados_mercador: c.dados_mercador || {}
       }));
       const { error: errClasses } = await supabase.from('fichas_classes').insert(classesParaInserir);
       if (errClasses) throw errClasses;
@@ -753,7 +820,11 @@ export const fichaService = {
               nome_classe: c.nome_classe,
               nivel: c.nivel,
               beneficios: c.beneficios,
-              habilidades: c.habilidades || []
+              habilidades: c.habilidades || [],
+              dados_floralista: c.dados_floralista || {},
+              dados_gourmet: c.dados_gourmet || {},
+              dados_invocador: c.dados_invocador || {},
+              dados_mercador: c.dados_mercador || {}
             })
             .eq('id', c.id);
         }
@@ -1094,6 +1165,7 @@ export const fichaService = {
     defaultSkillName,
     dadosProp,
     dadosValor,
+    colunaJsonb = false,
     classes = [],
     beneficiosTexto = null,
     erroLabel = 'classe'
@@ -1130,6 +1202,9 @@ export const fichaService = {
         }
 
         const payload = { habilidades: habsAtualizadas };
+        if (colunaJsonb && dadosProp) {
+          payload[dadosProp] = dadosValor;
+        }
         if (beneficiosTexto) {
           payload.beneficios = beneficiosTexto;
         }
@@ -1249,6 +1324,99 @@ export const fichaService = {
       dadosValor: dadosSimbolista,
       classes,
       erroLabel: 'Simbolista'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Floralista no Supabase (fichas_classes via JSONB dados_floralista)
+   * @param {string|number} fichaId
+   * @param {Object} dadosFloralista
+   * @param {Array} [classes=[]]
+   * @param {string|null} [beneficiosTexto=null]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosFloralista(fichaId, dadosFloralista, classes = [], beneficiosTexto = null) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('floralista') || norm(n).includes('florista'),
+      matchSkill: (n) => norm(n).includes('cloromancia'),
+      defaultSkillName: 'Cloromancia',
+      dadosProp: 'dados_floralista',
+      dadosValor: dadosFloralista,
+      colunaJsonb: true,
+      classes,
+      beneficiosTexto,
+      erroLabel: 'Floralista'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Gourmet no Supabase (fichas_classes via JSONB dados_gourmet)
+   * @param {string|number} fichaId
+   * @param {Object} dadosGourmet
+   * @param {Array} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosGourmet(fichaId, dadosGourmet, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('gourmet'),
+      matchSkill: (n) => norm(n).includes('culinaria'),
+      defaultSkillName: 'Culinária',
+      dadosProp: 'dados_gourmet',
+      dadosValor: dadosGourmet,
+      colunaJsonb: true,
+      classes,
+      erroLabel: 'Gourmet'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Invocador no Supabase (fichas_classes via JSONB dados_invocador)
+   * @param {string|number} fichaId
+   * @param {Object} dadosInvocador
+   * @param {Array} [classes=[]]
+   * @param {string|null} [beneficiosTexto=null]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosInvocador(fichaId, dadosInvocador, classes = [], beneficiosTexto = null) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('invocador'),
+      matchSkill: (n) => norm(n).includes('invocac'),
+      defaultSkillName: 'Invocação',
+      dadosProp: 'dados_invocador',
+      dadosValor: dadosInvocador,
+      colunaJsonb: true,
+      classes,
+      beneficiosTexto,
+      erroLabel: 'Invocador'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Mercador no Supabase (fichas_classes via JSONB dados_mercador)
+   * @param {string|number} fichaId
+   * @param {Object} dadosMercador
+   * @param {Array} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosMercador(fichaId, dadosMercador, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('mercador'),
+      matchSkill: (n) =>
+        norm(n).includes('ventos do comercio') ||
+        norm(n).includes('estoque pessoal') ||
+        norm(n).includes('data de validade') ||
+        norm(n).includes('ja ouvi falar') ||
+        norm(n).includes('verdadeiro tesouro'),
+      defaultSkillName: 'Ventos do Comércio',
+      dadosProp: 'dados_mercador',
+      dadosValor: dadosMercador,
+      colunaJsonb: true,
+      classes,
+      erroLabel: 'Mercador'
     });
   }
 };

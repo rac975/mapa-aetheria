@@ -11,6 +11,13 @@ import {
   extrairBeneficioInicialDancarino,
   gerarTextoBeneficioDancarino
 } from '../../../domain/fabula/highFantasyRules';
+import {
+  ehClasseFloralista,
+  ehClasseInvocador,
+  extrairBeneficioInicialFloralista,
+  extrairBeneficioInicialInvocador,
+  gerarTextoBeneficioPvOuPm
+} from '../../../domain/fabula/naturalFantasyRules';
 import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
 import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
 import FichaFormMagiasClasse from './FichaFormMagiasClasse';
@@ -32,7 +39,11 @@ export default function FichaFormClasseCard({
   const classeConcluida = isClasseDominada(nivelClasse);
   const aceitaMagia = classeAceitaMagia(classe.nome_classe);
   const ehDancarino = ehClasseDancarino(classe.nome_classe);
+  const ehFloralista = ehClasseFloralista(classe.nome_classe);
+  const ehInvocador = ehClasseInvocador(classe.nome_classe);
   const infoDancarino = ehDancarino ? extrairBeneficioInicialDancarino(classe) : null;
+  const infoFloralista = ehFloralista ? extrairBeneficioInicialFloralista(classe) : null;
+  const infoInvocador = ehInvocador ? extrairBeneficioInicialInvocador(classe) : null;
 
   const handleAlterarBeneficioDancarino = (escolha) => {
     const novoTexto = gerarTextoBeneficioDancarino(escolha);
@@ -46,6 +57,24 @@ export default function FichaFormClasseCard({
       habilidades: (atual[index].habilidades || []).map((h) =>
         (h.nome || '').toLowerCase().startsWith('danç') || (h.nome || '').toLowerCase().startsWith('danc')
           ? { ...h, dados_dancarino: { ...(h.dados_dancarino || {}), ...novosDados } }
+          : h
+      )
+    };
+    setFormClasses(atual);
+  };
+
+  const handleAlterarBeneficioNatural = (escolha, dadosProp, habTermo) => {
+    const novoTexto = gerarTextoBeneficioPvOuPm(escolha);
+    const atual = [...formClasses];
+    const dadosExistentes = atual[index][dadosProp] || {};
+    const novosDados = { ...dadosExistentes, beneficioInicial: escolha };
+    atual[index] = {
+      ...atual[index],
+      beneficios: novoTexto,
+      [dadosProp]: novosDados,
+      habilidades: (atual[index].habilidades || []).map((h) =>
+        (h.nome || '').toLowerCase().includes(habTermo)
+          ? { ...h, [dadosProp]: { ...(h[dadosProp] || {}), ...novosDados } }
           : h
       )
     };
@@ -86,6 +115,30 @@ export default function FichaFormClasseCard({
             >
               <option value="pv">Escolha Dançarino: +5 PV Máximos</option>
               <option value="pm">Escolha Dançarino: +5 PM Máximos</option>
+            </select>
+          </div>
+        )}
+        {ehFloralista && infoFloralista && (
+          <div className={styles.subCardContainer}>
+            <select
+              value={infoFloralista.escolha}
+              onChange={(e) => handleAlterarBeneficioNatural(e.target.value, 'dados_floralista', 'cloromancia')}
+              className={styles.selectClasse}
+            >
+              <option value="pv">Escolha Floralista: +5 PV Máximos</option>
+              <option value="pm">Escolha Floralista: +5 PM Máximos</option>
+            </select>
+          </div>
+        )}
+        {ehInvocador && infoInvocador && (
+          <div className={styles.subCardContainer}>
+            <select
+              value={infoInvocador.escolha}
+              onChange={(e) => handleAlterarBeneficioNatural(e.target.value, 'dados_invocador', 'invoca')}
+              className={styles.selectClasse}
+            >
+              <option value="pv">Escolha Invocador: +5 PV Máximos</option>
+              <option value="pm">Escolha Invocador: +5 PM Máximos</option>
             </select>
           </div>
         )}

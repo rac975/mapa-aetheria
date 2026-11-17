@@ -56,6 +56,8 @@ export function useEquipamentosSecao({
   const [usarFocoCognitivo, setUsarFocoCognitivo] = useState(true);
   const [usarSimboloVerdade, setUsarSimboloVerdade] = useState(false);
   const [usarTrilhaEpica, setUsarTrilhaEpica] = useState(false);
+  const [usarCascataInvocador, setUsarCascataInvocador] = useState(false);
+  const [usarPragaElemental, setUsarPragaElemental] = useState(true);
 
   const { coldDelete } = useToast();
 
@@ -68,6 +70,7 @@ export function useEquipamentosSecao({
     const temHoplita = temPoderHeroicoTermo(poderes, 'hoplita');
     const temTrilhaEpica = temPoderHeroicoTermo(poderes, 'trilha epica');
     const sinergias = statusFicha?.sinergias || {};
+    const nf = statusFicha?.naturalFantasy || {};
     const bonusFocoTeste = sinergias.bonusFocoTeste || 0;
     const temSimboloVerdadeProprio = Boolean(sinergias.simbolista?.temSimboloVerdadeProprio);
     const temSimboloVerdadeCena = temSimboloVerdadeProprio || (sinergias.simbolista?.qtdSimbolosVerdadeInimigos || 0) > 0;
@@ -83,7 +86,12 @@ export function useEquipamentosSecao({
       focoCognitivoAtivo: Boolean(sinergias.focoCognitivoAtivo && bonusFocoTeste > 0),
       temSimboloVerdadeCena,
       bonusDanoDecreto: sinergias.bonusDanoDecreto || 0,
-      precisaoPiloto: Number(statusFicha?.precisaoBonus) || 0
+      precisaoPiloto: Number(statusFicha?.precisaoBonus) || 0,
+      bonusPrecisaoCascata: nf.invocador?.bonusPrecisaoCascata || 0,
+      bonusDanoPragaAtiva: nf.invocador?.bonusDanoPragaAtiva || 0,
+      nomePragaAtiva: nf.invocador?.pragaAtivaInimigo?.nome || null,
+      conversaoDanoNatural: nf.conversaoDanoAtiva || null,
+      bonusDanoBeladona: nf.floralista?.bonusDanoVenenoBeladona || 0
     };
   }, [classes, statusFicha]);
 
@@ -224,7 +232,8 @@ export function useEquipamentosSecao({
   const bonusPrecisaoAtivos =
     opcoesTaticas.precisaoPiloto +
     (opcoesTaticas.focoCognitivoAtivo && usarFocoCognitivo ? opcoesTaticas.bonusFocoTeste : 0) +
-    (opcoesTaticas.temSimboloVerdadeCena && usarSimboloVerdade ? 2 : 0);
+    (opcoesTaticas.temSimboloVerdadeCena && usarSimboloVerdade ? 2 : 0) +
+    (opcoesTaticas.bonusPrecisaoCascata > 0 && usarCascataInvocador ? opcoesTaticas.bonusPrecisaoCascata : 0);
 
   const executarRolagemArma = (itemArma, slotId) => {
     const isMulti = modoAtaqueState[slotId] === 'multi';
@@ -243,6 +252,9 @@ export function useEquipamentosSecao({
     }
     if (usarTiroPoderoso && opcoesTaticas.nvTiroPoderoso > 0 && ehDistancia) {
       bonusDanoExtra += opcoesTaticas.nvTiroPoderoso * 2;
+    }
+    if (opcoesTaticas.bonusDanoPragaAtiva > 0 && usarPragaElemental) {
+      bonusDanoExtra += opcoesTaticas.bonusDanoPragaAtiva;
     }
     const nomeCatNorm = normalizarTextoHF(`${itemArma?.nome || ''} ${stats.categoria || ''}`);
     if (opcoesTaticas.temHoplita && nomeCatNorm.includes('lanca') && !isArmaDuasMaos(itemArma)) {
@@ -308,7 +320,11 @@ export function useEquipamentosSecao({
       usarSimboloVerdade,
       setUsarSimboloVerdade,
       usarTrilhaEpica,
-      setUsarTrilhaEpica
+      setUsarTrilhaEpica,
+      usarCascataInvocador,
+      setUsarCascataInvocador,
+      usarPragaElemental,
+      setUsarPragaElemental
     },
     getItemNoSlot,
     desequiparItem,

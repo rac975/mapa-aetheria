@@ -1,0 +1,172 @@
+.container {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerActions,
+.badgesRow,
+.selectsRow,
+.prosperidadeBox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.selectCompact {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  outline: none;
+  min-width: 190px;
+}
+
+.prosperidadeBox {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+.registrosList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.registroItem {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.feedbackBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.erroBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-crise-bright);
+  background: rgba(var(--color-crise-rgb), 0.14);
+  border: 1px solid var(--color-crise);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.printOnly {
+  display: none;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .title,
+  .sectionTitle {
+    color: #000000 !important;
+  }
+
+  .section,
+  .prosperidadeBox,
+  .registroItem {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+  }
+
+  .headerActions,
+  .selectsRow,
+  .feedbackBox,
+  .erroBox,
+  button,
+  select {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-size-xs) !important;
+    color: #000000 !important;
+    border-top: 1px dashed #666666;
+    padding-top: var(--space-2);
+  }
+}

@@ -40,6 +40,14 @@ export default function FichaHeader({
     const pvAtualHeader = Number(ficha?.hp_atual ?? pvMaxHeader);
     const emCriseHeader = pvAtualHeader > 0 && pvAtualHeader <= Math.floor(pvMaxHeader / 2);
 
+    const nfHeader = statusCalculados?.naturalFantasy || null;
+    const magiseedHeader = nfHeader?.floralista?.magiseedAtiva || null;
+    const secaoRelogioHeader = nfHeader?.floralista?.secaoRelogioGerminacao ?? 0;
+    const pratoHeader = nfHeader?.gourmet?.pratoAtivoCena || null;
+    const pragaHeader = nfHeader?.invocador?.pragaAtivaInimigo || null;
+    const mercadorAtivoHeader = Boolean(nfHeader?.mercador?.ativo && nfHeader?.mercador?.nvVentosDoComercio > 0);
+    const imunidadesHeader = statusCalculados?.imunidadesCondicaoAtivas || [];
+
     return (
         <header className={styles.headerCard}>
             <div className={styles.headerInfoWrapper}>
@@ -116,16 +124,38 @@ export default function FichaHeader({
                                 ><FaPlus /></button>
                             </div>
                         </Badge>
+
+                        {mercadorAtivoHeader && (
+                            <Badge variant="gold" size="sm">
+                                Comércio: {nfHeader.mercador.pontosComercioAtuais}/{nfHeader.mercador.maxPontosComercio} PC
+                            </Badge>
+                        )}
+                        {magiseedHeader && (
+                            <Badge variant="core" size="sm">
+                                🌱 {magiseedHeader.nome} (T={secaoRelogioHeader}/4)
+                            </Badge>
+                        )}
+                        {pratoHeader && (
+                            <Badge variant="pv" size="sm" title={pratoHeader.resumo}>
+                                🍲 Iguaria Ativa ({pratoHeader.pares?.join('+')})
+                            </Badge>
+                        )}
+                        {pragaHeader && (
+                            <Badge variant="ether" size="sm">
+                                ⚡ {pragaHeader.nome} (+{pragaHeader.bonusDano} Dano)
+                            </Badge>
+                        )}
                     </div>
 
                     {condicoesAtivas.length > 0 && (
                         <div className={styles.condicoesStrip}>
                             {condicoesAtivas.map(cId => {
                                 const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
+                                const ehImune = imunidadesHeader.includes(cId);
                                 return (
-                                    <Badge key={cId} variant="crise" size="sm">
+                                    <Badge key={cId} variant={ehImune ? 'core' : 'crise'} size="sm">
                                         {getCondicaoIcon(cId)}
-                                        <span>{condObj?.label || cId}</span>
+                                        <span>{condObj?.label || cId}{ehImune ? ' (Imune)' : ''}</span>
                                     </Badge>
                                 );
                             })}

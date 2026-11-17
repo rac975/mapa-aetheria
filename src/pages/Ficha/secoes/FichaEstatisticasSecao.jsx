@@ -17,10 +17,19 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
 
     const terioformas = statusFicha.terioformasAtivasDetalhes || [];
     const resistencias = statusFicha.resistenciasAtivas || [];
+    const imunidadesCondicao = statusFicha.imunidadesCondicaoAtivas || [];
     const simbolosProprios = sinergias?.simbolista?.simbolosProprios || [];
+    const nf = statusFicha.naturalFantasy || null;
 
     const temSinergiasAtivas = Boolean(
         simbolosProprios.length > 0 ||
+        imunidadesCondicao.length > 0 ||
+        nf?.conversaoDanoAtiva ||
+        nf?.floralista?.magiseedAtiva ||
+        nf?.gourmet?.pratoAtivoCena ||
+        nf?.invocador?.pragaAtivaInimigo ||
+        nf?.invocador?.atributoCincoMananciais ||
+        (nf?.mercador?.ativo && nf?.mercador?.nvVentosDoComercio > 0) ||
         sinergias?.dancaAtivaTurno ||
         sinergias?.ordemAtivaCmd ||
         sinergias?.focoCognitivoAtivo ||
@@ -176,6 +185,41 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                                 {sinergias?.decretoDobrarPmAtivo && (
                                     <Badge variant="pm" size="sm">
                                         Decreto do Bispo: Custos de PM x2
+                                    </Badge>
+                                )}
+                                {imunidadesCondicao.map((cond) => (
+                                    <Badge key={cond} variant="core" size="sm">
+                                        Imune a {cond.toUpperCase()} (Magissemente)
+                                    </Badge>
+                                ))}
+                                {nf?.conversaoDanoAtiva && (
+                                    <Badge variant="gold" size="sm">
+                                        Dano Convertido: {nf.conversaoDanoAtiva.toUpperCase()}
+                                    </Badge>
+                                )}
+                                {nf?.floralista?.magiseedAtiva && (
+                                    <Badge variant="core" size="sm">
+                                        Jardim: {nf.floralista.magiseedAtiva.nome} (T={nf.floralista.secaoRelogioGerminacao}/4)
+                                    </Badge>
+                                )}
+                                {nf?.gourmet?.pratoAtivoCena && (
+                                    <Badge variant="pv" size="sm">
+                                        Iguaria: {nf.gourmet.pratoAtivoCena.resumo}
+                                    </Badge>
+                                )}
+                                {nf?.invocador?.pragaAtivaInimigo && (
+                                    <Badge variant="ether" size="sm">
+                                        {nf.invocador.pragaAtivaInimigo.nome}: +{nf.invocador.pragaAtivaInimigo.bonusDano} Dano
+                                    </Badge>
+                                )}
+                                {nf?.invocador?.atributoCincoMananciais && (
+                                    <Badge variant="core" size="sm">
+                                        Cinco Mananciais: +1 Passo {nf.invocador.atributoCincoMananciais.toUpperCase()}
+                                    </Badge>
+                                )}
+                                {nf?.mercador?.ativo && nf?.mercador?.nvEstoquePessoal > 0 && (
+                                    <Badge variant="pi" size="sm">
+                                        Estoque Pessoal: Isenta ≤ {nf.mercador.limitePiEstoquePessoal} PI ({nf.mercador.pontosComercioAtuais} PC)
                                     </Badge>
                                 )}
                             </div>

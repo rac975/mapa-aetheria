@@ -37,6 +37,12 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
     const [destinoCompra, setDestinoCompra] = useState('mochila');
     const [slotEscolhido, setSlotEscolhido] = useState('mao_dominante');
     const [processando, setProcessando] = useState(false);
+    const [descontoMercador50, setDescontoMercador50] = useState(false);
+
+    const calcularCustoEfetivoItem = (custoBruto = 0) => {
+        const base = Number(custoBruto) || 0;
+        return descontoMercador50 ? Math.floor(base / 2) : base;
+    };
 
     useEffect(() => {
         if (!ficha?.id) return;
@@ -59,8 +65,9 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         }
 
         const zenitAtual = ficha.zenit || 0;
-        if (zenitAtual < item.custo) {
-            alert(`Você precisa de ${item.custo}z, mas só tem ${zenitAtual}z!`);
+        const custoEfetivo = calcularCustoEfetivoItem(item.custo);
+        if (zenitAtual < custoEfetivo) {
+            alert(`Você precisa de ${custoEfetivo}z, mas só tem ${zenitAtual}z!`);
             return;
         }
 
@@ -82,7 +89,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
     const confirmarCompra = async () => {
         if (!ficha || !ficha.id || !itemSelecionadoParaCompra) return;
 
-        const custo = itemSelecionadoParaCompra.custo || 0;
+        const custo = calcularCustoEfetivoItem(itemSelecionadoParaCompra.custo || 0);
         const zenitAtual = ficha.zenit || 0;
 
         if (zenitAtual < custo) {
@@ -256,6 +263,14 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                 >
                     <FaHandHoldingUsd /> Vender Seus Itens
                 </Button>
+                <Button
+                    variant={descontoMercador50 ? 'core' : 'ghost'}
+                    size="sm"
+                    onClick={() => setDescontoMercador50((p) => !p)}
+                    title="Por um Futuro Melhor (Mercador — Prosperidade 10+): Reduz custos em zênites pela metade"
+                >
+                    <FaCoins /> {descontoMercador50 ? 'Prosperidade 10+ (-50% Ativo)' : 'Mercador: Prosperidade (-50%)'}
+                </Button>
             </nav>
 
             {abaAtiva === 'comprar' && (
@@ -285,7 +300,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                                         <div className={styles.cardHeader}>
                                             <h4 className={styles.cardTitulo}>{item.nome}</h4>
                                             <Badge variant="gold" size="sm">
-                                                <FaCoins /> {item.custo}z
+                                                <FaCoins /> {calcularCustoEfetivoItem(item.custo)}z
                                             </Badge>
                                         </div>
 
