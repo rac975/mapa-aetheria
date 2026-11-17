@@ -270,6 +270,14 @@ export function recalcularEstatisticasNpc({
   const defesaCalculada = calcularDefesaNpc(desNum);
   const defMagicaCalculada = calcularDefesaMagicaNpc(astNum);
 
+  const pvAtualAtualizado = npc.pv_atual !== undefined
+    ? clampRecursoNpc(npc.pv_atual, pvCalculado, 0)
+    : (npc.hp_atual !== undefined ? clampRecursoNpc(npc.hp_atual, pvCalculado, 0) : pvCalculado);
+
+  const pmAtualAtualizado = npc.pm_atual !== undefined
+    ? clampRecursoNpc(npc.pm_atual, pmCalculado, 0)
+    : (npc.mp_atual !== undefined ? clampRecursoNpc(npc.mp_atual, pmCalculado, 0) : pmCalculado);
+
   return {
     ...npc,
     nivel,
@@ -278,8 +286,84 @@ export function recalcularEstatisticasNpc({
     quantidade_soldados: qtdSoldados,
     pv_max: pvCalculado,
     pm_max: pmCalculado,
+    hp_max: pvCalculado,
+    mp_max: pmCalculado,
+    maxHp: pvCalculado,
+    maxMp: pmCalculado,
+    pv_atual: pvAtualAtualizado,
+    pm_atual: pmAtualAtualizado,
+    hp_atual: pvAtualAtualizado,
+    mp_atual: pmAtualAtualizado,
     iniciativa: iniciativaCalculada,
     defesa: defesaCalculada,
     defesa_magica: defMagicaCalculada
   };
 }
+
+/**
+ * Verifica se um combatente é do tipo NPC / Inimigo.
+ * @param {Object} combatente
+ * @returns {boolean}
+ */
+export function isNpcCombatente(combatente) {
+  if (!combatente) return false;
+  const tipoNorm = String(combatente.tipo || '').toLowerCase().trim();
+  return tipoNorm !== 'heroi' && tipoNorm !== 'jogador' && tipoNorm !== 'player';
+}
+
+/**
+ * Extrai o limite máximo de PV de um combatente (NPC ou Herói),
+ * suportando variações de nomenclatura (hp_max, maxHp, pv_max).
+ * @param {Object} combatente
+ * @returns {number}
+ */
+export function extrairHpMax(combatente) {
+  if (!combatente) return 0;
+  return Math.max(0, Number(combatente.hp_max ?? combatente.maxHp ?? combatente.pv_max) || 0);
+}
+
+/**
+ * Extrai o limite máximo de PM de um combatente (NPC ou Herói),
+ * suportando variações de nomenclatura (mp_max, maxMp, pm_max).
+ * @param {Object} combatente
+ * @returns {number}
+ */
+export function extrairMpMax(combatente) {
+  if (!combatente) return 0;
+  return Math.max(0, Number(combatente.mp_max ?? combatente.maxMp ?? combatente.pm_max) || 0);
+}
+
+/**
+ * Função de clamping restritivo para recursos (PV e PM) de NPCs.
+ * Garante que o valor final nunca ultrapasse o limite máximo (maxHp / maxMp)
+ * e nem fique abaixo de 0.
+ *
+ * @param {number} valor - Valor numérico a ser restringido
+ * @param {number} limite1 - Teto máximo permitido (ou limite)
+ * @param {number} [limite2=0] - Limite inferior (padrão: 0)
+ * @returns {number} Valor restrito no intervalo [minimo, maximo]
+ */
+export function clampRecursoNpc(valor, limite1, limite2 = 0) {
+  const n1 = Math.max(0, Number(limite1) || 0);
+  const n2 = Math.max(0, Number(limite2) || 0);
+  const min = Math.min(n1, n2);
+  const max = Math.max(n1, n2);
+  const v = Number(valor) || 0;
+  return Math.min(Math.max(v, min), max);
+}
+
+/**
+ * Aplica uma alteração direta (delta) a um recurso de NPC (PV ou PM),
+ * aplicando a função de clamping restritivo [0, maximo].
+ *
+ * @param {number} valorAtual - Valor atual do recurso
+ * @param {number} delta - Variação (+/-) a ser aplicada
+ * @param {number} maximo - Teto máximo (maxHp ou maxMp)
+ * @param {number} [minimo=0] - Limite inferior (padrão: 0)
+ * @returns {number} Novo valor com clamping restritivo
+ */
+export function ajustarRecursoNpc(valorAtual, delta, maximo, minimo = 0) {
+  const novo = (Number(valorAtual) || 0) + (Number(delta) || 0);
+  return clampRecursoNpc(novo, maximo, minimo);
+}
+

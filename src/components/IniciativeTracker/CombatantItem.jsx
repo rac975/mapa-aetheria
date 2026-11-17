@@ -9,7 +9,9 @@ import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoe
 import {
   estaDerrotado as checkDerrotado,
   calcularStatusCrise,
-  calcularDanoAcumulado
+  calcularDanoAcumulado,
+  extrairHpMax,
+  extrairMpMax
 } from '../../domain/fabula/combatRules';
 import CombatantDiceDrawer from './CombatantDiceDrawer';
 import CombatantDrawers from './CombatantDrawers';
@@ -40,9 +42,11 @@ export default function CombatantItem({
   const [painelAberto, setPainelAberto] = useState(null);
   const cardRef = useRef(null);
 
+  const maxHp = extrairHpMax(p);
+  const maxMp = extrairMpMax(p);
   const estaDerrotado = checkDerrotado(p.hp_atual);
-  const emCrise = calcularStatusCrise(p.hp_atual, p.hp_max);
-  const danoInimigo = calcularDanoAcumulado(p.hp_atual, p.hp_max);
+  const emCrise = calcularStatusCrise(p.hp_atual, maxHp);
+  const danoInimigo = calcularDanoAcumulado(p.hp_atual, maxHp);
   const condicoesAtivas = p.condicoes || [];
 
   useEffect(() => {
@@ -159,10 +163,10 @@ export default function CombatantItem({
             {(p.tipo === 'heroi' || isMestre) && (
               <div className={styles.barsInline}>
                 <div className={styles.barCompact}>
-                  <ResourceBar type="pv" current={p.hp_atual} max={p.hp_max} label="PV" isCrise={emCrise} />
+                  <ResourceBar type="pv" current={p.hp_atual} max={maxHp} label="PV" isCrise={emCrise} />
                 </div>
                 <div className={styles.barCompact}>
-                  <ResourceBar type="pm" current={p.mp_atual} max={p.mp_max} label="PM" />
+                  <ResourceBar type="pm" current={p.mp_atual} max={maxMp} label="PM" />
                 </div>
               </div>
             )}

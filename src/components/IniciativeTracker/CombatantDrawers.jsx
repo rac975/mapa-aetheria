@@ -1,5 +1,6 @@
 import { FaTimes, FaMinus, FaPlus, FaBoxOpen, FaStar } from 'react-icons/fa';
 import { CONDICOES_DISPONIVEIS } from '../../constants/condicoes';
+import { extrairHpMax, extrairMpMax } from '../../domain/fabula/combatRules';
 import styles from './CombatantItem.module.css';
 
 export default function CombatantDrawers({
@@ -10,6 +11,9 @@ export default function CombatantDrawers({
   onAlterarRecurso,
   onToggleCondicao
 }) {
+  const maxHp = extrairHpMax(p);
+  const maxMp = extrairMpMax(p);
+
   if (painelAberto === 'recursos') {
     return (
       <div className={`${styles.popoverDrawer} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
@@ -19,26 +23,26 @@ export default function CombatantDrawers({
         </div>
         <div className={styles.recursosPopoverGrid}>
           <div className={styles.recursoControlBox}>
-            <span className={styles.recursoLabel}>PV ({p.hp_atual} / {p.hp_max})</span>
+            <span className={styles.recursoLabel}>PV ({p.hp_atual} / {maxHp})</span>
             <div className={styles.btnGroupDelta}>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -10, p.hp_max)}>-10</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, p.hp_max)}>-5</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, p.hp_max)}><FaMinus /></button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, p.hp_max)}><FaPlus /></button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, p.hp_max)}>+5</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 10, p.hp_max)}>+10</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -10, maxHp)}>-10</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -5, maxHp)}>-5</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, -1, maxHp)}><FaMinus /></button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 1, maxHp)}><FaPlus /></button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 5, maxHp)}>+5</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'hp_atual', p.hp_atual, 10, maxHp)}>+10</button>
             </div>
           </div>
 
           <div className={styles.recursoControlBox}>
-            <span className={styles.recursoLabel}>PM ({p.mp_atual} / {p.mp_max})</span>
+            <span className={styles.recursoLabel}>PM ({p.mp_atual} / {maxMp})</span>
             <div className={styles.btnGroupDelta}>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -10, p.mp_max)}>-10</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, p.mp_max)}>-5</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, p.mp_max)}><FaMinus /></button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, p.mp_max)}><FaPlus /></button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, p.mp_max)}>+5</button>
-              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 10, p.mp_max)}>+10</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -10, maxMp)}>-10</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -5, maxMp)}>-5</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, -1, maxMp)}><FaMinus /></button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 1, maxMp)}><FaPlus /></button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 5, maxMp)}>+5</button>
+              <button type="button" className={styles.deltaBtn} onClick={() => onAlterarRecurso(p.id, 'mp_atual', p.mp_atual, 10, maxMp)}>+10</button>
             </div>
           </div>
 

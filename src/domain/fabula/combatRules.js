@@ -6,6 +6,21 @@ import {
   normalizarTextoCore
 } from './coreClassRules.js';
 import { calcularBonusPassivosPoderesHeroicos } from './heroicAndQuirksRules.js';
+import {
+  clampRecursoNpc,
+  ajustarRecursoNpc,
+  isNpcCombatente,
+  extrairHpMax,
+  extrairMpMax
+} from './npcRules.js';
+
+export {
+  clampRecursoNpc,
+  ajustarRecursoNpc,
+  isNpcCombatente,
+  extrairHpMax,
+  extrairMpMax
+};
 
 /**
  * Fabula Ultima - Regras de Combate e Iniciativa
@@ -94,10 +109,10 @@ export function aplicarDeltaRecurso(valorAtual, delta, maximo = null, minimo = 0
   const variacao = Number(delta) || 0;
   let novo = atual + variacao;
 
-  if (maximo !== null) {
+  if (maximo !== null && maximo !== undefined) {
     novo = Math.min(Number(maximo), novo);
   }
-  return Math.max(minimo, novo);
+  return Math.max(Number(minimo) || 0, novo);
 }
 
 /**
@@ -151,8 +166,10 @@ export function construirCombatente({
     ordem,
     hp_atual: hp,
     hp_max: hp,
+    maxHp: hp,
     mp_atual: mp,
     mp_max: mp,
+    maxMp: mp,
     ip: Number(ip) || 0,
     pontos_fabula: Number(pontosFabula) || 0,
     pontos_ultima: Number(pontosUltima) || 0,
@@ -656,7 +673,14 @@ export function resolverAcaoCombate({
   }
 
   const updatesAtor = {};
-  if (pmGasto > 0) updatesAtor.mp_atual = aplicarDeltaRecurso(ator.mp_atual, -pmGasto, ator.mp_max, 0);
+  if (pmGasto > 0) {
+    if (isNpcCombatente(ator)) {
+      const maxMpAtor = extrairMpMax(ator);
+      updatesAtor.mp_atual = clampRecursoNpc((Number(ator.mp_atual) || 0) - pmGasto, maxMpAtor, 0);
+    } else {
+      updatesAtor.mp_atual = aplicarDeltaRecurso(ator.mp_atual, -pmGasto, ator.mp_max, 0);
+    }
+  }
   if (piGasto > 0) updatesAtor.ip = aplicarDeltaRecurso(ator.ip, -piGasto, null, 0);
   if (pfGasto > 0) updatesAtor.pontos_fabula = aplicarDeltaRecurso(ator.pontos_fabula, -pfGasto, null, 0);
 
@@ -696,13 +720,24 @@ export function resolverAcaoCombate({
     });
 
     updatesAlvo = updatesAlvo || {};
+    const isAlvoNpc = isNpcCombatente(alvoEfetivo);
+    const maxHpAlvo = extrairHpMax(alvoEfetivo);
+
     if (resDano.curaAbsorvida > 0) {
-      updatesAlvo.hp_atual = aplicarDeltaRecurso(alvoEfetivo.hp_atual, resDano.curaAbsorvida, alvoEfetivo.hp_max, 0);
+      const novoHpAlvo = isAlvoNpc
+        ? clampRecursoNpc((Number(alvoEfetivo.hp_atual) || 0) + resDano.curaAbsorvida, maxHpAlvo, 0)
+        : aplicarDeltaRecurso(alvoEfetivo.hp_atual, resDano.curaAbsorvida, alvoEfetivo.hp_max, 0);
+      updatesAlvo.hp_atual = novoHpAlvo;
+      if (isAlvoNpc) {
+        updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHpAlvo, maxHpAlvo);
+      }
       resumoPartes.push(`${alvoEfetivo.nome} absorveu +${resDano.curaAbsorvida} PV (${tipoDano})`);
     } else {
-      const novoHpAlvo = aplicarDeltaRecurso(alvoEfetivo.hp_atual, -resDano.danoFinal, alvoEfetivo.hp_max, 0);
+      const novoHpAlvo = isAlvoNpc
+        ? clampRecursoNpc((Number(alvoEfetivo.hp_atual) || 0) - resDano.danoFinal, maxHpAlvo, 0)
+        : aplicarDeltaRecurso(alvoEfetivo.hp_atual, -resDano.danoFinal, alvoEfetivo.hp_max, 0);
       updatesAlvo.hp_atual = novoHpAlvo;
-      updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHpAlvo, alvoEfetivo.hp_max);
+      updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHpAlvo, isAlvoNpc ? maxHpAlvo : alvoEfetivo.hp_max);
       resumoPartes.push(`${alvoEfetivo.nome} sofreu ${resDano.danoFinal} de dano (${tipoDano})`);
     }
   }
@@ -714,29 +749,50 @@ export function resolverAcaoCombate({
       bloqueadoPorRoqueDoRei: Boolean(modificadoresCena?.roqueBloquearCura)
     });
     const destinoIsAtor = alvoEfetivo.id === ator.id;
+    const combatenteDestino = destinoIsAtor ? ator : alvoEfetivo;
+    const isDestinoNpc = isNpcCombatente(combatenteDestino);
+
     if (modCura.valorFinal > 0) {
       if (recursoCura === 'pm') {
-        const novoMp = aplicarDeltaRecurso(
-          destinoIsAtor && updatesAtor.mp_atual !== undefined ? updatesAtor.mp_atual : alvoEfetivo.mp_atual,
-          modCura.valorFinal,
-          alvoEfetivo.mp_max,
-          0
-        );
+        const mpBase = destinoIsAtor && updatesAtor.mp_atual !== undefined ? updatesAtor.mp_atual : combatenteDestino.mp_atual;
+        let novoMp;
+        if (isDestinoNpc) {
+          const maxMpDestino = extrairMpMax(combatenteDestino);
+          novoMp = clampRecursoNpc((Number(mpBase) || 0) + modCura.valorFinal, maxMpDestino, 0);
+        } else {
+          novoMp = aplicarDeltaRecurso(mpBase, modCura.valorFinal, combatenteDestino.mp_max, 0);
+        }
+
         if (destinoIsAtor) updatesAtor.mp_atual = novoMp;
         else {
           updatesAlvo = updatesAlvo || {};
           updatesAlvo.mp_atual = novoMp;
         }
-        resumoPartes.push(`${alvoEfetivo.nome} recuperou +${modCura.valorFinal} PM`);
+        resumoPartes.push(`${combatenteDestino.nome} recuperou +${modCura.valorFinal} PM`);
       } else {
-        const novoHp = aplicarDeltaRecurso(alvoEfetivo.hp_atual, modCura.valorFinal, alvoEfetivo.hp_max, 0);
-        if (destinoIsAtor) updatesAtor.hp_atual = novoHp;
-        else {
-          updatesAlvo = updatesAlvo || {};
-          updatesAlvo.hp_atual = novoHp;
-          updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHp, alvoEfetivo.hp_max);
+        const hpBase = destinoIsAtor && updatesAtor.hp_atual !== undefined ? updatesAtor.hp_atual : combatenteDestino.hp_atual;
+        let novoHp;
+        if (isDestinoNpc) {
+          const maxHpDestino = extrairHpMax(combatenteDestino);
+          novoHp = clampRecursoNpc((Number(hpBase) || 0) + modCura.valorFinal, maxHpDestino, 0);
+          if (destinoIsAtor) {
+            updatesAtor.hp_atual = novoHp;
+            updatesAtor.dano_acumulado = calcularDanoAcumulado(novoHp, maxHpDestino);
+          } else {
+            updatesAlvo = updatesAlvo || {};
+            updatesAlvo.hp_atual = novoHp;
+            updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHp, maxHpDestino);
+          }
+        } else {
+          novoHp = aplicarDeltaRecurso(hpBase, modCura.valorFinal, combatenteDestino.hp_max, 0);
+          if (destinoIsAtor) updatesAtor.hp_atual = novoHp;
+          else {
+            updatesAlvo = updatesAlvo || {};
+            updatesAlvo.hp_atual = novoHp;
+            updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHp, combatenteDestino.hp_max);
+          }
         }
-        resumoPartes.push(`${alvoEfetivo.nome} recuperou +${modCura.valorFinal} PV`);
+        resumoPartes.push(`${combatenteDestino.nome} recuperou +${modCura.valorFinal} PV`);
       }
     } else if (modCura.detalhes.length > 0) {
       resumoPartes.push(modCura.detalhes.join(', '));

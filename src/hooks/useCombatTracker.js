@@ -9,7 +9,12 @@ import {
   construirCombatente,
   resolverAcaoCombate,
   extrairPerfilRolagemCombatente,
-  rolarDadosCombate
+  rolarDadosCombate,
+  clampRecursoNpc,
+  isNpcCombatente,
+  extrairHpMax,
+  extrairMpMax,
+  calcularDanoAcumulado
 } from '../domain/fabula/combatRules';
 
 /**
@@ -352,27 +357,65 @@ export function useCombatTracker(isMestre) {
   }, [isMestre, coldDelete]);
 
   const salvarEdicao = useCallback(async (id) => {
+    const participanteAtual = participantes.find((p) => p.id === id);
+    const isNpc = isNpcCombatente(participanteAtual);
+
+    const novoHpMax = Number(editForm.hp_max);
+    const novoMpMax = Number(editForm.mp_max);
+
     const payload = {
       nome: editForm.nome,
-      hp_max: Number(editForm.hp_max),
-      mp_max: Number(editForm.mp_max),
+      hp_max: novoHpMax,
+      mp_max: novoMpMax,
       ip: Number(editForm.ip),
       pontos_fabula: Number(editForm.pontos_fabula)
     };
+
+    if (isNpc && participanteAtual) {
+      payload.maxHp = novoHpMax;
+      payload.maxMp = novoMpMax;
+      if (novoHpMax > 0 && Number(participanteAtual.hp_atual) > novoHpMax) {
+        payload.hp_atual = clampRecursoNpc(participanteAtual.hp_atual, novoHpMax, 0);
+        payload.dano_acumulado = calcularDanoAcumulado(payload.hp_atual, novoHpMax);
+      }
+      if (novoMpMax >= 0 && Number(participanteAtual.mp_atual) > novoMpMax) {
+        payload.mp_atual = clampRecursoNpc(participanteAtual.mp_atual, novoMpMax, 0);
+      }
+    }
+
     setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...payload } : p)));
     setEditandoId(null);
     await combatService.updateParticipante(id, payload);
-  }, [editForm]);
+  }, [editForm, participantes]);
 
   const cancelarEdicao = useCallback(() => setEditandoId(null), []);
 
   const alterarRecurso = useCallback(async (id, campo, valorAtual, delta, maximo = null) => {
     if (!isMestre) return;
-    const novoValor = aplicarDeltaRecurso(valorAtual, delta, maximo, 0);
-    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, [campo]: novoValor } : p)));
-    await combatService.updateParticipante(id, { [campo]: novoValor });
-
     const participanteAtual = participantes.find((p) => p.id === id);
+    const isNpc = isNpcCombatente(participanteAtual);
+
+    let novoValor;
+    const updates = {};
+
+    if (isNpc && (campo === 'hp_atual' || campo === 'mp_atual')) {
+      const maximoEfetivo = campo === 'hp_atual'
+        ? (maximo !== null && maximo !== undefined ? Number(maximo) : extrairHpMax(participanteAtual))
+        : (maximo !== null && maximo !== undefined ? Number(maximo) : extrairMpMax(participanteAtual));
+
+      novoValor = clampRecursoNpc((Number(valorAtual) || 0) + (Number(delta) || 0), maximoEfetivo, 0);
+      updates[campo] = novoValor;
+      if (campo === 'hp_atual') {
+        updates.dano_acumulado = calcularDanoAcumulado(novoValor, maximoEfetivo);
+      }
+    } else {
+      novoValor = aplicarDeltaRecurso(valorAtual, delta, maximo, 0);
+      updates[campo] = novoValor;
+    }
+
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    await combatService.updateParticipante(id, updates);
+
     if (participanteAtual && participanteAtual.tipo === 'heroi' && participanteAtual.ficha_id) {
       await combatService.updateRecursoFicha(participanteAtual.ficha_id, campo, novoValor);
     }
