@@ -1,0 +1,17 @@
+.mapa-grid-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.grid-tactical-pattern {
+  width: 100%;
+  height: 100%;
+}

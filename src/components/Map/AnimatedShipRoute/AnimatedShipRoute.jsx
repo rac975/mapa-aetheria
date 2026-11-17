@@ -1,45 +1,44 @@
 import { memo, useMemo } from 'react';
 import { getTipoRotaInfo } from '../../../utils/rotasUtils';
+import { MAP_DIMENSIONS, calcularCurvaRota } from '../../../domain/map/mapRules';
 import './AnimatedShipRoute.css';
 
-const MAP_WIDTH = 12800;
-const MAP_HEIGHT = 8533.3;
-
-const parseCoord = (val, maxVal) => {
-  if (!val) return 0;
-  const num = parseFloat(String(val).replace('%', '').trim());
-  if (String(val).includes('%') || num <= 100) {
-    return (num / 100) * maxVal;
-  }
-  return num;
-};
-
+/**
+ * Camada de Rotas Aéreas e Navegação em Aetheria.
+ * Renderiza caminhos curvilíneos com animação de embarcações aéreas.
+ * Memoizado para ignorar mudanças de status dos Titãs que não afetam as coordenadas geográficas.
+ */
 function AnimatedShipRoute({ rotas = [], localizacoesMapa = [] }) {
-  const rotasProcessadas = useMemo(() => {
-    if (!rotas.length || !localizacoesMapa.length) return [];
+  // Cria uma assinatura das coordenadas dos titãs para evitar recálculo de rotas
+  // quando apenas o status geopolítico de um titã mudar
+  const coordenadasMap = useMemo(() => {
+    const map = new Map();
+    for (const t of localizacoesMapa) {
+      map.set(Number(t.id), {
+        id: Number(t.id),
+        left: t.left_pos || t.left,
+        top: t.top
+      });
+    }
+    return map;
+  }, [localizacoesMapa]);
 
-    const locationsMap = new Map(localizacoesMapa.map((t) => [Number(t.id), t]));
+  const rotasProcessadas = useMemo(() => {
+    if (!rotas.length || coordenadasMap.size === 0) return [];
 
     return rotas
       .map((r, index) => {
-        const origem = locationsMap.get(Number(r.tita_origem_id));
-        const destino = locationsMap.get(Number(r.tita_destino_id));
+        const origem = coordenadasMap.get(Number(r.tita_origem_id));
+        const destino = coordenadasMap.get(Number(r.tita_destino_id));
         if (!origem || !destino) return null;
 
-        const x1 = parseCoord(origem.left_pos || origem.left, MAP_WIDTH);
-        const y1 = parseCoord(origem.top, MAP_HEIGHT);
-        const x2 = parseCoord(destino.left_pos || destino.left, MAP_WIDTH);
-        const y2 = parseCoord(destino.top, MAP_HEIGHT);
-
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2;
-        const offsetX = (index % 2 === 0 ? 1 : -1) * (index * 150 + 100);
-        const offsetY = (index % 2 === 0 ? -1 : 1) * (index * 150 + 100);
-        const controlX = midX + offsetX;
-        const controlY = midY + offsetY;
-
-        const linhaCurvaSvg = `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`;
-        const pathLoop = `${linhaCurvaSvg} Q ${controlX} ${controlY} ${x1} ${y1}`;
+        const { linhaCurvaSvg, pathLoop } = calcularCurvaRota(
+          origem,
+          destino,
+          index,
+          MAP_DIMENSIONS.width,
+          MAP_DIMENSIONS.height
+        );
         const tipoInfo = getTipoRotaInfo(r.tipo_rota);
 
         return {
@@ -51,14 +50,16 @@ function AnimatedShipRoute({ rotas = [], localizacoesMapa = [] }) {
         };
       })
       .filter(Boolean);
-  }, [rotas, localizacoesMapa]);
+  }, [rotas, coordenadasMap]);
 
   if (rotasProcessadas.length === 0) return null;
 
   return (
     <svg
       className="rotas-svg-overlay"
-      viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+      viewBox={`0 0 ${MAP_DIMENSIONS.width} ${MAP_DIMENSIONS.height}`}
+      shapeRendering="optimizeSpeed"
+      aria-hidden="true"
     >
       {rotasProcessadas.map((r) => (
         <g key={r.id}>
@@ -68,7 +69,6 @@ function AnimatedShipRoute({ rotas = [], localizacoesMapa = [] }) {
             stroke={r.corRota}
             strokeWidth="8"
             strokeOpacity="0.15"
-            shapeRendering="optimizeSpeed"
           />
 
           <g className="combo-navio">
