@@ -1,21 +1,19 @@
 .formCard {
-  margin-top: var(--space-4);
-  background: var(--color-bg-base);
+  background: rgba(6, 13, 23, 0.75);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  padding: var(--space-3) var(--space-4);
 }
 
 .formHeader {
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
   border-bottom: 1px solid var(--color-border-gold-muted);
   padding-bottom: var(--space-2);
 }
 
 .formTitle {
   font-family: var(--font-family-serif);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: 700;
   color: var(--color-text-gold);
   letter-spacing: 0.05em;
@@ -27,18 +25,18 @@
 
 .titleIcon {
   color: var(--color-border-gold);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
 }
 
 .formRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .selectWrapper {
-  min-width: 180px;
+  min-width: 170px;
 }
 
 .select {
@@ -49,43 +47,39 @@
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   outline: none;
   transition: all var(--transition-fast);
   cursor: pointer;
-  min-height: 38px;
+  min-height: 36px;
 }
 
 .select:focus {
   border-color: var(--color-ether-cyan);
-  box-shadow: 0 0 10px rgba(56, 239, 239, 0.25);
-  background: var(--color-bg-surface-active);
 }
 
 .selectSmall {
-  min-width: 140px;
+  min-width: 135px;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-main);
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   outline: none;
   transition: all var(--transition-fast);
   cursor: pointer;
-  min-height: 38px;
+  min-height: 36px;
 }
 
 .selectSmall:focus {
   border-color: var(--color-ether-cyan);
-  box-shadow: 0 0 10px rgba(56, 239, 239, 0.25);
-  background: var(--color-bg-surface-active);
 }
 
 .fieldGrow {
   flex: 2;
-  min-width: 200px;
+  min-width: 190px;
 }
 
 .inimigoControls {
@@ -93,12 +87,12 @@
   gap: var(--space-2);
   align-items: center;
   flex: 2;
-  min-width: 250px;
+  min-width: 240px;
   flex-wrap: wrap;
 }
 
 .inputNumberWrapper {
-  width: 90px;
+  width: 85px;
 }
 
 .submitBtn {

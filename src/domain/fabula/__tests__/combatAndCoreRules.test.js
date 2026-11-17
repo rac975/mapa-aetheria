@@ -23,7 +23,9 @@ import {
   calcularProgressoRelogioPorTeste,
   calcularDanoFinalComModificadores,
   extrairModificadoresCombatente,
-  resolverAcaoCombate
+  resolverAcaoCombate,
+  extrairPerfilRolagemCombatente,
+  rolarDadosCombate
 } from '../combatRules.js';
 
 function assert(condition, message) {
@@ -201,5 +203,91 @@ const resObj = resolverAcaoCombate({ acaoCodigo: 'OBJETIVO', ator: heroi, avanco
 assert(resObj.valido && resObj.deltaRelogio === 3, 'OBJETIVO propaga avanço de relógio corretamente');
 
 assert(extrairModificadoresCombatente(heroi, { roqueBloquearCura: true }).roqueBloquearCura === true, 'Extrai modificadores ativos da cena');
+
+console.log('--- 5. Testando Rolagem de Dados Direta Integrada à Ordem de Combate ---');
+const fichaHeroiCompleta = {
+  id: 101,
+  nome_personagem: 'Vesper',
+  destreza: 10,
+  astucia: 8,
+  vigor: 10,
+  vontade: 8,
+  defesa: 12,
+  mdef: 9,
+  classes: [
+    {
+      nome_classe: 'Mestre de Armas',
+      nivel: 3,
+      habilidades: [{ nome: 'Maestria com Armas Corpo a Corpo', nivel: 2 }]
+    }
+  ],
+  itens: [
+    {
+      id: 1,
+      nome: 'Espada Solar',
+      tipo: 'arma',
+      equipado: true,
+      stats_personalizados: {
+        slot: 'mao_dominante',
+        precisao: '[DES + VIG] +1',
+        dano_fixo: 7,
+        tipo_dano: 'luz'
+      }
+    }
+  ],
+  magias: [
+    { id: 10, nome: 'Lux', custo_mp: '10', descricao: 'Feitiço ofensivo de luz' }
+  ]
+};
+
+const perfilHeroi = extrairPerfilRolagemCombatente({
+  combatente: { ...heroi, condicoes: ['lento'], guardando: true },
+  ficha: fichaHeroiCompleta
+});
+// DES base d10 com condição Lento (-1 passo) -> d8
+assert(
+  perfilHeroi.atributosBase.des === 10 && perfilHeroi.atributosAtuais.des === 8,
+  'Condição Lento reduz Destreza de d10 para d8 no perfil de rolagem do combatente'
+);
+assert(
+  perfilHeroi.armas[0].nome === 'Espada Solar' && perfilHeroi.armas[0].bonusPrecisao === 3,
+  'Extrai arma equipada da ficha somando bônus da arma (+1) e Maestria Corpo a Corpo (+2 = +3)'
+);
+
+const rolagemAtaqueCrit = rolarDadosCombate({
+  combatente: { ...heroi, guardando: true },
+  perfil: perfilHeroi,
+  categoria: 'arma',
+  titulo: 'Ataque: Espada Solar',
+  attr1: 'des',
+  attr2: 'vig',
+  bonusTeste: perfilHeroi.armas[0].bonusPrecisao,
+  bonusDano: perfilHeroi.armas[0].bonusDano,
+  calcularDano: true,
+  tipoDano: 'luz',
+  valoresFixos: { d1: 7, d2: 7 }
+});
+assert(
+  rolagemAtaqueCrit.total === 17 &&
+    rolagemAtaqueCrit.hr === 7 &&
+    rolagemAtaqueCrit.danoTotal === 14 &&
+    rolagemAtaqueCrit.isCritico === true,
+  'Rolagem de arma calcula Precisão (7+7+3=17), HR (7), Dano (7+7=14) e Sucesso Crítico'
+);
+
+const rolagemOpostaGuarda = rolarDadosCombate({
+  combatente: { ...heroi, guardando: true },
+  perfil: perfilHeroi,
+  categoria: 'resistencia',
+  titulo: 'Disputa Oposta',
+  attr1: 'vig',
+  attr2: 'des',
+  isOposto: true,
+  valoresFixos: { d1: 5, d2: 4 }
+});
+assert(
+  rolagemOpostaGuarda.bonusGuarda === 2 && rolagemOpostaGuarda.total === 11,
+  'Teste Oposto em postura de Guarda aplica automaticamente +2 (5+4+2=11)'
+);
 
 console.log('TODOS OS TESTES CORE BOOK E COMBATE PASSARAM COM SUCESSO!');

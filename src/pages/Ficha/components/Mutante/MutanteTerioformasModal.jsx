@@ -17,7 +17,6 @@ export default function MutanteTerioformasModal({
 
   useEffect(() => {
     if (Array.isArray(catalogoTerioformas) && catalogoTerioformas.length > 0) {
-      setCatalogoInterno(catalogoTerioformas);
       return;
     }
     let cancelado = false;
@@ -34,6 +33,11 @@ export default function MutanteTerioformasModal({
       cancelado = true;
     };
   }, [catalogoTerioformas]);
+
+  const catalogoExibido =
+    Array.isArray(catalogoTerioformas) && catalogoTerioformas.length > 0
+      ? catalogoTerioformas
+      : catalogoInterno;
 
   return (
     <Modal
@@ -60,7 +64,7 @@ export default function MutanteTerioformasModal({
         </div>
 
         <div className={styles.terioModalGrid}>
-          {catalogoInterno.map((tf) => {
+          {catalogoExibido.map((tf) => {
             const isSelected = terioformasAprendidas.includes(tf.key);
             return (
               <div

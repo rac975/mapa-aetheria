@@ -12,7 +12,7 @@ export default function ClockWidget({
 }) {
   const total = Math.max(2, Number(fatiasTotal) || 4);
   const atuais = Math.max(0, Math.min(total, Number(fatiasAtuais) || 0));
-  const radius = 40;
+  const radius = 42;
   const center = 50;
   const angleStep = 360 / total;
 
@@ -44,17 +44,13 @@ export default function ClockWidget({
     );
   });
 
-  return (
-    <div className={`${styles.clockCard} ${!visivel ? styles.ocultoMestre : ''}`}>
-      <div className={styles.clockHeader}>
-        <h4 title={titulo}>{titulo}</h4>
-        {!visivel && (
-          <span className={styles.badgeOculto}>
-            <FaEyeSlash /> Oculto
-          </span>
-        )}
-      </div>
+  const completo = atuais >= total;
 
+  return (
+    <div
+      className={`${styles.clockCard} ${!visivel ? styles.ocultoMestre : ''} ${completo ? styles.completo : ''}`}
+      title={`${titulo} (${atuais}/${total} fatias)`}
+    >
       <div className={styles.clockSvgWrapper}>
         <svg viewBox="0 0 100 100" className={styles.clockSvg}>
           <circle cx={center} cy={center} r={radius} className={styles.clockBorder} />
@@ -62,40 +58,49 @@ export default function ClockWidget({
         </svg>
       </div>
 
-      <div className={styles.clockFooter}>
-        <span className={styles.clockCount}>{atuais} / {total} Fatias</span>
-        {isMestre && (
-          <div className={styles.clockControls}>
-            <button
-              type="button"
-              onClick={() => onUpdate(Math.max(0, atuais - 1))}
-              title="Decrementar fatia"
-              aria-label="Decrementar fatia"
-            >
-              <FaMinus />
-            </button>
-            <button
-              type="button"
-              onClick={() => onUpdate(Math.min(total, atuais + 1))}
-              title="Incrementar fatia"
-              aria-label="Incrementar fatia"
-            >
-              <FaPlus />
-            </button>
-            {onDelete && (
-              <button
-                type="button"
-                className={styles.btnDelete}
-                onClick={onDelete}
-                title="Excluir relógio"
-                aria-label="Excluir relógio"
-              >
-                <FaTrash />
-              </button>
-            )}
-          </div>
-        )}
+      <div className={styles.clockInfo}>
+        <div className={styles.clockHeader}>
+          <h4 title={titulo}>{titulo}</h4>
+          {!visivel && (
+            <span className={styles.badgeOculto} title="Oculto dos jogadores">
+              <FaEyeSlash />
+            </span>
+          )}
+        </div>
+        <span className={styles.clockCount}>{atuais}/{total}</span>
       </div>
+
+      {isMestre && (
+        <div className={styles.clockControls}>
+          <button
+            type="button"
+            onClick={() => onUpdate(Math.max(0, atuais - 1))}
+            title="Decrementar fatia"
+            aria-label="Decrementar fatia"
+          >
+            <FaMinus />
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpdate(Math.min(total, atuais + 1))}
+            title="Incrementar fatia"
+            aria-label="Incrementar fatia"
+          >
+            <FaPlus />
+          </button>
+          {onDelete && (
+            <button
+              type="button"
+              className={styles.btnDelete}
+              onClick={onDelete}
+              title="Excluir relógio"
+              aria-label="Excluir relógio"
+            >
+              <FaTrash />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

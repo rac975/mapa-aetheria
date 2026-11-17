@@ -11,7 +11,7 @@ import {
 function assert(condition, message) {
   if (!condition) {
     console.error(`❌ FAILED: ${message}`);
-    process.exit(1);
+    throw new Error(`FAILED: ${message}`);
   } else {
     console.log(`✅ PASSED: ${message}`);
   }

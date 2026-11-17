@@ -25,7 +25,6 @@ export default function PilotoCatalogoModal({
 
   useEffect(() => {
     if (Array.isArray(catalogoModulos) && catalogoModulos.length > 0) {
-      setCatalogoInterno(catalogoModulos);
       return;
     }
     let cancelado = false;
@@ -43,17 +42,22 @@ export default function PilotoCatalogoModal({
     };
   }, [catalogoModulos]);
 
+  const catalogoFonte = useMemo(
+    () => (Array.isArray(catalogoModulos) && catalogoModulos.length > 0 ? catalogoModulos : catalogoInterno),
+    [catalogoModulos, catalogoInterno]
+  );
+
   const todosModulos = useMemo(() => {
     const unique = [];
     const seen = new Set();
-    catalogoInterno.forEach((m) => {
+    catalogoFonte.forEach((m) => {
       if (!seen.has(m.id)) {
         seen.add(m.id);
         unique.push(m);
       }
     });
     return unique;
-  }, [catalogoInterno]);
+  }, [catalogoFonte]);
 
   const modulosFiltrados = useMemo(() => {
     if (categoria === 'todos') return todosModulos;

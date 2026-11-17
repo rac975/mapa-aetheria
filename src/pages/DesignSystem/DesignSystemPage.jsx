@@ -13,9 +13,9 @@ export default function DesignSystemPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [pvAtual, setPvAtual] = useState(25);
   const [pvMax] = useState(60);
-  const [pmAtual, setPmAtual] = useState(30);
+  const [pmAtual] = useState(30);
   const [pmMax] = useState(40);
-  const [piAtual, setPiAtual] = useState(4);
+  const [piAtual] = useState(4);
   const [piMax] = useState(6);
   const [inputText, setInputText] = useState('Rex / Pyra');
 

@@ -3,8 +3,6 @@ import {
   ehClasseGourmet,
   ehClasseInvocador,
   ehClasseMercador,
-  extrairBeneficioInicialFloralista,
-  extrairBeneficioInicialInvocador,
   calcularLimiteMagiseedsAprendidas,
   calcularCuraArvoreDaVida,
   calcularLimitePmJardinagemMarcial,
@@ -19,8 +17,7 @@ import {
   filtrarInvocacoesDisponiveis,
   processarInvocacaoElemental,
   calcularLimitePontosComercio,
-  calcularParametrosMercador,
-  extrairEfeitosAtivosNaturalFantasy
+  calcularParametrosMercador
 } from '../naturalFantasyRules.js';
 import { calcularCuraEfetivaEmConflito } from '../combatRules.js';
 import { detectarDisciplinasPersonagem } from '../ritualRules.js';

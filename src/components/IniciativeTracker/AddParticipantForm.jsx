@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaUserPlus, FaShieldAlt, FaSkull } from 'react-icons/fa';
+import { FaUserPlus } from 'react-icons/fa';
 import { Button, Input } from '../ui';
-import { npcService } from '../../services/npcService';
 import styles from './AddParticipantForm.module.css';
 
 export default function AddParticipantForm({
@@ -10,6 +9,7 @@ export default function AddParticipantForm({
   fichaSelecionadaId,
   setFichaSelecionadaId,
   fichasDisponiveis,
+  npcsDisponiveis = [],
   nomeInimigo,
   setNomeInimigo,
   hpMaxInput,
@@ -19,30 +19,22 @@ export default function AddParticipantForm({
   onAddParticipante,
   onSelecionarNpcCatalogo
 }) {
-  const [modoInimigo, setModoInimigo] = useState('manual'); // 'manual' ou 'catalogo'
-  const [npcsSalvos, setNpcsSalvos] = useState([]);
+  const [modoInimigo, setModoInimigo] = useState('manual');
   const [npcSelecionadoId, setNpcSelecionadoId] = useState('');
 
+  const idNpcAtual = npcSelecionadoId || (npcsDisponiveis.length > 0 ? npcsDisponiveis[0].id : '');
+
   useEffect(() => {
-    async function carregarNpcsSalvos() {
-      const { data } = await npcService.getNpcsMestre();
-      if (data) {
-        setNpcsSalvos(data);
-        if (data.length > 0) {
-          setNpcSelecionadoId(data[0].id);
-          if (onSelecionarNpcCatalogo) {
-            onSelecionarNpcCatalogo(data[0]);
-          }
-        }
-      }
+    if (modoInimigo === 'catalogo' && npcsDisponiveis.length > 0 && onSelecionarNpcCatalogo) {
+      const encontrado = npcsDisponiveis.find((n) => String(n.id) === String(idNpcAtual)) || npcsDisponiveis[0];
+      if (encontrado) onSelecionarNpcCatalogo(encontrado);
     }
-    carregarNpcsSalvos();
-  }, [onSelecionarNpcCatalogo]);
+  }, [modoInimigo, idNpcAtual, npcsDisponiveis, onSelecionarNpcCatalogo]);
 
   const handleMudarNpcCatalogo = (e) => {
     const id = e.target.value;
     setNpcSelecionadoId(id);
-    const npcEncontrado = npcsSalvos.find(n => n.id === id);
+    const npcEncontrado = npcsDisponiveis.find((n) => String(n.id) === String(id));
     if (npcEncontrado && onSelecionarNpcCatalogo) {
       onSelecionarNpcCatalogo(npcEncontrado);
     }
@@ -77,7 +69,7 @@ export default function AddParticipantForm({
               className={styles.select}
               aria-label="Selecionar Ficha do Personagem"
             >
-              {fichasDisponiveis.map(f => (
+              {fichasDisponiveis.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.nome_personagem}
                 </option>
@@ -126,12 +118,12 @@ export default function AddParticipantForm({
             ) : (
               <div className={styles.fieldGrow}>
                 <select
-                  value={npcSelecionadoId}
+                  value={idNpcAtual}
                   onChange={handleMudarNpcCatalogo}
                   className={styles.select}
                   aria-label="Selecionar NPC do catálogo"
                 >
-                  {npcsSalvos.map(n => (
+                  {npcsDisponiveis.map((n) => (
                     <option key={n.id} value={n.id}>
                       {n.nome} (Nível {n.nivel} - {n.rank || 'soldado'})
                     </option>

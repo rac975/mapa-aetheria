@@ -1,16 +1,18 @@
 .clockCard {
-  background: var(--color-bg-elevated);
+  background: rgba(var(--color-bg-surface-rgb), 0.72);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  display: flex;
-  flex-direction: column;
+  border-radius: var(--radius-md);
+  padding: 4px var(--space-2);
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--space-2);
-  box-shadow: var(--shadow-surface);
-  width: 185px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
   flex-shrink: 0;
   box-sizing: border-box;
+  height: 38px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -19,48 +21,23 @@
   box-shadow: var(--shadow-glow-gold);
 }
 
+.completo {
+  border-color: var(--color-crise);
+  background: rgba(var(--color-crise-rgb), 0.14);
+}
+
 .ocultoMestre {
-  opacity: 0.68;
+  opacity: 0.72;
   border-style: dashed;
 }
 
-.clockHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-1);
-  width: 100%;
-}
-
-.clockHeader h4 {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-serif);
-  color: var(--color-text-gold);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-}
-
-.badgeOculto {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  background: var(--color-crise-track);
-  color: var(--color-crise);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
 .clockSvgWrapper {
-  width: 96px;
-  height: 96px;
+  width: 28px;
+  height: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .clockSvg {
@@ -71,12 +48,12 @@
 .clockBorder {
   fill: var(--color-bg-base);
   stroke: var(--color-border-gold);
-  stroke-width: 2;
+  stroke-width: 3;
 }
 
 .clockSlice {
   stroke: var(--color-bg-base);
-  stroke-width: 1.5;
+  stroke-width: 2;
   transition: fill var(--transition-fast);
 }
 
@@ -96,42 +73,84 @@
   fill: var(--color-border-gold);
 }
 
+.completo .filled {
+  fill: var(--color-crise);
+}
+
 .clickable.filled:hover {
   fill: var(--color-border-gold-bright);
 }
 
-.clockFooter {
+.clockInfo {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
+  gap: 6px;
+  min-width: 0;
+}
+
+.clockHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.clockHeader h4 {
+  margin: 0;
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 135px;
+}
+
+.badgeOculto {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9px;
+  background: var(--color-crise-track);
+  color: var(--color-crise);
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
 .clockCount {
   font-family: var(--font-family-mono);
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  background: rgba(6, 13, 23, 0.72);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 1px 5px;
+  white-space: nowrap;
 }
 
 .clockControls {
   display: flex;
-  gap: var(--space-1);
+  align-items: center;
+  gap: 3px;
+  padding-left: 4px;
+  border-left: 1px solid var(--color-border-gold-muted);
 }
 
 .clockControls button {
   background: var(--color-bg-base);
   color: var(--color-text-gold);
   border: 1px solid var(--color-border-gold-muted);
-  padding: 5px 9px;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 9px;
   transition: all var(--transition-fast);
+  padding: 0;
 }
 
 .clockControls button:hover {
@@ -141,10 +160,16 @@
 
 .clockControls .btnDelete {
   color: var(--color-crise);
-  border-color: var(--color-crise);
+  border-color: rgba(var(--color-crise-rgb), 0.4);
 }
 
 .clockControls .btnDelete:hover {
   background: var(--color-crise);
   color: var(--color-text-main);
+}
+
+@media print {
+  .clockControls {
+    display: none !important;
+  }
 }

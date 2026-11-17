@@ -14,13 +14,23 @@ export default function EsperDonsModal({
   onToggleDom,
   onSalvarDons
 }) {
-  const [selecionados, setSelecionados] = useState([]);
+  const [selecionados, setSelecionados] = useState(() =>
+    Array.isArray(donsAprendidos) ? [...donsAprendidos] : []
+  );
+  const [prevOpen, setPrevOpen] = useState(isOpen);
   const [mensagemAviso, setMensagemAviso] = useState('');
   const [catalogoInterno, setCatalogoInterno] = useState([]);
 
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
+    if (isOpen) {
+      setSelecionados(Array.isArray(donsAprendidos) ? [...donsAprendidos] : []);
+      setMensagemAviso('');
+    }
+  }
+
   useEffect(() => {
     if (Array.isArray(catalogoDons) && catalogoDons.length > 0) {
-      setCatalogoInterno(catalogoDons);
       return;
     }
     let cancelado = false;
@@ -38,12 +48,8 @@ export default function EsperDonsModal({
     };
   }, [catalogoDons]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setSelecionados(Array.isArray(donsAprendidos) ? [...donsAprendidos] : []);
-      setMensagemAviso('');
-    }
-  }, [isOpen, donsAprendidos]);
+  const catalogoExibido =
+    Array.isArray(catalogoDons) && catalogoDons.length > 0 ? catalogoDons : catalogoInterno;
 
   const handleToggle = (key) => {
     setMensagemAviso('');
@@ -106,7 +112,7 @@ export default function EsperDonsModal({
         )}
 
         <div className={styles.donsModalGrid}>
-          {catalogoInterno.map((dom) => {
+          {catalogoExibido.map((dom) => {
             const isSelected = selecionados.includes(dom.key);
             return (
               <div

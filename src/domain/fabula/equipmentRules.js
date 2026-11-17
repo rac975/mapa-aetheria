@@ -79,7 +79,6 @@ export function resolverValorNumerico(valorBruto, mapaAtributos = {}) {
   // Sanitiza para operações aritméticas simples apenas (+, -, *, / e números)
   const expressaoLimpa = str.replace(/[^0-9+\-*/().\s]/g, '');
   try {
-    // eslint-disable-next-line no-new-func
     const resultado = Function(`"use strict"; return (${expressaoLimpa || 0})`)();
     return typeof resultado === 'number' && !isNaN(resultado) ? Math.floor(resultado) : 0;
   } catch {

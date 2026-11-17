@@ -50,10 +50,11 @@ export default function FichaSlotMaoVazia({
 
   const dadosMutante = mutanteClass?.dados_mutante || habTerio?.dados_mutante || {};
   const categoriaArma = dadosMutante.categoriaArma || 'Armas de Luta';
-  const terioformasAtivas = Array.isArray(dadosMutante.terioformasAtivas) ? dadosMutante.terioformasAtivas : [];
+  const terioformasAtivasRaw = dadosMutante.terioformasAtivas;
 
   // Objeto virtual da arma calculada conforme regras puras de domínio
   const itemVirtual = useMemo(() => {
+    const terioformasAtivas = Array.isArray(terioformasAtivasRaw) ? terioformasAtivasRaw : [];
     if (tipoArma === 'improvisada') {
       return obterArmaImprovisada({ tipoAlcance: tipoAlcanceImprovisada });
     }
@@ -66,7 +67,7 @@ export default function FichaSlotMaoVazia({
       },
       terioformasAtivas
     });
-  }, [tipoArma, tipoAlcanceImprovisada, nvAcromorfose, bonusAcro, categoriaArma, terioformasAtivas]);
+  }, [tipoArma, tipoAlcanceImprovisada, nvAcromorfose, bonusAcro, categoriaArma, terioformasAtivasRaw]);
 
   const stats = itemVirtual.stats_personalizados || {};
 
