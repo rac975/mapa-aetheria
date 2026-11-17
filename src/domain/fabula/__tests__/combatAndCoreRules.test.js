@@ -25,7 +25,12 @@ import {
   extrairModificadoresCombatente,
   resolverAcaoCombate,
   extrairPerfilRolagemCombatente,
-  rolarDadosCombate
+  rolarDadosCombate,
+  clampRecursoNpc,
+  ajustarRecursoNpc,
+  isNpcCombatente,
+  extrairHpMax,
+  extrairMpMax
 } from '../combatRules.js';
 import {
   calcularDefesasEIniciativa,
@@ -376,5 +381,98 @@ assert(defLadinoComEscudo.defesaTotal === 11, 'Esquiva Nv 2 desativa quando escu
 
 const defLadinoComMarcial = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraMarcial], classes: classesLadino });
 assert(defLadinoComMarcial.defesaTotal === 11, 'Esquiva Nv 2 desativa quando armadura marcial é equipada (DEF Fixa 11)');
+
+console.log('--- 7. Testando Gestão de Recursos (PV e PM) e Clamping Restritivo de NPCs ---');
+
+// 7.1 Identificação de NPC e extração de tetos máximos
+assert(isNpcCombatente({ tipo: 'inimigo' }) === true, 'isNpcCombatente identifica tipo inimigo');
+assert(isNpcCombatente({ tipo: 'npc' }) === true, 'isNpcCombatente identifica tipo npc');
+assert(isNpcCombatente({ tipo: 'heroi' }) === false, 'isNpcCombatente não marca heroi como npc');
+assert(extrairHpMax({ hp_max: 50 }) === 50, 'extrairHpMax lê hp_max');
+assert(extrairHpMax({ maxHp: 65 }) === 65, 'extrairHpMax lê maxHp');
+assert(extrairHpMax({ pv_max: 80 }) === 80, 'extrairHpMax lê pv_max');
+assert(extrairMpMax({ mp_max: 30 }) === 30, 'extrairMpMax lê mp_max');
+assert(extrairMpMax({ maxMp: 45 }) === 45, 'extrairMpMax lê maxMp');
+assert(extrairMpMax({ pm_max: 60 }) === 60, 'extrairMpMax lê pm_max');
+
+// 7.2 Função clampRecursoNpc
+assert(clampRecursoNpc(70, 50) === 50, 'clampRecursoNpc restringe valor acima do teto para maxHp');
+assert(clampRecursoNpc(-15, 50) === 0, 'clampRecursoNpc restringe valor abaixo de 0 para 0');
+assert(clampRecursoNpc(35, 50) === 35, 'clampRecursoNpc mantém valor dentro dos limites');
+assert(clampRecursoNpc(0, 50) === 0, 'clampRecursoNpc permite 0 (combatente caído)');
+assert(clampRecursoNpc(50, 50) === 50, 'clampRecursoNpc permite valor igual ao teto máximo');
+assert(clampRecursoNpc(75, 0, 50) === 50, 'clampRecursoNpc com 3 argumentos [0, max] restringe teto');
+assert(clampRecursoNpc(-20, 0, 50) === 0, 'clampRecursoNpc com 3 argumentos [0, max] restringe piso');
+
+// 7.3 Função ajustarRecursoNpc com delta
+assert(ajustarRecursoNpc(45, 10, 50) === 50, 'ajustarRecursoNpc não permite ultrapassar maxHp (45 + 10 -> 50)');
+assert(ajustarRecursoNpc(10, -30, 50) === 0, 'ajustarRecursoNpc não permite ficar abaixo de 0 (10 - 30 -> 0)');
+assert(ajustarRecursoNpc(20, -5, 50) === 15, 'ajustarRecursoNpc aplica dano normalmente (20 - 5 -> 15)');
+assert(ajustarRecursoNpc(20, 15, 50) === 35, 'ajustarRecursoNpc aplica cura normalmente (20 + 15 -> 35)');
+
+// 7.4 Clamping em rolagens de dano/cura via resolverAcaoCombate
+const npcCombatente = {
+  id: 10,
+  nome: 'Dragão Carmesim',
+  tipo: 'inimigo',
+  hp_atual: 50,
+  hp_max: 50,
+  maxHp: 50,
+  mp_atual: 20,
+  mp_max: 30,
+  maxMp: 30,
+  guardando: false,
+  condicoes: []
+};
+
+// Dano letal não deixa HP negativo
+const resDanoMassivo = resolverAcaoCombate({
+  acaoCodigo: 'ATAQUE',
+  ator: { id: 1, nome: 'Vesper', tipo: 'heroi', hp_atual: 40, hp_max: 40, mp_atual: 30, mp_max: 30 },
+  alvo: npcCombatente,
+  danoAplicado: 100,
+  afinidadeAlvo: 'normal'
+});
+assert(resDanoMassivo.updatesAlvo.hp_atual === 0, 'Dano massivo no NPC é restrito exatamente a 0 PV');
+assert(resDanoMassivo.updatesAlvo.dano_acumulado === 50, 'Dano acumulado no NPC é 50 (máximo)');
+
+// Cura além do teto não ultrapassa maxHp
+const resCuraExcedente = resolverAcaoCombate({
+  acaoCodigo: 'CONJURAR',
+  ator: { id: 1, nome: 'Vesper', tipo: 'heroi', hp_atual: 40, hp_max: 40, mp_atual: 30, mp_max: 30 },
+  alvo: { ...npcCombatente, hp_atual: 45 },
+  curaAplicada: 30,
+  recursoCura: 'pv'
+});
+assert(resCuraExcedente.updatesAlvo.hp_atual === 50, 'Cura excedente em PV no NPC é travada em maxHp (50)');
+assert(resCuraExcedente.updatesAlvo.dano_acumulado === 0, 'Dano acumulado após cura total no NPC é 0');
+
+// Cura de PM além do teto não ultrapassa maxMp
+const resCuraPmExcedente = resolverAcaoCombate({
+  acaoCodigo: 'INVENTARIO',
+  ator: { id: 1, nome: 'Vesper', tipo: 'heroi', hp_atual: 40, hp_max: 40, mp_atual: 30, mp_max: 30 },
+  alvo: { ...npcCombatente, mp_atual: 25 },
+  curaAplicada: 20,
+  recursoCura: 'pm'
+});
+assert(resCuraPmExcedente.updatesAlvo.mp_atual === 30, 'Cura de PM no NPC é travada em maxMp (30)');
+
+// Absorção de dano convertida em cura não ultrapassa maxHp
+const resAbsorcao = resolverAcaoCombate({
+  acaoCodigo: 'ATAQUE',
+  ator: { id: 1, nome: 'Vesper', tipo: 'heroi', hp_atual: 40, hp_max: 40, mp_atual: 30, mp_max: 30 },
+  alvo: { ...npcCombatente, hp_atual: 40 },
+  danoAplicado: 40,
+  afinidadeAlvo: 'absorve'
+});
+assert(resAbsorcao.updatesAlvo.hp_atual === 50, 'Absorção de dano pelo NPC é travada em maxHp (50)');
+
+// NPC conjurando magia gastando PM
+const resNpcConjura = resolverAcaoCombate({
+  acaoCodigo: 'CONJURAR',
+  ator: { ...npcCombatente, mp_atual: 15 },
+  custoPm: 10
+});
+assert(resNpcConjura.updatesAtor.mp_atual === 5, 'NPC gasta PM e novo valor é 5');
 
 console.log('TODOS OS TESTES CORE BOOK E COMBATE PASSARAM COM SUCESSO!');

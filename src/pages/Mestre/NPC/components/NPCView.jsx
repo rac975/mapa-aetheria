@@ -9,6 +9,7 @@ import {
   FaFistRaised 
 } from 'react-icons/fa';
 import { Card, Badge, ResourceBar } from '../../../../components/ui';
+import { clampRecursoNpc, extrairHpMax, extrairMpMax } from '../../../../domain/fabula/npcRules';
 import styles from './NPCView.module.css';
 
 const TIPOS_DANO = [
@@ -27,9 +28,55 @@ export default function NPCView({ npc, onUpdate }) {
   const bonusDanoNivel = npc.nivel >= 60 ? 15 : npc.nivel >= 40 ? 10 : npc.nivel >= 20 ? 5 : 0;
   const bonusPrecisaoMagia = Math.floor(npc.nivel / 10);
 
-  function ajustarStat(campo, valor) {
-    const novo = Math.max(0, (npc[campo] || 0) + valor);
-    onUpdate({ ...npc, [campo]: novo });
+  const maxPv = extrairHpMax(npc);
+  const maxPm = extrairMpMax(npc);
+  const pvAtual = clampRecursoNpc(
+    npc.pv_atual !== undefined ? npc.pv_atual : (npc.hp_atual !== undefined ? npc.hp_atual : maxPv),
+    maxPv,
+    0
+  );
+  const pmAtual = clampRecursoNpc(
+    npc.pm_atual !== undefined ? npc.pm_atual : (npc.mp_atual !== undefined ? npc.mp_atual : maxPm),
+    maxPm,
+    0
+  );
+
+  function ajustarStat(campo, delta) {
+    const isHp = campo === 'pv_atual' || campo === 'hp_atual';
+    const isMp = campo === 'pm_atual' || campo === 'mp_atual';
+    const teto = isHp ? maxPv : isMp ? maxPm : 9999;
+    const valorAtual = isHp ? pvAtual : isMp ? pmAtual : (Number(npc[campo]) || 0);
+    const novo = clampRecursoNpc(valorAtual + delta, teto, 0);
+
+    const updates = { [campo]: novo };
+    if (isHp) {
+      updates.pv_atual = novo;
+      updates.hp_atual = novo;
+    } else if (isMp) {
+      updates.pm_atual = novo;
+      updates.mp_atual = novo;
+    }
+
+    onUpdate({ ...npc, ...updates });
+  }
+
+  function handleManualChange(campo, valorInput) {
+    const isHp = campo === 'pv_atual' || campo === 'hp_atual';
+    const isMp = campo === 'pm_atual' || campo === 'mp_atual';
+    const teto = isHp ? maxPv : isMp ? maxPm : 9999;
+    const num = valorInput === '' ? 0 : parseInt(valorInput, 10);
+    const novo = isNaN(num) ? 0 : clampRecursoNpc(num, teto, 0);
+
+    const updates = { [campo]: novo };
+    if (isHp) {
+      updates.pv_atual = novo;
+      updates.hp_atual = novo;
+    } else if (isMp) {
+      updates.pm_atual = novo;
+      updates.mp_atual = novo;
+    }
+
+    onUpdate({ ...npc, ...updates });
   }
 
   function getAfinidadeBadge(valor) {
@@ -129,13 +176,22 @@ export default function NPCView({ npc, onUpdate }) {
           <div className={styles.resourceCard}>
             <ResourceBar
               type="pv"
-              current={npc.pv_atual}
-              max={npc.pv_max}
+              current={pvAtual}
+              max={maxPv}
               label="PONTOS DE VIDA"
             />
             <div className={`${styles.statControls} ${styles.noPrint}`}>
               <button type="button" onClick={() => ajustarStat('pv_atual', -5)} className={styles.statQuickBtn}>-5</button>
               <button type="button" onClick={() => ajustarStat('pv_atual', -1)} className={styles.statQuickBtn}>-1</button>
+              <input
+                type="number"
+                min={0}
+                max={maxPv}
+                value={pvAtual}
+                onChange={(e) => handleManualChange('pv_atual', e.target.value)}
+                className={styles.statManualInput}
+                aria-label="Ajuste manual de PV atual"
+              />
               <button type="button" onClick={() => ajustarStat('pv_atual', 1)} className={styles.statQuickBtn}>+1</button>
               <button type="button" onClick={() => ajustarStat('pv_atual', 5)} className={styles.statQuickBtn}>+5</button>
             </div>
@@ -145,13 +201,22 @@ export default function NPCView({ npc, onUpdate }) {
           <div className={styles.resourceCard}>
             <ResourceBar
               type="pm"
-              current={npc.pm_atual}
-              max={npc.pm_max}
+              current={pmAtual}
+              max={maxPm}
               label="PONTOS DE MANA"
             />
             <div className={`${styles.statControls} ${styles.noPrint}`}>
               <button type="button" onClick={() => ajustarStat('pm_atual', -5)} className={styles.statQuickBtn}>-5</button>
               <button type="button" onClick={() => ajustarStat('pm_atual', -1)} className={styles.statQuickBtn}>-1</button>
+              <input
+                type="number"
+                min={0}
+                max={maxPm}
+                value={pmAtual}
+                onChange={(e) => handleManualChange('pm_atual', e.target.value)}
+                className={styles.statManualInput}
+                aria-label="Ajuste manual de PM atual"
+              />
               <button type="button" onClick={() => ajustarStat('pm_atual', 1)} className={styles.statQuickBtn}>+1</button>
               <button type="button" onClick={() => ajustarStat('pm_atual', 5)} className={styles.statQuickBtn}>+5</button>
             </div>

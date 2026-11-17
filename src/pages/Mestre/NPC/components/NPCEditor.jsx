@@ -20,7 +20,8 @@ import {
   calcularPmMaxNpc,
   calcularIniciativaNpc,
   calcularDefesaNpc,
-  calcularDefesaMagicaNpc
+  calcularDefesaMagicaNpc,
+  clampRecursoNpc
 } from '../../../../domain/fabula/npcRules';
 import { Card, Button, Badge } from '../../../../components/ui';
 import { useAlert } from '../../../../contexts/useAlert';
@@ -94,6 +95,26 @@ export default function NPCEditor({
       const novaEspObj = catalogoEspecies.find(e => e.id === valor) || {};
       const novasAfinidades = novaEspObj.afinidades_padrao || {};
       onUpdate({ ...npc, especie: valor, afinidades: novasAfinidades });
+    } else if (campo === 'pv_max') {
+      const novoMax = Math.max(0, parseInt(valor, 10) || 0);
+      const updates = { pv_max: novoMax, hp_max: novoMax, maxHp: novoMax };
+      if (npc.pv_atual !== undefined) {
+        updates.pv_atual = clampRecursoNpc(npc.pv_atual, novoMax, 0);
+      }
+      if (npc.hp_atual !== undefined) {
+        updates.hp_atual = clampRecursoNpc(npc.hp_atual, novoMax, 0);
+      }
+      onUpdate({ ...npc, ...updates });
+    } else if (campo === 'pm_max') {
+      const novoMax = Math.max(0, parseInt(valor, 10) || 0);
+      const updates = { pm_max: novoMax, mp_max: novoMax, maxMp: novoMax };
+      if (npc.pm_atual !== undefined) {
+        updates.pm_atual = clampRecursoNpc(npc.pm_atual, novoMax, 0);
+      }
+      if (npc.mp_atual !== undefined) {
+        updates.mp_atual = clampRecursoNpc(npc.mp_atual, novoMax, 0);
+      }
+      onUpdate({ ...npc, ...updates });
     } else {
       onUpdate({ ...npc, [campo]: valor });
     }
