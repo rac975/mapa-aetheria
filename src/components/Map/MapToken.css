@@ -1,0 +1,79 @@
+.map-token {
+  position: absolute;
+  top: var(--token-y);
+  left: var(--token-x);
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface);
+  border: 2px solid var(--color-border-gold);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), var(--shadow-glow-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ether-cyan);
+  font-size: var(--font-size-lg);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  z-index: 30;
+  will-change: transform;
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.map-token:hover {
+  border-color: var(--color-border-gold-bright);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), 0 0 16px var(--color-ether-cyan-glow);
+  z-index: 45;
+}
+
+.map-token.arrastando {
+  cursor: grabbing;
+  z-index: 60;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9), 0 0 24px var(--color-core-green-glow);
+  border-color: var(--color-core-green);
+  color: var(--color-core-green);
+  opacity: 0.95;
+}
+
+.map-token.tipo-navio {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+.map-token.tipo-party {
+  border-color: var(--color-ether-cyan);
+  color: var(--color-ether-cyan);
+}
+
+.map-token.tipo-monstro {
+  border-color: var(--color-crise);
+  color: var(--color-crise);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7), var(--shadow-glow-crise);
+}
+
+.token-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-main);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: var(--backdrop-blur);
+  box-shadow: var(--shadow-surface);
+  opacity: 0.9;
+}
+
+.map-token:hover .token-label {
+  opacity: 1;
+  border-color: var(--color-border-gold);
+}
