@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { FaCogs } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { Badge } from '../../../../components/ui';
+<<<<<<< Updated upstream
 import { useAlert } from '../../../../contexts/useAlert';
+=======
+>>>>>>> Stashed changes
 import InventorRamosResumo from './InventorRamosResumo';
 import InventorAlquimiaSecao from './InventorAlquimiaSecao';
 import InventorInfusoesSecao from './InventorInfusoesSecao';
@@ -12,7 +15,10 @@ import styles from './ExibirInventor.module.css';
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
 export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarRecurso }) {
+<<<<<<< Updated upstream
   const { showAlert } = useAlert();
+=======
+>>>>>>> Stashed changes
   // Estados da Alquimia
   const [tipoMistura, setTipoMistura] = useState('basica');
   const [resultadoAlquimia, setResultadoAlquimia] = useState(null);
@@ -118,7 +124,11 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
     const idPersonagem = fichaId || ficha?.id;
 
     if (!idPersonagem) {
+<<<<<<< Updated upstream
       showAlert("❌ Erro: ID da ficha de personagem não encontrado!");
+=======
+      alert("❌ Erro: ID da ficha de personagem não encontrado!");
+>>>>>>> Stashed changes
       return;
     }
 
@@ -134,7 +144,11 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
       });
 
       if (ocupado) {
+<<<<<<< Updated upstream
         showAlert("⛔ Regra do Magicanhão: Seus dois espaços de mão precisam estar completamente vazios para criar e equipar o magicanhão!");
+=======
+        alert("⛔ Regra do Magicanhão: Seus dois espaços de mão precisam estar completamente vazios para criar e equipar o magicanhão!");
+>>>>>>> Stashed changes
         setCriandoCanhao(false);
         return;
       }
@@ -167,10 +181,17 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
       const { error: erroInsercao } = await fichaService.addItemPersonagem(novoCanhao);
       if (erroInsercao) throw erroInsercao;
 
+<<<<<<< Updated upstream
       showAlert("💥 Magicanhão criado, equipado nas suas mãos vazias e pronto para disparar!");
     } catch (err) {
       console.error("Erro ao criar magicanhão:", err.message);
       showAlert("Erro ao criar o magicanhão. Verifique o console.");
+=======
+      alert("💥 Magicanhão criado, equipado nas suas mãos vazias e pronto para disparar!");
+    } catch (err) {
+      console.error("Erro ao criar magicanhão:", err.message);
+      alert("Erro ao criar o magicanhão. Verifique o console.");
+>>>>>>> Stashed changes
     } finally {
       setCriandoCanhao(false);
     }

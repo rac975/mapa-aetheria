@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import { FaDragon, FaPlus, FaTrash } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { Button } from '../../../../components/ui';
+<<<<<<< Updated upstream
 import { useAlert } from '../../../../contexts/useAlert';
 import styles from './ExibirQuimerista.module.css';
 
 export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjustarRecurso }) {
   const { showAlert } = useAlert();
+=======
+import styles from './ExibirQuimerista.module.css';
+
+export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjustarRecurso }) {
+>>>>>>> Stashed changes
   const [magiasImitadas, setMagiasImitadas] = useState(() => ficha?.magias_imitadas || []);
   const [atributoEscolhido, setAtributoEscolhido] = useState(() => ficha?.atributo_quimerista || 'AST + VON');
   const [mostrarForm, setMostrarForm] = useState(false);
@@ -65,7 +71,11 @@ export default function ExibirQuimerista({ fichaId, ficha, classes, handleAjusta
     if (!novaMagia.nome.trim()) return;
 
     if (magiasImitadas.length >= limiteFeiticos) {
+<<<<<<< Updated upstream
       showAlert(`⛔ Você já atingiu o limite de ${limiteFeiticos} feitiços memorizados (NP + 2). Esqueça um feitiço antigo para adicionar um novo.`);
+=======
+      alert(`⛔ Você já atingiu o limite de ${limiteFeiticos} feitiços memorizados (NP + 2). Esqueça um feitiço antigo para adicionar um novo.`);
+>>>>>>> Stashed changes
       return;
     }
 

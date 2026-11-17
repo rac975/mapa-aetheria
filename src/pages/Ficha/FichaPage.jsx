@@ -63,8 +63,23 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
     setEditando((prev) => !prev);
   };
 
+<<<<<<< Updated upstream
   const handleSalvarEdicao = async (e) => {
     e.preventDefault();
+=======
+    // Carrega os dados para os formulários de edição
+    useEffect(() => {
+        if (ficha && !editando) {
+            setFormData(ficha);
+            setFormClasses(classes);
+            setFormMagias(magias);
+        }
+    }, [ficha, classes, magias, editando]);
+
+    // Dispara o salvamento da edição através do hook
+    const handleSalvarEdicao = async (e) => {
+        e.preventDefault();
+>>>>>>> Stashed changes
 
     for (const c of formClasses) {
       const somaHabs = (c.habilidades || []).reduce((acc, h) => acc + (parseInt(h.nivel, 10) || 0), 0);
@@ -89,10 +104,116 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
 
   if (carregando) {
     return (
+<<<<<<< Updated upstream
       <div className={`${styles.pageContainer} ${styles.centerWrapper}`}>
         <div className={styles.loaderBox}>
           <LuSparkles className={styles.spinnerIcon} />
           <p>Lendo dados do herói...</p>
+=======
+        <div className={styles.pageContainer}>
+            <FichaHeader
+                ficha={ficha}
+                id={id}
+                isMestre={isMestre}
+                editando={editando}
+                nivelAtual={statusFicha.nivelTotal}
+                condicoesAtivas={condicoesAtivas}
+                statusCalculados={statusFicha}
+                setFicha={setFicha}
+                handleAjustarRecurso={ajustarRecurso}
+                onToggleEdit={() => {
+                    if (!editando) {
+                        setFormData(ficha);
+                        setFormClasses(classes);
+                        setFormMagias(magias);
+                    }
+                    setEditando(!editando);
+                }}
+            />
+
+            {editando ? (
+                <form onSubmit={handleSalvarEdicao} className={styles.formEditContainer}>
+                    <FichaFormGeral formData={formData} setFormData={setFormData} />
+                    <FichaFormPeculiaridade formData={formData} setFormData={setFormData} />
+                    <FichaFormAtributos formData={formData} setFormData={setFormData} />
+                    <FichaFormClasses formClasses={formClasses} setFormClasses={setFormClasses} formData={formData} setFormData={setFormData} />
+                    <FichaFormRituais formData={formData} setFormData={setFormData} formClasses={formClasses} />
+                    <FichaFormLacos formData={formData} setFormData={setFormData} setAlerta={setAlerta} />
+                    <FichaFormMochila formData={formData} setFormData={setFormData} />
+
+                    <div className={styles.saveFloatingBar}>
+                        <Button type="submit" variant="core" size="lg" disabled={salvando}>
+                            <FaSave /> {salvando ? 'Salvando...' : 'Salvar Alterações da Ficha'}
+                        </Button>
+                    </div>
+                </form>
+            ) : (
+                <div className={styles.viewContent}>
+                    <FichaRecursos ficha={ficha} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
+                    <ExibirPeculiaridadeFicha ficha={ficha} />
+                    <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
+                    <FichaEstatisticasSecao statusFicha={statusFicha} />
+                    <FichaPIComponent
+                        ficha={ficha}
+                        setFicha={setFicha}
+                        piMaxCalculado={statusFicha.piMax}
+                        statusFicha={statusFicha}
+                        classes={classes}
+                        onAtualizarDadosClasse={atualizarDadosClasseLocal}
+                    />
+                    <FichaAtributos
+                        ficha={ficha}
+                        atributosCalculados={statusFicha.atributosCalculados}
+                        travaAmarras={Boolean(statusFicha?.sinergias?.simbolista?.travaAtributosBase)}
+                        modificadoresTemporarios={modificadoresTemporarios}
+                        setModificadoresTemporarios={setModificadoresTemporarios}
+                        onRolarDado={(sigla, valor) => {
+                            setAlerta({ isOpen: true, title: `Atributo ${sigla}`, message: `Rolando dado d${valor}...` });
+                        }}
+                    />
+                    <FichaClassesSecao
+                        fichaId={id || ficha?.id}
+                        ficha={ficha}
+                        classes={classes}
+                        itensEquipados={itensEquipados}
+                        handleAjustarRecurso={ajustarRecurso}
+                        pvMaxCalculado={statusFicha.pvMax}
+                        temArmaduraMarcial={statusFicha.temArmaduraMarcial}
+                        reducaoCustoPi={statusFicha.reducaoCustoPi}
+                        nivelTotal={statusFicha.nivelTotal}
+                        onAtualizarMutante={atualizarDadosMutante}
+                        onAtualizarDadosClasse={atualizarDadosClasseLocal}
+                        onAtivarGolpe={(opcoes) => {
+                            setOpcoesGolpeAtivo(opcoes);
+                            setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
+                        }}
+                    />
+                    <FichaPoderesHeroicosSecao fichaId={id || ficha?.id} ficha={ficha} setFicha={setFicha} classes={classes} />
+                    <FichaProficienciasSecao classes={classes} />
+                    <FichaEquipamentosSecao
+                        fichaId={ficha?.id}
+                        classes={classes}
+                        atributosAtuais={atributosAtuaisParaCalculo}
+                        opcoesGolpeAtivo={opcoesGolpeAtivo}
+                        limparGolpeAtivo={() => setOpcoesGolpeAtivo(null)}
+                        emCriseGlobal={emCriseGlobal}
+                        statusFicha={statusFicha}
+                        onAtualizarMutante={atualizarDadosMutante}
+                    />
+                    <FichaMagiasSecao magias={magias} ficha={ficha} atributos={atributosAtuaisParaCalculo} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
+                    <FichaRituaisSecao ficha={ficha} classes={classes} atributos={atributosAtuaisParaCalculo} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
+                    <FichaLacosSecao lacos={ficha?.lacos} />
+                    <FichaMochilaSecao mochila={ficha?.mochila} notas={ficha?.notas} />
+                </div>
+            )}
+
+            <CustomAlert
+                isOpen={alerta.isOpen}
+                title={alerta.title}
+                message={alerta.message}
+                onClose={() => setAlerta({ isOpen: false, title: '', message: '' })}
+            />
+>>>>>>> Stashed changes
         </div>
       </div>
     );

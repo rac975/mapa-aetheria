@@ -4,14 +4,20 @@ import { fichaService } from '../../../../services/fichaService';
 import { calcularBonusEscalaArcanista } from '../../../../domain/fabula/classRules';
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import { Button } from '../../../../components/ui';
+<<<<<<< Updated upstream
 import { useAlert } from '../../../../contexts/useAlert';
+=======
+>>>>>>> Stashed changes
 import ArcanoAtivoPainel from './ArcanoAtivoPainel';
 import ArcanosForms from './ArcanosForms';
 import ArcanosLista from './ArcanosLista';
 import styles from './ExibirArcanista.module.css';
 
 export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustarRecurso }) {
+<<<<<<< Updated upstream
   const { showAlert } = useAlert();
+=======
+>>>>>>> Stashed changes
   const [catalogo, setCatalogo] = useState([]);
   const [arcanosVinculados, setArcanosVinculados] = useState(() => ficha?.arcanos_vinculados || []);
   const [arcanoAtivoIdx, setArcanoAtivoIdx] = useState(null);
@@ -79,7 +85,11 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
     const item = catalogo.find((a) => a.id === selecionadoCatalogo);
     if (!item) return;
     if (arcanosVinculados.some((a) => a.nome === item.nome)) {
+<<<<<<< Updated upstream
       showAlert('Este Arcano já está vinculado!');
+=======
+      alert('Este Arcano já está vinculado!');
+>>>>>>> Stashed changes
       return;
     }
     salvarNoBanco([...arcanosVinculados, item]);
@@ -103,7 +113,11 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
 
   const invocarArcano = (idx) => {
     if (arcanoAtivoIdx !== null) {
+<<<<<<< Updated upstream
       showAlert('Você já está fundido a um Arcano! Dispense o atual antes de invocar outro.');
+=======
+      alert('Você já está fundido a um Arcano! Dispense o atual antes de invocar outro.');
+>>>>>>> Stashed changes
       return;
     }
     const arcano = arcanosVinculados[idx];
@@ -119,7 +133,11 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
 
   const dispensarArcano = (voluntario = true) => {
     if (voluntario && nvCirculo > 0) {
+<<<<<<< Updated upstream
       showAlert(`Círculo Arcano: Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis (pagando até ${nvCirculo * 5} PM) sem gastar ação!`);
+=======
+      alert(`Círculo Arcano: Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis (pagando até ${nvCirculo * 5} PM) sem gastar ação!`);
+>>>>>>> Stashed changes
     }
     setArcanoAtivoIdx(null);
   };

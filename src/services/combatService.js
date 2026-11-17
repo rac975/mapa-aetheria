@@ -151,6 +151,7 @@ export const combatService = {
       unsubscribe: () => {
         supabase.removeChannel(channel);
       }
+<<<<<<< Updated upstream
     };
   },
 
@@ -229,6 +230,8 @@ export const combatService = {
       unsubscribe: () => {
         supabase.removeChannel(channel);
       }
+=======
+>>>>>>> Stashed changes
     };
   }
 };

@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { FaFire, FaBolt, FaMountain } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
+<<<<<<< Updated upstream
 import { useAlert } from '../../../../contexts/useAlert';
 import styles from './ExibirElementalista.module.css';
 
 export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
   const { showAlert } = useAlert();
+=======
+import styles from './ExibirElementalista.module.css';
+
+export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
+>>>>>>> Stashed changes
   const [custoExtraCataclismo, setCustoExtraCataclismo] = useState(10);
   const [tipoArmaLamina, setTipoArmaLamina] = useState('des'); // 'des' ou 'outro'
 
@@ -40,13 +46,21 @@ export default function ExibirElementalista({ ficha, handleAjustarRecurso }) {
 
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
     if (mpAtual < custoExtraCataclismo) {
+<<<<<<< Updated upstream
       showAlert(`MP insuficiente! O custo extra selecionado é de ${custoExtraCataclismo} PM.`);
+=======
+      window.alert(`MP insuficiente! O custo extra selecionado é de ${custoExtraCataclismo} PM.`);
+>>>>>>> Stashed changes
       return;
     }
 
     if (window.confirm(`Aplicar Cataclismo (+${custoExtraCataclismo} PM)?\n\nIsso aumentará o dano do feitiço instantâneo em +${danoExtraCataclismo} pontos de dano elemental.`)) {
       handleAjustarRecurso('mp_atual', -custoExtraCataclismo);
+<<<<<<< Updated upstream
       showAlert(`💥 Cataclismo aplicado com sucesso! ${custoExtraCataclismo} PM consumidos e +${danoExtraCataclismo} de dano adicionado.`);
+=======
+      window.alert(`💥 Cataclismo aplicado com sucesso! ${custoExtraCataclismo} PM consumidos e +${danoExtraCataclismo} de dano adicionado.`);
+>>>>>>> Stashed changes
     }
   };
 

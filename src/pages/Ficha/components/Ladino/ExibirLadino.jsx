@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import { FaUserSecret, FaRunning, FaShieldAlt, FaCrosshairs, FaGhost } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { Button, Badge } from '../../../../components/ui';
+<<<<<<< Updated upstream
 import { useAlert } from '../../../../contexts/useAlert';
+=======
+>>>>>>> Stashed changes
 import styles from './ExibirLadino.module.css';
 
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
 export default function ExibirLadino({ classes, ficha, fichaId, handleAjustarRecurso }) {
+<<<<<<< Updated upstream
   const { showAlert } = useAlert();
+=======
+>>>>>>> Stashed changes
   // Estado para resultados de Roubo de Alma ou interações
   const [resultadoRoubo, setResultadoRoubo] = useState(null);
   const [alvoNivel, setAlvoNivel] = useState(5);
@@ -37,18 +43,30 @@ export default function ExibirLadino({ classes, ficha, fichaId, handleAjustarRec
   const usarAltaVelocidade = () => {
     const mpAtual = ficha?.mp_atual ?? 0;
     if (mpAtual < 10) {
+<<<<<<< Updated upstream
       showAlert("Você não tem MP suficiente (10 PM) para usar Alta Velocidade!");
       return;
     }
     handleAjustarRecurso('mp_atual', -10);
     showAlert(`⚡ Alta Velocidade ativada! 10 PM consumidos. Você ganha +${nivelAltaVelocidade} em testes da ação escolhida.`);
+=======
+      alert("Você não tem MP suficiente (10 PM) para usar Alta Velocidade!");
+      return;
+    }
+    handleAjustarRecurso('mp_atual', -10);
+    alert(`⚡ Alta Velocidade ativada! 10 PM consumidos. Você ganha +${nivelAltaVelocidade} em testes da ação escolhida.`);
+>>>>>>> Stashed changes
   };
 
   // Função para Roubo de Alma (Gasta Ação, Roda DES+VON)
   const executarRouboDeAlma = async () => {
     const idPersonagem = fichaId || ficha?.id;
     if (!idPersonagem) {
+<<<<<<< Updated upstream
       showAlert("Erro: ID da ficha não encontrado.");
+=======
+      alert("Erro: ID da ficha não encontrado.");
+>>>>>>> Stashed changes
       return;
     }
 
