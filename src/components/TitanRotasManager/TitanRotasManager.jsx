@@ -158,7 +158,7 @@ export default function TitanRotasManager({ titan, isMestre }) {
   };
 
   return (
-    <div className="mural-contratos-section" style={{ marginTop: '20px' }}>
+    <div className="mural-contratos-section rotas-section">
       <div className="contratos-header-row">
         <h3><FaWind /> Rotas Aéreas Conectadas</h3>
         {isMestre && (
@@ -184,8 +184,8 @@ export default function TitanRotasManager({ titan, isMestre }) {
             onChange={(e) => setNomeRota(e.target.value)} 
           />
 
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <select value={tipoRota} onChange={(e) => setTipoRota(e.target.value)} style={{ flex: 1 }}>
+          <div className="rotas-row-inline">
+            <select value={tipoRota} onChange={(e) => setTipoRota(e.target.value)} className="rotas-flex-field">
               <option value="comercial">Comercial</option>
               <option value="contrabando">Contrabando</option>
               <option value="secreta">Secreta</option>
@@ -193,7 +193,7 @@ export default function TitanRotasManager({ titan, isMestre }) {
               <option value="corrompida">Corrompida</option>
             </select>
 
-            <select value={nivelAmeaca} onChange={(e) => setNivelAmeaca(e.target.value)} style={{ flex: 1 }}>
+            <select value={nivelAmeaca} onChange={(e) => setNivelAmeaca(e.target.value)} className="rotas-flex-field">
               <option value="minimo">Mínimo (d6)</option>
               <option value="baixo">Baixo (d8)</option>
               <option value="medio">Médio (d10)</option>
@@ -202,14 +202,14 @@ export default function TitanRotasManager({ titan, isMestre }) {
             </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className="rotas-row-inline">
             <input 
               type="number" 
               placeholder="Dias de Viagem" 
               value={dias} 
               onChange={(e) => setDias(e.target.value)} 
               min="1" 
-              style={{ flex: 1 }} 
+              className="rotas-flex-field" 
               required
             />
           </div>
@@ -237,21 +237,21 @@ export default function TitanRotasManager({ titan, isMestre }) {
             const nomeDestino = r.destino?.titulo || 'Destino Desconhecido';
 
             return (
-              <div key={r.id} className={`contrato-card tipo-${r.tipo_rota}`} style={{ padding: '12px', background: '#161b22', border: '1px solid #332914', borderRadius: '8px', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <strong style={{ color: '#d4af37', fontSize: '14px' }}>{r.nome_rota}</strong>
-                  <span style={{ fontSize: '11px', background: '#0d0f18', padding: '2px 6px', borderRadius: '4px', color: '#5dade2', border: '1px solid #332914' }}>
+              <div key={r.id} className={`contrato-card tipo-${r.tipo_rota} rota-card`}>
+                <div className="rota-card-header">
+                  <strong className="rota-card-title">{r.nome_rota}</strong>
+                  <span className="rota-tipo-badge">
                     {tipoInfo.icon} {tipoInfo.label}
                   </span>
                 </div>
 
-                <p style={{ fontSize: '12px', color: '#9da3af', margin: '4px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{nomeOrigem}</span> <FaExchangeAlt style={{ fontSize: '10px', color: '#d4af37' }} /> <span>{nomeDestino}</span>
+                <p className="rota-conexoes">
+                  <span>{nomeOrigem}</span> <FaExchangeAlt className="rota-exchange-icon" /> <span>{nomeDestino}</span>
                 </p>
 
-                {r.descricao && <p style={{ fontSize: '11px', color: '#8b949e', margin: '4px 0' }}>{r.descricao}</p>}
+                {r.descricao && <p className="rota-descricao">{r.descricao}</p>}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #222a38', color: '#f0f0f0' }}>
+                <div className="rota-footer">
                   <span>⏳ {r.dias_viagem} {r.dias_viagem === 1 ? 'Dia' : 'Dias'}</span>
                   <span><FaDiceD20 /> {r.dado_viagem.toUpperCase()}</span>
                   <span>📦 {r.dias_viagem * r.custo_ip_diario} IP Total</span>
@@ -259,7 +259,7 @@ export default function TitanRotasManager({ titan, isMestre }) {
                   {isMestre && (
                     <button 
                       onClick={() => iniciarExclusao(r)} 
-                      style={{ background: 'transparent', border: 'none', color: '#e74c3c', cursor: 'pointer' }}
+                      className="rota-delete-btn"
                       title="Excluir Rota"
                     >
                       <FaTrash />

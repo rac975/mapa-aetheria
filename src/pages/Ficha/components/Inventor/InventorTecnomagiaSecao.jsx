@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FaMagic } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
-import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './InventorTecnomagiaSecao.module.css';
 
 export default function InventorTecnomagiaSecao({
@@ -12,8 +12,7 @@ export default function InventorTecnomagiaSecao({
   onCriarMagicanhao,
   criandoCanhao
 }) {
-  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert' });
-
+  const { showAlert } = useAlert();
   return (
     <div className={styles.section}>
       <div className={styles.title}>
@@ -30,13 +29,13 @@ export default function InventorTecnomagiaSecao({
               size="sm"
               className={styles.actionBtn}
               onClick={() => {
-                const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
+                const mpAtual = ficha?.mp_atual ?? 0;
                 if (mpAtual < 10) {
-                  setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: 'Sobreposição Tecnomágica exige 10 PM.' });
+                  showAlert("Você não tem MP suficiente (10 PM) para usar a Sobreposição Tecnomágica!");
                   return;
                 }
-                if (handleAjustarRecurso) handleAjustarRecurso('mp_atual', -10);
-                setAlerta({ isOpen: true, type: 'success', title: 'Sobreposição Ativada', message: '10 PM consumidos para Sobreposição Tecnomágica!' });
+                handleAjustarRecurso('mp_atual', -10);
+                showAlert("✨ Sobreposição Tecnomágica ativada! 10 PM consumidos.");
               }}
             >
               ⚡ Gastar 10 MP e Ativar Sobreposição
@@ -70,14 +69,6 @@ export default function InventorTecnomagiaSecao({
           </div>
         )}
       </div>
-
-      <CustomAlert
-        isOpen={alerta.isOpen}
-        type={alerta.type}
-        title={alerta.title}
-        message={alerta.message}
-        onClose={() => setAlerta((prev) => ({ ...prev, isOpen: false }))}
-      />
     </div>
   );
 }

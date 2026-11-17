@@ -5,7 +5,7 @@ export const cronicaService = {
     return await supabase
       .from('cronicas')
       .select('*')
-      .order('data_evento', { ascending: false });
+      .order('data', { ascending: false });
   },
 
   subscribeCronicas(onUpdate) {

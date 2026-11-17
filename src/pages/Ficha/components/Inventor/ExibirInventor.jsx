@@ -31,22 +31,18 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
   const ramoInfusoes = ramos.infusoes;
   const ramoTecnomagia = ramos.tecnomagia;
 
-  // Estágios de Alquimia
   const temBasicoAlquimia = !!ramoAlquimia;
   const temAvancadoAlquimia = ramoAlquimia === 'avancado' || ramoAlquimia === 'superior';
   const temSuperiorAlquimia = ramoAlquimia === 'superior';
 
-  // Estágios de Infusões
   const temBasicoInfusoes = !!ramoInfusoes;
   const temAvancadoInfusoes = ramoInfusoes === 'avancado' || ramoInfusoes === 'superior';
   const temSuperiorInfusoes = ramoInfusoes === 'superior';
 
-  // Estágios de Tecnomagia
   const temBasicoTecnomagia = !!ramoTecnomagia;
   const temAvancadoTecnomagia = ramoTecnomagia === 'avancado' || ramoTecnomagia === 'superior';
   const temSuperiorTecnomagia = ramoTecnomagia === 'superior';
 
-  // Tabelas de Alquimia
   const tabelaAlvo = [
     { min: 1, max: 6, desc: 'Você ou um aliado que possa ver e esteja presente na cena.' },
     { min: 7, max: 11, desc: 'Um inimigo que você possa ver e esteja presente na cena.' },
@@ -104,7 +100,6 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
     return item ? item.desc : 'Alvo personalizado';
   };
 
-  // Função para Criar o Magicanhão validando as duas mãos vazias via fichaService
   const criarMagicanhão = async () => {
     const idPersonagem = fichaId || ficha?.id;
 
@@ -165,7 +160,6 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
 
   return (
     <div className={styles.container}>
-      {/* Título do Painel */}
       <div className={styles.header}>
         <span className={styles.title}>
           <FaCogs /> Laboratório de Inventor (Nível {nivelInventor})
@@ -175,14 +169,12 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
         </Badge>
       </div>
 
-      {/* Resumo das Vertentes de Engenhocas */}
       <InventorRamosResumo
         ramoAlquimia={ramoAlquimia}
         ramoInfusoes={ramoInfusoes}
         ramoTecnomagia={ramoTecnomagia}
       />
 
-      {/* 1. SEÇÃO DE ALQUIMIA */}
       {temBasicoAlquimia && (
         <InventorAlquimiaSecao
           tipoMistura={tipoMistura}
@@ -196,7 +188,6 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
         />
       )}
 
-      {/* 2. SEÇÃO DE INFUSÕES */}
       {temBasicoInfusoes && (
         <InventorInfusoesSecao
           temAvancadoInfusoes={temAvancadoInfusoes}
@@ -206,7 +197,6 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
         />
       )}
 
-      {/* 3. SEÇÃO DE TECNOMAGIA */}
       {temBasicoTecnomagia && (
         <InventorTecnomagiaSecao
           ficha={ficha}

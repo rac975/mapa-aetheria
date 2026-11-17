@@ -4,6 +4,7 @@ import { MdWaterDrop } from 'react-icons/md';
 import { fichaService } from '../../../services/fichaService';
 import { ehClasseMercador, normalizarTextoNF } from '../../../domain/fabula/naturalFantasyRules';
 import { ResourceBar, Button, Badge } from '../../../components/ui';
+import { useAlert } from '../../../contexts/useAlert';
 import styles from './FichaPIComponent.module.css';
 
 export default function FichaPIComponent({
@@ -14,6 +15,7 @@ export default function FichaPIComponent({
     classes = [],
     onAtualizarDadosClasse = null
 }) {
+    const { showAlert } = useAlert();
     const [usarEstoquePessoal, setUsarEstoquePessoal] = useState(false);
     const [feedbackPi, setFeedbackPi] = useState('');
 
@@ -84,7 +86,7 @@ export default function FichaPIComponent({
 
         const custoTotal = piFaltando * custoPorPiVila;
         if (zenitAtual < custoTotal) {
-            alert(`Você precisa de ${custoTotal}z para recuperar todos os PIs, mas só tem ${zenitAtual}z!`);
+            showAlert(`Você precisa de ${custoTotal}z para recuperar todos os PIs, mas só tem ${zenitAtual}z!`);
             return;
         }
 
@@ -106,7 +108,7 @@ export default function FichaPIComponent({
         const custoFinalPI = isentoPorEstoque ? 0 : custoComBolsos;
 
         if (piAtual < custoFinalPI) {
-            alert(`Você precisa de ${custoFinalPI} PIs disponíveis, mas só tem ${piAtual} na mochila!`);
+            showAlert(`Você precisa de ${custoFinalPI} PIs disponíveis, mas só tem ${piAtual} na mochila!`);
             return;
         }
 

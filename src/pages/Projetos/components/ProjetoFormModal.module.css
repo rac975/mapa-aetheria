@@ -1,0 +1,120 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-gold);
+}
+
+.select,
+.textarea {
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  color: var(--color-text-main);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 0 2px rgba(var(--color-ether-cyan-rgb), 0.18);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.calcResumo {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.calcTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gold);
+  font-weight: 700;
+}
+
+.calcBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.checksRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  cursor: pointer;
+}
+
+.checkLabel input[type="checkbox"] {
+  accent-color: var(--color-border-gold);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-gold-muted);
+}
+
+@media (max-width: 720px) {
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}

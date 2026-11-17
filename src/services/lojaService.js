@@ -128,5 +128,69 @@ export const lojaService = {
             .delete()
             .eq('id', itemId);
         return { error: erroDel };
+    },
+
+    /**
+     * Busca o inventário atual de uma ficha
+     * @param {string|number} fichaId
+     * @returns {Promise<{data: any, error: any}>}
+     */
+    async getInventarioPersonagem(fichaId) {
+        return await supabase
+            .from('itens_personagem')
+            .select('*')
+            .eq('ficha_id', fichaId);
+    },
+
+    /**
+     * Executa compra de item do catálogo na loja: debita zênites, desequipa slot anterior se necessário e insere item
+     * @param {Object} params
+     * @returns {Promise<{data: any, error: any}>}
+     */
+    async comprarItemLoja({ fichaId, novoZenit, slotFinal, itemCatalogo, deveEquipar, statsPersonalizados }) {
+        const { error: erroFicha } = await supabase
+            .from('fichas_personagens')
+            .update({ zenit: novoZenit })
+            .eq('id', fichaId);
+
+        if (erroFicha) return { data: null, error: erroFicha };
+
+        if (slotFinal) {
+            const { data: itensExistentes } = await supabase
+                .from('itens_personagem')
+                .select('*')
+                .eq('ficha_id', fichaId);
+
+            if (itensExistentes) {
+                for (const itemAntigo of itensExistentes) {
+                    if (itemAntigo.stats_personalizados?.slot === slotFinal) {
+                        const statsAntigoLimpo = { ...itemAntigo.stats_personalizados };
+                        delete statsAntigoLimpo.slot;
+                        statsAntigoLimpo.equipado = false;
+
+                        await supabase
+                            .from('itens_personagem')
+                            .update({ equipado: false, stats_personalizados: statsAntigoLimpo })
+                            .eq('id', itemAntigo.id);
+                    }
+                }
+            }
+        }
+
+        const { data, error } = await supabase
+            .from('itens_personagem')
+            .insert([{
+                ficha_id: fichaId,
+                item_id: itemCatalogo.id,
+                nome: itemCatalogo.nome,
+                tipo: itemCatalogo.tipo,
+                quantidade: 1,
+                equipado: deveEquipar,
+                stats_personalizados: statsPersonalizados
+            }])
+            .select()
+            .single();
+
+        return { data, error };
     }
 };

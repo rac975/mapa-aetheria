@@ -23,6 +23,7 @@ import {
   calcularDefesaMagicaNpc
 } from '../../../../domain/fabula/npcRules';
 import { Card, Button, Badge } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './NPCEditor.module.css';
 
 export default function NPCEditor({ 
@@ -35,6 +36,7 @@ export default function NPCEditor({
   nivelNP = 5, 
   nivelPersonagem = 1 
 }) {
+  const { showAlert } = useAlert();
   const [catalogoEspeciesLocal, setCatalogoEspeciesLocal] = useState([]);
 
   useEffect(() => {
@@ -117,7 +119,7 @@ export default function NPCEditor({
 
   function adicionarAtaque() {
     if (isCompanheiro && (npc.ataques_basicos || []).length >= 2) {
-      alert('⚠️ Companheiros Fiéis podem ter no máximo dois ataques básicos de acordo com as regras de Fabula Ultima.');
+      showAlert('⚠️ Companheiros Fiéis podem ter no máximo dois ataques básicos de acordo com as regras de Fabula Ultima.');
       return;
     }
     const novoAtaque = { 

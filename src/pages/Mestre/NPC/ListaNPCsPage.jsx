@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull, FaTrash } from 'react-icons/fa';
 import { npcService } from '../../../services/npcService';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAlert } from '../../../contexts/useAlert';
 import { Card, Button, Badge, ResourceBar } from '../../../components/ui';
 import styles from './ListaNPCsPage.module.css';
 
@@ -11,6 +12,7 @@ export default function ListaNPCsPage() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { coldDelete } = useToast();
+  const { showAlert } = useAlert();
 
   const handleExcluirNpc = (npcParaExcluir) => {
     coldDelete({
@@ -59,7 +61,7 @@ export default function ListaNPCsPage() {
   async function criarNovoNpc() {
     const { data: userData } = await npcService.getAuthUser();
     if (!userData?.user) {
-      alert('Você precisa estar logado como Mestre para criar NPCs.');
+      showAlert('Você precisa estar logado como Mestre para criar NPCs.');
       return;
     }
 
@@ -90,7 +92,7 @@ export default function ListaNPCsPage() {
 
     if (error) {
       console.error('Erro ao criar NPC:', error);
-      alert('Erro ao criar NPC.');
+      showAlert('Erro ao criar NPC.');
     } else if (data) {
       navigate(`/mestre/npcs/${data.id}`);
     }

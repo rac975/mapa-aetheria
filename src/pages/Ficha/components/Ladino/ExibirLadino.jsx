@@ -4,9 +4,11 @@ import { fichaService } from '../../../../services/fichaService';
 import { calcularResultadoRouboDeAlma } from '../../../../domain/fabula/coreClassRules';
 import { Button, Badge } from '../../../../components/ui';
 import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './ExibirLadino.module.css';
 
 export default function ExibirLadino({ classes, ficha, classe, fichaId, atributosAtuais = {}, handleAjustarRecurso }) {
+  const { showAlert } = useAlert();
   const [resultadoRoubo, setResultadoRoubo] = useState(null);
   const [alvoNivel, setAlvoNivel] = useState(5);
   const [tipoAlvo, setTipoAlvo] = useState('soldado');
@@ -31,22 +33,17 @@ export default function ExibirLadino({ classes, ficha, classe, fichaId, atributo
   const usarAltaVelocidade = () => {
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
     if (mpAtual < 10) {
-      setAlerta({ isOpen: true, type: 'warning', title: 'PM Insuficiente', message: 'Você não tem 10 PM suficientes para usar Alta Velocidade!' });
+      showAlert("Você não tem MP suficiente (10 PM) para usar Alta Velocidade!");
       return;
     }
-    if (handleAjustarRecurso) handleAjustarRecurso('mp_atual', -10);
-    setAlerta({
-      isOpen: true,
-      type: 'success',
-      title: 'Alta Velocidade Ativada',
-      message: `10 PM consumidos. Execute 1 ataque livre ou ação Impedimento/Objetivo antes da 1ª rodada com +${nivelAltaVelocidade} nos testes.`
-    });
+    handleAjustarRecurso('mp_atual', -10);
+    showAlert(`⚡ Alta Velocidade ativada! 10 PM consumidos. Você ganha +${nivelAltaVelocidade} em testes da ação escolhida.`);
   };
 
   const executarRouboDeAlma = async () => {
     const idPersonagem = fichaId || ficha?.id;
     if (!idPersonagem) {
-      setAlerta({ isOpen: true, type: 'error', title: 'Erro', message: 'ID da ficha não encontrado.' });
+      showAlert("Erro: ID da ficha não encontrado.");
       return;
     }
 

@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { supabase } from '../../services/supabase';
-import './LoginModal.css';
+import { Modal, Input, Button } from '../ui';
+import styles from './LoginModal.module.css';
 
 export default function LoginModal({ isOpen, onClose }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState(false);
   const [carregando, setCarregando] = useState(false);
-
-  if (!isOpen) return null;
 
   const handleLoginSupabase = async (e) => {
     e.preventDefault();
@@ -18,12 +17,11 @@ export default function LoginModal({ isOpen, onClose }) {
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password: senha,
+        password: senha
       });
 
       if (error) throw error;
 
-      // Sucesso! O listener do App.jsx vai pegar a sessão automaticamente
       onClose();
       setEmail('');
       setSenha('');
@@ -36,34 +34,36 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content auth-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>&times;</button>
-        <h2>Autenticação do Mestre</h2>
-        <p>Insira suas credenciais da nuvem para liberar o painel.</p>
-        
-        <form onSubmit={handleLoginSupabase}>
-          <input 
-            type="email" 
-            placeholder="E-mail de mestre..." 
+    <Modal isOpen={isOpen} onClose={onClose} title="Autenticação do Mestre" size="sm">
+      <div className={styles.container}>
+        <p className={styles.subtitle}>
+          Insira suas credenciais da nuvem para liberar o painel administrativo.
+        </p>
+
+        <form className={styles.form} onSubmit={handleLoginSupabase}>
+          <Input
+            label="E-mail do Mestre"
+            type="email"
+            placeholder="E-mail de mestre..."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             autoFocus
           />
-          <input 
-            type="password" 
-            placeholder="Senha secreta..." 
+          <Input
+            label="Senha Secreta"
+            type="password"
+            placeholder="Senha secreta..."
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             required
           />
-          {erro && <span className="error-text">Credenciais inválidas, mestre!</span>}
-          <button type="submit" className="btn-submit-mestre" disabled={carregando}>
+          {erro && <span className={styles.errorText}>Credenciais inválidas, mestre!</span>}
+          <Button type="submit" variant="primary" fullWidth disabled={carregando}>
             {carregando ? 'Verificando...' : 'Liberar Poderes'}
-          </button>
+          </Button>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }

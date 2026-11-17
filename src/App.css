@@ -14,7 +14,7 @@
   overflow-x: hidden !important;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  background-color: #060d17;
+  background-color: var(--color-bg-base);
 }
 
 /* Container que abriga as páginas/visões */
@@ -35,29 +35,24 @@
 }
 
 @media (max-width: 800px) {
-
-  /* 1. Ajustes de html e body no mobile sem travar o scroll da página */
   html,
   body {
     min-height: 100%;
     overflow-x: hidden;
   }
 
-  /* 2. Container principal unificado para TODAS as páginas */
   .main-content {
     width: 100% !important;
     height: 100% !important;
     max-height: 100vh !important;
     max-height: 100dvh !important;
-    /* 65px (barra inferior) + 20px (respiro ideal) = 85px embaixo */
-    padding: 16px 16px 85px 16px !important;
+    padding: var(--space-4) var(--space-4) 85px var(--space-4) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 3. Painel Lateral (Titan Sidebar / Drawer) no Mobile */
   .titan-sidebar {
     height: 100vh !important;
     height: 100dvh !important;
@@ -66,12 +61,27 @@
   }
 
   .titan-sidebar-content {
-    padding: 20px 20px 100px 20px !important;
+    padding: var(--space-5) var(--space-5) 100px var(--space-5) !important;
     overflow-y: auto !important;
     scrollbar-width: none !important;
   }
 
   .titan-sidebar-content::-webkit-scrollbar {
     display: none !important;
+  }
+}
+
+@media print {
+  .app-layout {
+    display: block;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .main-content {
+    height: auto !important;
+    overflow: visible !important;
+    background-color: #ffffff !important;
   }
 }

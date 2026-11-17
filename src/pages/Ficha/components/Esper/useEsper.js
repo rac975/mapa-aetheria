@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
+import { useAlert } from '../../../../contexts/useAlert';
 import {
   BRAINWAVE_CLOCK_MAX_SECTIONS,
   calcularCustoPsychicGift,
@@ -19,6 +20,7 @@ export function useEsper({
   handleAjustarRecurso,
   onAtualizarDadosClasse
 }) {
+  const { showAlert } = useAlert();
   const [catalogoDons, setCatalogoDons] = useState([]);
 
   useEffect(() => {
@@ -127,7 +129,7 @@ export function useEsper({
       novosDons = donsAprendidos.filter((k) => k !== key);
     } else {
       if (maxDons > 0 && donsAprendidos.length >= maxDons) {
-        window.alert(`Limite atingido! Seu nível de Dons Psíquicos (${nvDons}) permite aprender no máximo ${maxDons} dons.`);
+        showAlert(`Limite atingido! Seu nível de Dons Psíquicos (${nvDons}) permite aprender no máximo ${maxDons} dons.`);
         return;
       }
       novosDons = [...donsAprendidos, key];
@@ -169,7 +171,7 @@ export function useEsper({
   const handleAtivarDadiva = () => {
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 999);
     if (mpAtual < custoAtualDadiva) {
-      window.alert(`PM insuficiente! Dom requer ${custoAtualDadiva} PM, você possui ${mpAtual} PM.`);
+      showAlert(`PM insuficiente! Dom requer ${custoAtualDadiva} PM, você possui ${mpAtual} PM.`);
       return;
     }
 

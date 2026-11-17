@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { fichaService } from '../../../../services/fichaService';
+import { useAlert } from '../../../../contexts/useAlert';
 import { Button, Modal, Input } from '../../../../components/ui';
 import styles from '../FichaHeader.module.css';
 
@@ -14,18 +15,19 @@ import styles from '../FichaHeader.module.css';
  * @param {Function} [props.setFicha]
  */
 export default function ModalZenit({ isOpen, onClose, ficha, setFicha }) {
-  if (!isOpen) return null;
-
+  const { showAlert } = useAlert();
   const [tipoAjuste, setTipoAjuste] = useState('adicionar');
   const [valorZenit, setValorZenit] = useState('');
   const [motivoZenit, setMotivoZenit] = useState('');
   const [processandoZenit, setProcessandoZenit] = useState(false);
 
+  if (!isOpen) return null;
+
   const lidarComTransacaoZenit = async (e) => {
     e.preventDefault();
     const qtd = parseInt(valorZenit, 10);
     if (isNaN(qtd) || qtd <= 0) {
-      alert('Insira um valor válido maior que zero.');
+      showAlert('Insira um valor válido maior que zero.');
       return;
     }
 
@@ -33,7 +35,7 @@ export default function ModalZenit({ isOpen, onClose, ficha, setFicha }) {
     const novoZenit = tipoAjuste === 'adicionar' ? zenitAtual + qtd : zenitAtual - qtd;
 
     if (novoZenit < 0) {
-      alert('O personagem não tem zênites suficientes para essa retirada!');
+      showAlert('O personagem não tem zênites suficientes para essa retirada!');
       return;
     }
 
@@ -45,14 +47,14 @@ export default function ModalZenit({ isOpen, onClose, ficha, setFicha }) {
         setFicha((prev) => ({ ...prev, zenit: novoZenit }));
       }
 
-      alert(
+      showAlert(
         `✨ Transação realizada! ${tipoAjuste === 'adicionar' ? `+${qtd}` : `-${qtd}`} zênites (${motivoZenit || 'Sem motivo especificado'}).`
       );
       onClose();
       setValorZenit('');
       setMotivoZenit('');
     } catch (err) {
-      alert('Erro ao atualizar zênites: ' + err.message);
+      showAlert('Erro ao atualizar zênites: ' + err.message);
     } finally {
       setProcessandoZenit(false);
     }

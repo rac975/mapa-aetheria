@@ -1,116 +1,157 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaMapMarkedAlt, FaBookOpen, FaShieldAlt, FaJournalWhills, FaIdCard, FaCog, FaKey, FaStore, FaUserShield } from 'react-icons/fa';
-import { LuSwords } from "react-icons/lu";
-import './Sidebar.css';
+import {
+  FaShieldAlt,
+  FaCog,
+  FaKey,
+  FaChevronLeft,
+  FaChevronRight,
+  FaSignOutAlt
+} from 'react-icons/fa';
+import { LuSparkles } from 'react-icons/lu';
+import { getGruposNavegacao } from './sidebarConfig';
+import SidebarMobileNav from './SidebarMobileNav';
+import styles from './Sidebar.module.css';
+
+const STORAGE_COLLAPSED_KEY = 'aetheria_sidebar_collapsed';
 
 export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSettings }) {
   const location = useLocation();
-
-  // Função auxiliar para verificar se o link está ativo (suporta rotas exatas ou prefixos como /mestre/npcs)
-  const isActive = (path, exact = true) => {
-    if (exact) {
-      return location.pathname === path ? 'active' : '';
+  const [recolhida, setRecolhida] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_COLLAPSED_KEY) === 'true';
+    } catch {
+      return false;
     }
-    return location.pathname.startsWith(path) ? 'active' : '';
+  });
+  const [menuAbertoNaRota, setMenuAbertoNaRota] = useState(null);
+  const mobileMenuAberto = menuAbertoNaRota === location.pathname;
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_COLLAPSED_KEY, String(recolhida));
+    } catch {
+      // Ignora indisponibilidade de storage
+    }
+  }, [recolhida]);
+
+  const isRotaAtiva = (path, exact = true) => {
+    if (exact) return location.pathname === path;
+    if (path === '/ficha' && location.pathname.startsWith('/mestre/editar')) return true;
+    return location.pathname.startsWith(path);
   };
+
+  const gruposNavegacao = getGruposNavegacao(isMestre);
 
   return (
     <>
-      {/* 1. SIDEBAR TRADICIONAL (Visível apenas no Desktop via CSS) */}
-      <aside className="sidebar desktop-only">
-        <div className="sidebar-logo">
-          <h2>Aetheria</h2>
+      <aside
+        className={`${styles.sidebar} ${recolhida ? styles.recolhida : ''} ${styles.noPrint}`}
+        aria-label="Navegação principal"
+      >
+        <div className={styles.brandHeader}>
+          <Link to="/" className={styles.brandLink} title="AetheriaMap">
+            <span className={styles.brandEmblem} aria-hidden="true">
+              <LuSparkles />
+            </span>
+            {!recolhida && (
+              <div className={styles.brandText}>
+                <h2 className={styles.brandTitle}>Aetheria</h2>
+                <span className={styles.brandSub}>Fabula Ultima Atlas</span>
+              </div>
+            )}
+          </Link>
+
+          <button
+            type="button"
+            className={styles.collapseBtn}
+            onClick={() => setRecolhida((prev) => !prev)}
+            title={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
+            aria-label={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
+          >
+            {recolhida ? <FaChevronRight /> : <FaChevronLeft />}
+          </button>
         </div>
 
-        <nav className="sidebar-nav">
-          <Link to="/" className={`sidebar-link ${isActive('/')}`}>
-            <FaMapMarkedAlt /> <span>Mapa Mundi</span>
-          </Link>
-          <Link to="/cronicas" className={`sidebar-link ${isActive('/cronicas')}`}>
-            <FaBookOpen /> <span>Crônicas</span>
-          </Link>
-          <Link to="/journal" className={`sidebar-link ${isActive('/journal')}`}>
-            <FaJournalWhills /> <span>Journal</span>
-          </Link>
-          <Link to="/combate" className={`sidebar-link ${isActive('/combate')}`}>
-            <LuSwords /> <span>Conflito & Relógios</span>
-          </Link>
-
-          {/* Links restritos ou alternados pelo Modo Mestre */}
-          {isMestre ? (
-            <>
-              <Link to="/mestre/fichas" className={`sidebar-link ${isActive('/mestre/fichas')}`}>
-                <FaShieldAlt /> <span>Gerenciar Fichas</span>
-              </Link>
-              <Link to="/mestre/npcs" className={`sidebar-link ${isActive('/mestre/npcs', false)}`}>
-                <FaUserShield /> <span>Gerenciar NPCs</span>
-              </Link>
-            </>
-          ) : (
-            <Link to="/ficha" className={`sidebar-link ${isActive('/ficha')}`}>
-              <FaIdCard /> <span>Minha Ficha</span>
-            </Link>
-          )}
-
-          <Link to="/loja" className={`sidebar-link ${isActive('/loja')}`}>
-            <FaStore /> <span>Loja</span>
-          </Link>
+        <nav className={styles.nav}>
+          {gruposNavegacao.map((grupo) => (
+            <div key={grupo.titulo} className={styles.navGroup}>
+              {!recolhida && <span className={styles.groupLabel}>{grupo.titulo}</span>}
+              <div className={styles.groupLinks}>
+                {grupo.itens.map((item) => {
+                  const Icon = item.icon;
+                  const ativo = isRotaAtiva(item.to, item.exact);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`${styles.navLink} ${ativo ? styles.navLinkActive : ''}`}
+                      title={recolhida ? item.label : undefined}
+                      aria-current={ativo ? 'page' : undefined}
+                    >
+                      <span className={styles.navIconWrap}>
+                        <Icon />
+                      </span>
+                      {!recolhida && <span className={styles.navLabel}>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="sidebar-footer">
-          <button type="button" className="btn-config-sidebar" onClick={onOpenSettings} title="Configurações">
-            <FaCog /> <span>Configurações</span>
+        <div className={styles.footer}>
+          <button
+            type="button"
+            className={styles.footerBtn}
+            onClick={onOpenSettings}
+            title="Configurações"
+          >
+            <span className={styles.navIconWrap}><FaCog /></span>
+            {!recolhida && <span>Configurações</span>}
           </button>
+
           {isMestre ? (
-            <div className="mestre-badge-container" onClick={onLogout} title="Sair do Modo Mestre">
-              <FaShieldAlt className="icon-mestre" />
-              <span className="mestre-text">Modo Mestre Ativo</span>
-            </div>
+            <button
+              type="button"
+              className={`${styles.footerBtn} ${styles.masterActiveBtn}`}
+              onClick={onLogout}
+              title="Sair do Modo Mestre"
+            >
+              <span className={styles.navIconWrap}><FaShieldAlt /></span>
+              {!recolhida && (
+                <>
+                  <span className={styles.masterLabel}>Modo Mestre</span>
+                  <FaSignOutAlt className={styles.logoutIcon} />
+                </>
+              )}
+            </button>
           ) : (
-            <button type="button" className="btn-login-mestre" onClick={onOpenLogin} title="Entrar como Mestre">
-              <FaKey /> <span>Entrar como Mestre</span>
+            <button
+              type="button"
+              className={`${styles.footerBtn} ${styles.masterLoginBtn}`}
+              onClick={onOpenLogin}
+              title="Entrar como Mestre"
+            >
+              <span className={styles.navIconWrap}><FaKey /></span>
+              {!recolhida && <span>Modo Mestre</span>}
             </button>
           )}
         </div>
       </aside>
 
-      {/* 2. BOTTOM NAVIGATION BAR (Visível apenas no Mobile via CSS) */}
-      <nav className="mobile-bottom-nav">
-        <Link to="/" className={`bottom-nav-item ${isActive('/')}`}>
-          <FaMapMarkedAlt />
-          <span>Mapa</span>
-        </Link>
-        <Link to="/cronicas" className={`bottom-nav-item ${isActive('/cronicas')}`}>
-          <FaBookOpen />
-          <span>Crônicas</span>
-        </Link>
-        <Link to="/combate" className={`bottom-nav-item ${isActive('/combate')}`}>
-          <LuSwords />
-          <span>Conflito</span>
-        </Link>
-        
-        {/* No mobile, exibe o link de gerenciar NPCs ou Fichas dependendo do mestre */}
-        {isMestre ? (
-          <Link to="/mestre/npcs" className={`bottom-nav-item ${isActive('/mestre/npcs', false)}`}>
-            <FaUserShield />
-            <span>NPCs</span>
-          </Link>
-        ) : (
-          <Link to="/ficha" className={`bottom-nav-item ${isActive('/ficha')}`}>
-            <FaIdCard />
-            <span>Ficha</span>
-          </Link>
-        )}
-
-        <Link to="/loja" className={`bottom-nav-item ${isActive('/loja')}`}>
-          <FaStore /> <span>Loja</span>
-        </Link>
-
-        <button type="button" className="bottom-nav-item" onClick={onOpenSettings}>
-          <FaCog />
-          <span>Ajustes</span>
-        </button>
-      </nav>
+      <SidebarMobileNav
+        gruposNavegacao={gruposNavegacao}
+        isMestre={isMestre}
+        isRotaAtiva={isRotaAtiva}
+        mobileMenuAberto={mobileMenuAberto}
+        onToggleMenu={() => setMenuAbertoNaRota(mobileMenuAberto ? null : location.pathname)}
+        onFecharMenu={() => setMenuAbertoNaRota(null)}
+        onOpenSettings={onOpenSettings}
+        onOpenLogin={onOpenLogin}
+        onLogout={onLogout}
+      />
     </>
   );
 }

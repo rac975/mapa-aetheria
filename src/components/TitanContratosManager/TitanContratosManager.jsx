@@ -219,7 +219,7 @@ export default function TitanContratosManager({ titan, isMestre }) {
                       value={editDescricao}
                       onChange={(e) => setEditDescricao(e.target.value)}
                     />
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="contrato-form-actions">
                       <button type="submit" className="btn-salvar-contrato">Salvar</button>
                       <button type="button" className="btn-mudar-status" onClick={() => setContratoEditandoId(null)}>Cancelar</button>
                     </div>
@@ -235,7 +235,7 @@ export default function TitanContratosManager({ titan, isMestre }) {
                       </span>
 
                       {isMestre && (
-                        <div className="contrato-acoes-mestre" style={{ display: 'flex', gap: '6px' }}>
+                        <div className="contrato-acoes-mestre">
                           <button
                             className="btn-mudar-status"
                             onClick={() => handleStatusContrato(c.id, c.status)}
@@ -251,8 +251,7 @@ export default function TitanContratosManager({ titan, isMestre }) {
                             <FaEdit />
                           </button>
                           <button
-                            className="btn-mudar-status"
-                            style={{ color: '#e74c3c' }}
+                            className="btn-mudar-status btn-excluir-contrato"
                             onClick={() => iniciarExclusao(c)}
                             title="Excluir Contrato"
                           >

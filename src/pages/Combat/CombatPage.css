@@ -1,118 +1,46 @@
-/* =====================================================
-   ESTRUTURA PRINCIPAL DA PÁGINA DE COMBATE
-===================================================== */
 .combat-page {
-  background-color: #0d0f18;
-  color: #f0f0f0;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
   width: 100%;
-  min-height: 100vh;
-  padding: 40px;
+  min-height: 100%;
+  padding: var(--space-8);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: var(--space-6);
+  font-family: var(--font-family-sans);
 }
 
-/* =====================================================
-   CABEÇALHO DA PÁGINA
-===================================================== */
 .combat-header {
-  border-bottom: 2px solid #332914;
-  padding-bottom: 18px;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-4);
 }
 
 .combat-header h1 {
-  color: #d4af37;
-  font-size: 30px;
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-2xl);
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 6px 0;
-  letter-spacing: 0.5px;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: 0.05em;
+  text-shadow: var(--shadow-glow-gold);
 }
 
 .combat-header p {
-  color: #9da3af;
+  color: var(--color-text-muted);
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-sm);
 }
 
-/* =====================================================
-   GRID PRINCIPAL (INICIATIVA & RELÓGIOS)
-===================================================== */
-.combat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  /* Mais espaço para os relógios */
-  gap: 28px;
-  align-items: start;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* ==========================================================================
-   RESPONSIVIDADE GERAL PARA SMARTPHONES (MAX-WIDTH: 800px) - COMBAT PAGE
-   ========================================================================== */
 @media (max-width: 800px) {
-  html,
-  body {
-    height: 100% !important;
-    overflow: hidden !important;
+  .combat-page {
+    padding: 0 0 var(--space-6) 0;
+    gap: var(--space-4);
   }
 
   .combat-header h1 {
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 6px 10%;
-  }
-
-  .combat-page {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 0 25px 0 !important; /* Remove o padding interno excessivo, pois o .main-content já gerencia */
-    margin: 0 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    height: auto !important;
-    min-height: auto !important;
-    overflow-y: visible !important;
-    box-sizing: border-box !important;
-  }
-
-  .combat-page::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  .combat-grid,
-  .combat-box,
-  .participante-item,
-  .form-add-part,
-  .mestre-stats-bar,
-  .clock-card,
-  .form-create-clock {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-
-  .participantes-list {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-right: 0 !important;
-    overflow-x: hidden !important;
-  }
-
-  .clock-card {
-    min-width: 0 !important;
-  }
-
-  .combat-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    font-size: var(--font-size-xl);
   }
 }

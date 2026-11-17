@@ -4,7 +4,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle, #161b22 0%, #0d0f18 100%);
+  background: radial-gradient(circle, var(--color-bg-elevated) 0%, var(--color-bg-base) 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,36 +17,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .welcome-sparkle-icon {
   font-size: 3rem;
-  color: #d4af37;
+  color: var(--color-text-gold);
   animation: pulseSpin 2s infinite linear;
 }
 
 .welcome-title {
-  color: #c9d1d9;
-  font-size: 1.2rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
   text-transform: uppercase;
   letter-spacing: 3px;
   margin: 0;
 }
 
 .welcome-hero-name {
-  color: #d4af37;
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
   font-size: 2.5rem;
   font-weight: bold;
   margin: 0;
-  text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  text-shadow: var(--shadow-glow-gold);
 }
 
 .welcome-bar {
   width: 0px;
   height: 3px;
-  background: #d4af37;
-  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-border-gold), var(--color-ether-cyan));
+  border-radius: var(--radius-sm);
   animation: expandBar 2s ease-out forwards;
 }
 

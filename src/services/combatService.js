@@ -228,6 +228,51 @@ export const combatService = {
   },
 
   /**
+   * Busca todos os relógios de perigo/eventos ordenados por ID
+   */
+  async getRelogios() {
+    return await supabase
+      .from('relogios')
+      .select('*')
+      .order('id', { ascending: true });
+  },
+
+  /**
+   * Cria um novo relógio na tabela relogios
+   */
+  async criarRelogio(dados) {
+    return await supabase
+      .from('relogios')
+      .insert([{
+        titulo: dados.titulo,
+        fatias_total: Number(dados.fatias_total) || 4,
+        fatias_atuais: Number(dados.fatias_atuais) || 0,
+        visivel: dados.visivel !== false
+      }])
+      .select();
+  },
+
+  /**
+   * Atualiza as fatias atuais ou visibilidade de um relógio
+   */
+  async atualizarRelogio(id, updates) {
+    return await supabase
+      .from('relogios')
+      .update(updates)
+      .eq('id', id);
+  },
+
+  /**
+   * Remove um relógio pelo ID
+   */
+  async excluirRelogio(id) {
+    return await supabase
+      .from('relogios')
+      .delete()
+      .eq('id', id);
+  },
+
+  /**
    * Inscreve em tempo real na tabela iniciativa_combate.
    */
   subscribeIniciativa(onMudanca) {
@@ -278,6 +323,29 @@ export const combatService = {
 
     return {
       unsubscribe: () => { supabase.removeChannel(channel); }
+    };
+  },
+
+  /**
+   * Inscreve callback para alterações em tempo real na tabela relogios
+   */
+  subscribeRelogios(onMudanca) {
+    const channelName = `realtime_relogios_${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'relogios' },
+        () => {
+          if (onMudanca) onMudanca();
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      }
     };
   }
 };

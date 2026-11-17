@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaShieldAlt, FaCoins, FaHammer, FaPrint } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Badge, Input, Card } from '../../../components/ui';
 import styles from './CriadorItensRaros.module.css';
 
 export default function CriadorArmadurasEscudos({ onSalvarItem }) {
+    const { showAlert } = useAlert();
     const [itensBase, setItensBase] = useState([]);
     const [itemBaseSelecionado, setItemBaseSelecionado] = useState(null);
     const [caracteristicas, setCaracteristicas] = useState([]);
@@ -46,8 +48,8 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return alert('Dê um nome para a armadura/escudo!');
-        if (!itemBaseSelecionado) return alert('Selecione uma armadura base!');
+        if (!nomeItem.trim()) return showAlert('Dê um nome para a armadura/escudo!');
+        if (!itemBaseSelecionado) return showAlert('Selecione uma armadura base!');
 
         setSalvando(true);
         const efeitosList = caracteristicaSelecionada?.efeito ? [caracteristicaSelecionada.efeito] : [];
