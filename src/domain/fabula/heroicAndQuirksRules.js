@@ -293,9 +293,11 @@ export function validarElegibilidadePoderHeroico(
     classesDominadasQueHabilitam = classesDominadas.map((cd) => cd.nome_classe);
   } else {
     const requeridasNorm = classesRequeridas.map((cr) => normalizarTexto(cr));
-    const matches = classesDominadas.filter((cd) =>
-      requeridasNorm.some((reqNorm) => cd.nome_normalizado.includes(reqNorm) || reqNorm.includes(cd.nome_normalizado))
-    );
+    const matches = classesDominadas.filter((cd) => {
+      const aliasVirtuoso = (cd.nome_normalizado.includes('cantor') || cd.nome_normalizado.includes('virtuoso'))
+        && requeridasNorm.some((r) => r.includes('virtuoso') || r.includes('cantor'));
+      return aliasVirtuoso || requeridasNorm.some((reqNorm) => cd.nome_normalizado.includes(reqNorm) || reqNorm.includes(cd.nome_normalizado));
+    });
     classesDominadasQueHabilitam = matches.map((m) => m.nome_classe);
     cumpreRequisitoClasse = matches.length > 0;
 

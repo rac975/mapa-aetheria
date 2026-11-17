@@ -1,4 +1,4 @@
-import { FaShieldAlt, FaCar, FaDna } from 'react-icons/fa';
+import { FaShieldAlt, FaCar, FaDna, FaBolt, FaMagic } from 'react-icons/fa';
 import { Card, Badge } from '../../../components/ui';
 import styles from './FichaEstatisticasSecao.module.css';
 
@@ -12,9 +12,27 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
     const mdefFinal = Number(statusFicha.mdefTotal) || 0;
     const iniFinal = Number(statusFicha.iniciativaTotal) || 0;
     const precisaoFinal = Number(statusFicha.precisaoBonus) || 0;
+    const reducaoDanoFinal = Number(statusFicha.reducaoDano) || 0;
+    const sinergias = statusFicha.sinergias || null;
 
-    const temEfeitosMutante = (statusFicha.terioformasAtivasDetalhes && statusFicha.terioformasAtivasDetalhes.length > 0) ||
-        (statusFicha.resistenciasAtivas && statusFicha.resistenciasAtivas.length > 0);
+    const terioformas = statusFicha.terioformasAtivasDetalhes || [];
+    const resistencias = statusFicha.resistenciasAtivas || [];
+    const simbolosProprios = sinergias?.simbolista?.simbolosProprios || [];
+
+    const temSinergiasAtivas = Boolean(
+        simbolosProprios.length > 0 ||
+        sinergias?.dancaAtivaTurno ||
+        sinergias?.ordemAtivaCmd ||
+        sinergias?.focoCognitivoAtivo ||
+        sinergias?.bonusArtilharia > 0 ||
+        sinergias?.bonusPoderCurativo > 0 ||
+        sinergias?.bonusDanoDancarinoGuerra > 0 ||
+        sinergias?.bonusDanoDecreto > 0 ||
+        sinergias?.decretoDobrarPmAtivo ||
+        sinergias?.bonusSapateadoOpostos > 0
+    );
+
+    const temEfeitosAtivos = terioformas.length > 0 || resistencias.length > 0 || temSinergiasAtivas;
 
     return (
         <Card variant="default" className={styles.container}>
@@ -60,26 +78,109 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                         )}
                     </div>
                 )}
+                {reducaoDanoFinal > 0 && (
+                    <div className={styles.statBox}>
+                        <span className={styles.statLabel}>REDUÇÃO DANO</span>
+                        <strong className={`${styles.statValor} ${styles.valReducao}`}>
+                            -{reducaoDanoFinal}
+                        </strong>
+                        <span className={styles.statSub}>Defesa / Barreira</span>
+                    </div>
+                )}
             </div>
 
-            {/* Badges de Terioformas Ativas e Resistências da Ficha */}
-            {temEfeitosMutante && (
+            {temEfeitosAtivos && (
                 <div className={styles.badgesEfeitosContainer}>
-                    <span className={styles.badgesEfeitosLabel}>
-                        <FaDna /> Mutações & Terioformas Ativas:
-                    </span>
-                    <div className={styles.badgesEfeitosGrid}>
-                        {statusFicha.terioformasAtivasDetalhes?.map(tf => (
-                            <Badge key={tf.key} variant="core" size="sm" className={styles.terioBadge}>
-                                <FaDna /> {tf.nome} {tf.resumoEfeito ? `(${tf.resumoEfeito})` : ''}
-                            </Badge>
-                        ))}
-                        {statusFicha.resistenciasAtivas?.map((res, idx) => (
-                            <Badge key={idx} variant="gold" size="sm" className={styles.resistenciaBadge}>
-                                <FaShieldAlt /> Resistência: {res.tipo.toUpperCase()} {res.fonte ? `(${res.fonte})` : ''}
-                            </Badge>
-                        ))}
-                    </div>
+                    {terioformas.length > 0 && (
+                        <div className={styles.grupoEfeitos}>
+                            <span className={styles.badgesEfeitosLabel}>
+                                <FaDna /> Mutações & Terioformas Ativas:
+                            </span>
+                            <div className={styles.badgesEfeitosGrid}>
+                                {terioformas.map(tf => (
+                                    <Badge key={tf.key} variant="core" size="sm" className={styles.terioBadge}>
+                                        <FaDna /> {tf.nome} {tf.resumoEfeito ? `(${tf.resumoEfeito})` : ''}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {resistencias.length > 0 && (
+                        <div className={styles.grupoEfeitos}>
+                            <span className={styles.badgesEfeitosLabel}>
+                                <FaShieldAlt /> Resistências Ativas:
+                            </span>
+                            <div className={styles.badgesEfeitosGrid}>
+                                {resistencias.map((res, idx) => (
+                                    <Badge key={`${res.tipo}-${idx}`} variant="gold" size="sm" className={styles.resistenciaBadge}>
+                                        <FaShieldAlt /> {res.tipo.toUpperCase()} {res.fonte ? `(${res.fonte})` : ''}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {temSinergiasAtivas && (
+                        <div className={styles.grupoEfeitos}>
+                            <span className={styles.badgesEfeitosLabel}>
+                                <FaBolt /> Sinergias, Ordens, Danças & Sigilos:
+                            </span>
+                            <div className={styles.badgesEfeitosGrid}>
+                                {simbolosProprios.map((s, idx) => (
+                                    <Badge key={`${s.key}-${idx}`} variant="pi" size="sm">
+                                        Sigilo: {s.nome}{s.escolha ? ` (${s.escolha})` : ''}
+                                    </Badge>
+                                ))}
+                                {sinergias?.simbolista?.travaAtributosBase && (
+                                    <Badge variant="crise" size="sm">Amarras: Atributos Travados</Badge>
+                                )}
+                                {sinergias?.dancaAtivaTurno && (
+                                    <Badge variant="pm" size="sm">Dança: {sinergias.dancaAtivaTurno.nome}</Badge>
+                                )}
+                                {sinergias?.bonusSapateadoOpostos > 0 && (
+                                    <Badge variant="ether" size="sm">
+                                        Sapateado: +{sinergias.bonusSapateadoOpostos} Opostos
+                                    </Badge>
+                                )}
+                                {sinergias?.ordemAtivaCmd && (
+                                    <Badge variant="gold" size="sm">
+                                        Ordem: {sinergias.ordemAtivaCmd.titulo}
+                                    </Badge>
+                                )}
+                                {sinergias?.focoCognitivoAtivo && (
+                                    <Badge variant="ether" size="sm">
+                                        <FaMagic /> Foco Cognitivo: +{sinergias.bonusFocoTeste} Teste / +{sinergias.bonusFocoCura} Cura
+                                    </Badge>
+                                )}
+                                {sinergias?.bonusArtilharia > 0 && (
+                                    <Badge variant="pv" size="sm">
+                                        Artilharia Mágica: +{sinergias.bonusArtilharia} Teste Magia (O)
+                                    </Badge>
+                                )}
+                                {sinergias?.bonusPoderCurativo > 0 && (
+                                    <Badge variant="core" size="sm">
+                                        Poder Curativo: +{sinergias.bonusPoderCurativo} Cura
+                                    </Badge>
+                                )}
+                                {sinergias?.bonusDanoDancarinoGuerra > 0 && (
+                                    <Badge variant="pv" size="sm">
+                                        Dançarino de Guerra: +{sinergias.bonusDanoDancarinoGuerra} Dano
+                                    </Badge>
+                                )}
+                                {sinergias?.bonusDanoDecreto > 0 && (
+                                    <Badge variant="crise" size="sm">
+                                        Decreto do Bispo: +{sinergias.bonusDanoDecreto} Dano
+                                    </Badge>
+                                )}
+                                {sinergias?.decretoDobrarPmAtivo && (
+                                    <Badge variant="pm" size="sm">
+                                        Decreto do Bispo: Custos de PM x2
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </Card>

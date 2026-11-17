@@ -16,7 +16,8 @@ export function useEsper({
   classe,
   classeObjeto,
   classes,
-  handleAjustarRecurso
+  handleAjustarRecurso,
+  onAtualizarDadosClasse
 }) {
   const [catalogoDons, setCatalogoDons] = useState([]);
 
@@ -100,19 +101,22 @@ export function useEsper({
 
   const salvarEsper = async (novosDados = {}) => {
     const fichaIdReal = ficha?.id || classeObj?.ficha_id;
+    const payload = {
+      donsAprendidos,
+      relogioSecoes,
+      focoAtivo,
+      alvoFoco,
+      tipoAlvo,
+      dadivaKey,
+      ...novosDados
+    };
     if (fichaIdReal) {
-      await fichaService.salvarDadosEsper(
-        fichaIdReal,
-        {
-          donsAprendidos,
-          relogioSecoes,
-          focoAtivo,
-          alvoFoco,
-          tipoAlvo,
-          dadivaKey,
-          ...novosDados
-        },
-        classes
+      await fichaService.salvarDadosEsper(fichaIdReal, payload, classes);
+    }
+    if (onAtualizarDadosClasse) {
+      onAtualizarDadosClasse(
+        (c) => (c.nome_classe || '').toLowerCase().includes('esper'),
+        (c) => ({ ...c, dados_esper: payload })
       );
     }
   };

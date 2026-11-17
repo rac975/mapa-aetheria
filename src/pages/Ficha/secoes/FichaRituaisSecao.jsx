@@ -15,6 +15,8 @@ import {
 } from 'react-icons/fa';
 import { Card, Button, Badge, Input } from '../../../components/ui';
 import { useRitualCalculator } from './useRitualCalculator';
+import RitualSinergiasRow from './components/RitualSinergiasRow';
+import RitualParametrosGrid from './components/RitualParametrosGrid';
 import styles from './FichaRituaisSecao.module.css';
 
 const ICONES_DISCIPLINA = {
@@ -31,6 +33,7 @@ export default function FichaRituaisSecao({
   ficha,
   classes = [],
   atributos = {},
+  statusFicha = null,
   handleAjustarRecurso
 }) {
   const {
@@ -48,6 +51,9 @@ export default function FichaRituaisSecao({
     descricaoEfeito,
     setDescricaoEfeito,
     calculo,
+    modificadores,
+    bonusTeste,
+    toggles,
     mpAtual,
     validacaoPm,
     dadosAtributos,
@@ -57,45 +63,30 @@ export default function FichaRituaisSecao({
     handleConjurarRitual,
     potencias,
     areas
-  } = useRitualCalculator({ ficha, classes, atributos, handleAjustarRecurso });
+  } = useRitualCalculator({ ficha, classes, atributos, statusFicha, handleAjustarRecurso });
 
   const [mostrarTodas, setMostrarTodas] = useState(false);
-  const listaExibicao = (disciplinasDominadas.length > 0 && !mostrarTodas)
-    ? disciplinasDominadas
-    : todasDisciplinas;
-
+  const listaExibicao = disciplinasDominadas.length > 0 && !mostrarTodas ? disciplinasDominadas : todasDisciplinas;
   const IconeAtivo = ICONES_DISCIPLINA[disciplinaAtiva.id] || FaMagic;
 
   return (
     <Card variant="default" className={styles.container}>
-      {/* 1. CABEÇALHO */}
       <div className={styles.header}>
         <div className={styles.headerTitleGroup}>
           <FaMagic className={styles.headerIcon} />
           <h3 className={styles.title}>Rituais Mágicos</h3>
-          <Badge variant="ether" size="sm">
-            {disciplinasDominadas.length} Disciplina(s) Ativa(s)
-          </Badge>
+          <Badge variant="ether" size="sm">{disciplinasDominadas.length} Disciplina(s) Ativa(s)</Badge>
         </div>
         <div className={styles.headerMeta}>
-          <Badge variant={mpAtual > 0 ? 'pm' : 'crise'} size="md">
-            PM Atual: {mpAtual}
-          </Badge>
+          <Badge variant={mpAtual > 0 ? 'pm' : 'crise'} size="md">PM Atual: {mpAtual}</Badge>
           {disciplinasDominadas.length > 0 && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setMostrarTodas(!mostrarTodas)}
-              className={styles.toggleTodasBtn}
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => setMostrarTodas(!mostrarTodas)} className={styles.toggleTodasBtn}>
               {mostrarTodas ? 'Ver Apenas Dominadas' : 'Ver Todas do Manual'}
             </Button>
           )}
         </div>
       </div>
 
-      {/* 2. SELEÇÃO DE DISCIPLINAS */}
       <div className={styles.disciplinasContainer}>
         <span className={styles.sectionLabel}>Disciplina de Ritual:</span>
         <div className={styles.disciplinasPills}>
@@ -103,7 +94,6 @@ export default function FichaRituaisSecao({
             const isSelected = disc.id === disciplinaId;
             const ehDominada = disciplinasDominadas.some((d) => d.id === disc.id);
             const DiscIcon = ICONES_DISCIPLINA[disc.id] || FaMagic;
-
             return (
               <button
                 type="button"
@@ -125,7 +115,7 @@ export default function FichaRituaisSecao({
               <IconeAtivo /> {disciplinaAtiva.nome}
             </div>
             <Badge variant="gold" size="sm">
-              Teste: {dadosAtributos.rotulo} (d{dadosAtributos.valor1} + d{dadosAtributos.valor2})
+              Teste: {dadosAtributos.rotulo} (d{dadosAtributos.valor1} + d{dadosAtributos.valor2}{bonusTeste > 0 ? ` + ${bonusTeste}` : ''})
             </Badge>
           </div>
           <p className={styles.disciplinaDescricao}>{disciplinaAtiva.descricao}</p>
@@ -138,55 +128,17 @@ export default function FichaRituaisSecao({
         </div>
       </div>
 
-      {/* 3. PARÂMETROS DO RITUAL (POTÊNCIA E ÁREA) */}
-      <div className={styles.parametrosGrid}>
-        {/* Potência */}
-        <div className={styles.parametroColuna}>
-          <span className={styles.sectionLabel}>Potência do Efeito:</span>
-          <div className={styles.opcoesLista}>
-            {potencias.map((pot) => (
-              <button
-                type="button"
-                key={pot.key}
-                onClick={() => setPotenciaKey(pot.key)}
-                className={`${styles.opcaoCard} ${potenciaKey === pot.key ? styles.opcaoCardAtiva : ''}`}
-              >
-                <div className={styles.opcaoTopo}>
-                  <strong className={styles.opcaoNome}>{pot.nome}</strong>
-                  <div className={styles.opcaoBadges}>
-                    <Badge variant="ether" size="sm">{pot.custoPm} PM</Badge>
-                    <Badge variant="gold" size="sm">ND {pot.nd}</Badge>
-                  </div>
-                </div>
-                <span className={styles.opcaoExemplo}>{pot.exemplos}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+      <RitualParametrosGrid
+        potencias={potencias}
+        potenciaKey={potenciaKey}
+        setPotenciaKey={setPotenciaKey}
+        areas={areas}
+        areaKey={areaKey}
+        setAreaKey={setAreaKey}
+      />
 
-        {/* Área */}
-        <div className={styles.parametroColuna}>
-          <span className={styles.sectionLabel}>Área / Alvos:</span>
-          <div className={styles.opcoesLista}>
-            {areas.map((ar) => (
-              <button
-                type="button"
-                key={ar.key}
-                onClick={() => setAreaKey(ar.key)}
-                className={`${styles.opcaoCard} ${areaKey === ar.key ? styles.opcaoCardAtiva : ''}`}
-              >
-                <div className={styles.opcaoTopo}>
-                  <strong className={styles.opcaoNome}>{ar.nome}</strong>
-                  <Badge variant="core" size="sm">Multiplicador ×{ar.multiplicador}</Badge>
-                </div>
-                <span className={styles.opcaoExemplo}>{ar.descricao}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <RitualSinergiasRow modificadores={modificadores} calculo={calculo} bonusTeste={bonusTeste} toggles={toggles} />
 
-      {/* 4. MODIFICADORES & PROPÓSITO */}
       <div className={styles.modificadoresRow}>
         <label className={styles.checkboxLabel}>
           <input
@@ -195,7 +147,7 @@ export default function FichaRituaisSecao({
             onChange={(e) => setIngredienteRaro(e.target.checked)}
             className={styles.checkboxInput}
           />
-          <span>Usar Ingrediente Raro / Oferenda Preciosa (Reduz custo total de PM em 50%)</span>
+          <span>Usar Ingrediente Raro / Oferenda Preciosa (Reduz custo base de PM em 50%)</span>
         </label>
         <Input
           placeholder="Descreva o propósito ou objetivo do ritual (opcional)..."
@@ -205,7 +157,6 @@ export default function FichaRituaisSecao({
         />
       </div>
 
-      {/* 5. PAINEL DE RESULTADO E CUSTO CALCULADO */}
       <div className={styles.resumoPainel}>
         <div className={styles.resumoMetricas}>
           <div className={styles.metricaItem}>
@@ -216,9 +167,7 @@ export default function FichaRituaisSecao({
           </div>
           <div className={styles.metricaItem}>
             <span className={styles.metricaRotulo}>Dificuldade</span>
-            <Badge variant="gold" size="md" className={styles.metricaBadge}>
-              ND {calculo.nd}
-            </Badge>
+            <Badge variant="gold" size="md" className={styles.metricaBadge}>ND {calculo.nd}</Badge>
           </div>
           <div className={styles.metricaItem}>
             <span className={styles.metricaRotulo}>Relógio em Conflito</span>
@@ -229,14 +178,8 @@ export default function FichaRituaisSecao({
         </div>
 
         <div className={styles.acoesContainer}>
-          <Button
-            type="button"
-            variant="secondary"
-            size="md"
-            onClick={handleRolarTeste}
-            className={styles.acaoBtn}
-          >
-            <FaDice /> Rolar Magia {dadosAtributos.rotulo}
+          <Button type="button" variant="secondary" size="md" onClick={handleRolarTeste} className={styles.acaoBtn}>
+            <FaDice /> Rolar Magia {dadosAtributos.rotulo}{bonusTeste > 0 ? ` +${bonusTeste}` : ''}
           </Button>
           <Button
             type="button"
@@ -251,12 +194,13 @@ export default function FichaRituaisSecao({
         </div>
       </div>
 
-      {/* 6. RESULTADO DA ROLAGEM DE DADOS */}
       {resultadoTeste && (
         <div className={`${styles.resultadoCard} ${resultadoTeste.desastre ? styles.resultadoDesastre : resultadoTeste.critico ? styles.resultadoCritico : resultadoTeste.sucesso ? styles.resultadoSucesso : styles.resultadoFalha}`}>
           <div className={styles.resultadoTopo}>
             <div className={styles.resultadoFormula}>
-              Rolagem: <strong>[{resultadoTeste.dado1}]</strong> + <strong>[{resultadoTeste.dado2}]</strong> = <span className={styles.resultadoTotal}>{resultadoTeste.total}</span> (vs ND {resultadoTeste.nd})
+              Rolagem: <strong>[{resultadoTeste.dado1}]</strong> + <strong>[{resultadoTeste.dado2}]</strong>
+              {resultadoTeste.bonus > 0 ? <> + <strong>{resultadoTeste.bonus}</strong></> : null} ={' '}
+              <span className={styles.resultadoTotal}>{resultadoTeste.total}</span> (vs ND {resultadoTeste.nd})
             </div>
             {resultadoTeste.desastre ? (
               <Badge variant="crise" size="sm"><FaSkullCrossbones /> DESASTRE (1 Ponto de Fábula)</Badge>
@@ -271,7 +215,6 @@ export default function FichaRituaisSecao({
         </div>
       )}
 
-      {/* 7. FEEDBACK DE CONJURAÇÃO */}
       {feedback && (
         <div className={`${styles.feedbackBox} ${feedback.tipo === 'sucesso' ? styles.feedbackSucesso : styles.feedbackErro}`}>
           {feedback.tipo === 'sucesso' ? <FaCheckCircle /> : <FaExclamationTriangle />}
@@ -279,10 +222,9 @@ export default function FichaRituaisSecao({
         </div>
       )}
 
-      {/* 8. VISUALIZAÇÃO EXCLUSIVA DE IMPRESSÃO (@media print) */}
       <div className={styles.printArea}>
         <h4>Rituais Mágicos — Disciplinas Conhecidas:</h4>
-        <p>{disciplinasDominadas.map(d => `${d.nome} (${d.sigla})`).join(' • ') || 'Nenhum ritual dominado.'}</p>
+        <p>{disciplinasDominadas.map((d) => `${d.nome} (${d.sigla})`).join(' • ') || 'Nenhum ritual dominado.'}</p>
         <p><strong>Fórmula de Custo:</strong> PM = Potência (Menor 20/ND7, Média 30/ND10, Maior 40/ND13, Extrema 50/ND16) × Área (Indiv. ×1, Peq. ×2, Gde. ×3, Enor. ×4).</p>
       </div>
     </Card>

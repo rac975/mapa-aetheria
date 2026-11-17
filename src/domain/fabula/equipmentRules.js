@@ -26,6 +26,8 @@
  *    - Armas de duas mãos (2H) ocupam as duas mãos (desequipando a mão secundária).
  */
 
+import { ehClasseComandante } from './highFantasyRules.js';
+
 export const SLOTS_EQUIPAMENTO = {
   MAO_DOMINANTE: 'mao_dominante',
   MAO_SECUNDARIA: 'mao_secundaria',
@@ -175,18 +177,58 @@ export function validarSlotEquipamento({ item, slotAlvo, classes = [] }) {
     nomeItem.includes('martelo de guerra');
 
   if (ehMarcialOuPesado) {
+    const ehArmadura = tipoItem.includes('armadura');
+    const alcanceStats = (item.stats_personalizados?.alcance || '').toLowerCase();
+    const ehDistancia = !ehArmadura && !ehEsc && (
+      tipoItem.includes('distancia') ||
+      tipoItem.includes('distância') ||
+      tipoItem.includes('arco') ||
+      tipoItem.includes('fogo') ||
+      tipoItem.includes('arremesso') ||
+      alcanceStats.includes('distancia') ||
+      alcanceStats.includes('distância')
+    );
+
     const temProficiencia = classes.some(c => {
       const nomeNorm = (c.nome_classe || '')
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase();
-      const ben = (c.beneficios || '').toLowerCase();
-      return ben.includes('marcial') ||
-        ben.includes('pesada') ||
-        ben.includes('escudos') ||
-        ben.includes('todos') ||
-        ben.includes('armas corpo a corpo') ||
-        nomeNorm.includes('piloto');
+      const ben = (c.beneficios || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+      if (ben.includes('todos')) return true;
+
+      if (ehEsc) {
+        return ben.includes('escudo') || nomeNorm.includes('guardiao') || nomeNorm.includes('mestre de armas') || nomeNorm.includes('atirador');
+      }
+
+      if (ehArmadura) {
+        return (ben.includes('armadura') && (ben.includes('marcia') || ben.includes('pesada'))) ||
+          ben.includes('pesada') ||
+          nomeNorm.includes('guardiao') ||
+          nomeNorm.includes('furioso') ||
+          nomeNorm.includes('guerreiro sombrio');
+      }
+
+      if (ehDistancia) {
+        return ben.includes('armas a distancia') ||
+          (ben.includes('distancia') && ben.includes('marcia')) ||
+          ehClasseComandante(c.nome_classe) ||
+          nomeNorm.includes('piloto') ||
+          nomeNorm.includes('atirador');
+      }
+
+      return ben.includes('armas corpo a corpo') ||
+        (ben.includes('corpo a corpo') && ben.includes('marcia')) ||
+        ehClasseComandante(c.nome_classe) ||
+        nomeNorm.includes('piloto') ||
+        nomeNorm.includes('mestre de armas') ||
+        nomeNorm.includes('furioso') ||
+        nomeNorm.includes('guerreiro sombrio') ||
+        (ben.includes('marcial') && !ben.includes('armadura') && !ben.includes('escudo'));
     });
 
     if (!temProficiencia) {

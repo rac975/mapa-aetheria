@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FaFistRaised, FaDice, FaBolt, FaBoxOpen } from 'react-icons/fa';
+import { FaFistRaised, FaDice, FaBoxOpen } from 'react-icons/fa';
 import { GiBrokenBottle } from 'react-icons/gi';
 import { Badge, Button } from '../../../../components/ui';
 import {
@@ -7,6 +7,7 @@ import {
   obterArmaImprovisada
 } from '../../../../domain/fabula/equipmentRules';
 import { calcularBonusAkromorphosis } from '../../../../domain/fabula/technoFantasyRules';
+import ResultadoRolagemArma from './ResultadoRolagemArma';
 import styles from './FichaSlotMaoVazia.module.css';
 
 export default function FichaSlotMaoVazia({
@@ -224,61 +225,17 @@ export default function FichaSlotMaoVazia({
             </button>
           </div>
 
-          <Button
-            type="button"
-            variant="core"
-            size="sm"
-            fullWidth
-            onClick={() => onExecutarRolagem(itemVirtual, slotId)}
-          >
+          <Button type="button" variant="core" size="sm" fullWidth onClick={() => onExecutarRolagem(itemVirtual, slotId)}>
             <FaDice /> Rolar Ataque e Dano
           </Button>
 
-          {/* Resultado Detalhado */}
-          {ultimaRolagem && (
-            <div className={styles.resultadoCard}>
-              {ultimaRolagem.statusCritico && (
-                <div className={`${styles.criticoBanner} ${ultimaRolagem.statusCritico.includes('Sucesso') ? styles.criticoSucesso : styles.criticoFalha}`}>
-                  <FaBolt /> {ultimaRolagem.statusCritico}
-                </div>
-              )}
-              <div className={styles.resultadoLinha}>
-                <span>Precisão Final:</span>
-                <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
-              </div>
-              <div className={styles.detalhesDiscriminados}>
-                <div>Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})</div>
-                <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
-                {ultimaRolagem.usandoPsicocinese && (
-                  <div>
-                    <Badge variant="ether" size="sm">Psicocinese (VON)</Badge>
-                  </div>
-                )}
-              </div>
-              <div className={styles.resultadoLinha}>
-                <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : ultimaRolagem.tipoDano || 'Físico'}):</span>
-                <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
-              </div>
-              <div className={styles.detalhesDiscriminados}>
-                <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
-                {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
-                {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
-                {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
-                {ultimaRolagem.multiplo && <div>Propriedade: Alveja até {ultimaRolagem.multiplo} criaturas</div>}
-              </div>
-            </div>
-          )}
+          <ResultadoRolagemArma ultimaRolagem={ultimaRolagem} />
         </div>
       </div>
 
       {/* 4. AÇÕES DO SLOT PADRONIZADAS */}
       <div className={styles.slotActions}>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={onAbrirModalEquipar}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={onAbrirModalEquipar}>
           <FaBoxOpen /> + Equipar da Mochila
         </Button>
       </div>

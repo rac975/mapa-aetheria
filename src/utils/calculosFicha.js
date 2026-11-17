@@ -8,6 +8,15 @@ import {
   calcularBonusPassivosPoderesHeroicos,
   extrairHeroicAndQuirksDaFicha
 } from '../domain/fabula/heroicAndQuirksRules.js';
+import {
+  ehClasseVirtuoso,
+  ehClasseComandante,
+  ehClasseDancarino,
+  ehClasseSimbolista,
+  extrairBeneficioInicialDancarino,
+  calcularSinergiasCombateEMagia,
+  normalizarTextoHF
+} from '../domain/fabula/highFantasyRules.js';
 
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
@@ -21,6 +30,9 @@ export const CONFIG_BONUS_CLASSES = {
   andarilho: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   arcanista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   atirador: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  cantor: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  comandante: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
+  dancarino: { bonusHp: 0, bonusMp: 0, bonusIp: 0 },
   elementalista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   entropista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   esper: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
@@ -36,6 +48,8 @@ export const CONFIG_BONUS_CLASSES = {
   orador: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   piloto: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   quimerista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  simbolista: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  virtuoso: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
 };
 
 export function calcularStatusPersonagem(
@@ -134,6 +148,20 @@ export function calcularStatusPersonagem(
     }
   }
 
+  // Símbolo das Amarras (Simbolista): dado atual não pode exceder o dado básico da ficha
+  const sinonimosSinergiasInit = calcularSinergiasCombateEMagia({
+    classes,
+    ficha,
+    itensEquipados,
+    nivelTotal
+  });
+  if (sinonimosSinergiasInit.simbolista.travaAtributosBase && ficha) {
+    des = Math.min(des, converterAtributoParaNumero(ficha.destreza));
+    ast = Math.min(ast, converterAtributoParaNumero(ficha.astucia));
+    vig = Math.min(vig, converterAtributoParaNumero(ficha.vigor));
+    von = Math.min(von, converterAtributoParaNumero(ficha.vontade));
+  }
+
   const mapaAtributos = {
     des,
     destreza: des,
@@ -183,6 +211,19 @@ export function calcularStatusPersonagem(
       bonusHpPorClasse += configClasse.bonusHp || 0;
       bonusMpPorClasse += configClasse.bonusMp || 0;
       bonusIpPorClasse += configClasse.bonusIp || 0;
+    } else if (ehClasseVirtuoso(nomeOriginal)) {
+      bonusMpPorClasse += 5;
+    } else if (ehClasseComandante(nomeOriginal)) {
+      bonusHpPorClasse += 5;
+    }
+
+    // Benefício inicial à escolha do Dançarino (+5 PV ou +5 PM)
+    if (ehClasseDancarino(nomeOriginal)) {
+      const benDancarino = extrairBeneficioInicialDancarino(c, ficha);
+      bonusHpPorClasse += benDancarino.bonusPv;
+      bonusMpPorClasse += benDancarino.bonusPm;
+    } else if (!configClasse && ehClasseSimbolista(nomeOriginal)) {
+      bonusIpPorClasse += 2;
     }
 
     // Soma passiva da habilidade "Fortaleza" do Guardião (NP * 3)
@@ -434,6 +475,33 @@ export function calcularStatusPersonagem(
 
   defesaTotal = (Number(defesaBase) || 0) + (Number(bonusDefesaItens) || 0) + (Number(bonusEsquivaLadino) || 0);
 
+  // Bônus condicionais de Poderes Heróicos em Defesa / Defesa Mágica
+  const ehArmaItem = (item) => {
+    if (!item) return false;
+    const t = (item.tipo || '').toLowerCase();
+    return t.includes('arma') && !ehEscudoItem(item);
+  };
+  const ehAdagaCorpoACorpo = (item) => {
+    if (!item) return false;
+    const cat = ((item.stats_personalizados?.categoria || item.tipo || '')).toLowerCase();
+    const alc = (item.stats_personalizados?.alcance || '').toLowerCase();
+    return cat.includes('adaga') && !alc.includes('distancia') && !alc.includes('distância');
+  };
+  const temHoplita = listaPoderesHeroicos.some((p) => normalizarTextoHF(typeof p === 'string' ? p : p?.key || p?.nome) === 'hoplita');
+  const temAdeptoLaminas = listaPoderesHeroicos.some((p) => normalizarTextoHF(typeof p === 'string' ? p : p?.key || p?.nome) === 'adepto_das_laminas' || normalizarTextoHF(typeof p === 'string' ? p : p?.nome) === 'adepto das laminas');
+  const temAmbidestria = listaPoderesHeroicos.some((p) => normalizarTextoHF(typeof p === 'string' ? p : p?.key || p?.nome) === 'ambidestria');
+
+  if (temHoplita && ehArmaItem(itemMaoDom) && ehEscudoItem(itemMaoSec)) {
+    defesaTotal += 1;
+  }
+  if (temAmbidestria && ehArmaItem(itemMaoDom) && ehArmaItem(itemMaoSec)) {
+    defesaTotal += 2;
+  }
+  if (temAdeptoLaminas && (ehAdagaCorpoACorpo(itemMaoDom) || ehAdagaCorpoACorpo(itemMaoSec))) {
+    defesaTotal += 1;
+    bonusMDefItens += 1;
+  }
+
   // 8. Integração com Terioformas e Habilidades do Mutante (Atlas Tecno-Fantasia)
   // Placófora: trata Defesa como 13 + [metade do nível de Teriomorfose] se for superior à normal
   const temPlacophora = terioformasAtivas.includes('placophora');
@@ -445,13 +513,68 @@ export function calcularStatusPersonagem(
     }
   }
 
-  // Resistências ativas (concedidas por Écdise ou mutações)
+  // Resistências ativas (Écdise do Mutante, Danças Elementais, Símbolo da Proteção, Sangue das Trevas)
   const resistenciasAtivas = [];
   if (dadosMutante.resistenciaEcdise) {
     resistenciasAtivas.push({
       tipo: dadosMutante.resistenciaEcdise,
       fonte: 'Écdise'
     });
+  }
+
+  const pvAtualNum = Number(ficha?.hp_atual ?? pvMax);
+  const emCriseCalculado = pvAtualNum > 0 && pvAtualNum <= Math.floor(pvMax / 2);
+  const sinergias = calcularSinergiasCombateEMagia({
+    classes,
+    ficha,
+    itensEquipados,
+    nivelTotal,
+    emCrise: emCriseCalculado
+  });
+
+  // Dança Elemental ativa (Dançarino)
+  const MAPA_DANCA_RESISTENCIA = {
+    danca_anjo: 'luz',
+    danca_fenix: 'fogo',
+    danca_golem: 'raio',
+    danca_grifo: 'ar',
+    danca_ieti: 'gelo',
+    danca_mirmidao: 'terra',
+    danca_morcego: 'trevas'
+  };
+  const dancaAtivaKey = normalizarTextoHF(sinergias.dancaAtivaTurno?.key || '');
+  if (MAPA_DANCA_RESISTENCIA[dancaAtivaKey]) {
+    resistenciasAtivas.push({
+      tipo: MAPA_DANCA_RESISTENCIA[dancaAtivaKey],
+      fonte: sinergias.dancaAtivaTurno?.nome || 'Dança'
+    });
+  }
+
+  // Símbolos da Proteção aplicados em si mesmo (Simbolista)
+  if (sinergias.simbolista.resistencias.length > 0) {
+    sinergias.simbolista.resistencias.forEach((r) => resistenciasAtivas.push(r));
+  }
+
+  // Sangue das Trevas em Crise (Guerreiro Sombrio)
+  const temSangueTrevas = emCriseCalculado && classes.some((c) =>
+    (c.habilidades || []).some((h) => normalizarTextoHF(h?.nome).includes('sangue das trevas') && (parseInt(h.nivel, 10) || 0) > 0)
+  );
+  if (temSangueTrevas) {
+    resistenciasAtivas.push({ tipo: 'trevas', fonte: 'Sangue das Trevas' });
+    resistenciasAtivas.push({ tipo: 'veneno', fonte: 'Sangue das Trevas' });
+  }
+
+  // Barreira Sonora do Virtuoso (redução de dano físico)
+  const virtClass = (classes || []).find((c) => ehClasseVirtuoso(c?.nome_classe));
+  const habMagicanto = (virtClass?.habilidades || []).find((h) => normalizarTextoHF(h?.nome).includes('magicanto'));
+  const ultimoVersoResumo = virtClass?.dados_virtuoso?.ultimoVersoResumo || habMagicanto?.dados_virtuoso?.ultimoVersoResumo || ficha?.dados_virtuoso?.ultimoVersoResumo;
+  const barreiraAtiva = Boolean(
+    sinergias.nvBarreiraSonora > 0 &&
+    ultimoVersoResumo?.titulo &&
+    (normalizarTextoHF(ultimoVersoResumo.titulo).includes('medio') || normalizarTextoHF(ultimoVersoResumo.titulo).includes('forte'))
+  );
+  if (barreiraAtiva) {
+    reducaoDano += sinergias.nvBarreiraSonora;
   }
 
   // Resumo discriminado das Terioformas ativas para exibição de Badges
@@ -484,7 +607,7 @@ export function calcularStatusPersonagem(
   iniciativaTotal = Number(iniciativaTotal) || 0;
   precisaoBonus = Number(precisaoBonus) || 0;
 
-  // 7. Verificação de Proficiências Concedidas por Classes (ex: Piloto, Mestre de Armas)
+  // 7. Verificação de Proficiências Concedidas por Classes (ex: Piloto, Comandante, Mestre de Armas)
   const temProficienciaArmasMarciais = classes.some((c) => {
     const nomeNorm = (c.nome_classe || "")
       .normalize("NFD")
@@ -493,6 +616,7 @@ export function calcularStatusPersonagem(
       .toLowerCase();
     const ben = (c.beneficios || "").toLowerCase();
     return (
+      ehClasseComandante(c.nome_classe) ||
       nomeNorm.includes("piloto") ||
       nomeNorm.includes("mestre de armas") ||
       nomeNorm.includes("atirador") ||
@@ -522,6 +646,7 @@ export function calcularStatusPersonagem(
     poderesHeroicosAtivos: dadosHeroicosExtraidos.poderes_heroicos,
     peculiaridadeAtiva: dadosHeroicosExtraidos.peculiaridade,
     temDoisEscudos,
+    temArmaduraMarcial,
     temProficienciaArmasMarciais,
     veiculoAtivo,
     dadosVeiculo: dadosVeiculoInfo,
@@ -531,7 +656,8 @@ export function calcularStatusPersonagem(
     terioformasAtivasDetalhes,
     resistenciasAtivas,
     defesaPlacophoraAtiva: temPlacophora ? defPlacophora : null,
-    dadosMutante
+    dadosMutante,
+    sinergias
   };
 }
 
@@ -672,7 +798,8 @@ export function rolarAtaqueEDanoArma(
     }
   }
 
-  const bonusPrecisaoTotal = bonusPrecisaoClasse + bonusPrecisaoArma;
+  const bonusPrecisaoSinergia = parseInt(opcoesDanoExtra?.bonusPrecisaoExtra, 10) || 0;
+  const bonusPrecisaoTotal = bonusPrecisaoClasse + bonusPrecisaoArma + bonusPrecisaoSinergia;
 
   const extrairFaces = (valorAttr) => {
     if (!valorAttr) return 8;
@@ -705,6 +832,17 @@ export function rolarAtaqueEDanoArma(
     faces2 = modPsico.faces2;
   }
 
+  if (opcoesDanoExtra?.usarConhecimentoEPoder) {
+    const facesAst = extrairFaces(atributosAtuais.astucia || atributosAtuais.ast || 8);
+    if (attr1Nome !== "astucia" && (attr2Nome === "astucia" || faces1 <= faces2)) {
+      attr1Nome = "astucia";
+      faces1 = facesAst;
+    } else {
+      attr2Nome = "astucia";
+      faces2 = facesAst;
+    }
+  }
+
   const res1 = Math.floor(Math.random() * faces1) + 1;
   const res2 = Math.floor(Math.random() * faces2) + 1;
   const testeAtaque = res1 + res2 + bonusPrecisaoTotal;
@@ -717,6 +855,8 @@ export function rolarAtaqueEDanoArma(
   } else if (res1 === res2) {
     if (res1 >= 6) {
       statusCritico = "Sucesso Crítico!";
+    } else if (opcoesDanoExtra?.criticoExpandido) {
+      statusCritico = "Sucesso Crítico (Trilha Épica)!";
     } else if (
       temFrenesiFurioso &&
       (categoriaArma.includes("adaga") ||
@@ -781,9 +921,32 @@ export function rolarAtaqueEDanoArma(
     danoAdrenalinaFurioso = nivelAdrenalinaFurioso * 2;
   }
 
-  const bonusDanoFixo = isMulti
-    ? 0
-    : bonusOriginal + danoExtraHabilidade + danoAdrenalinaFurioso;
+  const ehCategoriaDancarinoGuerra =
+    categoriaArma.includes("adaga") ||
+    categoriaArma.includes("luta") ||
+    categoriaArma.includes("malho") ||
+    categoriaArma.includes("arremesso") ||
+    nomeArmaLower.includes("adaga") ||
+    nomeArmaLower.includes("malho") ||
+    nomeArmaLower.includes("soqueira") ||
+    nomeArmaLower.includes("luta");
+
+  const sinergiasArma = calcularSinergiasCombateEMagia({
+    classes,
+    itensEquipados,
+    emCrise: emCriseGlobal
+  });
+
+  const danoDancarinoGuerra = ehCategoriaDancarinoGuerra ? sinergiasArma.bonusDanoDancarinoGuerra : 0;
+  const danoDecretoBispo = sinergiasArma.bonusDanoDecreto;
+  const danoSinergiaExtra = parseInt(opcoesDanoExtra?.bonusDanoExtra, 10) || 0;
+
+  const bonusDanoFixo = (isMulti ? 0 : bonusOriginal) +
+    danoExtraHabilidade +
+    danoAdrenalinaFurioso +
+    danoDancarinoGuerra +
+    danoDecretoBispo +
+    danoSinergiaExtra;
   const danoTotal = dadoMaisAlto + bonusDanoFixo;
 
   return {
@@ -801,8 +964,12 @@ export function rolarAtaqueEDanoArma(
     isMulti,
     danoExtraHabilidade,
     danoAdrenalinaFurioso,
-    tipoDano: stats.tipo_dano || 'fisico',
+    danoDancarinoGuerra,
+    danoDecretoBispo,
+    danoSinergiaExtra,
+    tipoDano: opcoesDanoExtra?.tipoDanoOverride || stats.tipo_dano || 'fisico',
     multiplo: stats.multiplo || null,
-    usandoPsicocinese: !!opcoesDanoExtra?.usarPsicocinese
+    usandoPsicocinese: !!opcoesDanoExtra?.usarPsicocinese,
+    usandoConhecimentoEPoder: !!opcoesDanoExtra?.usarConhecimentoEPoder
   };
 }

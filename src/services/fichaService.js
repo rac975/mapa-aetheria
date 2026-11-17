@@ -12,6 +12,10 @@ export const fichaService = {
   _catalogoTerioformasCache: null,
   _catalogoVeiculosEstruturasCache: null,
   _catalogoVeiculosModulosCache: null,
+  _catalogoVirtuosoEscalasCache: null,
+  _catalogoVirtuosoTonsCache: null,
+  _catalogoDancasCache: null,
+  _catalogoSimbolosCache: null,
 
   /**
    * Busca todas as fichas com classes e itens para exibição pelo Mestre
@@ -452,6 +456,61 @@ export const fichaService = {
       return this._catalogoVeiculosModulosCache.filter((m) => m.tipo === tipo);
     }
     return this._catalogoVeiculosModulosCache;
+  },
+
+  /**
+   * Auxiliar interno para carregar e armazenar em cache catálogos públicos do Supabase.
+   * @param {string} cacheKey
+   * @param {string} tabela
+   * @param {string} [ordem='nome']
+   * @returns {Promise<Array<any>>}
+   */
+  async _carregarCatalogoComCache(cacheKey, tabela, ordem = 'nome') {
+    if (!this[cacheKey]) {
+      const { data, error } = await supabase
+        .from(tabela)
+        .select('*')
+        .order(ordem, { ascending: true });
+
+      if (error) {
+        console.error(`Erro ao buscar ${tabela} no Supabase:`, error);
+        throw error;
+      }
+      this[cacheKey] = data || [];
+    }
+    return this[cacheKey];
+  },
+
+  /**
+   * Busca o catálogo oficial de Escalas/Chaves (Virtuoso/Cantor) diretamente da tabela catalogo_virtuoso_escalas
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoVirtuosoEscalas() {
+    return this._carregarCatalogoComCache('_catalogoVirtuosoEscalasCache', 'catalogo_virtuoso_escalas', 'id');
+  },
+
+  /**
+   * Busca o catálogo oficial de Tons (Virtuoso/Cantor) diretamente da tabela catalogo_virtuoso_tons
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoVirtuosoTons() {
+    return this._carregarCatalogoComCache('_catalogoVirtuosoTonsCache', 'catalogo_virtuoso_tons', 'id');
+  },
+
+  /**
+   * Busca o catálogo oficial de Danças (Dançarino) diretamente da tabela catalogo_dancas
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoDancas() {
+    return this._carregarCatalogoComCache('_catalogoDancasCache', 'catalogo_dancas', 'nome');
+  },
+
+  /**
+   * Busca o catálogo oficial de Símbolos / Sigilos (Simbolista) diretamente da tabela catalogo_simbolista_simbolos
+   * @returns {Promise<Array<any>>}
+   */
+  async getCatalogoSimbolos() {
+    return this._carregarCatalogoComCache('_catalogoSimbolosCache', 'catalogo_simbolista_simbolos', 'nome');
   },
 
   /**
@@ -1021,5 +1080,175 @@ export const fichaService = {
       console.error('Erro ao salvar dados do Mutante:', err);
       return { sucesso: false, error: err };
     }
+  },
+
+  /**
+   * Auxiliar interno para persistir dados de classes suplementares em fichas_classes.
+   * @param {string|number} fichaId
+   * @param {Object} opcoes
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async _salvarDadosClasseEspecial(fichaId, {
+    matchClass,
+    matchSkill,
+    defaultSkillName,
+    dadosProp,
+    dadosValor,
+    classes = [],
+    beneficiosTexto = null,
+    erroLabel = 'classe'
+  }) {
+    if (!fichaId) {
+      return { sucesso: false, error: new Error(`fichaId é obrigatório para salvar ${erroLabel}.`) };
+    }
+
+    try {
+      const { data: classesData, error: errBusca } = await supabase
+        .from('fichas_classes')
+        .select('*')
+        .eq('ficha_id', fichaId);
+
+      if (errBusca) throw errBusca;
+
+      const aplicarAtualizacaoClasse = (c) => {
+        const habsBase = Array.isArray(c.habilidades) ? c.habilidades : [];
+        let encontrou = false;
+        const habsAtualizadas = habsBase.map((h) => {
+          if (matchSkill(h.nome || '')) {
+            encontrou = true;
+            return { ...h, [dadosProp]: dadosValor };
+          }
+          return h;
+        });
+
+        if (!encontrou) {
+          habsAtualizadas.push({
+            nome: defaultSkillName,
+            nivel: 1,
+            [dadosProp]: dadosValor
+          });
+        }
+
+        const payload = { habilidades: habsAtualizadas };
+        if (beneficiosTexto) {
+          payload.beneficios = beneficiosTexto;
+        }
+        return payload;
+      };
+
+      const classeAlvo = (classesData || []).find((c) => matchClass(c.nome_classe || ''));
+      if (classeAlvo) {
+        const payload = aplicarAtualizacaoClasse(classeAlvo);
+        const { error: errUpdate } = await supabase
+          .from('fichas_classes')
+          .update(payload)
+          .eq('id', classeAlvo.id);
+
+        if (errUpdate) throw errUpdate;
+      }
+
+      if (Array.isArray(classes) && classes.length > 0) {
+        classes.forEach((c) => {
+          if (matchClass(c.nome_classe || '')) {
+            c[dadosProp] = dadosValor;
+            if (beneficiosTexto) c.beneficios = beneficiosTexto;
+            const payload = aplicarAtualizacaoClasse(c);
+            c.habilidades = payload.habilidades;
+          }
+        });
+      }
+
+      return { sucesso: true };
+    } catch (err) {
+      console.error(`Erro ao salvar dados de ${erroLabel}:`, err);
+      return { sucesso: false, error: err };
+    }
+  },
+
+  /**
+   * Salva os dados específicos da classe Virtuoso (Cantor) no Supabase (fichas_classes)
+   * @param {string|number} fichaId
+   * @param {Object} dadosVirtuoso
+   * @param {Array} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosVirtuoso(fichaId, dadosVirtuoso, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('virtuoso') || norm(n).includes('cantor'),
+      matchSkill: (n) => norm(n).includes('magicanto') || norm(n).includes('verso'),
+      defaultSkillName: 'Magicanto',
+      dadosProp: 'dados_virtuoso',
+      dadosValor: dadosVirtuoso,
+      classes,
+      erroLabel: 'Virtuoso'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Comandante no Supabase (fichas_classes)
+   * @param {string|number} fichaId
+   * @param {Object} dadosComandante
+   * @param {Array} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosComandante(fichaId, dadosComandante, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('comandante'),
+      matchSkill: (n) =>
+        norm(n).includes('decreto') ||
+        norm(n).includes('roque') ||
+        norm(n).includes('carga') ||
+        norm(n).includes('gambito'),
+      defaultSkillName: 'Carga de Cavalaria',
+      dadosProp: 'dados_comandante',
+      dadosValor: dadosComandante,
+      classes,
+      erroLabel: 'Comandante'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Dançarino no Supabase (fichas_classes)
+   * incluindo escolha permanente de +5 PV ou +5 PM e lista de danças aprendidas.
+   * @param {string|number} fichaId
+   * @param {Object} dadosDancarino
+   * @param {Array} [classes=[]]
+   * @param {string|null} [beneficiosTexto=null]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosDancarino(fichaId, dadosDancarino, classes = [], beneficiosTexto = null) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('dancarino'),
+      matchSkill: (n) => norm(n) === 'danca' || norm(n).startsWith('danca'),
+      defaultSkillName: 'Dança',
+      dadosProp: 'dados_dancarino',
+      dadosValor: dadosDancarino,
+      classes,
+      beneficiosTexto,
+      erroLabel: 'Dançarino'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Simbolista no Supabase (fichas_classes)
+   * @param {string|number} fichaId
+   * @param {Object} dadosSimbolista
+   * @param {Array} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosSimbolista(fichaId, dadosSimbolista, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('simbolista'),
+      matchSkill: (n) => norm(n).includes('simbolismo'),
+      defaultSkillName: 'Simbolismo',
+      dadosProp: 'dados_simbolista',
+      dadosValor: dadosSimbolista,
+      classes,
+      erroLabel: 'Simbolista'
+    });
   }
 };

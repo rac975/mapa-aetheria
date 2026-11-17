@@ -8,7 +8,9 @@ import styles from './FichaArmasVeiculoSecao.module.css';
 export default function FichaArmasVeiculoSecao({
   dadosVeiculo,
   atributos = {},
-  nvPulsoFirme = 0
+  nvPulsoFirme = 0,
+  bonusPrecisaoSinergia = 0,
+  bonusDanoSinergia = 0
 }) {
   const [usarPulsoFirme, setUsarPulsoFirme] = useState(false);
   const [resultadosRolagem, setResultadosRolagem] = useState({});
@@ -24,8 +26,8 @@ export default function FichaArmasVeiculoSecao({
       moduloArma: arma,
       atributos,
       usarPulsoFirme,
-      bonusPrecisaoExtra: precisaoBonus,
-      bonusDanoExtra: 0
+      bonusPrecisaoExtra: (Number(precisaoBonus) || 0) + (Number(bonusPrecisaoSinergia) || 0),
+      bonusDanoExtra: Number(bonusDanoSinergia) || 0
     });
     setResultadosRolagem((prev) => ({
       ...prev,

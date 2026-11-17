@@ -57,14 +57,15 @@ export function useFichaData(id, navigate) {
                 vontade: fichaData.vontade || 8
             };
 
-            // Calcula o teto real baseado nas regras do livro
-            const statusCalculados = calcularStatusPersonagem(atributosParaCalculo, classesCarregadas, itensEquipados);
+            // Calcula o teto real baseado nas regras do livro (inclui classes, terioformas, veículo e poderes heróicos)
+            const statusCalculados = calcularStatusPersonagem(atributosParaCalculo, classesCarregadas, itensEquipados, fichaData);
 
             // Enriquece o objeto da ficha com os máximos matematicamente corretos
             const fichaCorrigida = {
                 ...fichaData,
                 hp_max: statusCalculados.pvMax,
-                mp_max: statusCalculados.mpMax
+                mp_max: statusCalculados.mpMax,
+                pi_max: statusCalculados.piMax
             };
 
             setFicha(fichaCorrigida);

@@ -4,7 +4,14 @@ import { Card, Badge } from '../../../components/ui';
 import { calcularBonusPassivosPoderesHeroicos } from '../../../domain/fabula/heroicAndQuirksRules';
 import styles from './FichaAtributosSecao.module.css';
 
-export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, setModificadoresTemporarios, onRolarDado }) {
+export default function FichaAtributos({
+    ficha,
+    atributosCalculados = null,
+    travaAmarras = false,
+    modificadoresTemporarios = {},
+    setModificadoresTemporarios,
+    onRolarDado
+}) {
     const atributosBaseBrutos = {
         destreza: Number(ficha?.destreza) || 8,
         astucia: Number(ficha?.astucia) || 8,
@@ -24,6 +31,9 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
     const bonusHeroicos = calcularBonusPassivosPoderesHeroicos(ficha?.poderes_heroicos || [], ficha?.nivel || 5);
 
     const getAtributoBaseEfetivo = (nome) => {
+        if (atributosCalculados && atributosCalculados[nome]) {
+            return Number(atributosCalculados[nome]) || atributosBaseBrutos[nome];
+        }
         const baseBruto = atributosBaseBrutos[nome];
         const idxBruto = Math.max(0, progressao.indexOf(baseBruto));
         const passosHeroicos = bonusHeroicos.aumentosAtributo?.[nome] || 0;
@@ -33,6 +43,9 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
     };
 
     const getAtributoAtual = (nome) => {
+        if (atributosCalculados && atributosCalculados[nome]) {
+            return Number(atributosCalculados[nome]) || getAtributoBaseEfetivo(nome);
+        }
         const base = getAtributoBaseEfetivo(nome);
         const mod = modificadoresTemporarios[nome] || 0;
         const idxBase = progressao.indexOf(base);
@@ -66,6 +79,9 @@ export default function FichaAtributos({ ficha, modificadoresTemporarios = {}, s
         <Card variant="default" className={styles.container}>
             <h3 className={styles.sectionHeader}>
                 <FaDice /> Atributos e Modificadores Temporários
+                {travaAmarras && (
+                    <Badge variant="crise" size="sm">Símbolo das Amarras (Travado no Base)</Badge>
+                )}
             </h3>
             <div className={styles.gridAtributos}>
                 {Object.keys(atributosBaseBrutos).map((key) => {

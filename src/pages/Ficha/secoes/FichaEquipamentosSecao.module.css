@@ -64,6 +64,35 @@
   flex-shrink: 0;
 }
 
+.sinergiasAtaqueBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+}
+
+.sinergiasTitulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-border-gold-bright);
+  font-weight: 600;
+}
+
+.sinergiasBotoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .slotsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -389,6 +418,7 @@
   .mochilaItemActions,
   .slotEmpty,
   .psicocineseBar,
+  .sinergiasAtaqueBar,
   button,
   .no-print,
   [data-print="false"] {

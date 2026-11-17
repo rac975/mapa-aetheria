@@ -7,31 +7,20 @@ import { NIVEL_DOMINIO_CLASSE, calcularLimitePoderesHeroicos } from '../../../do
 import styles from './FichaClassesSecao.module.css';
 
 import ExibirCompanheiroFiel from '../components/Andarilho/ExibirCompanheiroFiel';
-import ExibirInventor from '../components/Inventor/ExibirInventor';
-import ExibirLadino from '../components/Ladino/ExibirLadino';
-import ExibirAtirador from '../components/Atirador/ExibirAtirador';
-import ExibirGuardiao from '../components/Guardiao/ExibirGuardiao';
-import ExibirMestreArmas from '../components/MestreArmas/ExibirMestreArmas';
-import ExibirArcanista from '../components/Arcanista/ExibirArcanista';
-import ExibirErudito from '../components/Erudito/ExibirErudito';
-import ExibirQuimerista from '../components/Quimerista/ExibirQuimerista';
-import ExibirFurioso from '../components/Furioso/ExibirFurioso';
-import ExibirGuerreiroSombrio from '../components/GuerreiroSombrio/ExibirGuerreiroSombrio';
-import ExibirElementalista from '../components/Elementalista/ExibirElementalista';
-import ExibirEntropista from '../components/Entropista/ExibirEntropista';
-import ExibirEspiritualista from '../components/Espiritualista/ExibirEspiritualista';
-import ExibirOrador from '../components/Orador/ExibirOrador';
-import ExibirEsper from '../components/Esper/ExibirEsper';
-import ExibirMutante from '../components/Mutante/ExibirMutante';
-import ExibirPiloto from '../components/Piloto/ExibirPiloto';
+import FichaClasseModuloEspecial from './components/FichaClasseModuloEspecial';
 
 export default function FichaClassesSecao({
   fichaId,
   ficha,
   classes,
+  itensEquipados = [],
   handleAjustarRecurso,
   pvMaxCalculado,
+  temArmaduraMarcial = false,
+  reducaoCustoPi = 0,
+  nivelTotal = 5,
   onAtualizarMutante,
+  onAtualizarDadosClasse,
   onAtivarGolpe
 }) {
   const [companheiro, setCompanheiro] = useState(null);
@@ -107,24 +96,6 @@ export default function FichaClassesSecao({
           const nomeClasse = (c.nome_classe || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
           const classeDominada = (parseInt(c.nivel, 10) || 0) >= NIVEL_DOMINIO_CLASSE;
 
-          const ehInventor = nomeClasse.includes('inventor');
-          const ehLadino = nomeClasse.includes('ladino');
-          const ehAtirador = nomeClasse.includes('atirador');
-          const ehGuardiao = nomeClasse.includes('guardiao');
-          const ehMestreArmas = nomeClasse.includes('mestre de armas');
-          const ehQuimerista = nomeClasse.includes('quimerista');
-          const ehArcanista = nomeClasse.includes('arcanista');
-          const ehErudito = nomeClasse.includes('erudito');
-          const ehFurioso = nomeClasse.includes('furioso');
-          const ehOrador = nomeClasse.includes('orador');
-          const ehGuerreiroSombrio = nomeClasse.includes('guerreiro sombrio');
-          const ehElementalista = nomeClasse.includes('elementalista');
-          const ehEspiritualista = nomeClasse.includes('espiritualista');
-          const ehEntropista = nomeClasse.includes('entropista');
-          const ehEsper = nomeClasse.includes('esper');
-          const ehMutante = nomeClasse.includes('mutant');
-          const ehPiloto = nomeClasse.includes('pilot');
-
           const magiasDestaClasse = magiasFicha.filter(mf => {
             const classeMagia = (mf.catalogo_feiticos?.classe || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
             return classeMagia === nomeClasse;
@@ -147,42 +118,22 @@ export default function FichaClassesSecao({
               )}
 
               {/* Módulos Especiais de Classe */}
-              {ehInventor && <ExibirInventor fichaId={fichaId} ficha={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehLadino && <ExibirLadino fichaId={fichaId} ficha={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehAtirador && <ExibirAtirador fichaId={fichaId} ficha={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehElementalista && <ExibirElementalista ficha={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehQuimerista && <ExibirQuimerista fichaId={fichaId} ficha={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehFurioso && <ExibirFurioso ficha={c} handleAjustarRecurso={handleAjustarRecurso} emCriseGlobal={emCrise} />}
-              {ehGuerreiroSombrio && (
-                <ExibirGuerreiroSombrio
-                  ficha={c}
-                  handleAjustarRecurso={handleAjustarRecurso}
-                  vigorValor={ficha?.vigor || 8}
-                  emCriseGlobal={emCrise}
-                  classes={classes}
-                  onAtivarGolpe={onAtivarGolpe}
-                />
-              )}
-              {ehOrador && <ExibirOrador ficha={ficha} classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehArcanista && <ExibirArcanista ficha={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehErudito && <ExibirErudito ficha={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehMestreArmas && <ExibirMestreArmas ficha={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehEntropista && <ExibirEntropista classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehEspiritualista && <ExibirEspiritualista classeObjeto={c} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehGuardiao && <ExibirGuardiao ficha={c} />}
-              {ehEsper && <ExibirEsper ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
-              {ehMutante && (
-                <ExibirMutante
-                  ficha={ficha}
-                  classe={c}
-                  classes={classes}
-                  handleAjustarRecurso={handleAjustarRecurso}
-                  emCriseGlobal={emCrise}
-                  pvMaxCalculado={hpMaxCalculado}
-                  onAtualizarMutante={onAtualizarMutante}
-                />
-              )}
-              {ehPiloto && <ExibirPiloto fichaId={fichaId || ficha?.id} ficha={ficha} classe={c} classes={classes} handleAjustarRecurso={handleAjustarRecurso} />}
+              <FichaClasseModuloEspecial
+                classe={c}
+                fichaId={fichaId}
+                ficha={ficha}
+                classes={classes}
+                itensEquipados={itensEquipados}
+                handleAjustarRecurso={handleAjustarRecurso}
+                hpMaxCalculado={hpMaxCalculado}
+                emCrise={emCrise}
+                temArmaduraMarcial={temArmaduraMarcial}
+                reducaoCustoPi={reducaoCustoPi}
+                nivelTotal={nivelTotal}
+                onAtualizarMutante={onAtualizarMutante}
+                onAtualizarDadosClasse={onAtualizarDadosClasse}
+                onAtivarGolpe={onAtivarGolpe}
+              />
 
               {/* Habilidades Oficiais */}
               {habilidadesAtivas.length > 0 && (

@@ -1,0 +1,201 @@
+.container {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ordemAtivaBox {
+  background: rgba(var(--color-border-gold-rgb), 0.12);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ordemAtivaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ordemAtivaTitulo {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+}
+
+.ordemAtivaDesc,
+.ordemExtra {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-main);
+}
+
+.ordersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+}
+
+.orderCard {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.orderName {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.orderDesc {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.select {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+  width: 100%;
+}
+
+.gambitoActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.emptyBox {
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.feedbackBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.12);
+  border: 1px solid var(--color-core-green);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.erroBox {
+  font-size: var(--font-size-xs);
+  color: var(--color-crise-bright);
+  background: rgba(var(--color-crise-rgb), 0.14);
+  border: 1px solid var(--color-crise);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.printOnly {
+  display: none;
+}
+
+@media print {
+  .container {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .title,
+  .orderName,
+  .orderDesc,
+  .ordemAtivaTitulo,
+  .ordemAtivaDesc {
+    color: #000000 !important;
+  }
+
+  .orderCard,
+  .ordemAtivaBox {
+    background: transparent !important;
+    border: 1px solid #333333 !important;
+  }
+
+  .ordersGrid button,
+  .select,
+  .feedbackBox,
+  .erroBox,
+  button {
+    display: none !important;
+  }
+
+  .printOnly {
+    display: block !important;
+    font-size: var(--font-size-xs) !important;
+    color: #000000 !important;
+    border-top: 1px dashed #666666;
+    padding-top: var(--space-2);
+  }
+}

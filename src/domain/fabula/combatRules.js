@@ -173,3 +173,60 @@ export function reordenarParticipantes(lista, indexOrigem, direcao) {
 
   return novaLista.map((item, idx) => ({ ...item, ordem: idx }));
 }
+
+/**
+ * Calcula modificadores consolidados de cura/drenagem durante conflitos considerando
+ * Símbolo do Desespero, Toque Pessoal (Simbolista), Foco Cognitivo (Esper) e Roque do Rei (Comandante).
+ * @param {Object} params
+ * @returns {{ valorFinal: number, detalhes: Array<string> }}
+ */
+export function calcularCuraEfetivaEmConflito({
+  curaBase = 0,
+  tipoRecurso = 'pv',
+  temSimboloDesespero = false,
+  bloqueadoPorRoqueDoRei = false,
+  bonusToquePessoal = 0,
+  bonusFocoCognitivo = 0,
+  bonusRoqueReiPm = 0
+} = {}) {
+  if (bloqueadoPorRoqueDoRei) {
+    return { valorFinal: 0, detalhes: ['Bloqueado por Roque do Rei'] };
+  }
+
+  let total = Math.max(0, parseInt(curaBase, 10) || 0);
+  const detalhes = [];
+
+  if (bonusToquePessoal > 0) {
+    total += bonusToquePessoal;
+    detalhes.push(`Toque Pessoal (+${bonusToquePessoal})`);
+  }
+  if (bonusFocoCognitivo > 0) {
+    total += bonusFocoCognitivo;
+    detalhes.push(`Foco Cognitivo (+${bonusFocoCognitivo})`);
+  }
+  if (tipoRecurso === 'pm' && bonusRoqueReiPm > 0) {
+    total += bonusRoqueReiPm;
+    detalhes.push(`Roque do Rei (+${bonusRoqueReiPm} PM)`);
+  }
+  if (temSimboloDesespero) {
+    total = Math.floor(total / 2);
+    detalhes.push('Símbolo do Desespero (÷2)');
+  }
+
+  return { valorFinal: total, detalhes };
+}
+
+/**
+ * Calcula a Iniciativa efetiva e bônus de testes opostos de velocidade/acrobacia em conflito.
+ * @param {Object} params
+ * @returns {{ iniciativa: number, bonusOpostosVelocidade: number }}
+ */
+export function calcularIniciativaEOpostosCombate({
+  bonusIniciativaStatus = 0,
+  bonusSapateadoFrenetico = 0
+} = {}) {
+  return {
+    iniciativa: Number(bonusIniciativaStatus) || 0,
+    bonusOpostosVelocidade: Math.max(0, Number(bonusSapateadoFrenetico) || 0)
+  };
+}

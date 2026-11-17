@@ -1,6 +1,7 @@
-import { FaExchangeAlt, FaDice, FaBolt } from 'react-icons/fa';
+import { FaExchangeAlt, FaDice } from 'react-icons/fa';
 import { Badge, Button } from '../../../../components/ui';
 import { SLOTS_EQUIPAMENTO } from '../../../../domain/fabula/equipmentRules';
+import ResultadoRolagemArma from './ResultadoRolagemArma';
 import styles from '../FichaEquipamentosSecao.module.css';
 
 export default function FichaSlotEquipado({
@@ -63,46 +64,7 @@ export default function FichaSlotEquipado({
             <FaDice /> Rolar Ataque e Dano
           </Button>
 
-          {ultimaRolagem && (
-            <div className={styles.resultadoCard}>
-              {ultimaRolagem.statusCritico && (
-                <div
-                  className={`${styles.criticoBanner} ${
-                    ultimaRolagem.statusCritico.includes('Sucesso')
-                      ? styles.criticoSucesso
-                      : styles.criticoFalha
-                  }`}
-                >
-                  <FaBolt /> {ultimaRolagem.statusCritico}
-                </div>
-              )}
-              <div className={styles.resultadoLinha}>
-                <span>Precisão Final:</span>
-                <span className={styles.resultadoValorDestaque}>{ultimaRolagem.testeAtaque}</span>
-              </div>
-              <div className={styles.detalhesDiscriminados}>
-                <div>
-                  Atributos: {ultimaRolagem.attr1} e {ultimaRolagem.attr2} ({ultimaRolagem.res1}, {ultimaRolagem.res2})
-                </div>
-                <div>Precisão Bônus: +{ultimaRolagem.bonusPrecisaoTotal}</div>
-                {ultimaRolagem.usandoPsicocinese && (
-                  <div>
-                    <Badge variant="ether" size="sm">Psicocinese (VON)</Badge>
-                  </div>
-                )}
-              </div>
-              <div className={styles.resultadoLinha}>
-                <span>Dano ({ultimaRolagem.usandoGolpe ? 'Trevas' : 'Normal'}):</span>
-                <span className={styles.resultadoDanoDestaque}>{ultimaRolagem.danoTotal}</span>
-              </div>
-              <div className={styles.detalhesDiscriminados}>
-                <div>Dado Mais Alto: {ultimaRolagem.dadoMaisAlto}</div>
-                {ultimaRolagem.bonusDanoFixo > 0 && <div>Bônus Fixo: +{ultimaRolagem.bonusDanoFixo}</div>}
-                {ultimaRolagem.danoAdrenalinaFurioso > 0 && <div>Adrenalina: +{ultimaRolagem.danoAdrenalinaFurioso}</div>}
-                {ultimaRolagem.danoExtraHabilidade > 0 && <div>Golpe das Sombras: +{ultimaRolagem.danoExtraHabilidade}</div>}
-              </div>
-            </div>
-          )}
+          <ResultadoRolagemArma ultimaRolagem={ultimaRolagem} />
         </div>
       )}
 

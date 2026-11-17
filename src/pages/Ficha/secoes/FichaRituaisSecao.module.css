@@ -269,6 +269,33 @@
   width: 100%;
 }
 
+.sinergiasRitualBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border-gold-muted);
+}
+
+.sinergiasRitualHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-border-gold-bright);
+}
+
+.sinergiasRitualLista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 /* Resumo Painel */
 .resumoPainel {
   display: flex;
@@ -457,6 +484,7 @@
   .disciplinasPills,
   .parametrosGrid,
   .modificadoresRow,
+  .sinergiasRitualBox,
   .resumoPainel,
   .acoesContainer,
   .resultadoCard,

@@ -76,6 +76,10 @@
   color: var(--color-gold-bright, #ffd700);
 }
 
+.valReducao {
+  color: var(--color-core-green);
+}
+
 .statSub {
   font-size: var(--font-size-2xs, 0.75rem);
   color: var(--color-border-gold-bright);
@@ -113,6 +117,12 @@
   margin-top: var(--space-2);
   padding-top: var(--space-2);
   border-top: 1px dashed var(--color-border-gold-muted);
+}
+
+.grupoEfeitos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .badgesEfeitosLabel {
@@ -178,7 +188,9 @@
   .statValor,
   .valDefesa,
   .valMdef,
-  .valIniciativa {
+  .valIniciativa,
+  .valPrecisao,
+  .valReducao {
     color: #000000 !important;
   }
 }

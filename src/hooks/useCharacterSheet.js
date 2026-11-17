@@ -7,6 +7,7 @@ import {
   calcularBonusPassivosPoderesHeroicos,
   prepararHeroicAndQuirksParaBanco
 } from '../domain/fabula/heroicAndQuirksRules';
+import { extrairEfeitosSimbolosAtivos } from '../domain/fabula/highFantasyRules';
 
 const PROGRESSAO_DADOS = [6, 8, 10, 12, 20];
 
@@ -94,7 +95,11 @@ export function useCharacterSheet(id, navigate) {
         fichaService.getCondicoesCombate(fichaData.id),
         fichaService.getCatalogoTerioformas().catch(() => []),
         fichaService.getCatalogoVeiculosEstruturas().catch(() => []),
-        fichaService.getCatalogoVeiculosModulos().catch(() => [])
+        fichaService.getCatalogoVeiculosModulos().catch(() => []),
+        fichaService.getCatalogoVirtuosoEscalas().catch(() => []),
+        fichaService.getCatalogoVirtuosoTons().catch(() => []),
+        fichaService.getCatalogoDancas().catch(() => []),
+        fichaService.getCatalogoSimbolos().catch(() => [])
       ]);
 
       setFicha(fichaData);
@@ -180,8 +185,12 @@ export function useCharacterSheet(id, navigate) {
     () => calcularBonusPassivosPoderesHeroicos(ficha?.poderes_heroicos || [], nivelTotalPersonagem),
     [ficha?.poderes_heroicos, nivelTotalPersonagem]
   );
+  const efeitosSimbolosProprios = useMemo(
+    () => extrairEfeitosSimbolosAtivos(classes, ficha),
+    [classes, ficha]
+  );
 
-  // 3. Cálculo de atributos dinâmicos com Poderes Heróicos, Terioformas e modificadores temporários
+  // 3. Cálculo de atributos dinâmicos com Poderes Heróicos, Terioformas, Símbolo das Amarras e modificadores temporários
   const getAtributoAtualValor = useCallback((nomeAtributo, valorBase) => {
     const idxBaseBruto = Math.max(0, PROGRESSAO_DADOS.indexOf(Number(valorBase) || 8));
     let bonusPermanenteOuForma = bonusHeroicosPassivos.aumentosAtributo?.[nomeAtributo] || 0;
@@ -193,9 +202,12 @@ export function useCharacterSheet(id, navigate) {
     const idxComAprimoramento = Math.min(3, idxBaseBruto + bonusPermanenteOuForma);
 
     const modTemp = modificadoresTemporarios[nomeAtributo] || 0;
-    const idxFinal = Math.max(0, Math.min(PROGRESSAO_DADOS.length - 1, idxComAprimoramento + modTemp));
+    let idxFinal = Math.max(0, Math.min(PROGRESSAO_DADOS.length - 1, idxComAprimoramento + modTemp));
+    if (efeitosSimbolosProprios.travaAtributosBase) {
+      idxFinal = Math.min(idxBaseBruto, idxFinal);
+    }
     return PROGRESSAO_DADOS[idxFinal];
-  }, [modificadoresTemporarios, bonusHeroicosPassivos, temTachytheria, temArpaktida, temDynamotheria]);
+  }, [modificadoresTemporarios, bonusHeroicosPassivos, temTachytheria, temArpaktida, temDynamotheria, efeitosSimbolosProprios.travaAtributosBase]);
 
   const atributosAtuaisParaCalculo = useMemo(() => ({
     destreza: getAtributoAtualValor('destreza', ficha?.destreza),
@@ -239,6 +251,13 @@ export function useCharacterSheet(id, navigate) {
         return c;
       });
     });
+  }, []);
+
+  // Atualização direta e reativa de classes suplementares no estado local (ex: Dançarino PV/PM)
+  const atualizarDadosClasseLocal = useCallback((matchFn, updaterFn) => {
+    setClasses((prevClasses) =>
+      prevClasses.map((c) => (matchFn(c) ? updaterFn(c) : c))
+    );
   }, []);
 
   // 4. Status globais calculados (HP Máx, MP Máx, PI Máx, Defesas, Iniciativa)
@@ -393,6 +412,7 @@ export function useCharacterSheet(id, navigate) {
     recarregar: carregarDadosCompletos,
     ajustarRecurso,
     atualizarDadosMutante,
+    atualizarDadosClasseLocal,
     salvarEdicaoCompleta
   };
 }

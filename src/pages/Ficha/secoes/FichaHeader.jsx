@@ -15,6 +15,7 @@ export default function FichaHeader({
     onToggleEdit,
     nivelAtual,
     condicoesAtivas = [],
+    statusCalculados = null,
     setFicha,
     handleAjustarRecurso
 }) {
@@ -34,6 +35,10 @@ export default function FichaHeader({
     };
 
     if (!ficha) return null;
+
+    const pvMaxHeader = Number(statusCalculados?.pvMax || ficha?.hp_max || 30);
+    const pvAtualHeader = Number(ficha?.hp_atual ?? pvMaxHeader);
+    const emCriseHeader = pvAtualHeader > 0 && pvAtualHeader <= Math.floor(pvMaxHeader / 2);
 
     return (
         <header className={styles.headerCard}>
@@ -69,6 +74,12 @@ export default function FichaHeader({
                         <Badge variant="gold" size="md">
                             Nível {nivelAtual}
                         </Badge>
+
+                        {emCriseHeader && (
+                            <Badge variant="crise" size="sm">
+                                Em Crise
+                            </Badge>
+                        )}
 
                         <Badge variant="gold" size="md">
                             <FaCoins /> {ficha?.zenit || 0}z

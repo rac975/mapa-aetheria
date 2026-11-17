@@ -210,7 +210,21 @@ export function calcularCustoRitual(potenciaKey = 'menor', areaKey = 'individual
 
   const custoBase = potencia.custoPm * area.multiplicador;
   const temReducaoIngrediente = Boolean(opcoes.ingredienteRaro);
-  const custoTotal = temReducaoIngrediente ? Math.ceil(custoBase / 2) : custoBase;
+  let custoTotal = temReducaoIngrediente ? Math.ceil(custoBase / 2) : custoBase;
+
+  if (opcoes.dobrarPmDecreto) {
+    custoTotal = custoTotal * 2;
+  }
+
+  const reducaoExtra = Math.max(0, parseInt(opcoes.reducaoPmExtra, 10) || 0);
+  if (reducaoExtra > 0) {
+    custoTotal = Math.max(0, custoTotal - reducaoExtra);
+  }
+
+  const temRituaisAgeis = Boolean(opcoes.temRituaisAgeis);
+  const relogioSecoes = temRituaisAgeis
+    ? Math.max(4, potencia.relogioSecoes - 2)
+    : potencia.relogioSecoes;
 
   return {
     potencia,
@@ -218,8 +232,9 @@ export function calcularCustoRitual(potenciaKey = 'menor', areaKey = 'individual
     custoBase,
     custoTotal,
     nd: potencia.nd,
-    relogioSecoes: potencia.relogioSecoes,
-    temReducaoIngrediente
+    relogioSecoes,
+    temReducaoIngrediente,
+    temRituaisAgeis
   };
 }
 
@@ -352,57 +367,56 @@ export function detectarDisciplinasPersonagem(classes = [], rituaisManuais = [],
       // Habilidades individuais
       habilidades.forEach((h) => {
         const nomeHabNorm = normalizarTexto(h.nome);
-        const descHabNorm = normalizarTexto(h.descricao);
         const nv = parseInt(h.nivel, 10) || 0;
 
         // Arcanismo Ritualista
-        if (nomeHabNorm.includes('arcanismo ritualista')) {
+        if (nv > 0 && nomeHabNorm.includes('arcanismo ritualista')) {
           registrarDisciplina('arcanismo', 'Habilidade: Arcanismo Ritualista');
         }
 
         // Elementalismo Ritualista
-        if (nomeHabNorm.includes('elementalismo ritualista')) {
+        if (nv > 0 && nomeHabNorm.includes('elementalismo ritualista')) {
           registrarDisciplina('elementalismo', 'Habilidade: Elementalismo Ritualista');
         }
 
         // Entropismo Ritualista
-        if (nomeHabNorm.includes('entropismo ritualista')) {
+        if (nv > 0 && nomeHabNorm.includes('entropismo ritualista')) {
           registrarDisciplina('entropismo', 'Habilidade: Entropismo Ritualista');
         }
 
         // Espiritualismo Ritualista
-        if (nomeHabNorm.includes('espiritualismo ritualista')) {
+        if (nv > 0 && nomeHabNorm.includes('espiritualismo ritualista')) {
           registrarDisciplina('espiritualismo', 'Habilidade: Espiritualismo Ritualista');
         }
 
         // Quimerismo Ritualista
-        if (nomeHabNorm.includes('quimerismo ritualista')) {
+        if (nv > 0 && nomeHabNorm.includes('quimerismo ritualista')) {
           registrarDisciplina('quimerismo', 'Habilidade: Quimerismo Ritualista');
         }
 
         // Navegador (Esper) - Libera Ritualismo sem ingredientes raros!
-        if (nomeHabNorm.includes('navegador') && (nv > 0 || descHabNorm.includes('ritualismo'))) {
+        if (nomeHabNorm.includes('navegador') && nv > 0) {
           registrarDisciplina('ritualismo', 'Habilidade: Navegador (Esper)');
         }
 
         // Influência Verdejante (Floralista)
-        if (nomeHabNorm.includes('influencia verdejante')) {
+        if (nv > 0 && nomeHabNorm.includes('influencia verdejante')) {
           registrarDisciplina('cloromancia', 'Habilidade: Influência Verdejante');
           registrarDisciplina('ritualismo', 'Habilidade: Influência Verdejante (Floralista)');
         }
 
         // Cloromancia
-        if (nomeHabNorm.includes('cloromancia')) {
+        if (nv > 0 && nomeHabNorm.includes('cloromancia')) {
           registrarDisciplina('cloromancia', 'Habilidade: Cloromancia');
         }
 
         // Miragem (Simbolista)
-        if (nomeHabNorm.includes('miragem')) {
+        if (nv > 0 && nomeHabNorm.includes('miragem')) {
           registrarDisciplina('ritualismo', 'Habilidade: Miragem (Simbolista)');
         }
 
         // Canto da Sereia (Virtuoso)
-        if (nomeHabNorm.includes('canto da sereia')) {
+        if (nv > 0 && nomeHabNorm.includes('canto da sereia')) {
           registrarDisciplina('ritualismo', 'Habilidade: Canto da Sereia (Virtuoso)');
         }
       });

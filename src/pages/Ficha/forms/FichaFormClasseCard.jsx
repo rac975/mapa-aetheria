@@ -1,0 +1,178 @@
+import { FaTrash, FaPaw } from 'react-icons/fa';
+import {
+  NIVEL_MAXIMO_CLASSE,
+  NIVEL_MAXIMO_HABILIDADE_PADRAO,
+  isClasseDominada,
+  validarDistribuicaoHabilidades,
+  classeAceitaMagia
+} from '../../../domain/fabula/characterProgression';
+import {
+  ehClasseDancarino,
+  extrairBeneficioInicialDancarino,
+  gerarTextoBeneficioDancarino
+} from '../../../domain/fabula/highFantasyRules';
+import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
+import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
+import FichaFormMagiasClasse from './FichaFormMagiasClasse';
+import { Button, Badge } from '../../../components/ui';
+import styles from './FichaFormClasses.module.css';
+
+export default function FichaFormClasseCard({
+  fichaId,
+  classe,
+  index,
+  formClasses,
+  setFormClasses,
+  classeCatalogoOficial,
+  onAlterarNivelClasse,
+  onRemoverClasse
+}) {
+  const nivelClasse = parseInt(classe.nivel, 10) || 1;
+  const statusHab = validarDistribuicaoHabilidades(nivelClasse, classe.habilidades);
+  const classeConcluida = isClasseDominada(nivelClasse);
+  const aceitaMagia = classeAceitaMagia(classe.nome_classe);
+  const ehDancarino = ehClasseDancarino(classe.nome_classe);
+  const infoDancarino = ehDancarino ? extrairBeneficioInicialDancarino(classe) : null;
+
+  const handleAlterarBeneficioDancarino = (escolha) => {
+    const novoTexto = gerarTextoBeneficioDancarino(escolha);
+    const atual = [...formClasses];
+    const dadosExistentes = atual[index].dados_dancarino || {};
+    const novosDados = { ...dadosExistentes, beneficioInicial: escolha };
+    atual[index] = {
+      ...atual[index],
+      beneficios: novoTexto,
+      dados_dancarino: novosDados,
+      habilidades: (atual[index].habilidades || []).map((h) =>
+        (h.nome || '').toLowerCase().startsWith('danç') || (h.nome || '').toLowerCase().startsWith('danc')
+          ? { ...h, dados_dancarino: { ...(h.dados_dancarino || {}), ...novosDados } }
+          : h
+      )
+    };
+    setFormClasses(atual);
+  };
+
+  return (
+    <div className={`${styles.classItemCard} ${classeConcluida ? styles.classItemCardDominada : ''}`}>
+      <div className={styles.classHeaderGrid}>
+        <div className={styles.classNameInputWrapper}>
+          <input type="text" readOnly value={classe.nome_classe} className={styles.classNameReadOnly} />
+          {classeConcluida && (
+            <Badge variant="gold" size="sm" title="Classe Concluída / Dominada">★ Nv. 10</Badge>
+          )}
+        </div>
+        <input
+          type="number"
+          min="1"
+          max={NIVEL_MAXIMO_CLASSE}
+          placeholder="Nível"
+          value={classe.nivel}
+          onChange={(e) => onAlterarNivelClasse(index, e.target.value)}
+          className={styles.nivelInput}
+        />
+        <Button type="button" variant="danger" size="sm" onClick={() => onRemoverClasse(index)} title="Remover classe">
+          <FaTrash />
+        </Button>
+      </div>
+
+      <div>
+        <input type="text" readOnly value={classe.beneficios || ''} className={styles.beneficiosInput} />
+        {ehDancarino && infoDancarino && (
+          <div className={styles.subCardContainer}>
+            <select
+              value={infoDancarino.escolha}
+              onChange={(e) => handleAlterarBeneficioDancarino(e.target.value)}
+              className={styles.selectClasse}
+            >
+              <option value="pv">Escolha Dançarino: +5 PV Máximos</option>
+              <option value="pm">Escolha Dançarino: +5 PM Máximos</option>
+            </select>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.habilidadesArea}>
+        <div className={styles.habilidadesStatusRow}>
+          <Badge variant={statusHab.excedeNivel ? 'crise' : (statusHab.incompleto ? 'gold' : 'core')} size="sm">
+            Habilidades: {statusHab.pontosGastos} / {statusHab.pontosMaximos}
+            {statusHab.excedeNivel && ' ⚠️ Excede o nível!'}
+            {statusHab.incompleto && !statusHab.excedeNivel && ' ℹ️ Há pontos livres'}
+          </Badge>
+        </div>
+
+        {(classe.habilidades || []).map((h, hIndex) => {
+          const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
+          const ehEngenhocas = (h.nome || '').toLowerCase().includes('engenhocas');
+          const nivelHab = parseInt(h.nivel, 10) || 0;
+          const habCatalogoOficial = (classeCatalogoOficial?.habilidades_padrao || []).find(
+            (hp) => hp.nome.trim().toLowerCase() === h.nome.trim().toLowerCase()
+          );
+          const limiteMaximoHab = habCatalogoOficial?.nivel_maximo ?? NIVEL_MAXIMO_HABILIDADE_PADRAO;
+
+          return (
+            <div key={hIndex} className={styles.habilidadeRow}>
+              <div className={styles.habilidadeRowTop}>
+                <div className={styles.habilidadeInfo}>
+                  <div className={styles.habilidadeTitle}>
+                    <span>{h.nome}</span>
+                    <span className={styles.habilidadeTetoText}>(Máx: {limiteMaximoHab})</span>
+                    {ehCompanheiroFiel && <FaPaw />}
+                  </div>
+                  <div className={styles.habilidadeDescricao}>{h.descricao}</div>
+                </div>
+                <div className={styles.habilidadeInputGroup}>
+                  <span className={styles.nivelLabel}>Nv.</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max={limiteMaximoHab}
+                    value={h.nivel || 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10) || 0;
+                      if (val > limiteMaximoHab) {
+                        window.alert(`⛔ Esta habilidade pode ter no máximo ${limiteMaximoHab} ponto(s)!`);
+                        return;
+                      }
+                      const atual = [...formClasses];
+                      atual[index].habilidades[hIndex].nivel = val;
+                      setFormClasses(atual);
+                    }}
+                    className={styles.habilidadeNivelInput}
+                  />
+                </div>
+              </div>
+
+              {ehCompanheiroFiel && nivelHab > 0 && (
+                <div className={styles.subCardContainer}>
+                  <CompanheiroFielCard fichaId={fichaId} classes={formClasses} />
+                </div>
+              )}
+
+              {ehEngenhocas && nivelHab > 0 && (
+                <div className={styles.subCardContainer}>
+                  <ExibirEngenhocas
+                    habilidadeEngenhocas={h}
+                    aoAtualizarEngenhocas={(novosRamos) => {
+                      const atual = [...formClasses];
+                      atual[index].habilidades[hIndex].ramos = novosRamos;
+                      setFormClasses(atual);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {aceitaMagia && (
+        <FichaFormMagiasClasse
+          classeObjeto={classe}
+          indexClasse={index}
+          formClasses={formClasses}
+          setFormClasses={setFormClasses}
+        />
+      )}
+    </div>
+  );
+}

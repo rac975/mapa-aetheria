@@ -1,0 +1,79 @@
+.resultadoCard {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.criticoBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.criticoSucesso {
+  background: var(--color-core-green-glow);
+  color: var(--color-core-green);
+  border: 1px solid var(--color-core-green);
+}
+
+.criticoFalha {
+  background: var(--color-crise-track);
+  color: var(--color-crise);
+  border: 1px solid var(--color-crise);
+}
+
+.resultadoLinha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.resultadoValorDestaque {
+  font-family: var(--font-family-serif);
+  font-weight: 700;
+  color: var(--color-ether-cyan);
+  font-size: var(--font-size-md);
+}
+
+.resultadoDanoDestaque {
+  font-family: var(--font-family-serif);
+  font-weight: 700;
+  color: var(--color-pv);
+  font-size: var(--font-size-md);
+}
+
+.detalhesDiscriminados {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--color-border-gold-muted);
+  margin-bottom: var(--space-1);
+}
+
+.badgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: 2px;
+}
+
+@media print {
+  .resultadoCard {
+    display: none !important;
+  }
+}

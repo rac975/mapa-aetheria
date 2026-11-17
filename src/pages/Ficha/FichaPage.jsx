@@ -43,6 +43,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         ficha, setFicha,
         classes,
         magias,
+        itensEquipados,
         condicoesAtivas,
         modificadoresTemporarios, setModificadoresTemporarios,
         atributosAtuaisParaCalculo,
@@ -53,6 +54,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
         erro,
         ajustarRecurso,
         atualizarDadosMutante,
+        atualizarDadosClasseLocal,
         salvarEdicaoCompleta
     } = useCharacterSheet(id, navigate);
 
@@ -186,6 +188,8 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                     <FichaPIComponent ficha={ficha} setFicha={setFicha} piMaxCalculado={statusFicha.piMax} />
                     <FichaAtributos
                         ficha={ficha}
+                        atributosCalculados={statusFicha.atributosCalculados}
+                        travaAmarras={Boolean(statusFicha?.sinergias?.simbolista?.travaAtributosBase)}
                         modificadoresTemporarios={modificadoresTemporarios}
                         setModificadoresTemporarios={setModificadoresTemporarios}
                         onRolarDado={(sigla, valor) => {
@@ -196,9 +200,14 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         fichaId={id || ficha?.id}
                         ficha={ficha}
                         classes={classes}
+                        itensEquipados={itensEquipados}
                         handleAjustarRecurso={ajustarRecurso}
                         pvMaxCalculado={statusFicha.pvMax}
+                        temArmaduraMarcial={statusFicha.temArmaduraMarcial}
+                        reducaoCustoPi={statusFicha.reducaoCustoPi}
+                        nivelTotal={statusFicha.nivelTotal}
                         onAtualizarMutante={atualizarDadosMutante}
+                        onAtualizarDadosClasse={atualizarDadosClasseLocal}
                         onAtivarGolpe={(opcoes) => {
                             setOpcoesGolpeAtivo(opcoes);
                             setAlerta({ isOpen: true, title: 'Golpe das Sombras', message: 'Seu próximo ataque usará o Golpe das Sombras!' });
@@ -216,8 +225,8 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                         statusFicha={statusFicha}
                         onAtualizarMutante={atualizarDadosMutante}
                     />
-                    <FichaMagiasSecao magias={magias} />
-                    <FichaRituaisSecao ficha={ficha} classes={classes} atributos={atributosAtuaisParaCalculo} handleAjustarRecurso={ajustarRecurso} />
+                    <FichaMagiasSecao magias={magias} ficha={ficha} atributos={atributosAtuaisParaCalculo} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
+                    <FichaRituaisSecao ficha={ficha} classes={classes} atributos={atributosAtuaisParaCalculo} statusFicha={statusFicha} handleAjustarRecurso={ajustarRecurso} />
                     <FichaLacosSecao lacos={ficha?.lacos} />
                     <FichaMochilaSecao mochila={ficha?.mochila} notas={ficha?.notas} />
                 </div>
