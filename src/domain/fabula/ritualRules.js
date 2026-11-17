@@ -359,6 +359,11 @@ export function detectarDisciplinasPersonagem(classes = [], rituaisManuais = [],
         registrarDisciplina('ritualismo', 'Floralista (Influência Verdejante)');
       }
 
+      // Invocador com Manancial Interior configurado na classe
+      if (nomeClasseNorm.includes('invocador') && c?.dados_invocador?.manancialInteriorKey) {
+        registrarDisciplina('elementalismo', `Invocador (Manancial Interior: ${c.dados_invocador.manancialInteriorKey})`);
+      }
+
       // Benefícios explícitos no texto
       if (beneficiosNorm.includes('ritualismo')) {
         registrarDisciplina('ritualismo', `${c.nome_classe || 'Classe'} (Benefício)`);

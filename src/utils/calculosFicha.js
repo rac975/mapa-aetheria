@@ -17,6 +17,15 @@ import {
   calcularSinergiasCombateEMagia,
   normalizarTextoHF
 } from '../domain/fabula/highFantasyRules.js';
+import {
+  ehClasseFloralista,
+  ehClasseGourmet,
+  ehClasseInvocador,
+  ehClasseMercador,
+  extrairBeneficioInicialFloralista,
+  extrairBeneficioInicialInvocador,
+  extrairEfeitosAtivosNaturalFantasy
+} from '../domain/fabula/naturalFantasyRules.js';
 
 /**
  * Realiza os cálculos automáticos de status e defesas para Fabula Ultima
@@ -36,13 +45,17 @@ export const CONFIG_BONUS_CLASSES = {
   elementalista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   entropista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   esper: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
+  floralista: { bonusHp: 0, bonusMp: 0, bonusIp: 0 },
+  gourmet: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   "guerreiro sombrio": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   erudito: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   espiritualista: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
   furioso: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   guardiao: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   inventor: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  invocador: { bonusHp: 0, bonusMp: 0, bonusIp: 0 },
   ladino: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
+  mercador: { bonusHp: 0, bonusMp: 0, bonusIp: 2 },
   "mestre de armas": { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   mutante: { bonusHp: 5, bonusMp: 0, bonusIp: 0 },
   orador: { bonusHp: 0, bonusMp: 5, bonusIp: 0 },
@@ -148,6 +161,27 @@ export function calcularStatusPersonagem(
     }
   }
 
+  // Efeitos ativos das 4 classes do Atlas Fantasia Natural (Magisseeds, Pratos Gourmet, Invocações e Comércio)
+  const efeitosNF = extrairEfeitosAtivosNaturalFantasy({
+    classes,
+    ficha,
+    itensEquipados,
+    nivelTotal,
+    catalogoMagiseeds: fichaService._catalogoFloralistaMagiseedsCache || []
+  });
+
+  if (!atributos._jaAplicouNaturalFantasy) {
+    const incDesNF = efeitosNF.aumentosAtributoNF?.destreza || 0;
+    const incAstNF = efeitosNF.aumentosAtributoNF?.astucia || 0;
+    const incVigNF = efeitosNF.aumentosAtributoNF?.vigor || 0;
+    const incVonNF = efeitosNF.aumentosAtributoNF?.vontade || 0;
+
+    for (let i = 0; i < incDesNF; i++) des = aumentarPassoDado(des, 12);
+    for (let i = 0; i < incAstNF; i++) ast = aumentarPassoDado(ast, 12);
+    for (let i = 0; i < incVigNF; i++) vig = aumentarPassoDado(vig, 12);
+    for (let i = 0; i < incVonNF; i++) von = aumentarPassoDado(von, 12);
+  }
+
   // Símbolo das Amarras (Simbolista): dado atual não pode exceder o dado básico da ficha
   const sinonimosSinergiasInit = calcularSinergiasCombateEMagia({
     classes,
@@ -223,6 +257,19 @@ export function calcularStatusPersonagem(
       bonusHpPorClasse += benDancarino.bonusPv;
       bonusMpPorClasse += benDancarino.bonusPm;
     } else if (!configClasse && ehClasseSimbolista(nomeOriginal)) {
+      bonusIpPorClasse += 2;
+    }
+
+    // Benefícios iniciais do Atlas Fantasia Natural (Floralista, Invocador, Gourmet e Mercador)
+    if (ehClasseFloralista(nomeOriginal)) {
+      const benFloralista = extrairBeneficioInicialFloralista(c, ficha);
+      bonusHpPorClasse += benFloralista.bonusPv;
+      bonusMpPorClasse += benFloralista.bonusPm;
+    } else if (ehClasseInvocador(nomeOriginal)) {
+      const benInvocador = extrairBeneficioInicialInvocador(c, ficha);
+      bonusHpPorClasse += benInvocador.bonusPv;
+      bonusMpPorClasse += benInvocador.bonusPm;
+    } else if (!configClasse && (ehClasseGourmet(nomeOriginal) || ehClasseMercador(nomeOriginal))) {
       bonusIpPorClasse += 2;
     }
 
@@ -555,6 +602,11 @@ export function calcularStatusPersonagem(
     sinergias.simbolista.resistencias.forEach((r) => resistenciasAtivas.push(r));
   }
 
+  // Resistências concedidas pelo Atlas Fantasia Natural (Magissementes, Iguarias e Manancial Interior)
+  if (Array.isArray(efeitosNF.resistenciasNF) && efeitosNF.resistenciasNF.length > 0) {
+    efeitosNF.resistenciasNF.forEach((r) => resistenciasAtivas.push(r));
+  }
+
   // Sangue das Trevas em Crise (Guerreiro Sombrio)
   const temSangueTrevas = emCriseCalculado && classes.some((c) =>
     (c.habilidades || []).some((h) => normalizarTextoHF(h?.nome).includes('sangue das trevas') && (parseInt(h.nivel, 10) || 0) > 0)
@@ -655,9 +707,14 @@ export function calcularStatusPersonagem(
     terioformasAtivas,
     terioformasAtivasDetalhes,
     resistenciasAtivas,
+    imunidadesCondicaoAtivas: efeitosNF.imunidadesCondicaoNF || [],
+    naturalFantasy: efeitosNF,
     defesaPlacophoraAtiva: temPlacophora ? defPlacophora : null,
     dadosMutante,
-    sinergias
+    sinergias: {
+      ...sinergias,
+      naturalFantasy: efeitosNF
+    }
   };
 }
 
@@ -937,9 +994,16 @@ export function rolarAtaqueEDanoArma(
     emCrise: emCriseGlobal
   });
 
+  const efeitosNFArma = extrairEfeitosAtivosNaturalFantasy({
+    classes,
+    itensEquipados,
+    catalogoMagiseeds: fichaService._catalogoFloralistaMagiseedsCache || []
+  });
+
   const danoDancarinoGuerra = ehCategoriaDancarinoGuerra ? sinergiasArma.bonusDanoDancarinoGuerra : 0;
   const danoDecretoBispo = sinergiasArma.bonusDanoDecreto;
-  const danoSinergiaExtra = parseInt(opcoesDanoExtra?.bonusDanoExtra, 10) || 0;
+  const danoBeladona = efeitosNFArma.floralista?.bonusDanoVenenoBeladona || 0;
+  const danoSinergiaExtra = (parseInt(opcoesDanoExtra?.bonusDanoExtra, 10) || 0) + danoBeladona;
 
   const bonusDanoFixo = (isMulti ? 0 : bonusOriginal) +
     danoExtraHabilidade +
@@ -967,7 +1031,7 @@ export function rolarAtaqueEDanoArma(
     danoDancarinoGuerra,
     danoDecretoBispo,
     danoSinergiaExtra,
-    tipoDano: opcoesDanoExtra?.tipoDanoOverride || stats.tipo_dano || 'fisico',
+    tipoDano: opcoesDanoExtra?.tipoDanoOverride || efeitosNFArma.conversaoDanoAtiva || stats.tipo_dano || 'fisico',
     multiplo: stats.multiplo || null,
     usandoPsicocinese: !!opcoesDanoExtra?.usarPsicocinese,
     usandoConhecimentoEPoder: !!opcoesDanoExtra?.usarConhecimentoEPoder

@@ -185,7 +185,14 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
                     <ExibirPeculiaridadeFicha ficha={ficha} />
                     <FichaPericiasSecao atributos={atributosAtuaisParaCalculo} />
                     <FichaEstatisticasSecao statusFicha={statusFicha} />
-                    <FichaPIComponent ficha={ficha} setFicha={setFicha} piMaxCalculado={statusFicha.piMax} />
+                    <FichaPIComponent
+                        ficha={ficha}
+                        setFicha={setFicha}
+                        piMaxCalculado={statusFicha.piMax}
+                        statusFicha={statusFicha}
+                        classes={classes}
+                        onAtualizarDadosClasse={atualizarDadosClasseLocal}
+                    />
                     <FichaAtributos
                         ficha={ficha}
                         atributosCalculados={statusFicha.atributosCalculados}

@@ -1,6 +1,6 @@
 // src/hooks/useFichaData.js
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/supabase';
+import { fichaService } from '../services/fichaService';
 import { calcularStatusPersonagem } from '../utils/calculosFicha';
 
 export function useFichaData(id, navigate) {
@@ -16,20 +16,14 @@ export function useFichaData(id, navigate) {
 
         try {
             const tokenAtual = localStorage.getItem('aetheria_jogador_token');
-            let query = supabase.from('fichas_personagens').select('*');
-
-            if (id) {
-                query = query.eq('id', id).single();
-            } else if (tokenAtual) {
-                query = query.eq('jogador_token', tokenAtual).single();
-            } else {
+            if (!id && !tokenAtual) {
                 navigate('/ficha/login', { replace: true });
                 return;
             }
 
-            const { data: fichaData, error: fichaError } = await query;
+            const fichaData = await fichaService.getFichaByIdOrToken({ id, token: tokenAtual });
 
-            if (fichaError || !fichaData) {
+            if (!fichaData) {
                 setErro('Ficha não encontrada ou ID inválido.');
                 return;
             }
@@ -40,10 +34,10 @@ export function useFichaData(id, navigate) {
             localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
 
             // Busca classes e itens para calibrar os máximos corretos na entrada
-            const [{ data: classesData }, { data: magiasData }, { data: itensData }] = await Promise.all([
-                supabase.from('fichas_classes').select('*').eq('ficha_id', fichaData.id),
-                supabase.from('fichas_magias').select('*').eq('ficha_id', fichaData.id),
-                supabase.from('itens_personagem').select('*').eq('ficha_id', fichaData.id)
+            const [classesData, magiasData, itensData] = await Promise.all([
+                fichaService.getClassesByFichaId(fichaData.id),
+                fichaService.getMagiasByFichaId(fichaData.id),
+                fichaService.getItensByFichaId(fichaData.id)
             ]);
 
             const classesCarregadas = classesData || [];

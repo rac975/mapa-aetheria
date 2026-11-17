@@ -8,33 +8,39 @@ import {
   prepararHeroicAndQuirksParaBanco
 } from '../domain/fabula/heroicAndQuirksRules';
 import { extrairEfeitosSimbolosAtivos } from '../domain/fabula/highFantasyRules';
+import { extrairEfeitosAtivosNaturalFantasy } from '../domain/fabula/naturalFantasyRules';
 
 const PROGRESSAO_DADOS = [6, 8, 10, 12, 20];
 
 /**
  * Calcula modificadores temporários de atributos a partir das condições ativas de Fabula Ultima
+ * respeitando imunidades de condições (ex: Lótus-Oceânica e Protea-Real do Floralista).
  * @param {Array<string>} condicoes
+ * @param {Array<string>} [imunidades=[]]
  * @returns {Object}
  */
-export function calcularModificadoresCondicoes(condicoes = []) {
+export function calcularModificadoresCondicoes(condicoes = [], imunidades = []) {
   const mods = {};
-  if (condicoes.includes('abalado')) mods.vontade = (mods.vontade || 0) - 1;
-  if (condicoes.includes('atordoado')) mods.astucia = (mods.astucia || 0) - 1;
-  if (condicoes.includes('enfurecido')) {
+  const imunes = new Set((Array.isArray(imunidades) ? imunidades : []).map((c) => String(c).toLowerCase()));
+  const ativa = (id) => condicoes.includes(id) && !imunes.has(id);
+
+  if (ativa('abalado')) mods.vontade = (mods.vontade || 0) - 1;
+  if (ativa('atordoado')) mods.astucia = (mods.astucia || 0) - 1;
+  if (ativa('enfurecido')) {
     mods.destreza = (mods.destreza || 0) - 1;
     mods.astucia = (mods.astucia || 0) - 1;
   }
-  if (condicoes.includes('envenenado')) {
+  if (ativa('envenenado')) {
     mods.vigor = (mods.vigor || 0) - 1;
     mods.vontade = (mods.vontade || 0) - 1;
   }
-  if (condicoes.includes('fraco')) {
+  if (ativa('fraco')) {
     mods.destreza = (mods.destreza || 0) - 1;
     mods.astucia = (mods.astucia || 0) - 1;
     mods.vigor = (mods.vigor || 0) - 1;
     mods.vontade = (mods.vontade || 0) - 1;
   }
-  if (condicoes.includes('lento')) mods.destreza = (mods.destreza || 0) - 1;
+  if (ativa('lento')) mods.destreza = (mods.destreza || 0) - 1;
   return mods;
 }
 
@@ -99,7 +105,11 @@ export function useCharacterSheet(id, navigate) {
         fichaService.getCatalogoVirtuosoEscalas().catch(() => []),
         fichaService.getCatalogoVirtuosoTons().catch(() => []),
         fichaService.getCatalogoDancas().catch(() => []),
-        fichaService.getCatalogoSimbolos().catch(() => [])
+        fichaService.getCatalogoSimbolos().catch(() => []),
+        fichaService.getCatalogoFloralistaMagiseeds().catch(() => []),
+        fichaService.getCatalogoGourmetIngredientesReceitas().catch(() => []),
+        fichaService.getCatalogoInvocadorElementais().catch(() => []),
+        fichaService.getCatalogoMercadorItens().catch(() => [])
       ]);
 
       setFicha(fichaData);
@@ -190,15 +200,39 @@ export function useCharacterSheet(id, navigate) {
     [classes, ficha]
   );
 
-  // 3. Cálculo de atributos dinâmicos com Poderes Heróicos, Terioformas, Símbolo das Amarras e modificadores temporários
+  const itensEquipados = useMemo(() => {
+    return itensInventario.filter(i => i.stats_personalizados?.slot);
+  }, [itensInventario]);
+
+  const efeitosNaturalFantasy = useMemo(
+    () =>
+      extrairEfeitosAtivosNaturalFantasy({
+        classes,
+        ficha,
+        itensEquipados,
+        nivelTotal: nivelTotalPersonagem,
+        catalogoMagiseeds: fichaService._catalogoFloralistaMagiseedsCache || []
+      }),
+    [classes, ficha, itensEquipados, nivelTotalPersonagem]
+  );
+
+  useEffect(() => {
+    setModificadoresTemporarios(
+      calcularModificadoresCondicoes(condicoesAtivas, efeitosNaturalFantasy.imunidadesCondicaoNF)
+    );
+  }, [condicoesAtivas, efeitosNaturalFantasy.imunidadesCondicaoNF]);
+
+  // 3. Cálculo de atributos dinâmicos com Poderes Heróicos, Terioformas, Magissementes, Pratos Gourmet, Cinco Mananciais e Símbolo das Amarras
   const getAtributoAtualValor = useCallback((nomeAtributo, valorBase) => {
     const idxBaseBruto = Math.max(0, PROGRESSAO_DADOS.indexOf(Number(valorBase) || 8));
-    let bonusPermanenteOuForma = bonusHeroicosPassivos.aumentosAtributo?.[nomeAtributo] || 0;
+    let bonusPermanenteOuForma =
+      (bonusHeroicosPassivos.aumentosAtributo?.[nomeAtributo] || 0) +
+      (efeitosNaturalFantasy.aumentosAtributoNF?.[nomeAtributo] || 0);
     if (nomeAtributo === 'destreza' && temTachytheria) bonusPermanenteOuForma += 1;
     if (nomeAtributo === 'astucia' && temArpaktida) bonusPermanenteOuForma += 1;
     if (nomeAtributo === 'vigor' && temDynamotheria) bonusPermanenteOuForma += 1;
 
-    // Aumentos permanentes de Poderes Heróicos e Terioformas têm teto em d12 (índice 3)
+    // Aumentos de Poderes Heróicos, Terioformas, Magissementes, Iguarias e Cinco Mananciais têm teto em d12 (índice 3)
     const idxComAprimoramento = Math.min(3, idxBaseBruto + bonusPermanenteOuForma);
 
     const modTemp = modificadoresTemporarios[nomeAtributo] || 0;
@@ -207,7 +241,7 @@ export function useCharacterSheet(id, navigate) {
       idxFinal = Math.min(idxBaseBruto, idxFinal);
     }
     return PROGRESSAO_DADOS[idxFinal];
-  }, [modificadoresTemporarios, bonusHeroicosPassivos, temTachytheria, temArpaktida, temDynamotheria, efeitosSimbolosProprios.travaAtributosBase]);
+  }, [modificadoresTemporarios, bonusHeroicosPassivos, efeitosNaturalFantasy.aumentosAtributoNF, temTachytheria, temArpaktida, temDynamotheria, efeitosSimbolosProprios.travaAtributosBase]);
 
   const atributosAtuaisParaCalculo = useMemo(() => ({
     destreza: getAtributoAtualValor('destreza', ficha?.destreza),
@@ -215,12 +249,9 @@ export function useCharacterSheet(id, navigate) {
     vigor: getAtributoAtualValor('vigor', ficha?.vigor),
     vontade: getAtributoAtualValor('vontade', ficha?.vontade),
     _jaAplicouHeroicos: true,
-    _jaAplicouTerioformas: true
+    _jaAplicouTerioformas: true,
+    _jaAplicouNaturalFantasy: true
   }), [ficha?.destreza, ficha?.astucia, ficha?.vigor, ficha?.vontade, getAtributoAtualValor]);
-
-  const itensEquipados = useMemo(() => {
-    return itensInventario.filter(i => i.stats_personalizados?.slot);
-  }, [itensInventario]);
 
   // Atualização direta e reativa dos dados de Mutante no estado de classes
   const atualizarDadosMutante = useCallback((novosDadosMutante) => {
@@ -304,19 +335,22 @@ export function useCharacterSheet(id, navigate) {
     }
   }, [ficha?.id, ficha?.hp_max, ficha?.mp_max, ficha?.pi_max, statusFicha?.pvMax, statusFicha?.mpMax, statusFicha?.piMax]);
 
-  // 6. Manipulação de Recursos (HP, MP, IP, Fábula, EXP)
-  const ajustarRecurso = useCallback(async (campo, valor) => {
+  // 6. Manipulação de Recursos (HP, MP, IP, Fábula, EXP) com suporte a Dosagem Precisa (até 150% PV/PM)
+  const ajustarRecurso = useCallback(async (campo, valor, opcoesRecurso = {}) => {
     if (!ficha?.id) return;
 
     let maximo = 999;
     let fallback = 0;
+    const permiteAcimaMax = Boolean(opcoesRecurso?.permitirDosagemPrecisa || statusFicha?.naturalFantasy?.temDosagemPrecisa);
 
     if (campo === 'hp_atual') {
-      maximo = statusFicha?.pvMax || 999;
-      fallback = maximo;
+      const baseMax = statusFicha?.pvMax || 999;
+      fallback = baseMax;
+      maximo = permiteAcimaMax && valor > 0 ? Math.floor(baseMax * 1.5) : Math.max(baseMax, Number(ficha.hp_atual || 0));
     } else if (campo === 'mp_atual') {
-      maximo = statusFicha?.mpMax || 999;
-      fallback = maximo;
+      const baseMax = statusFicha?.mpMax || 999;
+      fallback = baseMax;
+      maximo = permiteAcimaMax && valor > 0 ? Math.floor(baseMax * 1.5) : Math.max(baseMax, Number(ficha.mp_atual || 0));
     } else if (campo === 'ip_atual' || campo === 'pi_atual') {
       maximo = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 6;
       fallback = maximo;

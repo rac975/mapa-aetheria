@@ -10,9 +10,12 @@ export default function FichaRecursos({ ficha, statusFicha, handleAjustarRecurso
   const mpMaxCalculado = statusFicha?.mpMax || ficha.mp_max || ficha.pm_max || 30;
   const piMaxCalculado = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 6;
 
-  // Valores atuais respeitando limites
-  const hpAtualSeguro = Math.min(Math.max(ficha.hp_atual ?? hpMaxCalculado, 0), hpMaxCalculado);
-  const mpAtualSeguro = Math.min(Math.max(ficha.mp_atual ?? mpMaxCalculado, 0), mpMaxCalculado);
+  // Valores atuais respeitando limites (e Dosagem Precisa até 150% do máximo)
+  const permiteDosagem = Boolean(statusFicha?.naturalFantasy?.temDosagemPrecisa);
+  const tetoPvEfetivo = permiteDosagem ? Math.floor(hpMaxCalculado * 1.5) : hpMaxCalculado;
+  const tetoPmEfetivo = permiteDosagem ? Math.floor(mpMaxCalculado * 1.5) : mpMaxCalculado;
+  const hpAtualSeguro = Math.min(Math.max(ficha.hp_atual ?? hpMaxCalculado, 0), Math.max(tetoPvEfetivo, Number(ficha.hp_atual || 0)));
+  const mpAtualSeguro = Math.min(Math.max(ficha.mp_atual ?? mpMaxCalculado, 0), Math.max(tetoPmEfetivo, Number(ficha.mp_atual || 0)));
   const piAtualSeguro = Math.min(Math.max(ficha.ip_atual ?? ficha.pi_atual ?? piMaxCalculado, 0), piMaxCalculado);
   const expAtualSeguro = Math.min(Math.max(Number(ficha.exp ?? 0), 0), 10);
 

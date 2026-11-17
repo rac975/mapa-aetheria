@@ -35,6 +35,9 @@ export default function FichaMagiasSecao({
     resumo.nvCataclismo > 0 ||
     resumo.bonusDanoDancarinoGuerra > 0 ||
     resumo.bonusPoderCurativo > 0 ||
+    resumo.bonusCuraHarmoniaElemental > 0 ||
+    resumo.bonusDanoPragaElemental > 0 ||
+    resumo.limitePmJardinagemMarcial > 0 ||
     resumo.bonusFeiticoPoderoso > 0 ||
     resumo.nvSimbolosMagicos > 0 ||
     resumo.nvHipercognicao > 0 ||
@@ -77,6 +80,15 @@ export default function FichaMagiasSecao({
             )}
             {resumo.bonusPoderCurativo > 0 && (
               <Badge variant="core" size="sm">Poder Curativo: +{resumo.bonusPoderCurativo} PV (Aliados)</Badge>
+            )}
+            {resumo.bonusCuraHarmoniaElemental > 0 && (
+              <Badge variant="core" size="sm">Harmonia Elemental: +{resumo.bonusCuraHarmoniaElemental} PV Cura</Badge>
+            )}
+            {resumo.bonusDanoPragaElemental > 0 && (
+              <Badge variant="ether" size="sm">Praga Elemental: +{resumo.bonusDanoPragaElemental} Dano Elemental</Badge>
+            )}
+            {resumo.limitePmJardinagemMarcial > 0 && (
+              <Badge variant="gold" size="sm">Jardinagem Marcial: Feitiço Livre ≤ {resumo.limitePmJardinagemMarcial} PM</Badge>
             )}
             {resumo.nvSimbolosMagicos > 0 && (
               <Badge variant="pi" size="sm">Símbolos Mágicos: Aliados até {resumo.limitePmSimbolosMagicos} PM</Badge>

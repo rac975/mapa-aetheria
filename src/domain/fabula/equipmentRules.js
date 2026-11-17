@@ -416,10 +416,15 @@ export function aumentarPassoDado(valorDado, max = 12) {
  * @param {Array<string>} [opcoes.terioformasAtivas=[]]
  * @returns {Object} Objeto no formato de item de Fabula Ultima
  */
-export function obterAtaqueDesarmado({ acromorfose = null, terioformasAtivas = [] } = {}) {
+export function obterAtaqueDesarmado({
+  acromorfose = null,
+  terioformasAtivas = [],
+  conversaoDanoNatural = null,
+  bonusDanoNatural = 0
+} = {}) {
   const nvAcro = parseInt(acromorfose?.nvAcromorfose, 10) || 0;
   const bonusPrecisaoAcro = nvAcro > 0 ? (parseInt(acromorfose?.bonusPrecisao, 10) || nvAcro) : 0;
-  const bonusDanoAcro = nvAcro > 0 ? (parseInt(acromorfose?.bonusDanoFisico, 10) || (6 + nvAcro * 2)) : 0;
+  const bonusDanoAcro = (nvAcro > 0 ? (parseInt(acromorfose?.bonusDanoFisico, 10) || (6 + nvAcro * 2)) : 0) + (parseInt(bonusDanoNatural, 10) || 0);
 
   const categoriaArma = acromorfose?.categoriaArma || 'Armas de Luta';
   const catLower = categoriaArma.toLowerCase();
@@ -441,6 +446,11 @@ export function obterAtaqueDesarmado({ acromorfose = null, terioformasAtivas = [
   } else if (terioformasAtivas.includes('toxicophora')) {
     tipoDano = 'veneno';
     efeitosTerio.push('Toxicófora: Dano de Veneno (15+ perda de PV = Envenenado)');
+  }
+
+  if (conversaoDanoNatural) {
+    tipoDano = conversaoDanoNatural;
+    efeitosTerio.push(`Conversão Natural: Dano de ${conversaoDanoNatural}`);
   }
 
   const temPolypoda = terioformasAtivas.includes('polypoda');

@@ -12,7 +12,11 @@ export default function FichaSinergiasAtaqueBar({ opcoesTaticas, toggles }) {
     opcoesTaticas.temHoplita ||
     opcoesTaticas.temTrilhaEpica ||
     opcoesTaticas.precisaoPiloto > 0 ||
-    opcoesTaticas.bonusDanoDecreto > 0
+    opcoesTaticas.bonusDanoDecreto > 0 ||
+    opcoesTaticas.bonusPrecisaoCascata > 0 ||
+    opcoesTaticas.bonusDanoPragaAtiva > 0 ||
+    opcoesTaticas.conversaoDanoNatural ||
+    opcoesTaticas.bonusDanoBeladona > 0
   );
 
   if (!temSinergiasTaticas) return null;
@@ -91,6 +95,36 @@ export default function FichaSinergiasAtaqueBar({ opcoesTaticas, toggles }) {
           >
             Trilha Épica (Crít.)
           </Button>
+        )}
+        {opcoesTaticas.bonusPrecisaoCascata > 0 && (
+          <Button
+            type="button"
+            size="sm"
+            variant={toggles.usarCascataInvocador ? 'core' : 'secondary'}
+            onClick={() => toggles.setUsarCascataInvocador((p) => !p)}
+          >
+            Cascata (+{opcoesTaticas.bonusPrecisaoCascata} Precisão)
+          </Button>
+        )}
+        {opcoesTaticas.bonusDanoPragaAtiva > 0 && (
+          <Button
+            type="button"
+            size="sm"
+            variant={toggles.usarPragaElemental ? 'core' : 'secondary'}
+            onClick={() => toggles.setUsarPragaElemental((p) => !p)}
+          >
+            {opcoesTaticas.nomePragaAtiva || 'Praga'} (+{opcoesTaticas.bonusDanoPragaAtiva} Dano)
+          </Button>
+        )}
+        {opcoesTaticas.conversaoDanoNatural && (
+          <Badge variant="gold" size="sm">
+            Dano Convertido: {opcoesTaticas.conversaoDanoNatural.toUpperCase()}
+          </Badge>
+        )}
+        {opcoesTaticas.bonusDanoBeladona > 0 && (
+          <Badge variant="core" size="sm">
+            Beladona: +{opcoesTaticas.bonusDanoBeladona} Dano Veneno
+          </Badge>
         )}
       </div>
     </div>
