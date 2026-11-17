@@ -12,10 +12,12 @@ import {
     construirStatsArmaPersonalizada
 } from '../../../domain/fabula/weaponForge';
 import { lojaService } from '../../../services/lojaService';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Badge, Card, Input } from '../../../components/ui';
 import styles from './CriadorArmasPersonalizadas.module.css';
 
 export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
+    const { showAlert } = useAlert();
     const [nomeItem, setNomeItem] = useState('');
     const [categoria, setCategoria] = useState('espada');
     const [alcance, setAlcance] = useState('Corpo a corpo');
@@ -38,7 +40,7 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
             if (item.id === 'mutavel') setTemMutavel(false);
         } else {
             if (!podeAdicionarPersonalizacao(personalizacoes, item)) {
-                alert('Você só pode escolher o equivalente a 3 personalizações!');
+                showAlert('Você só pode escolher o equivalente a 3 personalizações!');
                 return;
             }
 
@@ -55,7 +57,7 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
 
     const handleSalvar = async (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return alert('Dê um nome para a sua arma personalizada!');
+        if (!nomeItem.trim()) return showAlert('Dê um nome para a sua arma personalizada!');
 
         setSalvando(true);
 
@@ -82,9 +84,9 @@ export default function CriadorArmasPersonalizadas({ ficha, onCriado }) {
         setSalvando(false);
 
         if (erroBanco) {
-            alert('Erro ao salvar arma: ' + erroBanco.message);
+            showAlert('Erro ao salvar arma: ' + erroBanco.message);
         } else {
-            alert('✨ Arma personalizada criada com sucesso!');
+            showAlert('✨ Arma personalizada criada com sucesso!');
             if (onCriado) onCriado();
             setNomeItem('');
             setPersonalizacoes([]);

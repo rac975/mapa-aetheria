@@ -23,6 +23,9 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
         setBusca,
         categoriaFiltro,
         setCategoriaFiltro,
+        categoriaArmaFiltro,
+        setCategoriaArmaFiltro,
+        categoriasArmasDisponiveis,
         ordenacao,
         setOrdenacao,
         itensFiltrados: itensFiltradosModal
@@ -221,6 +224,9 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
                         setBusca={setBusca}
                         categoriaFiltro={categoriaFiltro}
                         setCategoriaFiltro={setCategoriaFiltro}
+                        categoriaArmaFiltro={categoriaArmaFiltro}
+                        setCategoriaArmaFiltro={setCategoriaArmaFiltro}
+                        categoriasArmas={categoriasArmasDisponiveis}
                         ordenacao={ordenacao}
                         setOrdenacao={setOrdenacao}
                     />

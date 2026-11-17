@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { supabase } from './services/supabase';
 import { ToastProvider } from './contexts/ToastContext';
+import { AlertProvider } from './contexts/AlertContext';
 import BootScreen from './components/BootScreen/BootScreen';
 import Sidebar from './components/Sidebar/Sidebar';
 import LoginModal from './components/LoginModal/LoginModal';
@@ -17,6 +18,7 @@ import LojaPage from './pages/Loja/LojaPage';
 import ListaNPCsPage from './pages/Mestre/NPC/ListaNPCsPage';
 import FichaNPCPage from './pages/Mestre/NPC/FichaNPCPage';
 import DesignSystemPage from './pages/DesignSystem/DesignSystemPage';
+import ProjetosPage from './pages/Projetos/ProjetosPage';
 import './App.css';
 
 function App() {
@@ -49,62 +51,65 @@ function App() {
   };
 
   return (
-    <ToastProvider>
-      {!iniciado && <BootScreen onComplete={() => setIniciado(true)} />}
-      <div className={`app-container ${iniciado ? 'visivel' : 'oculto'}`}>
-        <div className="app-layout">
-          <Sidebar
-            isMestre={isMestre}
-            onOpenLogin={() => setModalLoginAberto(true)}
-            onLogout={handleLogout}
-            onOpenSettings={() => setModalSettingsAberto(true)}
-          />
+    <AlertProvider>
+      <ToastProvider>
+        {!iniciado && <BootScreen onComplete={() => setIniciado(true)} />}
+        <div className={`app-container ${iniciado ? 'visivel' : 'oculto'}`}>
+          <div className="app-layout">
+            <Sidebar
+              isMestre={isMestre}
+              onOpenLogin={() => setModalLoginAberto(true)}
+              onLogout={handleLogout}
+              onOpenSettings={() => setModalSettingsAberto(true)}
+            />
 
-          <main className="main-content view-transition" key={location.pathname}>
-            <Routes location={location}>
-              <Route path="/" element={<MapPage isMestre={isMestre} />} />
-              <Route path="/cronicas" element={<CronicasPage isMestre={isMestre} />} />
-              <Route path="/journal" element={<JournalPage />} />
-              <Route path="/combate" element={<CombatPage isMestre={isMestre} />} />
-              <Route path="/mestre/fichas" element={<MestreFichasPage isMestre={isMestre} />} />
+            <main className="main-content view-transition" key={location.pathname}>
+              <Routes location={location}>
+                <Route path="/" element={<MapPage isMestre={isMestre} />} />
+                <Route path="/cronicas" element={<CronicasPage isMestre={isMestre} />} />
+                <Route path="/journal" element={<JournalPage isMestre={isMestre} />} />
+                <Route path="/combate" element={<CombatPage isMestre={isMestre} />} />
+                <Route path="/projetos" element={<ProjetosPage isMestre={isMestre} />} />
+                <Route path="/mestre/fichas" element={<MestreFichasPage isMestre={isMestre} />} />
 
-              {/* 2. Passamos setFichaAtiva para o FichaPage atualizar qual personagem está em uso */}
-              <Route path="/mestre/editar/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
-              <Route path="/ficha/login" element={<FichaLoginPage />} />
-              <Route path="/ficha" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
-              <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
+                {/* 2. Passamos setFichaAtiva para o FichaPage atualizar qual personagem está em uso */}
+                <Route path="/mestre/editar/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
+                <Route path="/ficha/login" element={<FichaLoginPage />} />
+                <Route path="/ficha" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
+                <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
 
-              <Route path="/mestre/npcs" element={<ListaNPCsPage />} />
-              <Route path="/mestre/npcs/:id" element={<FichaNPCPage />} />
+                <Route path="/mestre/npcs" element={<ListaNPCsPage />} />
+                <Route path="/mestre/npcs/:id" element={<FichaNPCPage />} />
 
-              {/* 3. Passamos a ficha ativa e o setFicha por referência para a Loja */}
-              <Route
-                path="/loja"
-                element={
-                  <LojaPage
-                    isMestre={isMestre}
-                    ficha={fichaAtiva}
-                    setFicha={setFichaAtiva}
-                  />
-                }
-              />
+                {/* 3. Passamos a ficha ativa e o setFicha por referência para a Loja */}
+                <Route
+                  path="/loja"
+                  element={
+                    <LojaPage
+                      isMestre={isMestre}
+                      ficha={fichaAtiva}
+                      setFicha={setFichaAtiva}
+                    />
+                  }
+                />
 
-              {/* Rota temporária de visualização e teste do Design System */}
-              <Route path="/design-system" element={<DesignSystemPage />} />
-            </Routes>
-          </main>
+                {/* Rota temporária de visualização e teste do Design System */}
+                <Route path="/design-system" element={<DesignSystemPage />} />
+              </Routes>
+            </main>
 
-          <LoginModal
-            isOpen={modalLoginAberto}
-            onClose={() => setModalLoginAberto(false)}
-          />
+            <LoginModal
+              isOpen={modalLoginAberto}
+              onClose={() => setModalLoginAberto(false)}
+            />
 
-          {modalSettingsAberto && (
-            <SettingsPage isMestre={isMestre} onClose={() => setModalSettingsAberto(false)} />
-          )}
+            {modalSettingsAberto && (
+              <SettingsPage isMestre={isMestre} onClose={() => setModalSettingsAberto(false)} />
+            )}
+          </div>
         </div>
-      </div>
-    </ToastProvider>
+      </ToastProvider>
+    </AlertProvider>
   );
 }
 

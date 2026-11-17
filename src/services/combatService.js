@@ -152,5 +152,83 @@ export const combatService = {
         supabase.removeChannel(channel);
       }
     };
+  },
+
+  /**
+   * Busca todos os relógios de perigo/eventos ordenados por criação
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getRelogios() {
+    return await supabase
+      .from('relogios')
+      .select('*')
+      .order('id', { ascending: true });
+  },
+
+  /**
+   * Cria um novo relógio na tabela relogios
+   * @param {{ titulo: string, fatias_total: number, fatias_atuais?: number, visivel?: boolean }} dados
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async criarRelogio(dados) {
+    return await supabase
+      .from('relogios')
+      .insert([{
+        titulo: dados.titulo,
+        fatias_total: Number(dados.fatias_total) || 4,
+        fatias_atuais: Number(dados.fatias_atuais) || 0,
+        visivel: dados.visivel !== false
+      }])
+      .select();
+  },
+
+  /**
+   * Atualiza as fatias atuais ou visibilidade de um relógio
+   * @param {string|number} id
+   * @param {Object} updates
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async atualizarRelogio(id, updates) {
+    return await supabase
+      .from('relogios')
+      .update(updates)
+      .eq('id', id);
+  },
+
+  /**
+   * Remove um relógio pelo ID
+   * @param {string|number} id
+   * @returns {Promise<{error: any}>}
+   */
+  async excluirRelogio(id) {
+    return await supabase
+      .from('relogios')
+      .delete()
+      .eq('id', id);
+  },
+
+  /**
+   * Inscreve callback para alterações em tempo real na tabela relogios
+   * @param {() => void} onMudanca
+   * @returns {{ unsubscribe: () => void }}
+   */
+  subscribeRelogios(onMudanca) {
+    const channelName = `realtime_relogios_${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'relogios' },
+        () => {
+          if (onMudanca) onMudanca();
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      }
+    };
   }
 };

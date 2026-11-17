@@ -1,62 +1,48 @@
 /* Modern Reset - Aplicado a todo o App */
 
-/* 1. Configurações de tipografia raiz e renderização no HTML */
 html {
-  /* Define a família de fontes do sistema e a 'Inter' como base global */
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  
-  /* Impede o iOS de mudar o tamanho do texto ao girar a tela */
+  font-family: var(--font-family-sans);
   -webkit-text-size-adjust: 100%;
-  
-  /* Define o tamanho base padrão do navegador (16px) e permite zoom de acessibilidade */
   font-size: 100%;
 }
 
-/* 2. Garante que padding e border não aumentem o tamanho fixo dos elementos */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* 3. Remove margens padrão que o navegador coloca */
 * {
   margin: 0;
   padding: 0;
 }
 
-/* 4. Garante que o corpo da página ocupe toda a altura e tenha uma fonte legível */
 body {
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased; /* Melhora renderização no Safari/macOS */
-  -moz-osx-font-smoothing: grayscale; /* Melhora renderização no Firefox/macOS */
-  text-rendering: optimizeLegibility; /* Dá prioridade à legibilidade do texto */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   min-height: 100vh;
-  background-color: #000; /* Clima de RPG */
-  color: #ffffff;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
 }
 
-/* 5. Escala Tipográfica Inicial (Normalização de títulos) */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700; /* Deixa os títulos em negrito por padrão */
-  line-height: 1.2; /* Títulos grandes precisam de menos espaçamento entre linhas */
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-/* 6. Melhora a renderização de imagens e mídia */
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
 }
 
-/* 7. Remove estilos padrões de inputs e botões (e herda as fontes do HTML/Body) */
 input, button, textarea, select {
   font: inherit;
 }
 
-/* 8. Evita que textos longos quebrem o layout */
 p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
 
-/* 9. Remove o sublinhado padrão de links */
 a {
   text-decoration: none;
   color: inherit;

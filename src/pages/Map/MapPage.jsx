@@ -1,46 +1,100 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { supabase } from '../../services/supabase';
+import { FaSyncAlt, FaRoute } from 'react-icons/fa';
+import { mapService } from '../../services/mapService';
+import { useAlert } from '../../contexts/useAlert';
 import TitanDetailSidebar from '../../components/TitanSidebar/TitanDetailSidebar';
 import AnimatedShipRoute from '../../components/Map/AnimatedShipRoute/AnimatedShipRoute';
-import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import './MapPage.css';
-import { FaSyncAlt, FaRoute } from "react-icons/fa";
 
-function MapPage({ isMestre }) {
+const getStatusBadge = (status) => {
+  switch (status) {
+    case 'pacifico':
+      return { label: '🟢 Pacífico / Comércio Ativo', className: 'status-pacifico' };
+    case 'perigo':
+      return { label: '🔴 Sob Cerco / Perigo Iminente', className: 'status-perigo' };
+    case 'corrompido':
+      return { label: '🟣 Corrompido / Magia Arcana', className: 'status-corrompido' };
+    case 'caido':
+      return { label: '⚫ Caído / Destruído', className: 'status-caido' };
+    default:
+      return { label: '🟢 Pacífico / Comércio Ativo', className: 'status-pacifico' };
+  }
+};
+
+const TitanMarker = memo(function TitanMarker({ local, baseUrl, registerRef, onSelect }) {
+  const statusAtual = local.status || 'pacifico';
+  const statusInfo = getStatusBadge(statusAtual);
+
+  return (
+    <div
+      ref={(el) => registerRef(local.id, el)}
+      className={`tita-overlay-item map-titan ${statusAtual === 'caido' ? 'titan-destruido' : ''}`}
+      style={{
+        '--titan-top': local.top,
+        '--titan-left': local.left_pos || local.left,
+        '--titan-width': local.width
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(local);
+      }}
+    >
+      <img
+        src={`${baseUrl}assets/imagens/titans/${local.id}.png`}
+        alt={local.titulo}
+        decoding="async"
+      />
+      <span className={`titan-status-dot ${statusInfo.className}`} title={statusInfo.label} />
+    </div>
+  );
+});
+
+export default function MapPage({ isMestre }) {
   const [localSelecionado, setLocalSelecionado] = useState(null);
   const [localizacoesMapa, setLocalizacoesMapa] = useState([]);
   const [rotas, setRotas] = useState([]);
   const [mostrarRotas, setMostrarRotas] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // Estado para o alerta customizado
-  const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
-
+  const { showAlert } = useAlert();
   const transformRef = useRef(null);
   const controlsRef = useRef(null);
   const titanRefs = useRef({});
+  const resetTimerRef = useRef(null);
 
   const baseUrl = import.meta.env.BASE_URL;
 
+  const registerTitanRef = useCallback((id, el) => {
+    if (el) {
+      titanRefs.current[id] = el;
+    } else {
+      delete titanRefs.current[id];
+    }
+  }, []);
+
   useEffect(() => {
+    let ativo = true;
+
     async function fetchData() {
       try {
-        const [resTitans, resRotas] = await Promise.all([
-          supabase.from('titans').select('*').order('id', { ascending: true }),
-          supabase.from('rotas_titas').select('*')
-        ]);
-
-        if (resTitans.error) throw resTitans.error;
-        if (resTitans.data) setLocalizacoesMapa(resTitans.data);
-        if (resRotas.data) setRotas(resRotas.data);
+        const { titans, rotas: rotasData, error } = await mapService.getDadosMapa();
+        if (!ativo) return;
+        if (error) throw error;
+        setLocalizacoesMapa(titans);
+        setRotas(rotasData);
       } catch (err) {
-        console.error("Erro ao carregar dados do mapa:", err.message);
+        console.error('Erro ao carregar dados do mapa:', err.message);
       } finally {
-        setLoading(false);
+        if (ativo) setLoading(false);
       }
     }
+
     fetchData();
+    return () => {
+      ativo = false;
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -52,17 +106,12 @@ function MapPage({ isMestre }) {
     const timer = setTimeout(() => {
       requestAnimationFrame(() => {
         try {
-          transformRef.current.zoomToElement(
-            elementoTitan,
-            2.5,
-            400,
-            "easeOut"
-          );
+          transformRef.current?.zoomToElement(elementoTitan, 2.5, 400, 'easeOut');
         } catch (e) {
-          console.error("Erro ao dar zoom no elemento:", e);
+          console.error('Erro ao dar zoom no elemento:', e);
         }
       });
-    }, 300);
+    }, 220);
 
     return () => clearTimeout(timer);
   }, [localSelecionado]);
@@ -73,53 +122,38 @@ function MapPage({ isMestre }) {
 
   const fecharSidebar = useCallback(() => {
     setLocalSelecionado(null);
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
 
-    setTimeout(() => {
-      if (controlsRef.current) {
-        controlsRef.current.resetTransform(400, "easeOut");
-      }
-    }, 300);
+    resetTimerRef.current = setTimeout(() => {
+      controlsRef.current?.resetTransform(350, 'easeOut');
+    }, 220);
   }, []);
 
-  const handleStatusChange = async (id, novoStatus) => {
+  const handleStatusChange = useCallback(async (id, novoStatus) => {
     try {
-      const { error } = await supabase
-        .from('titans')
-        .update({ status: novoStatus })
-        .eq('id', id);
-
+      const { error } = await mapService.atualizarStatusTitan(id, novoStatus);
       if (error) throw error;
 
-      setLocalizacoesMapa(prev =>
-        prev.map(t => t.id === id ? { ...t, status: novoStatus } : t)
+      setLocalizacoesMapa((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, status: novoStatus } : t))
       );
 
-      if (localSelecionado && localSelecionado.id === id) {
-        setLocalSelecionado(prev => ({ ...prev, status: novoStatus }));
-      }
+      setLocalSelecionado((prev) =>
+        prev && prev.id === id ? { ...prev, status: novoStatus } : prev
+      );
     } catch (err) {
-      console.error("Erro ao atualizar status no Supabase:", err.message);
-      setAlerta({
-        isOpen: true,
+      console.error('Erro ao atualizar status no Supabase:', err.message);
+      showAlert({
         title: 'Erro de Permissão',
+        type: 'error',
         message: 'Erro ao salvar alteração. Verifique se você está logado como Mestre.'
       });
     }
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'pacifico': return { label: '🟢 Pacífico / Comércio Ativo', class: 'status-pacifico' };
-      case 'perigo': return { label: '🔴 Sob Cerco / Perigo Iminente', class: 'status-perigo' };
-      case 'corrompido': return { label: '🟣 Corrompido / Magia Arcana', class: 'status-corrompido' };
-      case 'caido': return { label: '⚫ Caído / Destruído', class: 'status-caido' };
-      default: return { label: '🟢 Pacífico / Comércio Ativo', class: 'status-pacifico' };
-    }
-  };
+  }, [showAlert]);
 
   if (loading) {
     return (
-      <div className="mapa-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d4af37', height: '100vh' }}>
+      <div className="mapa-wrapper mapa-loading">
         Carregando mapa de Aetheria...
       </div>
     );
@@ -145,20 +179,14 @@ function MapPage({ isMestre }) {
                 <div className="zoom-controls">
                   <button type="button" onClick={() => controls.zoomIn(0.2)} title="Aproximar">+</button>
                   <button type="button" onClick={() => controls.zoomOut(0.2)} title="Afastar">-</button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      fecharSidebar();
-                    }}
-                    title="Resetar Visão"
-                  >
+                  <button type="button" onClick={fecharSidebar} title="Resetar Visão">
                     <FaSyncAlt />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMostrarRotas(prev => !prev)}
-                    title={mostrarRotas ? "Ocultar Rotas no Mapa" : "Mostrar Rotas no Mapa"}
-                    style={{ background: mostrarRotas ? '#d4af37' : '#161b22', color: mostrarRotas ? '#0d0f18' : '#d4af37' }}
+                    className={mostrarRotas ? 'rotas-ativo' : ''}
+                    onClick={() => setMostrarRotas((prev) => !prev)}
+                    title={mostrarRotas ? 'Ocultar Rotas no Mapa' : 'Mostrar Rotas no Mapa'}
                   >
                     <FaRoute />
                   </button>
@@ -175,7 +203,8 @@ function MapPage({ isMestre }) {
                           className="mapa-imagem"
                           width="12800"
                           height="8533.3"
-                          loading="lazy"
+                          loading="eager"
+                          fetchPriority="high"
                           decoding="async"
                         />
                       </picture>
@@ -187,32 +216,15 @@ function MapPage({ isMestre }) {
                         />
                       )}
 
-                      {/* MARCADORES DOS TITÃS */}
-                      {localizacoesMapa.map((local) => {
-                        const imgUrl = `${baseUrl}assets/imagens/titans/${local.id}.png`;
-                        const statusAtual = local.status || 'pacifico';
-                        const statusInfo = getStatusBadge(statusAtual);
-
-                        return (
-                          <div
-                            key={local.id}
-                            ref={(el) => (titanRefs.current[local.id] = el)}
-                            className={`tita-overlay-item map-titan ${statusAtual === 'caido' ? 'titan-destruido' : ''}`}
-                            style={{
-                              top: local.top,
-                              left: local.left_pos || local.left,
-                              width: local.width
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              focarNoTita(local);
-                            }}
-                          >
-                            <img src={imgUrl} alt={local.titulo} loading="lazy" decoding="async" />
-                            <span className={`titan-status-dot ${statusInfo.class}`} title={statusInfo.label} />
-                          </div>
-                        );
-                      })}
+                      {localizacoesMapa.map((local) => (
+                        <TitanMarker
+                          key={local.id}
+                          local={local}
+                          baseUrl={baseUrl}
+                          registerRef={registerTitanRef}
+                          onSelect={focarNoTita}
+                        />
+                      ))}
                     </div>
                   </TransformComponent>
                 </div>
@@ -228,15 +240,6 @@ function MapPage({ isMestre }) {
         onClose={fecharSidebar}
         onStatusChange={handleStatusChange}
       />
-
-      <CustomAlert 
-        isOpen={alerta.isOpen}
-        title={alerta.title}
-        message={alerta.message}
-        onClose={() => setAlerta({ ...alerta, isOpen: false })}
-      />
     </div>
   );
 }
-
-export default MapPage;

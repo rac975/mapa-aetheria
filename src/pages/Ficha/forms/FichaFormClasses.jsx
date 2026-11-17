@@ -6,9 +6,11 @@ import {
   podeAdicionarClasse
 } from '../../../domain/fabula/characterProgression';
 import FichaFormClasseCard from './FichaFormClasseCard';
+import { useAlert } from '../../../contexts/useAlert';
 import styles from './FichaFormClasses.module.css';
 
 export default function FichaFormClasses({ fichaId, formClasses = [], setFormClasses, formData, setFormData }) {
+  const { showAlert } = useAlert();
   const [catalogoClasses, setCatalogoClasses] = useState([]);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
 
     const validacao = podeAdicionarClasse(formClasses, nomeSelecionado);
     if (!validacao.permitido) {
-      window.alert(validacao.motivo);
+      showAlert(validacao.motivo);
       e.target.value = '';
       return;
     }

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaCoins, FaHammer, FaPrint, FaStar, FaShieldAlt } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Badge, Input, Card } from '../../../components/ui';
 import styles from './CriadorArmas.module.css';
 
 export default function CriadorArmas({ onSalvarItem }) {
+    const { showAlert } = useAlert();
     const [subMetodo, setSubMetodo] = useState('padrao_raro'); // 'padrao_raro' ou 'personalizada_atlas'
 
     // --- ESTADOS: ARMA RARA (LIVRO BÁSICO) ---
@@ -141,7 +143,7 @@ export default function CriadorArmas({ onSalvarItem }) {
         } else {
             const vagasOcupadas = personalizacoesAtlas.reduce((acc, p) => acc + (p.vagas || 1), 0);
             if (vagasOcupadas + (item.vagas || 1) > 3) {
-                alert('Limite de 3 personalizações atingido!');
+                showAlert('Limite de 3 personalizações atingido!');
                 return;
             }
             setPersonalizacoesAtlas([...personalizacoesAtlas, item]);
@@ -162,8 +164,8 @@ export default function CriadorArmas({ onSalvarItem }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return alert('Dê um nome para a arma!');
-        if (subMetodo === 'padrao_raro' && !itemBaseSelecionado) return alert('Selecione um item base!');
+        if (!nomeItem.trim()) return showAlert('Dê um nome para a arma!');
+        if (subMetodo === 'padrao_raro' && !itemBaseSelecionado) return showAlert('Selecione um item base!');
 
         const efeitosAplicados = caracteristicaSelecionada?.efeito ? [caracteristicaSelecionada.efeito] : [];
         if (subMetodo === 'personalizada_atlas') {

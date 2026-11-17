@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { FaCrown, FaPlus, FaTrash, FaCheck, FaStar, FaBookOpen } from 'react-icons/fa';
 import { Card, Button, Badge, Input, Modal } from '../../../components/ui';
 import { fichaService } from '../../../services/fichaService';
+import { useAlert } from '../../../contexts/useAlert';
 import {
   FONTES_MANUAIS,
   REGRAS_OFICIAIS_RESUMO,
@@ -25,6 +26,7 @@ const FILTROS_FONTE = [
 ];
 
 export default function FichaPoderesHeroicosSecao({ fichaId, ficha, setFicha, classes = [] }) {
+  const { showAlert } = useAlert();
   const [modalAberto, setModalAberto] = useState(false);
   const [filtroFonte, setFiltroFonte] = useState(null);
   const [termoBusca, setTermoBusca] = useState('');
@@ -96,7 +98,7 @@ export default function FichaPoderesHeroicosSecao({ fichaId, ficha, setFicha, cl
       if (setFicha) setFicha((prev) => ({ ...prev, poderes_heroicos: novaLista }));
       setFeedback(msgFeedback);
     } catch (err) {
-      window.alert(`Erro ao salvar Poderes Heróicos: ${err.message}`);
+      showAlert(`Erro ao salvar Poderes Heróicos: ${err.message}`);
     } finally {
       setSalvando(false);
     }
@@ -113,7 +115,7 @@ export default function FichaPoderesHeroicosSecao({ fichaId, ficha, setFicha, cl
     const novaLista = [...poderesAdquiridos, novoPoder];
     const validacao = validarSelecaoPoderesHeroicos(classes, novaLista, catalogoPoderes);
     if (!validacao.valido) {
-      window.alert(validacao.erros.join('\n'));
+      showAlert(validacao.erros.join('\n'));
       return;
     }
     await persistirPoderes(novaLista, `Poder Heróico "${poderCatalogo.nome}" adquirido com sucesso!`);

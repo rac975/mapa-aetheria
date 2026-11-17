@@ -70,7 +70,7 @@ export default function BootScreen({ onComplete }) {
         <div className="boot-progress-track">
           <div 
             className="boot-progress-fill" 
-            style={{ width: `${progresso}%` }}
+            style={{ '--boot-progress': `${progresso}%` }}
           ></div>
         </div>
 

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
+import { useAlert } from '../../../../contexts/useAlert';
 import {
   THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT,
   calcularCustoAtivacaoTeriomorfose,
@@ -21,6 +22,7 @@ export function useMutante({
   pvMaxCalculado,
   onAtualizarMutante
 }) {
+  const { showAlert } = useAlert();
   const [catalogoTerioformas, setCatalogoTerioformas] = useState([]);
 
   useEffect(() => {
@@ -140,7 +142,7 @@ export function useMutante({
       }
     } else {
       if (maxTerioformas > 0 && terioformasAprendidas.length >= maxTerioformas) {
-        window.alert(`Limite atingido! Seu nível em Teriomorfose (${nvTeriomorfose}) permite aprender no máximo ${maxTerioformas} terioformas.`);
+        showAlert(`Limite atingido! Seu nível em Teriomorfose (${nvTeriomorfose}) permite aprender no máximo ${maxTerioformas} terioformas.`);
         return;
       }
       novasAprendidas = [...terioformasAprendidas, key];
@@ -155,7 +157,7 @@ export function useMutante({
       novasAtivas = terioformasAtivas.filter((k) => k !== key);
     } else {
       if (terioformasAtivas.length >= THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT) {
-        window.alert(`Limite atingido! A Teriomorfose permite no máximo ${THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT} terioformas ativas simultâneas.`);
+        showAlert(`Limite atingido! A Teriomorfose permite no máximo ${THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT} terioformas ativas simultâneas.`);
         return;
       }
       novasAtivas = [...terioformasAtivas, key];
@@ -163,7 +165,7 @@ export function useMutante({
 
     const validacao = validarManifestacaoTerioformas(novasAtivas, THERIOMORPHOSIS_MAX_ACTIVE_DEFAULT);
     if (!validacao.valido) {
-      window.alert(validacao.mensagem);
+      showAlert(validacao.mensagem);
       return;
     }
     setTerioformasAtivas(novasAtivas);
@@ -172,11 +174,11 @@ export function useMutante({
 
   const handleAtivarTeriomorfose = () => {
     if (terioformasAtivas.length === 0) {
-      window.alert('Selecione pelo menos 1 Terioforma aprendida antes de manifestar a Teriomorfose!');
+      showAlert('Selecione pelo menos 1 Terioforma aprendida antes de manifestar a Teriomorfose!');
       return;
     }
     if (pvAtual <= custoTeriomorfose) {
-      window.alert(`PV insuficiente! O custo de 1/3 do PV atual é ${custoTeriomorfose} PV.`);
+      showAlert(`PV insuficiente! O custo de 1/3 do PV atual é ${custoTeriomorfose} PV.`);
       return;
     }
     if (handleAjustarRecurso && custoTeriomorfose > 0) {
@@ -206,7 +208,7 @@ export function useMutante({
   const handleAtivarEcdise = () => {
     const res = processarEcdise({ pvAtual, tipoDanoSofrido: tipoDanoEcdise });
     if (!res.sucesso) {
-      window.alert(res.mensagem);
+      showAlert(res.mensagem);
       return;
     }
     if (handleAjustarRecurso) {

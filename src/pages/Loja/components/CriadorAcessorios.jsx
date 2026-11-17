@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaRing, FaCoins, FaHammer, FaPrint, FaShieldAlt } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Badge, Input, Card } from '../../../components/ui';
 import styles from './CriadorItensRaros.module.css';
 
 export default function CriadorAcessorios({ onSalvarItem }) {
+    const { showAlert } = useAlert();
     const [caracteristicas, setCaracteristicas] = useState([]);
     const [caracteristicaSelecionada, setCaracteristicaSelecionada] = useState(null);
     const [nomeItem, setNomeItem] = useState('');
@@ -25,7 +27,7 @@ export default function CriadorAcessorios({ onSalvarItem }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return alert('Dê um nome para o acessório!');
+        if (!nomeItem.trim()) return showAlert('Dê um nome para o acessório!');
 
         setSalvando(true);
         const efeitosList = caracteristicaSelecionada?.efeito ? [caracteristicaSelecionada.efeito] : [];

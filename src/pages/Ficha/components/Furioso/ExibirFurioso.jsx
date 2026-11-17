@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FaFire, FaShieldAlt, FaBolt } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './ExibirFurioso.module.css';
 
 export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlobal, atributosAtuais = {}, onElevarAtributoTemporario }) {
+  const { showAlert } = useAlert();
   const [atributoEscolhidoResistir, setAtributoEscolhidoResistir] = useState('vigor');
 
   const habs = ficha?.habilidades || [];
@@ -39,7 +41,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
 
     const fabulaAtual = Number(ficha?.fabula ?? 3);
     if (fabulaAtual <= 0) {
-      window.alert("Você não possui Pontos de Fábula suficientes!");
+      showAlert("Você não possui Pontos de Fábula suficientes!");
       return;
     }
 
@@ -51,7 +53,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
       handleAjustarRecurso('fabula', -1);
       if (tipo === 'pv') handleAjustarRecurso('hp_atual', curaIndomavel);
       if (tipo === 'pm') handleAjustarRecurso('mp_atual', curaIndomavel);
-      window.alert(`✨ Espírito Indomável aplicado com sucesso!`);
+      showAlert(`✨ Espírito Indomável aplicado com sucesso!`);
     }
   };
 
@@ -60,7 +62,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
 
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
     if (mpAtual < 5) {
-      window.alert("MP insuficiente! Provocar exige 5 PM.");
+      showAlert("MP insuficiente! Provocar exige 5 PM.");
       return;
     }
 
@@ -74,7 +76,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
 
     if (window.confirm(`Usar Provocar (Custo: 5 PM)?\n\nRolagem: VIG (d${valorVig}: ${rVig}) + VON (d${valorVon}: ${rVon}) + NP (${nvProvocar}) = Total: ${resultadoTeste}\n\nDeseja confirmar o gasto de PM e realizar a provocação?`)) {
       handleAjustarRecurso('mp_atual', -5);
-      window.alert(`🗣️ Criatura provocada com sucesso! Teste finalizado com resultado ${resultadoTeste}.`);
+      showAlert(`🗣️ Criatura provocada com sucesso! Teste finalizado com resultado ${resultadoTeste}.`);
     }
   };
 
@@ -88,7 +90,7 @@ export default function ExibirFurioso({ ficha, handleAjustarRecurso, emCriseGlob
       if (onElevarAtributoTemporario) {
         onElevarAtributoTemporario(atributoEscolhidoResistir);
       }
-      window.alert(`🛡️ Resistir ativado! +${curaResistir} PV recuperados e ${atributoEscolhidoResistir.toUpperCase()} elevado.`);
+      showAlert(`🛡️ Resistir ativado! +${curaResistir} PV recuperados e ${atributoEscolhidoResistir.toUpperCase()} elevado.`);
     }
   };
 

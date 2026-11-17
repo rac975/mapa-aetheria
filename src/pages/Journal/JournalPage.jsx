@@ -83,7 +83,7 @@ export default function JournalPage({ isMestre }) {
 
   if (loading) {
     return (
-      <div className="journal-wrapper" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#d4af37', height: '100vh' }}>
+      <div className="journal-wrapper journal-loading">
         Carregando Diário de Missões de Aetheria...
       </div>
     );

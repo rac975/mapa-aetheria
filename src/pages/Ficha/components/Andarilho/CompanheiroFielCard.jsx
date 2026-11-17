@@ -6,9 +6,11 @@ import { calcularPvMaximoCompanheiro, extrairNivelCompanheiroFiel } from '../../
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import NPCEditor from '../../../Mestre/NPC/components/NPCEditor';
 import { Button } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './CompanheiroFielCard.module.css';
 
 export default function CompanheiroFielCard({ fichaId, classes = [] }) {
+  const { showAlert } = useAlert();
   const { id: idUrl } = useParams();
   const realFichaId = fichaId || idUrl;
 
@@ -104,7 +106,7 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
       setEditando(true);
     } else {
       console.error("❌ Erro ao criar companheiro:", error);
-      alert("Erro ao criar o companheiro no banco. Verifique o console (F12).");
+      showAlert("Erro ao criar o companheiro no banco. Verifique o console (F12).");
     }
     setSalvando(false);
   };

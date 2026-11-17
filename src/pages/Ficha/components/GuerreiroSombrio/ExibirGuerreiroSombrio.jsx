@@ -2,9 +2,11 @@ import React from 'react';
 import { FaMoon, FaSkull, FaHeartbeat } from 'react-icons/fa';
 import { processarGolpeDasSombras } from '../../../../domain/fabula/classRules';
 import { Button } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './ExibirGuerreiroSombrio.module.css';
 
 export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vigorValor = 8, emCriseGlobal, classes = [], onAtivarGolpe }) {
+  const { showAlert } = useAlert();
   const habs = ficha?.habilidades || [];
   const getNivel = (termo) => {
     const h = habs.find((item) =>
@@ -42,7 +44,7 @@ export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vi
     const resultado = processarGolpeDasSombras(ficha, classes, vigorValor);
 
     if (!resultado.sucesso) {
-      window.alert(resultado.mensagem);
+      showAlert(resultado.mensagem);
       return;
     }
 
@@ -61,7 +63,7 @@ export default function ExibirGuerreiroSombrio({ ficha, handleAjustarRecurso, vi
         onAtivarGolpe(opcoesDanoExtra);
       }
 
-      window.alert(`💥 Golpe das Sombras Armado para o próximo ataque!\n- PV Sacrificados: -${resultado.custoPv}\n- Dano de Trevas Adicional: +${resultado.danoAdicional}`);
+      showAlert(`💥 Golpe das Sombras Armado para o próximo ataque!\n- PV Sacrificados: -${resultado.custoPv}\n- Dano de Trevas Adicional: +${resultado.danoAdicional}`);
     }
   };
 

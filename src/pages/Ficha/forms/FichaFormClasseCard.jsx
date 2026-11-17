@@ -22,6 +22,7 @@ import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
 import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
 import FichaFormMagiasClasse from './FichaFormMagiasClasse';
 import { Button, Badge } from '../../../components/ui';
+import { useAlert } from '../../../contexts/useAlert';
 import styles from './FichaFormClasses.module.css';
 
 export default function FichaFormClasseCard({
@@ -34,6 +35,7 @@ export default function FichaFormClasseCard({
   onAlterarNivelClasse,
   onRemoverClasse
 }) {
+  const { showAlert } = useAlert();
   const nivelClasse = parseInt(classe.nivel, 10) || 1;
   const statusHab = validarDistribuicaoHabilidades(nivelClasse, classe.habilidades);
   const classeConcluida = isClasseDominada(nivelClasse);
@@ -183,7 +185,7 @@ export default function FichaFormClasseCard({
                     onChange={(e) => {
                       const val = parseInt(e.target.value, 10) || 0;
                       if (val > limiteMaximoHab) {
-                        window.alert(`⛔ Esta habilidade pode ter no máximo ${limiteMaximoHab} ponto(s)!`);
+                        showAlert(`⛔ Esta habilidade pode ter no máximo ${limiteMaximoHab} ponto(s)!`);
                         return;
                       }
                       const atual = [...formClasses];

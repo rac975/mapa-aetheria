@@ -4,12 +4,14 @@ import { fichaService } from '../../../../services/fichaService';
 import { calcularBonusEscalaArcanista } from '../../../../domain/fabula/classRules';
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import { Button } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import ArcanoAtivoPainel from './ArcanoAtivoPainel';
 import ArcanosForms from './ArcanosForms';
 import ArcanosLista from './ArcanosLista';
 import styles from './ExibirArcanista.module.css';
 
 export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustarRecurso }) {
+  const { showAlert } = useAlert();
   const [catalogo, setCatalogo] = useState([]);
   const [arcanosVinculados, setArcanosVinculados] = useState(() => ficha?.arcanos_vinculados || []);
   const [arcanoAtivoIdx, setArcanoAtivoIdx] = useState(null);
@@ -77,7 +79,7 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
     const item = catalogo.find((a) => a.id === selecionadoCatalogo);
     if (!item) return;
     if (arcanosVinculados.some((a) => a.nome === item.nome)) {
-      alert('Este Arcano já está vinculado!');
+      showAlert('Este Arcano já está vinculado!');
       return;
     }
     salvarNoBanco([...arcanosVinculados, item]);
@@ -101,7 +103,7 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
 
   const invocarArcano = (idx) => {
     if (arcanoAtivoIdx !== null) {
-      alert('Você já está fundido a um Arcano! Dispense o atual antes de invocar outro.');
+      showAlert('Você já está fundido a um Arcano! Dispense o atual antes de invocar outro.');
       return;
     }
     const arcano = arcanosVinculados[idx];
@@ -117,7 +119,7 @@ export default function ExibirArcanista({ fichaId, ficha, classes, handleAjustar
 
   const dispensarArcano = (voluntario = true) => {
     if (voluntario && nvCirculo > 0) {
-      alert(`Círculo Arcano: Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis (pagando até ${nvCirculo * 5} PM) sem gastar ação!`);
+      showAlert(`Círculo Arcano: Após resolver o efeito de dispensa, você pode lançar um Feitiço grátis (pagando até ${nvCirculo * 5} PM) sem gastar ação!`);
     }
     setArcanoAtivoIdx(null);
   };

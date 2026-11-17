@@ -1,0 +1,230 @@
+.combatBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-card);
+}
+
+.boxHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-3);
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.boxTitle {
+  margin: 0;
+  font-family: var(--font-family-serif);
+  color: var(--color-text-gold);
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.boxHint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.emptyText {
+  color: var(--color-text-dim);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.formCreateClock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-bg-elevated);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-gold-muted);
+  box-shadow: var(--shadow-surface);
+}
+
+.formMainRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.formCreateClock input[type="text"] {
+  flex: 2;
+  min-width: 220px;
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.formCreateClock select {
+  flex: 1;
+  min-width: 150px;
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.formCreateClock input:focus,
+.formCreateClock select:focus {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 0 2px rgba(var(--color-ether-cyan-rgb), 0.18);
+}
+
+.visibilityToggleBtn {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.isVisible {
+  background: var(--color-pv-track);
+  color: var(--color-pv);
+  border-color: var(--color-pv);
+}
+
+.visibilityToggleBtn:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-main);
+}
+
+.btnSubmitClock {
+  background: linear-gradient(135deg, var(--color-border-gold), var(--color-border-gold-bright));
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btnSubmitClock:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.clocksContainerWrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.clocksGrid {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: stretch;
+  width: 100%;
+}
+
+.combatContentBody {
+  max-height: 1200px;
+  opacity: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.collapsed {
+  gap: 0;
+  padding-bottom: var(--space-4);
+}
+
+.collapsed .boxHeader {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.collapsed .combatContentBody {
+  max-height: 0;
+  opacity: 0;
+  gap: 0;
+  margin-top: 0;
+  pointer-events: none;
+}
+
+.collapseBtn {
+  background: transparent;
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-gold);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.collapseBtn:hover {
+  background: rgba(var(--color-border-gold-rgb), 0.15);
+  border-color: var(--color-border-gold);
+}
+
+@media (max-width: 800px) {
+  .formMainRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .formCreateClock input[type="text"],
+  .formCreateClock select,
+  .visibilityToggleBtn,
+  .btnSubmitClock {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .clocksContainerWrapper {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;
+  }
+
+  .clocksGrid {
+    flex-wrap: nowrap;
+    width: max-content;
+    min-width: 100%;
+  }
+}

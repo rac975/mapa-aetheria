@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaCogs } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { Badge } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import InventorRamosResumo from './InventorRamosResumo';
 import InventorAlquimiaSecao from './InventorAlquimiaSecao';
 import InventorInfusoesSecao from './InventorInfusoesSecao';
@@ -11,6 +12,7 @@ import styles from './ExibirInventor.module.css';
 const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 
 export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarRecurso }) {
+  const { showAlert } = useAlert();
   // Estados da Alquimia
   const [tipoMistura, setTipoMistura] = useState('basica');
   const [resultadoAlquimia, setResultadoAlquimia] = useState(null);
@@ -116,7 +118,7 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
     const idPersonagem = fichaId || ficha?.id;
 
     if (!idPersonagem) {
-      alert("❌ Erro: ID da ficha de personagem não encontrado!");
+      showAlert("❌ Erro: ID da ficha de personagem não encontrado!");
       return;
     }
 
@@ -132,7 +134,7 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
       });
 
       if (ocupado) {
-        alert("⛔ Regra do Magicanhão: Seus dois espaços de mão precisam estar completamente vazios para criar e equipar o magicanhão!");
+        showAlert("⛔ Regra do Magicanhão: Seus dois espaços de mão precisam estar completamente vazios para criar e equipar o magicanhão!");
         setCriandoCanhao(false);
         return;
       }
@@ -165,10 +167,10 @@ export default function ExibirInventor({ classes, ficha, fichaId, handleAjustarR
       const { error: erroInsercao } = await fichaService.addItemPersonagem(novoCanhao);
       if (erroInsercao) throw erroInsercao;
 
-      alert("💥 Magicanhão criado, equipado nas suas mãos vazias e pronto para disparar!");
+      showAlert("💥 Magicanhão criado, equipado nas suas mãos vazias e pronto para disparar!");
     } catch (err) {
       console.error("Erro ao criar magicanhão:", err.message);
-      alert("Erro ao criar o magicanhão. Verifique o console.");
+      showAlert("Erro ao criar o magicanhão. Verifique o console.");
     } finally {
       setCriandoCanhao(false);
     }

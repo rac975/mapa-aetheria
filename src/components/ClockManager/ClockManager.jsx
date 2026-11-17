@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../services/supabase';
-import { useToast } from '../../contexts/ToastContext';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FaPlus, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { combatService } from '../../services/combatService';
+import { useToast } from '../../contexts/ToastContext';
 import ClockWidget from '../ClockWidget/ClockWidget';
-import './ClockManager.css';
+import styles from './ClockManager.module.css';
 
-export default function ClocksManager({ isMestre }) {
+export default function ClockManager({ isMestre }) {
   const [relogios, setRelogios] = useState([]);
   const [tituloRelogio, setTituloRelogio] = useState('');
   const [fatiasTotal, setFatiasTotal] = useState(4);
@@ -14,42 +14,53 @@ export default function ClocksManager({ isMestre }) {
 
   const { coldDelete } = useToast();
 
-  // Refs para o Drag-to-Scroll (Mobile)
   const sliderRef = useRef(null);
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const hasDragged = useRef(false);
 
-  useEffect(() => {
-    async function fetchRelogios() {
-      const { data, error } = await supabase.from('relogios').select('*');
-      if (!error && data) setRelogios(data);
+  const carregarRelogios = useCallback(async () => {
+    const { data, error } = await combatService.getRelogios();
+    if (!error && data) {
+      setRelogios(data);
     }
-    fetchRelogios();
   }, []);
 
-  // =====================================================
-  // LÓGICA DE DRAG-TO-SCROLL (MOUSE E TOQUE <= 800px)
-  // =====================================================
-  const handlePointerDown = (e) => {
-    const slider = sliderRef.current;
+  useEffect(() => {
+    let ativo = true;
 
+    async function fetchRelogios() {
+      const { data, error } = await combatService.getRelogios();
+      if (ativo && !error && data) {
+        setRelogios(data);
+      }
+    }
+
+    fetchRelogios();
+    const subscription = combatService.subscribeRelogios(carregarRelogios);
+    return () => {
+      ativo = false;
+      subscription.unsubscribe();
+    };
+  }, [carregarRelogios]);
+
+  const handlePointerDown = (e) => {
+    if (window.innerWidth > 800) return;
+    if (e.target.closest('button, [data-clock-slice="true"]')) return;
+
+    const slider = sliderRef.current;
     if (!slider) return;
 
     isDown.current = true;
     hasDragged.current = false;
-
     startX.current = e.clientX;
     scrollLeft.current = slider.scrollLeft;
-
-    slider.setPointerCapture(e.pointerId);
   };
 
   const handlePointerUpOrCancel = (e) => {
     if (!isDown.current) return;
     isDown.current = false;
-
     const slider = sliderRef.current;
     if (slider && slider.hasPointerCapture(e.pointerId)) {
       slider.releasePointerCapture(e.pointerId);
@@ -57,18 +68,18 @@ export default function ClocksManager({ isMestre }) {
   };
 
   const handlePointerMove = (e) => {
-    if (!isDown.current || window.innerWidth > 800)
-      return;
-
+    if (!isDown.current || window.innerWidth > 800) return;
     const slider = sliderRef.current;
-
     if (!slider) return;
 
-    const walk =
-      (e.clientX - startX.current) * 1.5;
-
-    slider.scrollLeft =
-      scrollLeft.current - walk;
+    const deltaX = e.clientX - startX.current;
+    if (Math.abs(deltaX) > 6 && !hasDragged.current) {
+      hasDragged.current = true;
+      slider.setPointerCapture(e.pointerId);
+    }
+    if (hasDragged.current) {
+      slider.scrollLeft = scrollLeft.current - deltaX * 1.4;
+    }
   };
 
   const handleClickCapture = (e) => {
@@ -78,28 +89,27 @@ export default function ClocksManager({ isMestre }) {
     }
   };
 
-
   const criarRelogio = async (e) => {
     e.preventDefault();
     if (!tituloRelogio.trim()) return;
 
-    const { data, error } = await supabase.from('relogios').insert([{
+    const { data, error } = await combatService.criarRelogio({
       titulo: tituloRelogio.trim(),
       fatias_total: Number(fatiasTotal),
       fatias_atuais: 0,
-      visivel: visivel
-    }]).select();
+      visivel
+    });
 
-    if (!error && data) {
-      setRelogios(prev => [...prev, data[0]]);
+    if (!error && data?.[0]) {
+      setRelogios((prev) => [...prev, data[0]]);
       setTituloRelogio('');
     }
   };
 
   const atualizarRelogio = async (id, novasFatias) => {
-    const { error } = await supabase.from('relogios').update({ fatias_atuais: novasFatias }).eq('id', id);
+    const { error } = await combatService.atualizarRelogio(id, { fatias_atuais: novasFatias });
     if (!error) {
-      setRelogios(prev => prev.map(r => r.id === id ? { ...r, fatias_atuais: novasFatias } : r));
+      setRelogios((prev) => prev.map((r) => (r.id === id ? { ...r, fatias_atuais: novasFatias } : r)));
     }
   };
 
@@ -110,39 +120,48 @@ export default function ClocksManager({ isMestre }) {
       item: r,
       message: <>Relógio <strong>{r.titulo}</strong> foi removido.</>,
       onRemove: (it) => {
-        setRelogios(prev => prev.filter(item => item.id !== it.id));
+        setRelogios((prev) => prev.filter((item) => item.id !== it.id));
       },
       onCommit: async (it) => {
         try {
-          await supabase.from('relogios').delete().eq('id', it.id);
+          await combatService.excluirRelogio(it.id);
         } catch (err) {
-          console.error("Erro ao deletar relógio:", err);
+          console.error('Erro ao deletar relógio:', err);
         }
       },
       onRollback: (it) => {
-        setRelogios(prev => [...prev, it]);
+        setRelogios((prev) => [...prev, it]);
       },
       duration: 6000
     });
   };
 
+  const relogiosExibidos = relogios.filter((r) => isMestre || r.visivel);
+
   return (
-    <div className={`combat-box ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="box-header" onClick={() => setIsCollapsed(!isCollapsed)} style={{ cursor: 'pointer' }}>
-        <h2>Relógios de Perigo & Eventos</h2>
-        <button className="collapse-btn" title={isCollapsed ? "Expandir" : "Retrair"}>
+    <section className={`${styles.combatBox} ${isCollapsed ? styles.collapsed : ''}`}>
+      <div className={styles.boxHeader} onClick={() => setIsCollapsed((prev) => !prev)}>
+        <h2 className={styles.boxTitle}>Relógios de Perigo & Eventos</h2>
+        <button
+          type="button"
+          className={styles.collapseBtn}
+          title={isCollapsed ? 'Expandir' : 'Retrair'}
+          aria-expanded={!isCollapsed}
+        >
           {isCollapsed ? <FaChevronDown /> : <FaChevronUp />}
         </button>
       </div>
 
-      <div className="combat-content-body">
-        <p className="box-hint">
-          {isMestre ? "Crie e controle a progressão de perigos e eventos na cena." : "Acompanhe os relógios ativos na aventura."}
+      <div className={styles.combatContentBody}>
+        <p className={styles.boxHint}>
+          {isMestre
+            ? 'Crie e controle a progressão de perigos e eventos na cena.'
+            : 'Acompanhe os relógios ativos na aventura.'}
         </p>
 
         {isMestre && (
-          <form onSubmit={criarRelogio} className="form-create-clock">
-            <div className="form-main-row">
+          <form onSubmit={criarRelogio} className={styles.formCreateClock}>
+            <div className={styles.formMainRow}>
               <input
                 type="text"
                 placeholder="Nome do Perigo (ex: Ritual Arcano)"
@@ -150,7 +169,7 @@ export default function ClocksManager({ isMestre }) {
                 onChange={(e) => setTituloRelogio(e.target.value)}
                 required
               />
-              <select value={fatiasTotal} onChange={(e) => setFatiasTotal(e.target.value)}>
+              <select value={fatiasTotal} onChange={(e) => setFatiasTotal(Number(e.target.value))}>
                 <option value={4}>4 Fatias (Simples)</option>
                 <option value={6}>6 Fatias (Médio)</option>
                 <option value={8}>8 Fatias (Complexo)</option>
@@ -159,15 +178,15 @@ export default function ClocksManager({ isMestre }) {
 
               <button
                 type="button"
-                className={`visibility-toggle-btn ${visivel ? 'is-visible' : ''}`}
-                onClick={() => setVisivel(!visivel)}
-                title={visivel ? "Visível para os jogadores" : "Oculto dos jogadores"}
+                className={`${styles.visibilityToggleBtn} ${visivel ? styles.isVisible : ''}`}
+                onClick={() => setVisivel((prev) => !prev)}
+                title={visivel ? 'Visível para os jogadores' : 'Oculto dos jogadores'}
               >
                 {visivel ? <FaEye /> : <FaEyeSlash />}
-                <span>{visivel ? "Visível" : "Oculto"}</span>
+                <span>{visivel ? 'Visível' : 'Oculto'}</span>
               </button>
 
-              <button type="submit" className="btn-submit-clock">
+              <button type="submit" className={styles.btnSubmitClock}>
                 <FaPlus /> Adicionar Relógio
               </button>
             </div>
@@ -176,36 +195,33 @@ export default function ClocksManager({ isMestre }) {
 
         <div
           ref={sliderRef}
-          className="clocks-container-wrapper"
+          className={styles.clocksContainerWrapper}
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUpOrCancel}
           onPointerCancel={handlePointerUpOrCancel}
           onPointerMove={handlePointerMove}
           onClickCapture={handleClickCapture}
         >
-          <div className="clocks-grid">
-            {relogios.length === 0 ? (
-              <p className="empty-text">Nenhum relógio ativo na cena.</p>
+          <div className={styles.clocksGrid}>
+            {relogiosExibidos.length === 0 ? (
+              <p className={styles.emptyText}>Nenhum relógio ativo na cena.</p>
             ) : (
-              relogios.map(r => {
-                if (!isMestre && !r.visivel) return null;
-                return (
-                  <ClockWidget
-                    key={r.id}
-                    titulo={r.titulo}
-                    fatiasTotal={r.fatias_total}
-                    fatiasAtuais={r.fatias_atuais}
-                    visivel={r.visivel}
-                    isMestre={isMestre}
-                    onUpdate={(val) => atualizarRelogio(r.id, val)}
-                    onDelete={() => iniciarExclusao(r)}
-                  />
-                );
-              })
+              relogiosExibidos.map((r) => (
+                <ClockWidget
+                  key={r.id}
+                  titulo={r.titulo}
+                  fatiasTotal={r.fatias_total}
+                  fatiasAtuais={r.fatias_atuais}
+                  visivel={r.visivel}
+                  isMestre={isMestre}
+                  onUpdate={(val) => atualizarRelogio(r.id, val)}
+                  onDelete={() => iniciarExclusao(r)}
+                />
+              ))
             )}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

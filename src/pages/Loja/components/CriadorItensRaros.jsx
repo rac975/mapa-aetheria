@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FaHammer, FaCheckCircle, FaShieldAlt, FaRing, FaCrosshairs, FaCoins, FaPrint } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Card, Badge, Input } from '../../../components/ui';
 import styles from './CriadorItensRaros.module.css';
 
 export default function CriadorItensRaros({ ficha, onCriado }) {
+    const { showAlert } = useAlert();
     // Abas: 'arma', 'armadura', 'acessorio'
     const [tipoCriacao, setTipoCriacao] = useState('arma');
     const [nomeItem, setNomeItem] = useState('');
@@ -139,8 +141,8 @@ export default function CriadorItensRaros({ ficha, onCriado }) {
 
     const handleSalvarItemRaro = async (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return alert('Dê um nome para o seu item raro!');
-        if (tipoCriacao !== 'acessorio' && !itemBaseSelecionado) return alert('Selecione um item base!');
+        if (!nomeItem.trim()) return showAlert('Dê um nome para o seu item raro!');
+        if (tipoCriacao !== 'acessorio' && !itemBaseSelecionado) return showAlert('Selecione um item base!');
 
         setSalvando(true);
 
@@ -193,9 +195,9 @@ export default function CriadorItensRaros({ ficha, onCriado }) {
         setSalvando(false);
 
         if (erroBanco) {
-            alert('Erro ao forjar item: ' + erroBanco.message);
+            showAlert('Erro ao forjar item: ' + erroBanco.message);
         } else {
-            alert('✨ Item raro forjado e salvo com sucesso!');
+            showAlert('✨ Item raro forjado e salvo com sucesso!');
             if (onCriado) onCriado();
             setNomeItem('');
             setCaracteristicaSelecionada(null);

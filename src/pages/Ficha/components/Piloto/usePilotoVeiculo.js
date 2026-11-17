@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fichaService } from '../../../../services/fichaService';
+import { useAlert } from '../../../../contexts/useAlert';
 import {
   COMPRESSION_TECH_IP_COST,
   calcularEstatisticasVeiculo,
@@ -18,6 +19,7 @@ export function usePilotoVeiculo({
   classes,
   handleAjustarRecurso
 }) {
+  const { showAlert } = useAlert();
   const fichaIdReal = fichaId || ficha?.id;
 
   const [catalogoEstruturas, setCatalogoEstruturas] = useState([]);
@@ -130,7 +132,7 @@ export function usePilotoVeiculo({
         catalogoModulos
       });
       if (!res.sucesso) {
-        window.alert(res.mensagem);
+        showAlert(res.mensagem);
         return;
       }
     } else {
@@ -142,7 +144,7 @@ export function usePilotoVeiculo({
         catalogoModulos
       });
       if (!validacao.valido) {
-        window.alert(validacao.erros.join('\n'));
+        showAlert(validacao.erros.join('\n'));
         return;
       }
     }
@@ -181,7 +183,7 @@ export function usePilotoVeiculo({
   const handleAlternarCompressao = () => {
     const resultado = processarTecnologiaCompressao(piAtual, frameKey);
     if (!resultado.sucesso) {
-      window.alert(resultado.mensagem);
+      showAlert(resultado.mensagem);
       return;
     }
 
@@ -203,7 +205,7 @@ export function usePilotoVeiculo({
 
   const handleAtivarCoracao = (modo) => {
     if (mpAtual < 10) {
-      window.alert('Pontos de Magia (PM) insuficientes! São necessários 10 PM para Coração no Motor.');
+      showAlert('Pontos de Magia (PM) insuficientes! São necessários 10 PM para Coração no Motor.');
       return;
     }
     const res = processarCoracaoNoMotor(nvCoracao, modo);
@@ -215,7 +217,7 @@ export function usePilotoVeiculo({
 
   const handleSalvarVeiculo = async () => {
     if (!fichaIdReal) {
-      window.alert('ID da ficha não encontrado para persistência.');
+      showAlert('ID da ficha não encontrado para persistência.');
       return;
     }
 
@@ -245,7 +247,7 @@ export function usePilotoVeiculo({
         setFeedback('Configuração do veículo salva na ficha com sucesso!');
         setTimeout(() => setSalvoSucesso(false), 3000);
       } else {
-        window.alert(`Erro ao salvar veículo: ${error?.message || 'Falha de rede.'}`);
+        showAlert(`Erro ao salvar veículo: ${error?.message || 'Falha de rede.'}`);
       }
     } finally {
       setSalvando(false);

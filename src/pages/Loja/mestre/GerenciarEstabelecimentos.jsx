@@ -3,10 +3,12 @@ import { FaStore, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
 import { lojaService } from '../../../services/lojaService';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Modal, Input } from '../../../components/ui';
 import styles from './GerenciarEstabelecimentos.module.css';
 
 export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
+    const { showAlert } = useAlert();
     const [modalLojaAberto, setModalLojaAberto] = useState(false);
     const [lojaEditando, setLojaEditando] = useState(null);
     const [nomeLoja, setNomeLoja] = useState('');
@@ -30,7 +32,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
             fecharModalLoja();
             if (recarregarDados) recarregarDados();
         } catch (err) {
-            alert('Erro ao salvar estabelecimento: ' + err.message);
+            showAlert('Erro ao salvar estabelecimento: ' + err.message);
         } finally {
             setSalvando(false);
         }
@@ -44,7 +46,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
                 const { error } = await lojaService.excluirLoja(l.id);
                 if (error) {
                     console.error('Erro ao excluir loja:', error);
-                    alert('Erro ao excluir loja: ' + error.message);
+                    showAlert('Erro ao excluir loja: ' + error.message);
                 } else if (recarregarDados) {
                     recarregarDados();
                 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaHammer, FaShieldAlt, FaCrosshairs, FaRing } from 'react-icons/fa';
 import { supabase } from '../../../services/supabase';
+import { useAlert } from '../../../contexts/useAlert';
 import { Button, Card } from '../../../components/ui';
 import CriadorArmas from './CriadorArmas';
 import CriadorArmadurasEscudos from './CriadorArmadurasEscudos';
@@ -9,6 +10,7 @@ import styles from './CriadorEquipamentoUnificado.module.css';
 
 export default function CriadorEquipamentoUnificado({ ficha, onCriado }) {
     const [tipoEquipamento, setTipoEquipamento] = useState('arma');
+    const { showAlert } = useAlert();
 
     const handleSalvarItem = async (novoItem) => {
         let erroBanco = null;
@@ -32,9 +34,9 @@ export default function CriadorEquipamentoUnificado({ ficha, onCriado }) {
         }
 
         if (erroBanco) {
-            alert('Erro ao salvar equipamento: ' + erroBanco.message);
+            showAlert('Erro ao salvar equipamento: ' + erroBanco.message);
         } else {
-            alert('✨ Equipamento forjado e salvo com sucesso!');
+            showAlert('✨ Equipamento forjado e salvo com sucesso!');
             if (onCriado) onCriado();
         }
     };

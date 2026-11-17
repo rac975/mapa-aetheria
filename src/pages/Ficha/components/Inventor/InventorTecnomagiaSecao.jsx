@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaMagic } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
+import { useAlert } from '../../../../contexts/useAlert';
 import styles from './InventorTecnomagiaSecao.module.css';
 
 export default function InventorTecnomagiaSecao({
@@ -11,6 +12,7 @@ export default function InventorTecnomagiaSecao({
   onCriarMagicanhao,
   criandoCanhao
 }) {
+  const { showAlert } = useAlert();
   return (
     <div className={styles.section}>
       <div className={styles.title}>
@@ -29,11 +31,11 @@ export default function InventorTecnomagiaSecao({
               onClick={() => {
                 const mpAtual = ficha?.mp_atual ?? 0;
                 if (mpAtual < 10) {
-                  alert("Você não tem MP suficiente (10 PM) para usar a Sobreposição Tecnomágica!");
+                  showAlert("Você não tem MP suficiente (10 PM) para usar a Sobreposição Tecnomágica!");
                   return;
                 }
                 handleAjustarRecurso('mp_atual', -10);
-                alert("✨ Sobreposição Tecnomágica ativada! 10 PM consumidos.");
+                showAlert("✨ Sobreposição Tecnomágica ativada! 10 PM consumidos.");
               }}
             >
               ⚡ Gastar 10 MP e Ativar Sobreposição

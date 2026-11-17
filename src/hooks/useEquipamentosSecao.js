@@ -8,6 +8,7 @@ import {
 import { normalizarTextoHF } from '../domain/fabula/highFantasyRules';
 import { rolarAtaqueEDanoArma } from '../utils/calculosFicha';
 import { useToast } from '../contexts/ToastContext';
+import { useAlert } from '../contexts/useAlert';
 
 const getNivelHabPorTermo = (classes, termo) => {
   let maxNivel = 0;
@@ -39,6 +40,7 @@ export function useEquipamentosSecao({
   emCriseGlobal = false,
   statusFicha = null
 }) {
+  const { showAlert } = useAlert();
   const [itensInventario, setItensInventario] = useState([]);
   const [modalSlotAberto, setModalSlotAberto] = useState(null);
   const [itemParaEquiparDireto, setItemParaEquiparDireto] = useState(null);
@@ -150,7 +152,7 @@ export function useEquipamentosSecao({
   const trocarRapidoItem = async (item, slotAlvo) => {
     const validacao = validarSlotEquipamento({ item, slotAlvo, classes });
     if (!validacao.permitido) {
-      alert(validacao.motivo);
+      showAlert(validacao.motivo);
       return;
     }
 
@@ -197,7 +199,7 @@ export function useEquipamentosSecao({
       carregarItens();
     } catch (err) {
       console.error('Erro na troca rápida de itens:', err);
-      alert('Erro ao equipar item: ' + err.message);
+      showAlert('Erro ao equipar item: ' + err.message);
     }
   };
 

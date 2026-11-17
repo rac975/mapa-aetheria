@@ -5,12 +5,11 @@ import {
     FaShieldAlt,
     FaBoxOpen,
     FaStore,
-    FaHandHoldingUsd,
-    FaPrint
+    FaHandHoldingUsd
 } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
 import { lojaService } from '../../../services/lojaService';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAlert } from '../../../contexts/useAlert';
 import { useBuscaItens } from '../hooks/useBuscaItens';
 import BarraBuscaFiltros from './comum/BarraBuscaFiltros';
 import { Button, Card, Badge, Modal } from '../../../components/ui';
@@ -18,11 +17,15 @@ import styles from './LojaClienteTab.module.css';
 
 export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
     const { coldDelete } = useToast();
+    const { showAlert } = useAlert();
     const {
         busca,
         setBusca,
         categoriaFiltro,
         setCategoriaFiltro,
+        categoriaArmaFiltro,
+        setCategoriaArmaFiltro,
+        categoriasArmasDisponiveis,
         ordenacao,
         setOrdenacao,
         apenasRaros,
@@ -47,10 +50,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
     useEffect(() => {
         if (!ficha?.id) return;
         async function carregarInventarioPersonagem() {
-            const { data, error } = await supabase
-                .from('itens_personagem')
-                .select('*')
-                .eq('ficha_id', ficha.id);
+            const { data, error } = await lojaService.getInventarioPersonagem(ficha.id);
             if (!error && data) {
                 setItensInventario(data);
             }
@@ -60,14 +60,14 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
 
     const abrirModalCompra = (item) => {
         if (!ficha) {
-            alert("Selecione uma ficha de personagem ativa na sessão para comprar itens!");
+            showAlert("Selecione uma ficha de personagem ativa na sessão para comprar itens!");
             return;
         }
 
         const zenitAtual = ficha.zenit || 0;
         const custoEfetivo = calcularCustoEfetivoItem(item.custo);
         if (zenitAtual < custoEfetivo) {
-            alert(`Você precisa de ${custoEfetivo}z, mas só tem ${zenitAtual}z!`);
+            showAlert(`Você precisa de ${custoEfetivo}z, mas só tem ${zenitAtual}z!`);
             return;
         }
 
@@ -93,7 +93,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         const zenitAtual = ficha.zenit || 0;
 
         if (zenitAtual < custo) {
-            alert("Zênites insuficientes para realizar esta compra!");
+            showAlert("Zênites insuficientes para realizar esta compra!");
             return;
         }
 
@@ -125,50 +125,16 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         };
 
         try {
-            const { error: erroFicha } = await supabase
-                .from('fichas_personagens')
-                .update({ zenit: novoZenit })
-                .eq('id', ficha.id);
+            const { data: novoItemInserido, error: erroCompra } = await lojaService.comprarItemLoja({
+                fichaId: ficha.id,
+                novoZenit,
+                slotFinal,
+                itemCatalogo: itemSelecionadoParaCompra,
+                deveEquipar,
+                statsPersonalizados: statsPersonalizadosComSlot
+            });
 
-            if (erroFicha) throw erroFicha;
-
-            if (slotFinal) {
-                const { data: itensExistentes } = await supabase
-                    .from('itens_personagem')
-                    .select('*')
-                    .eq('ficha_id', ficha.id);
-
-                if (itensExistentes) {
-                    for (const itemAntigo of itensExistentes) {
-                        if (itemAntigo.stats_personalizados?.slot === slotFinal) {
-                            const statsAntigoLimpo = { ...itemAntigo.stats_personalizados };
-                            delete statsAntigoLimpo.slot;
-                            statsAntigoLimpo.equipado = false;
-
-                            await supabase
-                                .from('itens_personagem')
-                                .update({ equipado: false, stats_personalizados: statsAntigoLimpo })
-                                .eq('id', itemAntigo.id);
-                        }
-                    }
-                }
-            }
-
-            const { data: novoItemInserido, error: erroItem } = await supabase
-                .from('itens_personagem')
-                .insert([{
-                    ficha_id: ficha.id,
-                    item_id: itemSelecionadoParaCompra.id,
-                    nome: itemSelecionadoParaCompra.nome,
-                    tipo: itemSelecionadoParaCompra.tipo,
-                    quantidade: 1,
-                    equipado: deveEquipar,
-                    stats_personalizados: statsPersonalizadosComSlot
-                }])
-                .select()
-                .single();
-
-            if (erroItem) throw erroItem;
+            if (erroCompra) throw erroCompra;
 
             setFicha(prev => ({
                 ...prev,
@@ -177,10 +143,10 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
 
             setItensInventario(prev => [...prev, novoItemInserido]);
 
-            alert(`✨ Compra realizada com sucesso! "${itemSelecionadoParaCompra.nome}" foi adquirido.`);
+            showAlert(`✨ Compra realizada com sucesso! "${itemSelecionadoParaCompra.nome}" foi adquirido.`);
             fecharModal();
         } catch (err) {
-            alert("Erro ao processar compra: " + err.message);
+            showAlert("Erro ao processar compra: " + err.message);
         } finally {
             setProcessando(false);
         }
@@ -190,7 +156,7 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
         if (!ficha || !ficha.id) return;
 
         if (itemInv.stats_personalizados?.slot || itemInv.equipado) {
-            alert("Você não pode vender um item que está equipado! Desequipe-o primeiro na sua aba de equipamentos.");
+            showAlert("Você não pode vender um item que está equipado! Desequipe-o primeiro na sua aba de equipamentos.");
             return;
         }
 
@@ -280,6 +246,9 @@ export default function LojaClienteTab({ itensCatalogo, ficha, setFicha }) {
                         setBusca={setBusca}
                         categoriaFiltro={categoriaFiltro}
                         setCategoriaFiltro={setCategoriaFiltro}
+                        categoriaArmaFiltro={categoriaArmaFiltro}
+                        setCategoriaArmaFiltro={setCategoriaArmaFiltro}
+                        categoriasArmas={categoriasArmasDisponiveis}
                         ordenacao={ordenacao}
                         setOrdenacao={setOrdenacao}
                         apenasRaros={apenasRaros}

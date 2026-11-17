@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { FaTrash, FaMagic } from 'react-icons/fa';
 import { fichaService } from '../../../services/fichaService';
 import { Badge } from '../../../components/ui';
+import { useAlert } from '../../../contexts/useAlert';
 import styles from './FichaFormMagiasClasse.module.css';
 
 export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formClasses, setFormClasses }) {
+    const { showAlert } = useAlert();
     const [catalogoMagias, setCatalogoMagias] = useState([]);
     const [carregando, setCarregando] = useState(false);
 
@@ -56,7 +58,7 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
         if (!idMagiaSelecionada) return;
 
         if (magiasAtuais.length >= limiteMagias) {
-            alert(`⛔ Limite atingido! Sua habilidade de magia está no nível ${nivelHabilidadeMagia}, permitindo no máximo ${limiteMagias} ${limiteMagias === 1 ? 'magia' : 'magias'}. Aumente o nível da habilidade para aprender mais.`);
+            showAlert(`⛔ Limite atingido! Sua habilidade de magia está no nível ${nivelHabilidadeMagia}, permitindo no máximo ${limiteMagias} ${limiteMagias === 1 ? 'magia' : 'magias'}. Aumente o nível da habilidade para aprender mais.`);
             e.target.value = "";
             return;
         }
@@ -67,7 +69,7 @@ export default function FichaFormMagiasClasse({ classeObjeto, indexClasse, formC
         // Evita duplicar a mesma magia na mesma classe
         const jaPossui = magiasAtuais.some(m => m.catalogo_feitico_id === magiaOficial.id || m.nome === magiaOficial.nome);
         if (jaPossui) {
-            alert(`⚠️ Esta magia já foi aprendida.`);
+            showAlert(`⚠️ Esta magia já foi aprendida.`);
             e.target.value = "";
             return;
         }
