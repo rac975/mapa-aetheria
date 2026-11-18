@@ -340,6 +340,9 @@ export function useCharacterSheet(id, navigate) {
     } else if (campo === 'exp') {
       maximo = 10;
       fallback = 0;
+    } else if (campo === 'zenit') {
+      maximo = 9999999;
+      fallback = 0;
     }
 
     const valorBrutoAtual = Number(ficha[campo] !== undefined && ficha[campo] !== null ? ficha[campo] : fallback);

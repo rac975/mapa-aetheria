@@ -8,11 +8,10 @@ export default function BootScreen({ onComplete }) {
 
   const logs = [
     "INICIALIZANDO NÚCLEO ARCANO v3.5...",
-    "ESTABELECENDO CONEXÃO SEGURA COM SUPABASE (SSL)...",
-    "VERIFICANDO POLÍTICAS DE SEGURANÇA (RLS)... MESTRE AUTENTICADO.",
-    "CARREGANDO TOPOGRAFIA DE AETHERIA (WEBP 6.60MB)...",
-    "CÔMPONDO MELODIAS PARA TOCAR NO PLANO DE FUNDO...",
-    "SINCRONIZANDO CRÔNICAS DA NUVEM...",
+    "ESTABELECENDO CONEXÃO COM SUPABASE...",
+    "VALIDANDO TOKENS DE SESSÃO E MODO MESTRE...",
+    "CARREGANDO TOPOGRAFIA DE AETHERIA...",
+    "SINCRONIZANDO DADOS E CATÁLOGOS EM TEMPO REAL...",
     "SISTEMA PRONTO. BEM-VINDO AO AETHERIAMAP."
   ];
 
@@ -68,8 +67,8 @@ export default function BootScreen({ onComplete }) {
 
         {/* Barra de progresso linear */}
         <div className="boot-progress-track">
-          <div 
-            className="boot-progress-fill" 
+          <div
+            className="boot-progress-fill"
             style={{ '--boot-progress': `${progresso}%` }}
           ></div>
         </div>

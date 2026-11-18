@@ -19,6 +19,8 @@ export default function ExibirPiloto(props) {
     setFrameKey,
     modulosAtivos,
     modulosReserva,
+    modulosAdquiridos,
+    zenitAtual,
     customizacoes,
     veiculoInvocado,
     custoCompressao,
@@ -38,6 +40,7 @@ export default function ExibirPiloto(props) {
     handleAtivarModulo,
     handleDesativarModulo,
     handleAdicionarAoHangar,
+    handleComprarModulo,
     handleRemoverDaReserva,
     handleChangeCustomizacao,
     handleAlternarCompressao,
@@ -101,7 +104,10 @@ export default function ExibirPiloto(props) {
         catalogoModulos={catalogoModulos}
         modulosReserva={modulosReserva}
         modulosAtivos={modulosAtivos}
+        modulosAdquiridos={modulosAdquiridos}
+        zenitAtual={zenitAtual}
         onAdicionar={handleAdicionarAoHangar}
+        onComprar={handleComprarModulo}
       />
 
       {feedback && (

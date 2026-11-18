@@ -372,8 +372,6 @@ export function useCombatTracker(isMestre) {
     };
 
     if (isNpc && participanteAtual) {
-      payload.maxHp = novoHpMax;
-      payload.maxMp = novoMpMax;
       if (novoHpMax > 0 && Number(participanteAtual.hp_atual) > novoHpMax) {
         payload.hp_atual = clampRecursoNpc(participanteAtual.hp_atual, novoHpMax, 0);
         payload.dano_acumulado = calcularDanoAcumulado(payload.hp_atual, novoHpMax);

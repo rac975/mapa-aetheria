@@ -9,21 +9,20 @@
   background: var(--color-bg-elevated);
   padding: var(--space-2);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-gold);
+  border: 1px solid var(--color-border-gold-muted);
   backdrop-filter: var(--backdrop-blur);
   pointer-events: auto;
-  box-shadow: var(--shadow-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .zoom-controls button {
-  background: var(--color-bg-surface);
-  color: var(--color-text-gold);
-  border: 1px solid var(--color-border-gold);
+  background: var(--color-bg-input);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-gold-muted);
   width: 36px;
   height: 36px;
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -31,11 +30,24 @@
   transition: all var(--transition-fast);
 }
 
-.zoom-controls button:hover,
+.zoom-controls button:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+  box-shadow: 0 0 10px var(--color-border-gold-muted);
+  transform: translateY(-1px);
+}
+
 .zoom-controls button.ativo {
-  background: var(--color-border-gold);
-  color: var(--color-text-inverse);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(var(--color-border-gold-rgb), 0.25), rgba(var(--color-ether-cyan-rgb), 0.15));
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.zoom-controls button:focus-visible {
+  outline: 2px solid var(--color-ether-cyan);
+  outline-offset: 2px;
 }
 
 .zoom-controls .divisor-controles {

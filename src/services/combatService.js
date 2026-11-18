@@ -1,4 +1,7 @@
 import { supabase } from './supabase.js';
+import { sanitizarPayloadIniciativa } from '../domain/fabula/combatRules.js';
+
+export { sanitizarPayloadIniciativa };
 
 /**
  * Service para persistência e tempo real de combate (Iniciativa, Estado da Cena, Ações Rápidas, Relógios e Fichas).
@@ -82,9 +85,10 @@ export const combatService = {
    * Insere um novo combatente na tabela iniciativa_combate.
    */
   async addParticipante(combatente) {
+    const payloadSanitizado = sanitizarPayloadIniciativa(combatente);
     return await supabase
       .from('iniciativa_combate')
-      .insert([combatente])
+      .insert([payloadSanitizado])
       .select();
   },
 
@@ -92,9 +96,10 @@ export const combatService = {
    * Atualiza campos de um combatente.
    */
   async updateParticipante(id, updates) {
+    const payloadSanitizado = sanitizarPayloadIniciativa(updates);
     return await supabase
       .from('iniciativa_combate')
-      .update(updates)
+      .update(payloadSanitizado)
       .eq('id', id);
   },
 

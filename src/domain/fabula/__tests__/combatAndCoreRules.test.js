@@ -30,7 +30,9 @@ import {
   ajustarRecursoNpc,
   isNpcCombatente,
   extrairHpMax,
-  extrairMpMax
+  extrairMpMax,
+  construirCombatente,
+  sanitizarPayloadIniciativa
 } from '../combatRules.js';
 import {
   calcularDefesasEIniciativa,
@@ -474,5 +476,40 @@ const resNpcConjura = resolverAcaoCombate({
   custoPm: 10
 });
 assert(resNpcConjura.updatesAtor.mp_atual === 5, 'NPC gasta PM e novo valor é 5');
+
+console.log('--- 8. Testando Padronização de Colunas do Banco (hp_max, mp_max) e Sanitização de Payload ---');
+const combatenteCriado = construirCombatente({
+  nome: 'Goblin Xamã',
+  tipo: 'inimigo',
+  hpMax: 45,
+  mpMax: 35,
+  npcId: 4
+});
+assert(combatenteCriado.hp_max === 45, 'construirCombatente define hp_max canônico');
+assert(combatenteCriado.mp_max === 35, 'construirCombatente define mp_max canônico');
+assert(combatenteCriado.maxHp === undefined, 'construirCombatente NÃO deve conter maxHp');
+assert(combatenteCriado.maxMp === undefined, 'construirCombatente NÃO deve conter maxMp');
+
+// Sanitização de payload vindo com chaves legadas ou heterogêneas
+const payloadLegado = {
+  nome: 'Monstro Antigo',
+  maxHp: 60,
+  maxMp: 40,
+  pv_max: 60,
+  pm_max: 40,
+  pv_atual: 55,
+  pm_atual: 35,
+  dano_acumulado: 5
+};
+const payloadLimpo = sanitizarPayloadIniciativa(payloadLegado);
+assert(payloadLimpo.hp_max === 60, 'sanitizarPayloadIniciativa mapeia maxHp para hp_max');
+assert(payloadLimpo.mp_max === 40, 'sanitizarPayloadIniciativa mapeia maxMp para mp_max');
+assert(payloadLimpo.maxHp === undefined, 'sanitizarPayloadIniciativa remove maxHp');
+assert(payloadLimpo.maxMp === undefined, 'sanitizarPayloadIniciativa remove maxMp');
+assert(payloadLimpo.pv_max === undefined, 'sanitizarPayloadIniciativa remove pv_max');
+assert(payloadLimpo.pm_max === undefined, 'sanitizarPayloadIniciativa remove pm_max');
+assert(payloadLimpo.pv_atual === undefined, 'sanitizarPayloadIniciativa remove pv_atual');
+assert(payloadLimpo.pm_atual === undefined, 'sanitizarPayloadIniciativa remove pm_atual');
+assert(payloadLimpo.dano_acumulado === 5, 'sanitizarPayloadIniciativa preserva colunas válidas');
 
 console.log('TODOS OS TESTES CORE BOOK E COMBATE PASSARAM COM SUCESSO!');

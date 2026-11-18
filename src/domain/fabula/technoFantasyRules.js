@@ -37,7 +37,411 @@ export const ECDYSIS_HP_COST = 10;
 export const PSYCHIC_GIFTS_CATALOG = [];
 export const THERIOFORMS_CATALOG = [];
 export const VEHICLE_FRAMES = {};
-export const VEHICLE_MODULES_CATALOG = [];
+
+/**
+ * Catálogo canônico de módulos de veículo (usado como fallback rico antes/caso offline do Supabase).
+ */
+export const VEHICLE_MODULES_CATALOG = [
+  // --- MÓDULOS DE FÁBRICA / CHASSIS (CUSTO 0) ---
+  {
+    id: 'blindagem_padrao',
+    key: 'blindagem_padrao',
+    nome: 'Blindagem Padrão',
+    tipo: 'armadura',
+    categoria: 'Armadura',
+    slot_cost: 1,
+    bonus_defesa: 1,
+    bonus_mdef: 1,
+    bonus_iniciativa: 0,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Placas protetoras reforçadas instaladas na estrutura do veículo. Concede +1 na Defesa e +1 na Defesa Mágica.',
+    restricoes: 'Apenas 1 módulo de armadura ativo por vez.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'blindagem_flexivel',
+    key: 'blindagem_flexivel',
+    nome: 'Blindagem Flexível',
+    tipo: 'armadura',
+    categoria: 'Armadura',
+    slot_cost: 1,
+    bonus_defesa: 0,
+    bonus_mdef: 0,
+    bonus_iniciativa: 0,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Estrutura leve e maleável: trata a Defesa como dado de DES + 2 e a Defesa Mágica como dado de AST + 1.',
+    restricoes: 'Apenas 1 módulo de armadura ativo por vez.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'modulo_escudo_padrao',
+    key: 'modulo_escudo_padrao',
+    nome: 'Módulo de Escudo',
+    tipo: 'escudo',
+    categoria: 'Escudo',
+    slot_cost: 1,
+    bonus_defesa: 2,
+    bonus_mdef: 0,
+    bonus_iniciativa: 0,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Escudo integrado retrátil acoplado ao chassi do veículo pessoal. Concede +2 na Defesa.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'suporte_mira_avancada',
+    key: 'suporte_mira_avancada',
+    nome: 'Mira Avançada',
+    tipo: 'suporte',
+    categoria: 'Suporte',
+    slot_cost: 1,
+    precisao_bonus: 1,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Sensores ópticos e telêmetros acoplados aumentam em +1 todos os testes de Precisão com armas veiculares.',
+    restricoes: 'Não pode ter módulos de suporte idênticos ativos.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'suporte_turbo',
+    key: 'suporte_turbo',
+    nome: 'Turbo Propulsor',
+    tipo: 'suporte',
+    categoria: 'Suporte',
+    slot_cost: 1,
+    bonus_iniciativa: 4,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Propulsores auxiliares que concedem +4 no modificador de Iniciativa do veículo.',
+    restricoes: 'Não pode ter módulos de suporte idênticos ativos.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'suporte_contragolpe',
+    key: 'suporte_contragolpe',
+    nome: 'Módulo de Contragolpe',
+    tipo: 'suporte',
+    categoria: 'Suporte',
+    slot_cost: 1,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Sistemas defensivos que reagem a ataques à distância sofridos pelo veículo pessoal.',
+    restricoes: 'Não pode ter módulos de suporte idênticos ativos.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'arma_veicular_lamina',
+    key: 'arma_veicular_lamina',
+    aliases: ['arma_espada'],
+    nome: 'Lâmina Integrada',
+    tipo: 'arma',
+    categoria: 'Espada',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 8】',
+    dano_bonus: 8,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Lâmina retrátil de combate veicular forjada diretamente no chassi do veículo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'arma_veicular_canhao',
+    key: 'arma_veicular_canhao',
+    aliases: ['arma_machado'],
+    nome: 'Canhão Leve Integrado',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 8】',
+    dano_bonus: 8,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 0,
+    de_fabrica: true,
+    descricao: 'Disparador balístico leve de longo alcance acoplado na torreta ou blindagem externa.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+
+  // --- MÓDULOS DE OFICINA / LOJA (CUSTO > 0 EM ZÊNITES) ---
+  {
+    id: 'blindagem_pesada',
+    key: 'blindagem_pesada',
+    nome: 'Blindagem Pesada',
+    tipo: 'armadura',
+    categoria: 'Armadura',
+    slot_cost: 2,
+    def_fixa: 12,
+    mdef_fixa: 8,
+    bonus_iniciativa: -2,
+    custo: 300,
+    de_fabrica: false,
+    descricao: 'Blindagem reforçada maciça: fixa a Defesa em 12 e a Defesa Mágica em 8, com penalidade de -2 na Iniciativa.',
+    restricoes: 'Apenas 1 módulo de armadura ativo por vez. Ocupa 2 slots.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'alicate_richter',
+    key: 'alicate_richter',
+    nome: 'Alicate Richter',
+    tipo: 'arma',
+    categoria: 'Luta',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 12】',
+    dano_bonus: 12,
+    tipo_dano: 'terra',
+    slot_cost: 1,
+    custo: 800,
+    de_fabrica: false,
+    descricao: 'Esta arma pode ser usada para interagir com a cena como se fosse uma mão livre normal.',
+    propriedades: 'Luta ✦ Corpo a corpo ✦ Sem características',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'desmontador',
+    key: 'desmontador',
+    nome: 'Desmontador',
+    tipo: 'arma',
+    categoria: 'Pesada',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 12】',
+    dano_bonus: 12,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 900,
+    de_fabrica: false,
+    descricao: 'Causa 5 pontos de dano adicional a construtos.',
+    propriedades: 'Pesada ✦ Corpo a corpo',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'bateria_fimbulvetr',
+    key: 'bateria_fimbulvetr',
+    nome: 'Bateria Fimbulvetr',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 10】',
+    dano_bonus: 10,
+    tipo_dano: 'gelo',
+    slot_cost: 1,
+    custo: 1000,
+    de_fabrica: false,
+    descricao: 'Dano causado por esta arma ignora Resistências.',
+    propriedades: 'Arma de fogo ✦ À distância ✦ Ignora Resistências',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'canhao_de_pem',
+    key: 'canhao_de_pem',
+    nome: 'Canhão de PEM',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 14】',
+    dano_bonus: 14,
+    tipo_dano: 'raio',
+    slot_cost: 1,
+    custo: 1100,
+    de_fabrica: false,
+    descricao: 'Todo construto atingido por um ataque desta arma fica atordoado.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'pique_de_vanguarda',
+    key: 'pique_de_vanguarda',
+    nome: 'Pique de Vanguarda',
+    tipo: 'arma',
+    categoria: 'Lança',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 14】',
+    dano_bonus: 14,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 1100,
+    de_fabrica: false,
+    descricao: 'Esta arma causa 5 pontos de dano adicional durante a primeira rodada de cada conflito.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'crescens',
+    key: 'crescens',
+    nome: 'Crescens',
+    tipo: 'arma',
+    categoria: 'Espada',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 12】',
+    dano_bonus: 12,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 1200,
+    de_fabrica: false,
+    descricao: 'Esta arma causa dano adicional igual ao seu NP em Veículo Pessoal (página 160).',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'garragancho',
+    key: 'garragancho',
+    nome: 'Garragancho',
+    tipo: 'arma',
+    categoria: 'Malho',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 10】',
+    dano_bonus: 10,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 1200,
+    de_fabrica: false,
+    descricao: 'Ataques com esta arma podem atingir criaturas voadoras.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'arbalesta_mk_ii',
+    key: 'arbalesta_mk_ii',
+    nome: 'Arbalesta Mk II',
+    tipo: 'arma',
+    categoria: 'Arco',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 16】',
+    dano_bonus: 16,
+    tipo_dano: 'fisico',
+    slot_cost: 1,
+    custo: 1300,
+    de_fabrica: false,
+    descricao: 'Esta arma causa 5 pontos de dano adicional a criaturas voadoras ou que estejam no ar.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'defletor_reativo',
+    key: 'defletor_reativo',
+    nome: 'Defletor Reativo',
+    tipo: 'escudo',
+    categoria: 'Escudo',
+    slot_cost: 1,
+    bonus_defesa: 2,
+    bonus_mdef: 0,
+    custo: 1500,
+    de_fabrica: false,
+    descricao: 'Enquanto estiver pilotando seu veículo pessoal e tiver um módulo de suporte de Contragolpe ativo (p. 168), você pode aplicar seus efeitos mesmo quando um dos personagens a bordo do seu veículo pessoal for atingido por um ataque corpo a corpo (em vez de apenas à distância). ✦ Este módulo tem todos os efeitos de um módulo de Escudo (p. 167).',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'mercurialis',
+    key: 'mercurialis',
+    nome: 'Mercurialis',
+    tipo: 'arma',
+    categoria: 'Arcano',
+    alcance: 'corpo_a_corpo',
+    atributos_precisao: ['des', 'von'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 12】',
+    dano_bonus: 12,
+    tipo_dano: 'fogo',
+    slot_cost: 1,
+    custo: 1600,
+    de_fabrica: false,
+    descricao: 'Quando um feitiço lançado por você causar dano a uma única criatura, ele causa 5 pontos de dano adicional ao alvo.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'morfescudo',
+    key: 'morfescudo',
+    nome: 'Morfescudo',
+    tipo: 'escudo',
+    categoria: 'Escudo',
+    slot_cost: 1,
+    bonus_defesa: 2,
+    bonus_mdef: 0,
+    custo: 1800,
+    de_fabrica: false,
+    descricao: 'No começo do seu turno durante um conflito, você pode desativar este módulo para ativar um módulo de arma diferente inativo à sua escolha. Se fizer isso, no final do seu turno, você terá que desativar o módulo escolhido e ativar este módulo novamente. Este módulo tem todos os efeitos de um módulo de Escudo (p. 167).',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'rifle_de_plasma',
+    key: 'rifle_de_plasma',
+    nome: 'Rifle de Plasma',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 14】',
+    dano_bonus: 14,
+    tipo_dano: 'luz',
+    slot_cost: 1,
+    custo: 1800,
+    de_fabrica: false,
+    descricao: 'Testes de Precisão com esta arma são considerados um sucesso crítico se os dois dados mostrarem o mesmo número (e não for uma falha crítica).',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'aerowitzer',
+    key: 'aerowitzer',
+    nome: 'Aerowitzer',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 0,
+    dano_formula: '【RA + 18】',
+    dano_bonus: 18,
+    tipo_dano: 'ar',
+    slot_cost: 1,
+    bonus_defesa: 2,
+    custo: 2000,
+    de_fabrica: false,
+    descricao: 'Enquanto estiver pilotando seu veículo pessoal, você recebe +2 na Defesa.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  },
+  {
+    id: 'canhao_de_dobra',
+    key: 'canhao_de_dobra',
+    nome: 'Canhão de Dobra',
+    tipo: 'arma',
+    categoria: 'Arma de fogo',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 1,
+    dano_formula: '【RA + 18】',
+    dano_bonus: 18,
+    tipo_dano: 'trevas',
+    slot_cost: 1,
+    custo: 2800,
+    de_fabrica: false,
+    descricao: 'Ataques com esta arma têm multi (2). Além disso, dano causado por esta arma ignora Resistência, Imunidades e Absorção.',
+    restricoes: 'Um veículo pessoal com este módulo ativo não pode ter outro módulo de arma ativo.',
+    fonte: 'Atlas Tecno-Fantasia'
+  }
+];
 
 /**
  * Parâmetros matemáticos mínimos de estrutura de chassi (usados como fallback seguro antes do carregamento assíncrono).
@@ -136,6 +540,26 @@ export function obterModuloPorId(idOuAlias, catalogoModulos = []) {
         (Array.isArray(m.aliases) && m.aliases.includes(idOuAlias))
     ) || null
   );
+}
+
+/**
+ * Identifica se um módulo de veículo é nativo/de fábrica (custo 0 Z).
+ * @param {Object} modulo Objeto do módulo
+ * @returns {boolean}
+ */
+export function isModuloDeFabrica(modulo) {
+  if (!modulo) return false;
+  return Number(modulo.custo) === 0 || Boolean(modulo.de_fabrica) || Boolean(modulo.isNativo);
+}
+
+/**
+ * Retorna o preço de aquisição em zênites de um módulo veicular.
+ * @param {Object} modulo Objeto do módulo
+ * @returns {number} Custo em zênites (0 se de fábrica)
+ */
+export function obterPrecoModulo(modulo) {
+  if (!modulo) return 0;
+  return Number(modulo.custo) || 0;
 }
 
 // =============================================================================

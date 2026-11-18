@@ -49,8 +49,23 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
         className={`${styles.sidebar} ${recolhida ? styles.recolhida : ''} ${styles.noPrint}`}
         aria-label="Navegação principal"
       >
+        <button
+          type="button"
+          className={styles.collapseBtn}
+          onClick={() => setRecolhida((prev) => !prev)}
+          title={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
+          aria-label={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
+        >
+          {recolhida ? <FaChevronRight /> : <FaChevronLeft />}
+        </button>
+
         <div className={styles.brandHeader}>
-          <Link to="/" className={styles.brandLink} title="AetheriaMap">
+          <Link
+            to="/"
+            className={styles.brandLink}
+            title={recolhida ? 'Aetheria - Início' : 'AetheriaMap - Início'}
+            aria-label="Ir para a página inicial (Aetheria)"
+          >
             <span className={styles.brandEmblem} aria-hidden="true">
               <LuSparkles />
             </span>
@@ -61,16 +76,6 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
               </div>
             )}
           </Link>
-
-          <button
-            type="button"
-            className={styles.collapseBtn}
-            onClick={() => setRecolhida((prev) => !prev)}
-            title={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
-            aria-label={recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral'}
-          >
-            {recolhida ? <FaChevronRight /> : <FaChevronLeft />}
-          </button>
         </div>
 
         <nav className={styles.nav}>
