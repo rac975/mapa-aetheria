@@ -145,8 +145,23 @@ export function extrairCredencialCracha(textoOuUrl) {
     return { tipo: 'invalido', id: null, token: null };
   }
 
-  // 1. Tentativa de parse como URL ou rota contendo /ficha/:id ou /editar/:id
-  const matchRotaFicha = texto.match(/\/(?:ficha|editar)\/([A-Za-z0-9_-]+)\/?(?:\?.*)?$/i);
+  // 1. Código direto no formato de Token Puro (ex: CYR-525 ou PLY-001) - Máxima prioridade e menor matriz QR
+  if (!texto.includes('/') && !texto.includes(':') && validarFormatoTokenCracha(texto)) {
+    return { tipo: 'token', id: null, token: normalizarTokenCracha(texto) };
+  }
+
+  // 2. URI interna curta de crachá (ex: aetheria:ficha:CYR-525 ou aetheria:CYR-525)
+  const matchUriAetheria = texto.match(/^aetheria:(?:ficha:)?([A-Za-z0-9_-]+)$/i);
+  if (matchUriAetheria && matchUriAetheria[1]) {
+    const extraidoUri = matchUriAetheria[1].trim();
+    if (validarFormatoTokenCracha(extraidoUri)) {
+      return { tipo: 'token', id: null, token: normalizarTokenCracha(extraidoUri) };
+    }
+    return { tipo: 'id', id: extraidoUri, token: null };
+  }
+
+  // 3. Tentativa de parse como URL ou rota contendo /ficha/:id, /editar/:id ou /f/:id
+  const matchRotaFicha = texto.match(/\/(?:ficha|editar|f)\/([A-Za-z0-9_-]+)\/?(?:\?.*)?$/i);
   if (matchRotaFicha && matchRotaFicha[1] && matchRotaFicha[1].toLowerCase() !== 'login') {
     const extraido = matchRotaFicha[1].trim();
     if (validarFormatoTokenCracha(extraido) && !/^\d+$/.test(extraido)) {
@@ -155,7 +170,7 @@ export function extrairCredencialCracha(textoOuUrl) {
     return { tipo: 'id', id: extraido, token: null };
   }
 
-  // 2. Tentativa via objeto URL (query params ?token=... ou ?id=...)
+  // 4. Tentativa via objeto URL (query params ?token=... ou ?id=...)
   if (texto.startsWith('http://') || texto.startsWith('https://')) {
     try {
       const urlObj = new URL(texto);
@@ -169,7 +184,15 @@ export function extrairCredencialCracha(textoOuUrl) {
       }
       const hashParts = (urlObj.hash || '').replace(/^#\/?/, '').split('/').filter(Boolean);
       const ultimoSegmento = hashParts[hashParts.length - 1];
-      if (ultimoSegmento && ultimoSegmento.toLowerCase() !== 'ficha' && ultimoSegmento.toLowerCase() !== 'login') {
+      if (
+        ultimoSegmento &&
+        ultimoSegmento.toLowerCase() !== 'ficha' &&
+        ultimoSegmento.toLowerCase() !== 'f' &&
+        ultimoSegmento.toLowerCase() !== 'login'
+      ) {
+        if (validarFormatoTokenCracha(ultimoSegmento) && !/^\d+$/.test(ultimoSegmento)) {
+          return { tipo: 'token', id: null, token: normalizarTokenCracha(ultimoSegmento) };
+        }
         return { tipo: 'id', id: ultimoSegmento, token: null };
       }
     } catch {
@@ -177,12 +200,7 @@ export function extrairCredencialCracha(textoOuUrl) {
     }
   }
 
-  // 3. Código direto no formato de Token (ex: PLY-001)
-  if (validarFormatoTokenCracha(texto)) {
-    return { tipo: 'token', id: null, token: normalizarTokenCracha(texto) };
-  }
-
-  // 4. ID numérico ou UUID direto
+  // 5. ID numérico ou UUID direto
   if (/^\d+$/.test(texto) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(texto)) {
     return { tipo: 'id', id: texto, token: null };
   }
@@ -293,22 +311,40 @@ export function validarIntegridadeSessaoJogador({
     };
   }
 
-  // Verifica conflito de ID entre a URL (:id) e a ficha vinculada à sessão do jogador
+  // Verifica conflito entre a URL (:id) e a ficha/token vinculados à sessão do jogador
   if (
     idRota !== null &&
     idRota !== undefined &&
-    String(idRota).trim() !== '' &&
-    sessaoLocal.fichaId !== null &&
-    sessaoLocal.fichaId !== undefined &&
-    String(sessaoLocal.fichaId) !== String(idRota)
+    String(idRota).trim() !== ''
   ) {
-    return {
-      valida: false,
-      modo: 'jogador',
-      motivo: MOTIVOS_ENCERRAMENTO.CONFLITO_ID,
-      titulo: 'Conflito de ID de Personagem',
-      mensagem: 'Conflito de ID detectado: sua sessão está vinculada a outro personagem. Por favor, reconecte seu crachá.'
-    };
+    const rotaLimpa = String(idRota).trim();
+    if (validarFormatoTokenCracha(rotaLimpa)) {
+      // Se a rota for um token (ex: PLY-001), compara diretamente contra o token ativo da sessão
+      if (
+        sessaoLocal.token &&
+        normalizarTokenCracha(sessaoLocal.token) !== normalizarTokenCracha(rotaLimpa)
+      ) {
+        return {
+          valida: false,
+          modo: 'jogador',
+          motivo: MOTIVOS_ENCERRAMENTO.CONFLITO_ID,
+          titulo: 'Conflito de Crachá de Personagem',
+          mensagem: 'Conflito de crachá detectado: sua sessão está vinculada a outro personagem. Por favor, reconecte seu crachá.'
+        };
+      }
+    } else if (
+      sessaoLocal.fichaId !== null &&
+      sessaoLocal.fichaId !== undefined &&
+      String(sessaoLocal.fichaId) !== rotaLimpa
+    ) {
+      return {
+        valida: false,
+        modo: 'jogador',
+        motivo: MOTIVOS_ENCERRAMENTO.CONFLITO_ID,
+        titulo: 'Conflito de ID de Personagem',
+        mensagem: 'Conflito de ID detectado: sua sessão está vinculada a outro personagem. Por favor, reconecte seu crachá.'
+      };
+    }
   }
 
   // Se os dados do banco já foram carregados, valida correspondência exata de ID e Token

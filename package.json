@@ -13,9 +13,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
-    "html5-qrcode": "^2.3.8",
+    "@yudiel/react-qr-scanner": "^2.6.0",
     "qrcode.react": "^4.2.0",
-    "react": "^19.2.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.13.1",
     "react-zoom-pan-pinch": "^4.2.0"

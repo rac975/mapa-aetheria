@@ -12,12 +12,18 @@
 
 .card {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cardSucesso {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 20px var(--color-core-green-glow);
 }
 
 .header {
@@ -31,6 +37,7 @@
   color: var(--color-text-gold);
   font-family: var(--font-family-serif);
   font-weight: 700;
+  font-size: var(--font-size-md);
 }
 
 .closeBtn {
@@ -50,11 +57,63 @@
 }
 
 .cameraContainer {
+  position: relative;
   background: var(--color-bg-base);
   min-height: 320px;
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-md);
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cameraSucesso {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 24px var(--color-core-green-glow);
+}
+
+.scannerContainer {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  position: relative;
+}
+
+.scannerVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feedbackOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 245, 160, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+  animation: pulseSucesso 0.35s ease-out;
+}
+
+.feedbackIcon {
+  font-size: 4rem;
+  color: var(--color-core-green);
+  filter: drop-shadow(0 0 16px var(--color-core-green));
+}
+
+.erroBox {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--color-crise-bright);
+}
+
+.erroIcon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .status {
@@ -63,4 +122,33 @@
   color: var(--color-text-gold);
   font-size: var(--font-size-sm);
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.statusSucesso {
+  color: var(--color-core-green);
+  font-weight: 700;
+}
+
+.statusInlineIcon {
+  color: var(--color-core-green);
+  font-size: var(--font-size-base);
+}
+
+@keyframes pulseSucesso {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

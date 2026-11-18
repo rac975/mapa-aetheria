@@ -42,12 +42,32 @@ console.log('--- 2. Testando Extração de Credenciais via QR Code e Texto (Item
 const credUrlHash = extrairCredencialCracha('https://rac975.github.io/mapa-aetheria/#/ficha/42');
 assert.deepEqual(credUrlHash, { tipo: 'id', id: '42', token: null });
 
+const credUrlTokenFicha = extrairCredencialCracha('https://rac975.github.io/mapa-aetheria/#/ficha/CYR-101');
+assert.deepEqual(credUrlTokenFicha, { tipo: 'token', id: null, token: 'CYR-101' });
+
+const credUrlRotaCompacta = extrairCredencialCracha('https://rac975.github.io/mapa-aetheria/#/f/CYR-101');
+assert.deepEqual(credUrlRotaCompacta, { tipo: 'token', id: null, token: 'CYR-101' });
+
+const credUrlRotaCompactaId = extrairCredencialCracha('https://rac975.github.io/mapa-aetheria/#/f/42');
+assert.deepEqual(credUrlRotaCompactaId, { tipo: 'id', id: '42', token: null });
+
 const credTokenDireto = extrairCredencialCracha('cyr-777');
 assert.deepEqual(credTokenDireto, { tipo: 'token', id: null, token: 'CYR-777' });
 
+// Testando Token Puro do QR Code (Payload de 7 caracteres para matriz 21x21)
+const credTokenPuro = extrairCredencialCracha('CYR-525');
+assert.deepEqual(credTokenPuro, { tipo: 'token', id: null, token: 'CYR-525' });
+
+// Testando URIs internas compactas de crachá
+const credUriFicha = extrairCredencialCracha('aetheria:ficha:CYR-525');
+assert.deepEqual(credUriFicha, { tipo: 'token', id: null, token: 'CYR-525' });
+
+const credUriDireta = extrairCredencialCracha('aetheria:CYR-525');
+assert.deepEqual(credUriDireta, { tipo: 'token', id: null, token: 'CYR-525' });
+
 const credInvalida = extrairCredencialCracha('   ');
 assert.equal(credInvalida.tipo, 'invalido');
-console.log('✅ PASSED: Leitura de QR Code (URL hash, token direto e inválido)');
+console.log('✅ PASSED: Leitura de QR Code (URL canônica, compacta, token direto e inválido)');
 
 console.log('--- 3. Testando God Mode e Imunidade da Sessão do Mestre (Item 6) ---');
 
@@ -119,6 +139,25 @@ const conflitoRota = validarIntegridadeSessaoJogador({
 });
 assert.equal(conflitoRota.valida, false);
 assert.equal(conflitoRota.motivo, MOTIVOS_ENCERRAMENTO.CONFLITO_ID);
+
+// Jogador comum acessando a rota pelo seu próprio token de crachá (ex: QR Code /f/CYR-101) tem acesso permitido
+const rotaTokenProprio = validarIntegridadeSessaoJogador({
+  sessaoLocal: sessaoJogadorValida,
+  idRota: 'CYR-101',
+  isMestre: false,
+  agora
+});
+assert.equal(rotaTokenProprio.valida, true);
+
+// Jogador comum tentando acessar a rota com o token de outro herói sofre bloqueio
+const rotaTokenOutro = validarIntegridadeSessaoJogador({
+  sessaoLocal: sessaoJogadorValida,
+  idRota: 'OUT-999',
+  isMestre: false,
+  agora
+});
+assert.equal(rotaTokenOutro.valida, false);
+assert.equal(rotaTokenOutro.motivo, MOTIVOS_ENCERRAMENTO.CONFLITO_ID);
 
 // Jogador comum com token rotacionado no banco é direcionado para reconexão
 const tokenRotacionado = validarIntegridadeSessaoJogador({

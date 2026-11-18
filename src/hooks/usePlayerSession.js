@@ -63,20 +63,27 @@ export function usePlayerSession({
     const sessao = playerSessionService.obterSessao();
     if (!sessao || !sessao.token) return;
 
-    // Verifica conflito de ID caso haja uma ficha ativa na tela divergente da sessão
+    // Verifica conflito de ID ou Crachá caso haja uma ficha ativa na tela divergente da sessão
     if (
       fichaIdAtiva !== null &&
       fichaIdAtiva !== undefined &&
       sessao.fichaId !== null &&
-      sessao.fichaId !== undefined &&
-      String(fichaIdAtiva) !== String(sessao.fichaId)
+      sessao.fichaId !== undefined
     ) {
-      dispararInvalidez({
-        titulo: 'Conflito de ID de Personagem',
-        mensagem: 'O ID da ficha aberta entrou em conflito com a sessão ativa. Por favor, reconecte seu crachá.',
-        motivo: 'conflito_id'
-      });
-      return;
+      const ativaStr = String(fichaIdAtiva);
+      const isTokenAtivo = playerSessionService.validarFormatoToken(ativaStr);
+      const emConflito = isTokenAtivo
+        ? playerSessionService.normalizarToken(sessao.token) !== playerSessionService.normalizarToken(ativaStr)
+        : String(sessao.fichaId) !== ativaStr;
+
+      if (emConflito) {
+        dispararInvalidez({
+          titulo: 'Conflito de Personagem',
+          mensagem: 'O ID ou código da ficha aberta entrou em conflito com a sessão ativa. Por favor, reconecte seu crachá.',
+          motivo: 'conflito_id'
+        });
+        return;
+      }
     }
 
     const status = playerSessionService.verificarExpiracao({ isMestre: false });

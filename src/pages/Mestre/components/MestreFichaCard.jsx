@@ -19,7 +19,8 @@ export default function MestreFichaCard({
   onDeletarFicha
 }) {
   const qrContainerRef = useRef(null);
-  const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${ficha.id}`;
+  // Codifica puramente o token limpo do jogador no QR Code (redução radical de densidade para matriz 21x21)
+  const tokenCracha = ficha.jogador_token || String(ficha.id);
   const hpMaxFinal = ficha.hp_max_real || ficha.hp_max || 30;
   const mpMaxFinal = ficha.mp_max_real || ficha.mp_max || 20;
   const ipMaxFinal = ficha.pi_max_real || ficha.ip_max_real || ficha.pi_max || 6;
@@ -114,11 +115,13 @@ export default function MestreFichaCard({
             <div className={styles.qrSvgBox}>
               <div ref={qrContainerRef}>
                 <QRCodeSVG
-                  value={urlFicha}
+                  value={tokenCracha}
                   size={72}
-                  fgColor="#060d17"
+                  fgColor="#000000"
                   bgColor="#ffffff"
-                  level="M"
+                  level="L"
+                  includeMargin={true}
+                  marginSize={2}
                 />
               </div>
             </div>
@@ -148,7 +151,7 @@ export default function MestreFichaCard({
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                onBaixarQr(ficha.nome_personagem, qrContainerRef.current);
+                onBaixarQr(ficha.nome_personagem, qrContainerRef.current, { token: tokenCracha });
               }}
               title="Baixar SVG do QR Code para crachá físico"
             >

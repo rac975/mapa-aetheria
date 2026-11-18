@@ -1,30 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaShieldAlt, FaUserPlus, FaDice } from 'react-icons/fa';
-import { LuUsers, LuSparkles } from 'react-icons/lu';
+import { FaShieldAlt, FaUserPlus } from 'react-icons/fa';
+import { LuUsers } from 'react-icons/lu';
 import { fichaService } from '../../services/fichaService';
 import { playerSessionService } from '../../services/playerSessionService';
 import { useToast } from '../../contexts/ToastContext';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
-import { Button, Input, Modal, LoadingScreen } from '../../components/ui';
+import { baixarQRCodeSvg } from '../../utils/qrDownload';
+import { Button, LoadingScreen } from '../../components/ui';
 import MestreFichaCard from './components/MestreFichaCard';
+import CriarCrachaModal from './components/CriarCrachaModal';
 import styles from './MestreFichasPage.module.css';
 
 /**
  * Processa a ficha calculando os tetos reais de PV, PM e PI (Fabula Ultima)
  */
 function processarFicha(ficha) {
-  const itens = ficha.itens || [];
-  const itensEquipados = itens.filter(i => i.stats_personalizados?.slot);
-
+  const itensEquipados = (ficha.itens || []).filter((i) => i.stats_personalizados?.slot);
   const atributos = {
     destreza: ficha.destreza || 8,
     astucia: ficha.astucia || 8,
     vigor: ficha.vigor || 8,
     vontade: ficha.vontade || 8
   };
-
   const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados, ficha);
 
   return {
@@ -40,13 +39,8 @@ export default function MestreFichasPage({ isMestre }) {
   const [fichas, setFichas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
-  const { coldDelete } = useToast();
-
-  const [nomeJogador, setNomeJogador] = useState('');
-  const [nomePersonagem, setNomePersonagem] = useState('');
-  const [registroId, setRegistroId] = useState('');
-
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
+  const { coldDelete } = useToast();
   const navigate = useNavigate();
 
   const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
@@ -54,8 +48,7 @@ export default function MestreFichasPage({ isMestre }) {
   const carregarTodasFichas = useCallback(async () => {
     try {
       const fichasData = await fichaService.getFichasCompletasMestre();
-      const fichasCompletas = (fichasData || []).map(processarFicha);
-      setFichas(fichasCompletas);
+      setFichas((fichasData || []).map(processarFicha));
     } finally {
       setCarregando(false);
     }
@@ -67,19 +60,10 @@ export default function MestreFichasPage({ isMestre }) {
     }
     carregarTodasFichas();
 
-    // Subscription em tempo real para sincronização instantânea de PV, PM, PI e dados da ficha
     const canalFichas = fichaService.subscribeFichasPersonagens((payload) => {
       if (payload?.eventType === 'UPDATE' && payload?.new) {
         setFichas((fichasAtuais) =>
-          fichasAtuais.map((f) => {
-            if (f.id === payload.new.id) {
-              return processarFicha({
-                ...f,
-                ...payload.new
-              });
-            }
-            return f;
-          })
+          fichasAtuais.map((f) => (f.id === payload.new.id ? processarFicha({ ...f, ...payload.new }) : f))
         );
       } else {
         carregarTodasFichas();
@@ -91,31 +75,10 @@ export default function MestreFichasPage({ isMestre }) {
     };
   }, [modoMestreAtivo, carregarTodasFichas]);
 
-  const gerarIdAutomatico = (nome, tokenExtraIgnorar = null) => {
-    if (!nome.trim()) return '';
-    const tokensExistentes = fichas
-      .map((f) => f.jogador_token)
-      .concat(tokenExtraIgnorar ? [tokenExtraIgnorar] : [])
-      .filter(Boolean);
-    return playerSessionService.gerarTokenUnico(nome, tokensExistentes);
-  };
-
-  const handleNomePersonagemChange = (e) => {
-    const novoNome = e.target.value;
-    setNomePersonagem(novoNome);
-    setRegistroId(gerarIdAutomatico(novoNome));
-  };
-
-  const handleRegistroIdChange = (e) => {
-    setRegistroId(playerSessionService.aplicarMascaraToken(e.target.value));
-  };
-
-  const handleCriarFicha = async (e) => {
-    e.preventDefault();
+  const handleCriarFicha = async ({ nomeJogador, nomePersonagem, registroId }) => {
     const tokenNormalizado = playerSessionService.normalizarToken(registroId);
-    if (!nomeJogador.trim() || !nomePersonagem.trim() || !tokenNormalizado) return;
+    if (!nomeJogador || !nomePersonagem || !tokenNormalizado) return;
 
-    // Verifica conflito de token com outras fichas já cadastradas na mesa
     const tokenDuplicado = fichas.some(
       (f) => playerSessionService.normalizarToken(f.jogador_token) === tokenNormalizado
     );
@@ -129,8 +92,8 @@ export default function MestreFichasPage({ isMestre }) {
     }
 
     const { error } = await fichaService.criarFicha({
-      nome_jogador: nomeJogador.trim(),
-      nome_personagem: nomePersonagem.trim(),
+      nome_jogador: nomeJogador,
+      nome_personagem: nomePersonagem,
       jogador_token: tokenNormalizado,
       identidade: 'Herói de Aetheria',
       tema: 'Aventura',
@@ -145,9 +108,6 @@ export default function MestreFichasPage({ isMestre }) {
     });
 
     if (!error) {
-      setNomeJogador('');
-      setNomePersonagem('');
-      setRegistroId('');
       setModalCriarAberto(false);
       carregarTodasFichas();
     } else {
@@ -160,7 +120,11 @@ export default function MestreFichasPage({ isMestre }) {
   };
 
   const handleRotacionarToken = async (ficha) => {
-    const novoToken = gerarIdAutomatico(ficha.nome_personagem, ficha.jogador_token);
+    const tokensExistentes = fichas.map((f) => f.jogador_token).filter(Boolean);
+    const novoToken = playerSessionService.gerarTokenUnico(
+      ficha.nome_personagem,
+      tokensExistentes.concat([ficha.jogador_token])
+    );
     if (!novoToken) return;
 
     try {
@@ -193,7 +157,7 @@ export default function MestreFichasPage({ isMestre }) {
         </>
       ),
       onRemove: (it) => {
-        setFichas(prev => prev.filter(f => f.id !== it.id));
+        setFichas((prev) => prev.filter((f) => f.id !== it.id));
       },
       onCommit: async (it) => {
         await fichaService.deletarFicha(it.id);
@@ -206,26 +170,8 @@ export default function MestreFichasPage({ isMestre }) {
     });
   };
 
-  const baixarQRCode = (personagemNome, svgElement) => {
-    if (!svgElement) return;
-
-    try {
-      const svgData = new XMLSerializer().serializeToString(svgElement);
-      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
-      const downloadLink = document.createElement('a');
-      downloadLink.href = url;
-      downloadLink.download = `QRCode_${personagemNome.replace(/\s+/g, '_')}.svg`;
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Erro ao gerar o download do QR Code:', error);
-    }
+  const handleBaixarQr = (personagemNome, svgElement, opcoes = {}) => {
+    baixarQRCodeSvg(personagemNome, svgElement, { tamanhoDesejado: 512, ...opcoes });
   };
 
   if (!modoMestreAtivo) {
@@ -268,7 +214,7 @@ export default function MestreFichasPage({ isMestre }) {
               key={f.id}
               ficha={f}
               onAbrirFicha={(fichaId) => navigate(`/mestre/editar/${fichaId}`)}
-              onBaixarQr={baixarQRCode}
+              onBaixarQr={handleBaixarQr}
               onRotacionarToken={handleRotacionarToken}
               onDeletarFicha={handleDeletarFicha}
             />
@@ -276,59 +222,14 @@ export default function MestreFichasPage({ isMestre }) {
         </div>
       )}
 
-      <Modal
-        isOpen={modalCriarAberto}
-        onClose={() => setModalCriarAberto(false)}
-        title="Emitir Novo Crachá de Aetheria"
-        size="md"
-        footer={
-          <div className={styles.modalFooter}>
-            <Button variant="secondary" onClick={() => setModalCriarAberto(false)}>
-              Cancelar
-            </Button>
-            <Button variant="primary" onClick={handleCriarFicha}>
-              <LuSparkles /> Gerar Crachá
-            </Button>
-          </div>
-        }
-      >
-        <form onSubmit={handleCriarFicha} className={styles.modalForm}>
-          <Input
-            label="Nome do Jogador (Real)"
-            placeholder="Ex: Rafael"
-            value={nomeJogador}
-            onChange={(e) => setNomeJogador(e.target.value)}
-            required
-          />
-
-          <Input
-            label="Nome do Personagem"
-            placeholder="Ex: Cyrion"
-            value={nomePersonagem}
-            onChange={handleNomePersonagemChange}
-            required
-          />
-
-          <div className={styles.inputWithAction}>
-            <Input
-              label="REGISTRO ID (Automático)"
-              value={registroId}
-              onChange={handleRegistroIdChange}
-              className={styles.inputFlex}
-              required
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              className={styles.diceBtn}
-              title="Gerar novo código aleatório único"
-              onClick={() => setRegistroId(gerarIdAutomatico(nomePersonagem, registroId))}
-            >
-              <FaDice />
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      {modalCriarAberto && (
+        <CriarCrachaModal
+          isOpen={modalCriarAberto}
+          onClose={() => setModalCriarAberto(false)}
+          onCriarFicha={handleCriarFicha}
+          fichasExistentes={fichas}
+        />
+      )}
 
       <CustomAlert
         isOpen={alerta.isOpen}

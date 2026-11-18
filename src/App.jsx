@@ -151,6 +151,7 @@ function App() {
                 <Route path="/ficha/login" element={<FichaLoginPage isMestre={isMestre} />} />
                 <Route path="/ficha" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
                 <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
+                <Route path="/f/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
 
                 <Route path="/mestre/npcs" element={<ListaNPCsPage />} />
                 <Route path="/mestre/npcs/:id" element={<FichaNPCPage />} />

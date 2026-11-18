@@ -234,6 +234,59 @@ export const playerSessionService = {
     return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   },
 
+  /**
+   * Busca e valida uma ficha diretamente pelo token de crachá do jogador (ex: PLY-001).
+   * Retorna os dados da ficha, o status de validade e o ID real da ficha (UUID) para navegação interna,
+   * além de configurar a sessão ativa no navegador para evitar erro de acesso inválido.
+   *
+   * @param {string} token - Token de crachá do jogador (ex: 'PLY-001')
+   * @param {Object} [opcoes={}]
+   * @param {boolean} [opcoes.iniciarSessao=true] - Se deve ativar e persistir a sessão do jogador
+   * @returns {Promise<{ valido: boolean, ficha: Object|null, fichaId: string|null, token: string|null, nomePersonagem?: string, motivo?: string }>}
+   */
+  async buscarFichaPorToken(token, { iniciarSessao = true } = {}) {
+    if (!token || typeof token !== 'string') {
+      return { valido: false, ficha: null, fichaId: null, token: null, motivo: 'token_ausente' };
+    }
+
+    const tokenLimpo = normalizarTokenCracha(token);
+    if (!validarFormatoTokenCracha(tokenLimpo)) {
+      return { valido: false, ficha: null, fichaId: null, token: tokenLimpo, motivo: 'formato_invalido' };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('fichas_personagens')
+        .select('*')
+        .ilike('jogador_token', tokenLimpo)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao buscar ficha por token:', error);
+        return { valido: false, ficha: null, fichaId: null, token: tokenLimpo, motivo: 'erro_banco' };
+      }
+
+      if (!data) {
+        return { valido: false, ficha: null, fichaId: null, token: tokenLimpo, motivo: 'nao_encontrado' };
+      }
+
+      if (iniciarSessao && !this.isGodModeAtivo()) {
+        this.iniciarSessao(data.jogador_token, data.id, data.nome_personagem);
+      }
+
+      return {
+        valido: true,
+        ficha: data,
+        fichaId: String(data.id),
+        token: data.jogador_token,
+        nomePersonagem: data.nome_personagem
+      };
+    } catch (err) {
+      console.error('Exceção ao buscar ficha por token:', err);
+      return { valido: false, ficha: null, fichaId: null, token: tokenLimpo, motivo: 'excecao' };
+    }
+  },
+
   // =========================================================================
   // 3. CICLO DE VIDA DA SESSÃO DE JOGADOR (ITEM 7)
   // =========================================================================
@@ -374,11 +427,15 @@ export const playerSessionService = {
       };
     }
 
+    const isToken = idRota && validarFormatoTokenCracha(String(idRota).trim());
+
     return {
       permitido: true,
       modo: 'jogador',
-      fichaIdAlvo: idRota ? String(idRota) : (sessaoLocal.fichaId ? String(sessaoLocal.fichaId) : null),
-      token: sessaoLocal.token,
+      fichaIdAlvo: isToken
+        ? (sessaoLocal?.fichaId ? String(sessaoLocal.fichaId) : null)
+        : (idRota ? String(idRota) : (sessaoLocal?.fichaId ? String(sessaoLocal.fichaId) : null)),
+      token: isToken ? normalizarTokenCracha(idRota) : (sessaoLocal?.token || null),
       sessao: sessaoLocal
     };
   },

@@ -82,10 +82,10 @@ export default function FichaLoginPage({ isMestre = false }) {
         }
     };
 
-    const handleScanSuccess = async (decodedText) => {
+    const handleScanSuccess = async (decodedText, credencialExtraida) => {
         setMostrarScanner(false);
         try {
-            const credencial = playerSessionService.extrairCredencial(decodedText);
+            const credencial = credencialExtraida || playerSessionService.extrairCredencial(decodedText);
             if (credencial.tipo === 'invalido') {
                 setAlerta({
                     isOpen: true,
@@ -95,10 +95,18 @@ export default function FichaLoginPage({ isMestre = false }) {
                 return;
             }
 
-            const data = await fichaService.getFichaParaIdentificacao({
-                id: credencial.id,
-                token: credencial.token
-            });
+            let data = null;
+            if (credencial.token) {
+                const resToken = await playerSessionService.buscarFichaPorToken(credencial.token);
+                if (resToken.valido && resToken.ficha) {
+                    data = resToken.ficha;
+                }
+            } else if (credencial.id) {
+                data = await fichaService.getFichaParaIdentificacao({ id: credencial.id });
+                if (data) {
+                    playerSessionService.iniciarSessao(data.jogador_token, data.id, data.nome_personagem);
+                }
+            }
 
             if (!data) {
                 setAlerta({
@@ -109,7 +117,6 @@ export default function FichaLoginPage({ isMestre = false }) {
                 return;
             }
 
-            playerSessionService.iniciarSessao(data.jogador_token, data.id, data.nome_personagem);
             setPersonagemLogando({ id: data.id, nome: data.nome_personagem });
             setMostrarBoasVindas(true);
         } catch {
