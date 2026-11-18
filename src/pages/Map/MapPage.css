@@ -8,7 +8,10 @@
   box-sizing: border-box;
   padding: var(--space-2);
   overflow: hidden;
-  transition: padding-right 0.3s ease;
+  transition: padding-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  contain: layout;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mapa-loading {
@@ -35,6 +38,10 @@
   background-color: var(--color-bg-base);
   display: flex;
   flex-direction: column;
+  contain: layout paint;
+  isolation: isolate;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mapa-container {
@@ -45,11 +52,26 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  contain: strict;
+  isolation: isolate;
+  touch-action: none;
+  overscroll-behavior: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
 }
 
 .react-transform-wrapper {
   width: 100% !important;
   height: 100% !important;
+  contain: layout paint;
+  touch-action: none;
+  overscroll-behavior: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .react-transform-component {
@@ -59,6 +81,11 @@
   justify-content: center !important;
   align-items: center !important;
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  contain: layout style;
 }
 
 .mapa-conteudo-interno {
@@ -79,7 +106,12 @@
   object-fit: contain;
   transform: translateZ(0);
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   -webkit-font-smoothing: antialiased;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  image-rendering: auto;
 }
 
 .tita-overlay-item {
@@ -92,6 +124,8 @@
   z-index: 20;
   transition: transform var(--transition-normal), filter var(--transition-normal);
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .tita-overlay-item img {
@@ -152,8 +186,12 @@
   max-height: 100%;
   aspect-ratio: 12800 / 8533.3;
   margin: auto;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
   will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  contain: layout style;
 }
 
 .titan-status-dot {

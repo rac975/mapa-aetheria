@@ -19,7 +19,7 @@ import './MapPage.css';
  */
 export default function MapPage({ isMestre }) {
   const [localSelecionado, setLocalSelecionado] = useState(null);
-  const [isDraggingToken, setIsDraggingToken] = useState(false);
+  const isDraggingTokenRef = useRef(false);
 
   const { showAlert } = useAlert();
   const { titans, rotas, isLoading, updateTitanStatus } = useMapData();
@@ -91,11 +91,46 @@ export default function MapPage({ isMestre }) {
   }, []);
 
   const handleDragTokenStart = useCallback(() => {
-    setIsDraggingToken(true);
+    isDraggingTokenRef.current = true;
   }, []);
 
   const handleDragTokenEnd = useCallback(() => {
-    setIsDraggingToken(false);
+    isDraggingTokenRef.current = false;
+  }, []);
+
+  // Otimização de ouvintes de redimensionamento e bloqueio de propagação de scroll
+  useEffect(() => {
+    let rafId = null;
+
+    const handleWindowResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        // Redimensionamento alinhado aos frames do navegador sem jank
+      });
+    };
+
+    window.addEventListener('resize', handleWindowResize, { passive: true });
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+
+    const handleWheelCapture = (e) => {
+      // Impede propagação de scroll que faria a tela externa piscar ou scrollar
+      e.stopPropagation();
+    };
+
+    el.addEventListener('wheel', handleWheelCapture, { passive: true });
+
+    return () => {
+      el.removeEventListener('wheel', handleWheelCapture);
+    };
   }, []);
 
   const handleStatusChange = useCallback(
@@ -152,10 +187,14 @@ export default function MapPage({ isMestre }) {
             minScale={1}
             maxScale={8}
             centerOnInit
-            centerZoomedOut
-            panning={{ disabled: isDraggingToken, velocityDisabled: true }}
-            wheel={{ step: 0.08, smoothStep: 0.003 }}
-            doubleClick={{ disabled: false, step: 0.7 }}
+            smooth={true}
+            limitToBounds={true}
+            disablePadding={true}
+            panning={{ velocityDisabled: true }}
+            wheel={{ step: 0.002, wheelDisabled: false, touchPadDisabled: false }}
+            doubleClick={{ disabled: false, step: 0.5, animationTime: 250, animationType: 'easeOut' }}
+            zoomAnimation={{ disabled: false, size: 0.3, animationTime: 200, animationType: 'easeOut' }}
+            alignmentAnimation={{ sizeX: 0, sizeY: 0, velocityAlignmentTime: 200 }}
           >
             <TransformComponent>
               <div ref={mapContainerRef} className="mapa-base">

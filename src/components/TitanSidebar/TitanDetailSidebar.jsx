@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import TitanRotasManager from '../TitanRotasManager/TitanRotasManager';
 import TitanContratosManager from '../TitanContratosManager/TitanContratosManager';
 import './TitanDetailSidebar.css';
 import { FaTimes } from 'react-icons/fa';
 
-export default function TitanDetailSidebar({ titan, isMestre, onClose, onStatusChange }) {
+function TitanDetailSidebar({ titan, isMestre, onClose, onStatusChange }) {
   if (!titan) return null;
 
   const getStatusBadge = (status) => {
@@ -70,3 +71,5 @@ export default function TitanDetailSidebar({ titan, isMestre, onClose, onStatusC
     </aside>
   );
 }
+
+export default memo(TitanDetailSidebar);

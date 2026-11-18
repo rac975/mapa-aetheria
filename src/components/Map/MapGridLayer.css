@@ -8,7 +8,9 @@
   z-index: 5;
   overflow: hidden;
   transform: translateZ(0);
-  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: strict;
 }
 
 .grid-tactical-pattern {
