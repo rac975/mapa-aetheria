@@ -8,7 +8,7 @@ import {
 } from 'react-icons/fa';
 import { useToast } from '../../contexts/ToastContext';
 import { useProjetos } from '../../hooks/useProjetos';
-import { Button, Badge, Card, Input } from '../../components/ui';
+import { Button, Badge, Card, Input, LoadingScreen } from '../../components/ui';
 import { POTENCIAS_PROJETO, STATUS_PROJETO } from '../../domain/fabula/projetoRules';
 import ProjetoCard from './components/ProjetoCard';
 import ProjetoFormModal from './components/ProjetoFormModal';
@@ -182,7 +182,10 @@ export default function ProjetosPage({ isMestre }) {
       )}
 
       {isLoading ? (
-        <div className={styles.emptyState}>Carregando projetos da oficina...</div>
+        <LoadingScreen
+          mensagem="Sincronizando projetos da Oficina e Aventura..."
+          subtitulo="Oficina Arcanotécnica"
+        />
       ) : projetosFiltrados.length === 0 ? (
         <Card className={styles.emptyState} ornamented={false}>
           <FaDraftingCompass className={styles.emptyIcon} />

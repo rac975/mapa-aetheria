@@ -9,6 +9,7 @@ import {
   FaSignOutAlt
 } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
+import { useEasterEggNucleo } from '../../hooks/useEasterEggNucleo';
 import { getGruposNavegacao } from './sidebarConfig';
 import SidebarMobileNav from './SidebarMobileNav';
 import styles from './Sidebar.module.css';
@@ -17,6 +18,7 @@ const STORAGE_COLLAPSED_KEY = 'aetheria_sidebar_collapsed';
 
 export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSettings }) {
   const location = useLocation();
+  const { nucleoAtivo, registrarClique } = useEasterEggNucleo();
   const [recolhida, setRecolhida] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_COLLAPSED_KEY) === 'true';
@@ -46,7 +48,9 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
   return (
     <>
       <aside
-        className={`${styles.sidebar} ${recolhida ? styles.recolhida : ''} ${styles.noPrint}`}
+        className={`${styles.sidebar} ${recolhida ? styles.recolhida : ''} ${
+          nucleoAtivo ? styles.nucleoAtivo : ''
+        } ${styles.noPrint}`}
         aria-label="Navegação principal"
       >
         <button
@@ -62,8 +66,15 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
         <div className={styles.brandHeader}>
           <Link
             to="/"
-            className={styles.brandLink}
-            title={recolhida ? 'Aetheria - Início' : 'AetheriaMap - Início'}
+            className={`${styles.brandLink} ${nucleoAtivo ? styles.nucleoLink : ''}`}
+            onClick={registrarClique}
+            title={
+              nucleoAtivo
+                ? '⚡ Modo Núcleo de Aether Ativado!'
+                : recolhida
+                ? 'Aetheria - Início'
+                : 'AetheriaMap - Início'
+            }
             aria-label="Ir para a página inicial (Aetheria)"
           >
             <span className={styles.brandEmblem} aria-hidden="true">
@@ -72,7 +83,17 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
             {!recolhida && (
               <div className={styles.brandText}>
                 <h2 className={styles.brandTitle}>Aetheria</h2>
-                <span className={styles.brandSub}>Fabula Ultima Atlas</span>
+                <span className={styles.brandSub}>
+                  {nucleoAtivo ? 'Modo Núcleo' : 'Fabula Ultima Atlas'}
+                </span>
+                {nucleoAtivo && (
+                  <div className={styles.nucleoBarContainer} aria-live="polite">
+                    <div className={styles.nucleoBarTrack}>
+                      <div className={styles.nucleoBarFill} />
+                    </div>
+                    <span className={styles.nucleoBarLabel}>RESSONÂNCIA 100%</span>
+                  </div>
+                )}
               </div>
             )}
           </Link>
@@ -151,6 +172,8 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
         isMestre={isMestre}
         isRotaAtiva={isRotaAtiva}
         mobileMenuAberto={mobileMenuAberto}
+        nucleoAtivo={nucleoAtivo}
+        onLogoClick={registrarClique}
         onToggleMenu={() => setMenuAbertoNaRota(mobileMenuAberto ? null : location.pathname)}
         onFecharMenu={() => setMenuAbertoNaRota(null)}
         onOpenSettings={onOpenSettings}

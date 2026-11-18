@@ -7,7 +7,7 @@ import { playerSessionService } from '../../services/playerSessionService';
 import { useToast } from '../../contexts/ToastContext';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
-import { Button, Input, Modal } from '../../components/ui';
+import { Button, Input, Modal, LoadingScreen } from '../../components/ui';
 import MestreFichaCard from './components/MestreFichaCard';
 import styles from './MestreFichasPage.module.css';
 
@@ -253,7 +253,7 @@ export default function MestreFichasPage({ isMestre }) {
       </header>
 
       {carregando ? (
-        <p className={styles.loadingContainer}>Carregando fichas da mesa...</p>
+        <LoadingScreen mensagem="Sincronizando fichas e crachás da mesa..." />
       ) : fichas.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nenhuma ficha cadastrada na mesa ainda.</p>

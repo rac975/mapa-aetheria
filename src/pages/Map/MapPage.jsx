@@ -11,6 +11,7 @@ import MapTokensLayer from '../../components/Map/MapTokensLayer';
 import MapControls from '../../components/Map/MapControls';
 import AnimatedShipRoute from '../../components/Map/AnimatedShipRoute/AnimatedShipRoute';
 import TitanDetailSidebar from '../../components/TitanSidebar/TitanDetailSidebar';
+import { LoadingScreen } from '../../components/ui';
 import './MapPage.css';
 
 /**
@@ -159,8 +160,8 @@ export default function MapPage({ isMestre }) {
 
   if (isLoading) {
     return (
-      <div className="mapa-wrapper mapa-loading">
-        Carregando mapa de Aetheria...
+      <div className="mapa-wrapper">
+        <LoadingScreen subtitulo="Topografia de Aetheria" />
       </div>
     );
   }

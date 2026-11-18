@@ -1,0 +1,307 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: var(--color-text-main);
+  font-family: var(--font-family-sans);
+  user-select: none;
+}
+
+.fullscreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(var(--color-bg-surface-rgb), 0.95) 0%,
+    var(--color-bg-base) 100%
+  );
+  backdrop-filter: var(--backdrop-blur);
+}
+
+.inline {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  flex: 1;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(var(--color-bg-surface-rgb), 0.7) 0%,
+    rgba(6, 13, 23, 0.9) 100%
+  );
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-gold-muted);
+}
+
+.gridBackground {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(56, 239, 239, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 239, 239, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  max-width: 580px;
+  width: 100%;
+  text-align: center;
+}
+
+/* Core Crystal Animado */
+.coreWrapper {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.outerRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px dashed var(--color-border-gold-muted);
+  animation: rotateClockwise 12s linear infinite;
+  opacity: 0.6;
+}
+
+.middleRing {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-top-color: var(--color-ether-cyan);
+  border-bottom-color: var(--color-core-green);
+  animation: rotateCounterClockwise 5s linear infinite;
+  filter: drop-shadow(0 0 6px var(--color-ether-cyan-glow));
+}
+
+.crystal {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  transform: rotate(45deg);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    135deg,
+    rgba(56, 239, 239, 0.35) 0%,
+    rgba(0, 245, 160, 0.45) 50%,
+    rgba(10, 25, 47, 0.95) 100%
+  );
+  border: 2px solid var(--color-ether-cyan);
+  box-shadow: 
+    0 0 16px var(--color-ether-cyan-glow),
+    0 0 30px rgba(0, 245, 160, 0.35),
+    inset 0 0 10px rgba(56, 239, 239, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: crystalPulse 2.4s ease-in-out infinite alternate;
+}
+
+.crystalInner {
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ether-cyan);
+  font-size: var(--font-size-lg);
+  filter: drop-shadow(0 0 8px #fff);
+}
+
+.energyPulse {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-ether-cyan-glow) 0%, transparent 70%);
+  animation: energyExpand 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+/* Barra de Ressonância */
+.resonanceBar {
+  width: 140px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.resonanceTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--color-ether-cyan), transparent);
+  animation: resonanceSlide 1.8s ease-in-out infinite alternate;
+}
+
+/* Tipografia e Mensagens */
+.textWrapper {
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.mensagem {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-text-main);
+  text-shadow: 0 0 12px var(--color-ether-cyan-glow);
+  margin: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.mensagem.fade {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.subtitulo {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+}
+
+/* Dica de Lore / Regra */
+.tipBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(10, 25, 47, 0.6);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-surface);
+  animation: fadeIn 0.4s ease;
+  max-width: 480px;
+}
+
+.tipIcon {
+  color: var(--color-border-gold);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.tipText {
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+/* Variantes Cromáticas */
+.carmine .middleRing {
+  border-top-color: var(--color-villain-bright);
+  border-bottom-color: var(--color-crise-bright);
+  filter: drop-shadow(0 0 6px var(--color-villain-glow));
+}
+
+.carmine .crystal {
+  border-color: var(--color-villain-bright);
+  box-shadow: 
+    0 0 16px var(--color-villain-glow),
+    0 0 30px rgba(251, 113, 133, 0.35),
+    inset 0 0 10px rgba(225, 29, 72, 0.6);
+  background: linear-gradient(
+    135deg,
+    rgba(251, 113, 133, 0.35) 0%,
+    rgba(190, 24, 93, 0.45) 50%,
+    rgba(76, 5, 25, 0.95) 100%
+  );
+}
+
+.carmine .crystalInner {
+  color: var(--color-villain-bright);
+}
+
+.carmine .resonanceTrack {
+  background: linear-gradient(90deg, transparent, var(--color-villain-bright), transparent);
+}
+
+.gold .middleRing {
+  border-top-color: var(--color-border-gold-bright);
+  border-bottom-color: var(--color-pi);
+}
+
+.gold .crystal {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 0 16px var(--color-border-gold-glow);
+}
+
+.gold .crystalInner {
+  color: var(--color-border-gold-bright);
+}
+
+/* Animações Keyframes */
+@keyframes rotateClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateCounterClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes crystalPulse {
+  0% {
+    transform: rotate(45deg) scale(0.96);
+    filter: brightness(0.95);
+  }
+  100% {
+    transform: rotate(45deg) scale(1.08);
+    filter: brightness(1.25);
+  }
+}
+
+@keyframes energyExpand {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes resonanceSlide {
+  0% { left: 0; }
+  100% { left: 60%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

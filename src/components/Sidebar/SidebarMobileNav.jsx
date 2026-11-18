@@ -9,6 +9,8 @@ export default function SidebarMobileNav({
   isMestre,
   isRotaAtiva,
   mobileMenuAberto,
+  nucleoAtivo = false,
+  onLogoClick,
   onToggleMenu,
   onFecharMenu,
   onOpenSettings,
@@ -58,9 +60,17 @@ export default function SidebarMobileNav({
             aria-label="Menu completo de navegação"
           >
             <div className={styles.mobileDrawerHeader}>
-              <div className={styles.brandLink}>
+              <div
+                className={`${styles.brandLink} ${nucleoAtivo ? styles.nucleoLink : ''}`}
+                onClick={onLogoClick}
+                role="button"
+                tabIndex={0}
+                title={nucleoAtivo ? '⚡ Modo Núcleo de Aether Ativado!' : 'Aetheria'}
+              >
                 <span className={styles.brandEmblem}><LuSparkles /></span>
-                <span className={styles.brandTitle}>Aetheria</span>
+                <span className={styles.brandTitle}>
+                  {nucleoAtivo ? 'Aetheria ⚡' : 'Aetheria'}
+                </span>
               </div>
               <button
                 type="button"

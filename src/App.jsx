@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { playerSessionService } from './services/playerSessionService';
 import { fichaService } from './services/fichaService';
 import { usePlayerSession } from './hooks/usePlayerSession';
+import { useDocumentTitleVisibility } from './hooks/useDocumentTitleVisibility';
 import { ToastProvider } from './contexts/ToastContext';
 import { AlertProvider } from './contexts/AlertContext';
 import BootScreen from './components/BootScreen/BootScreen';
@@ -24,6 +25,8 @@ import ProjetosPage from './pages/Projetos/ProjetosPage';
 import './App.css';
 
 function App() {
+  useDocumentTitleVisibility();
+
   const [iniciado, setIniciado] = useState(false);
   const [isMestre, setIsMestre] = useState(() => playerSessionService.isGodModeAtivo());
   const [modalLoginAberto, setModalLoginAberto] = useState(false);

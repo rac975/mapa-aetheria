@@ -14,6 +14,10 @@ class AudioService {
     this.sfxClick = new Audio(`${baseUrl}assets/audio/sfx/sfx-click.wav`);
     this.sfxHover = new Audio(`${baseUrl}assets/audio/sfx/sfx-hover.wav`);
 
+    this.fanfareUrl = `${baseUrl}audio/sfx/victory-fanfare.mp3`;
+    this.fanfareFallbackUrl = `${baseUrl}assets/audio/sfx/victory-fanfare.mp3`;
+    this.sfxFanfare = new Audio(this.fanfareUrl);
+
     // Carrega estados iniciais do localStorage
     this.musicVolume = parseFloat(localStorage.getItem('aetheria_music_volume') ?? '0.4');
     this.sfxVolume = parseFloat(localStorage.getItem('aetheria_sfx_volume') ?? '0.5');
@@ -89,6 +93,47 @@ class AudioService {
     this.sfxHover.currentTime = 0;
     this.sfxHover.volume = this.sfxVolume * 0.4;
     this.sfxHover.play().catch(() => {});
+  }
+
+  playVictoryFanfare() {
+    if (this.isMuted || this.sfxVolume === 0) return Promise.resolve(false);
+
+    try {
+      if (!this.sfxFanfare) {
+        const baseUrl = import.meta.env.BASE_URL || '/';
+        this.sfxFanfare = new Audio(`${baseUrl}audio/sfx/victory-fanfare.mp3`);
+      }
+
+      this.sfxFanfare.currentTime = 0;
+      this.sfxFanfare.volume = Math.min(1, this.sfxVolume * 1.2);
+
+      const playPromise = this.sfxFanfare.play();
+      if (playPromise !== undefined) {
+        return playPromise
+          .then(() => true)
+          .catch(() => {
+            if (this.fanfareFallbackUrl && this.sfxFanfare.src !== this.fanfareFallbackUrl) {
+              this.sfxFanfare.src = this.fanfareFallbackUrl;
+              return this.sfxFanfare.play().then(() => true).catch(() => false);
+            }
+            return false;
+          });
+      }
+      return Promise.resolve(true);
+    } catch {
+      return Promise.resolve(false);
+    }
+  }
+
+  stopVictoryFanfare() {
+    if (this.sfxFanfare) {
+      try {
+        this.sfxFanfare.pause();
+        this.sfxFanfare.currentTime = 0;
+      } catch {
+        // Ignora erros ao parar
+      }
+    }
   }
 
   setupGlobalListeners() {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
+import { LoadingScreen } from '../../components/ui';
 import './JournalPage.css';
 import { FaScroll, FaCheckCircle, FaHourglassHalf, FaMapMarkerAlt, FaFilter, FaCoins } from 'react-icons/fa';
 
@@ -83,8 +84,8 @@ export default function JournalPage({ isMestre }) {
 
   if (loading) {
     return (
-      <div className="journal-wrapper journal-loading">
-        Carregando Diário de Missões de Aetheria...
+      <div className="journal-wrapper">
+        <LoadingScreen subtitulo="Diário de Missões e Contratos" />
       </div>
     );
   }

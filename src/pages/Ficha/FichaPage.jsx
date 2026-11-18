@@ -6,7 +6,7 @@ import { useCharacterSheet } from '../../hooks/useCharacterSheet';
 import { usePlayerSession } from '../../hooks/usePlayerSession';
 import { playerSessionService } from '../../services/playerSessionService';
 import { useAlert } from '../../contexts/useAlert';
-import { Button, Card } from '../../components/ui';
+import { Button, Card, LoadingScreen } from '../../components/ui';
 import FichaHeader from './secoes/FichaHeader';
 import FichaViewGrid from './components/FichaViewGrid';
 import FichaEditForm from './components/FichaEditForm';
@@ -97,12 +97,11 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
 
   if (carregando) {
     return (
-      <div className={`${styles.pageContainer} ${styles.centerWrapper}`}>
-        <div className={styles.loaderBox}>
-          <LuSparkles className={styles.spinnerIcon} />
-          <p>Lendo dados do herói...</p>
-        </div>
-      </div>
+      <LoadingScreen
+        fullscreen
+        mensagem="Sincronizando dados do personagem..."
+        subtitulo="Aetheria Hero Sheet"
+      />
     );
   }
 

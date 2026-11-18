@@ -5,6 +5,7 @@ import CronicaCard from '../CronicasCard/CronicasCard';
 import CronicaBusca from '../CronicasBusca/CronicasBusca';
 import CronicasModal from '../CronicasModal/CronicasModal';
 import CustomAlert from '../../CustomAlert/CustomAlert';
+import { LoadingScreen } from '../../ui';
 
 const CronicasManager = forwardRef(({ isMestre }, ref) => {
   const [cronicas, setCronicas] = useState([]);
@@ -170,7 +171,10 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
 
       <div className="cronicas-list">
         {carregando ? (
-          <p className="sem-cronicas">Carregando crônicas da nuvem...</p>
+          <LoadingScreen
+            mensagem="Sincronizando crônicas e memoriais de Aetheria..."
+            subtitulo="Memória da Campanha"
+          />
         ) : cronicasFiltradas.length === 0 ? (
           <p className="sem-cronicas">Nenhuma crônica encontrada.</p>
         ) : (

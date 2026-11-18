@@ -226,3 +226,12 @@
   scrollbar-width: thin;
   scrollbar-color: var(--color-border-gold-muted) var(--color-bg-base);
 }
+
+/* ==========================================================================
+   EASTER EGG GLOBAL - MODO NÚCLEO DE AETHER
+   ========================================================================== */
+body.modo-nucleo-ativo {
+  --color-border-gold-glow: rgba(56, 239, 239, 0.45);
+  --color-border-gold-bright: #38efef;
+  --color-ether-cyan-glow: rgba(0, 245, 160, 0.55);
+}
