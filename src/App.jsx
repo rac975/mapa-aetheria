@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { supabase } from './services/supabase';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { playerSessionService } from './services/playerSessionService';
+import { fichaService } from './services/fichaService';
+import { usePlayerSession } from './hooks/usePlayerSession';
 import { ToastProvider } from './contexts/ToastContext';
 import { AlertProvider } from './contexts/AlertContext';
 import BootScreen from './components/BootScreen/BootScreen';
@@ -23,7 +25,7 @@ import './App.css';
 
 function App() {
   const [iniciado, setIniciado] = useState(false);
-  const [session, setSession] = useState(null);
+  const [isMestre, setIsMestre] = useState(() => playerSessionService.isGodModeAtivo());
   const [modalLoginAberto, setModalLoginAberto] = useState(false);
   const [modalSettingsAberto, setModalSettingsAberto] = useState(false);
 
@@ -31,23 +33,92 @@ function App() {
   const [fichaAtiva, setFichaAtiva] = useState(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
 
+  // 2. Persistência e God Mode da sessão do Mestre (Item 6)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    let ativo = true;
+
+    playerSessionService.getSessaoMestre().then((sessaoMestre) => {
+      if (ativo) {
+        setIsMestre(Boolean(sessaoMestre));
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    const unsubscribe = playerSessionService.subscribeAuthMestre((_session, mestreAtivo) => {
+      if (ativo) {
+        setIsMestre(mestreAtivo);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      ativo = false;
+      unsubscribe();
+    };
   }, []);
 
-  const isMestre = !!session;
+  // Garante que o Mestre nunca permaneça na tela de login de jogador
+  useEffect(() => {
+    if (isMestre && location.pathname === '/ficha/login') {
+      navigate('/mestre/fichas', { replace: true });
+    }
+  }, [isMestre, location.pathname, navigate]);
+
+  // 3. Restaura a ficha ativa da sessão válida do jogador ao iniciar o app
+  useEffect(() => {
+    if (isMestre || fichaAtiva) return;
+
+    const sessaoJogador = playerSessionService.obterSessao();
+    if (!sessaoJogador?.token) return;
+
+    const status = playerSessionService.verificarExpiracao({ isMestre: false });
+    if (status.expirada) {
+      playerSessionService.encerrarSessao({
+        titulo: status.titulo,
+        mensagem: status.mensagem,
+        motivo: status.motivo
+      });
+      return;
+    }
+
+    let cancelado = false;
+    fichaService
+      .getFichaByIdOrToken({ id: sessaoJogador.fichaId, token: sessaoJogador.token })
+      .then((dados) => {
+        if (cancelado || !dados) return;
+        const sincronia = playerSessionService.sincronizarSessaoAtiva(dados, { isMestre: false });
+        if (sincronia.valida) {
+          setFichaAtiva(dados);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelado = true;
+    };
+  }, [isMestre, fichaAtiva]);
+
+  // 4. Controle global de sessão de jogador via Realtime/Token (Item 7)
+  usePlayerSession({
+    isMestre,
+    fichaIdAtiva: fichaAtiva?.id || null,
+    onSessaoExpirada: () => {
+      if (isMestre || playerSessionService.isGodModeAtivo()) return;
+      setFichaAtiva(null);
+      if (location.pathname !== '/ficha/login') {
+        navigate('/ficha/login', { replace: true });
+      }
+    },
+    onFichaRealtimeUpdate: (novosDados) => {
+      setFichaAtiva((prev) =>
+        prev && String(prev.id) === String(novosDados.id) ? { ...prev, ...novosDados } : prev
+      );
+    }
+  });
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await playerSessionService.logoutMestre();
+    setIsMestre(false);
   };
 
   return (
@@ -74,7 +145,7 @@ function App() {
 
                 {/* 2. Passamos setFichaAtiva para o FichaPage atualizar qual personagem está em uso */}
                 <Route path="/mestre/editar/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
-                <Route path="/ficha/login" element={<FichaLoginPage />} />
+                <Route path="/ficha/login" element={<FichaLoginPage isMestre={isMestre} />} />
                 <Route path="/ficha" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
                 <Route path="/ficha/:id" element={<FichaPage isMestre={isMestre} setFichaGlobal={setFichaAtiva} />} />
 

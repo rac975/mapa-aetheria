@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
+import { playerSessionService } from '../../../services/playerSessionService';
 
 export function useLojaSupabase(fichaProp, isMestre) {
     const [lojas, setLojas] = useState([]);
     const [lojaSelecionadaId, setLojaSelecionadaId] = useState(null);
     const [itensDaLoja, setItensDaLoja] = useState([]);
     const [todosItensCatalogo, setTodosItensCatalogo] = useState([]);
-    
-    // Estados para simulação de fichas (caso o Mestre esteja testando)
+
+    // Estados para simulação de fichas (caso o Mestre esteja testando) ou recuperação de sessão do jogador
     const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
     const [fichaSelecionadaLocalId, setFichaSelecionadaLocalId] = useState(null);
 
@@ -24,25 +25,19 @@ export function useLojaSupabase(fichaProp, isMestre) {
             return;
         }
 
-        const { data, error } = await supabase
-            .from('loja_itens')
-            .select('item_id, itens_catalogo(*)')
-            .eq('loja_id', lojaId);
-
-        if (!error && data) {
-            const itensFormatados = data.map(rel => rel.itens_catalogo).filter(Boolean);
-            setItensDaLoja(itensFormatados);
-        } else {
-            setItensDaLoja([]);
-        }
+        const itensFormatados = await lojaService.getItensDaLoja(lojaId);
+        setItensDaLoja(itensFormatados);
     }, []);
 
     // Recarregar dados globais do catálogo, lojas e estoque atual
     const recarregarDadosGlobais = useCallback(async () => {
-        const { data: dataLojas } = await supabase.from('lojas').select('*').order('nome');
+        const [dataLojas, dataCat] = await Promise.all([
+            lojaService.getLojas(),
+            lojaService.getItensCatalogo()
+        ]);
+
         if (dataLojas) {
             setLojas(dataLojas);
-            // Se a loja selecionada foi excluída, seleciona a primeira disponível
             if (lojaSelecionadaRef.current && !dataLojas.some(l => l.id === lojaSelecionadaRef.current)) {
                 const novaLojaId = dataLojas.length > 0 ? dataLojas[0].id : null;
                 setLojaSelecionadaId(novaLojaId);
@@ -50,7 +45,6 @@ export function useLojaSupabase(fichaProp, isMestre) {
             }
         }
 
-        const { data: dataCat } = await supabase.from('itens_catalogo').select('*').order('nome');
         if (dataCat) setTodosItensCatalogo(dataCat);
 
         if (lojaSelecionadaRef.current) {
@@ -63,7 +57,11 @@ export function useLojaSupabase(fichaProp, isMestre) {
         let isMounted = true;
 
         async function carregarTudo() {
-            const { data: dataLojas } = await supabase.from('lojas').select('*').order('nome');
+            const [dataLojas, dataCat] = await Promise.all([
+                lojaService.getLojas(),
+                lojaService.getItensCatalogo()
+            ]);
+
             if (!isMounted) return;
 
             if (dataLojas && dataLojas.length > 0) {
@@ -73,24 +71,30 @@ export function useLojaSupabase(fichaProp, isMestre) {
                 carregarItensDaLoja(primeiraLojaId);
             }
 
-            const { data: dataCat } = await supabase.from('itens_catalogo').select('*').order('nome');
-            if (isMounted && dataCat) {
+            if (dataCat) {
                 setTodosItensCatalogo(dataCat);
             }
 
             if (!fichaProp) {
-                const tokenJogador = localStorage.getItem('aetheria_jogador_token');
-                let query = supabase.from('fichas_personagens').select('*');
+                const isMestreEfetivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
+                const sessaoJogador = isMestreEfetivo ? null : playerSessionService.obterSessao();
 
-                if (!isMestre && tokenJogador) {
-                    query = query.eq('id', tokenJogador);
-                }
-
-                const { data: dataFichas } = await query.order('nome_personagem');
+                const dataFichas = await lojaService.getFichasParaLoja({
+                    isMestre: isMestreEfetivo,
+                    tokenJogador: sessaoJogador?.token || null,
+                    fichaIdSessao: sessaoJogador?.fichaId || null
+                });
 
                 if (isMounted && dataFichas && dataFichas.length > 0) {
                     setFichasDisponiveis(dataFichas);
-                    setFichaSelecionadaLocalId(dataFichas[0].id);
+                    const idPreferido = isMestreEfetivo
+                        ? playerSessionService.obterUltimaFichaMestre()
+                        : sessaoJogador?.fichaId;
+                    const fichaPreferida = dataFichas.find(f => String(f.id) === String(idPreferido));
+                    setFichaSelecionadaLocalId(fichaPreferida ? fichaPreferida.id : dataFichas[0].id);
+                } else if (isMounted) {
+                    setFichasDisponiveis([]);
+                    setFichaSelecionadaLocalId(null);
                 }
             }
         }
@@ -102,25 +106,21 @@ export function useLojaSupabase(fichaProp, isMestre) {
         };
     }, [carregarItensDaLoja, fichaProp, isMestre]);
 
-    // Sincronização em Tempo Real (Estável: conecta apenas 1 vez)
+    // Sincronização em Tempo Real via lojaService
     useEffect(() => {
-        const canalRealtime = supabase
-            .channel('lojas-global-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'itens_catalogo' }, () => {
+        const sub = lojaService.subscribeLojasRealtime({
+            onCatalogoOuLojaChange: () => {
                 recarregarDadosGlobais();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'lojas' }, () => {
-                recarregarDadosGlobais();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'loja_itens' }, () => {
+            },
+            onEstoqueLojaChange: () => {
                 if (lojaSelecionadaRef.current) {
                     carregarItensDaLoja(lojaSelecionadaRef.current);
                 }
-            })
-            .subscribe();
+            }
+        });
 
         return () => {
-            supabase.removeChannel(canalRealtime);
+            sub.unsubscribe();
         };
     }, [recarregarDadosGlobais, carregarItensDaLoja]);
 
@@ -129,7 +129,7 @@ export function useLojaSupabase(fichaProp, isMestre) {
         carregarItensDaLoja(lojaId);
     };
 
-    const fichaAtiva = fichaProp || fichasDisponiveis.find(f => f.id === fichaSelecionadaLocalId);
+    const fichaAtiva = fichaProp || fichasDisponiveis.find(f => String(f.id) === String(fichaSelecionadaLocalId)) || null;
 
     return {
         lojas,

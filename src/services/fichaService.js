@@ -71,9 +71,10 @@ export const fichaService = {
     let query = supabase.from('fichas_personagens').select('*');
 
     if (id) {
-      query = query.eq('id', id).single();
+      query = query.eq('id', id).maybeSingle();
     } else if (token) {
-      query = query.eq('jogador_token', token).single();
+      const tokenLimpo = String(token).trim().toUpperCase();
+      query = query.ilike('jogador_token', tokenLimpo).maybeSingle();
     } else {
       return null;
     }
@@ -83,7 +84,23 @@ export const fichaService = {
       console.error('Erro ao buscar ficha:', error);
       throw error;
     }
-    return data;
+    return data || null;
+  },
+
+  /**
+   * Busca o ID da primeira ficha disponível na mesa (auxiliar para o God Mode do Mestre)
+   * @returns {Promise<string|number|null>}
+   */
+  async getPrimeiraFichaId() {
+    const { data, error } = await supabase
+      .from('fichas_personagens')
+      .select('id')
+      .order('nome_personagem', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data.id;
   },
 
   /**
@@ -99,16 +116,28 @@ export const fichaService = {
       .select('id, jogador_token, nome_personagem');
 
     if (token) {
-      query = query.eq('jogador_token', token);
+      const tokenLimpo = String(token).trim().toUpperCase();
+      query = query.ilike('jogador_token', tokenLimpo);
     } else if (id) {
       query = query.eq('id', id);
     } else {
       return null;
     }
 
-    const { data, error } = await query.single();
+    const { data, error } = await query.maybeSingle();
     if (error) throw error;
-    return data;
+    return data || null;
+  },
+
+  /**
+   * Atualiza/rotaciona o token de crachá de uma ficha específica
+   * @param {string|number} fichaId
+   * @param {string} novoToken
+   * @returns {Promise<any>}
+   */
+  async rotacionarTokenFicha(fichaId, novoToken) {
+    const tokenLimpo = String(novoToken || '').trim().toUpperCase();
+    return await this.atualizarFicha(fichaId, { jogador_token: tokenLimpo });
   },
 
   /**
@@ -720,6 +749,31 @@ export const fichaService = {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'fichas_personagens' },
+        (payload) => {
+          if (onUpdate) onUpdate(payload);
+        }
+      )
+      .subscribe();
+
+    return channel;
+  },
+
+  /**
+   * Inscreve um callback para atualizações em tempo real de uma ficha específica (fichas_personagens).
+   * @param {string|number} fichaId
+   * @param {Function} onUpdate
+   * @returns {Object|null} subscription channel
+   */
+  subscribeFichaById(fichaId, onUpdate) {
+    if (!fichaId) return null;
+    const sufixo = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const channelName = `realtime_ficha_unica_${fichaId}_${sufixo}`;
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'fichas_personagens', filter: `id=eq.${fichaId}` },
         (payload) => {
           if (onUpdate) onUpdate(payload);
         }

@@ -1,22 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaShieldAlt, 
-  FaUserPlus, 
-  FaTrash, 
-  FaDice, 
-  FaIdBadge, 
-  FaDownload, 
-  FaUser, 
-  FaEdit 
-} from 'react-icons/fa';
+import { FaShieldAlt, FaUserPlus, FaDice } from 'react-icons/fa';
 import { LuUsers, LuSparkles } from 'react-icons/lu';
-import { QRCodeSVG } from 'qrcode.react';
 import { fichaService } from '../../services/fichaService';
+import { playerSessionService } from '../../services/playerSessionService';
 import { useToast } from '../../contexts/ToastContext';
 import CustomAlert from '../../components/CustomAlert/CustomAlert';
 import { calcularStatusPersonagem } from '../../utils/calculosFicha';
-import { Card, Button, Badge, Input, Modal, ResourceBar } from '../../components/ui';
+import { Button, Input, Modal } from '../../components/ui';
+import MestreFichaCard from './components/MestreFichaCard';
 import styles from './MestreFichasPage.module.css';
 
 /**
@@ -57,10 +49,22 @@ export default function MestreFichasPage({ isMestre }) {
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
   const navigate = useNavigate();
 
-  // Referências para capturar os QR Codes para download
-  const qrRefs = useRef({});
+  const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
+
+  const carregarTodasFichas = useCallback(async () => {
+    try {
+      const fichasData = await fichaService.getFichasCompletasMestre();
+      const fichasCompletas = (fichasData || []).map(processarFicha);
+      setFichas(fichasCompletas);
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
 
   useEffect(() => {
+    if (modoMestreAtivo) {
+      playerSessionService.ativarGodMode();
+    }
     carregarTodasFichas();
 
     // Subscription em tempo real para sincronização instantânea de PV, PM, PI e dados da ficha
@@ -85,23 +89,15 @@ export default function MestreFichasPage({ isMestre }) {
     return () => {
       fichaService.removeChannel(canalFichas);
     };
-  }, []);
+  }, [modoMestreAtivo, carregarTodasFichas]);
 
-  async function carregarTodasFichas() {
-    try {
-      const fichasData = await fichaService.getFichasCompletasMestre();
-      const fichasCompletas = (fichasData || []).map(processarFicha);
-      setFichas(fichasCompletas);
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  const gerarIdAutomatico = (nome) => {
+  const gerarIdAutomatico = (nome, tokenExtraIgnorar = null) => {
     if (!nome.trim()) return '';
-    const prefixo = nome.substring(0, 3).toUpperCase();
-    const numeros = Math.floor(100 + Math.random() * 900);
-    return `${prefixo}-${numeros}`;
+    const tokensExistentes = fichas
+      .map((f) => f.jogador_token)
+      .concat(tokenExtraIgnorar ? [tokenExtraIgnorar] : [])
+      .filter(Boolean);
+    return playerSessionService.gerarTokenUnico(nome, tokensExistentes);
   };
 
   const handleNomePersonagemChange = (e) => {
@@ -110,14 +106,32 @@ export default function MestreFichasPage({ isMestre }) {
     setRegistroId(gerarIdAutomatico(novoNome));
   };
 
+  const handleRegistroIdChange = (e) => {
+    setRegistroId(playerSessionService.aplicarMascaraToken(e.target.value));
+  };
+
   const handleCriarFicha = async (e) => {
     e.preventDefault();
-    if (!nomeJogador || !nomePersonagem || !registroId) return;
+    const tokenNormalizado = playerSessionService.normalizarToken(registroId);
+    if (!nomeJogador.trim() || !nomePersonagem.trim() || !tokenNormalizado) return;
+
+    // Verifica conflito de token com outras fichas já cadastradas na mesa
+    const tokenDuplicado = fichas.some(
+      (f) => playerSessionService.normalizarToken(f.jogador_token) === tokenNormalizado
+    );
+    if (tokenDuplicado) {
+      setAlerta({
+        isOpen: true,
+        title: 'Conflito de Crachá',
+        message: `O código "${tokenNormalizado}" já está em uso por outro personagem na mesa. Gere um novo código antes de emitir.`
+      });
+      return;
+    }
 
     const { error } = await fichaService.criarFicha({
       nome_jogador: nomeJogador.trim(),
       nome_personagem: nomePersonagem.trim(),
-      jogador_token: registroId.trim(),
+      jogador_token: tokenNormalizado,
       identidade: 'Herói de Aetheria',
       tema: 'Aventura',
       hp_atual: 30,
@@ -145,6 +159,30 @@ export default function MestreFichasPage({ isMestre }) {
     }
   };
 
+  const handleRotacionarToken = async (ficha) => {
+    const novoToken = gerarIdAutomatico(ficha.nome_personagem, ficha.jogador_token);
+    if (!novoToken) return;
+
+    try {
+      await fichaService.rotacionarTokenFicha(ficha.id, novoToken);
+      await playerSessionService.revogarSessaoJogadorRealtime(ficha.id);
+      setFichas((prev) =>
+        prev.map((f) => (f.id === ficha.id ? { ...f, jogador_token: novoToken } : f))
+      );
+      setAlerta({
+        isOpen: true,
+        title: 'Crachá Renovado',
+        message: `Novo código de ${ficha.nome_personagem}: ${novoToken}. Apenas este jogador foi solicitado a reconectar.`
+      });
+    } catch (err) {
+      setAlerta({
+        isOpen: true,
+        title: 'Erro ao Renovar Crachá',
+        message: err.message || 'Não foi possível atualizar o token.'
+      });
+    }
+  };
+
   const handleDeletarFicha = (ficha, e) => {
     e.stopPropagation();
     coldDelete({
@@ -168,8 +206,7 @@ export default function MestreFichasPage({ isMestre }) {
     });
   };
 
-  const baixarQRCode = (personagemNome, fichaId) => {
-    const svgElement = qrRefs.current[fichaId];
+  const baixarQRCode = (personagemNome, svgElement) => {
     if (!svgElement) return;
 
     try {
@@ -191,7 +228,7 @@ export default function MestreFichasPage({ isMestre }) {
     }
   };
 
-  if (!isMestre) {
+  if (!modoMestreAtivo) {
     return (
       <div className={styles.page}>
         <div className={styles.blockedContainer}>
@@ -226,154 +263,19 @@ export default function MestreFichasPage({ isMestre }) {
         </div>
       ) : (
         <div className={styles.grid}>
-          {fichas.map((f) => {
-            const urlFicha = `https://rac975.github.io/mapa-aetheria/#/ficha/${f.id}`;
-            const hpMaxFinal = f.hp_max_real || f.hp_max || 30;
-            const mpMaxFinal = f.mp_max_real || f.mp_max || 20;
-            const ipMaxFinal = f.pi_max_real || f.ip_max_real || f.pi_max || 6;
-            const ipAtualFinal = f.pi_atual ?? f.ip_atual ?? ipMaxFinal;
-
-            return (
-              <Card
-                key={f.id}
-                variant="interactive"
-                className={styles.characterCard}
-                onClick={() => navigate(`/mestre/editar/${f.id}`)}
-                title="Abrir ficha completa"
-              >
-                <div>
-                  <div className={styles.cardTop}>
-                    <div className={styles.cardAvatar}>
-                      {f.avatar_url ? (
-                        <img src={f.avatar_url} alt={f.nome_personagem} className={styles.avatarImage} />
-                      ) : (
-                        <FaUser className={styles.avatarIcon} />
-                      )}
-                    </div>
-                    <div className={styles.characterMeta}>
-                      <h3 className={styles.characterName}>{f.nome_personagem}</h3>
-                      <span className={styles.playerName}>
-                        Jogador: <strong>{f.nome_jogador || 'Não informado'}</strong>
-                      </span>
-                    </div>
-                    <Badge variant="gold" size="sm">
-                      <FaIdBadge /> #{f.jogador_token}
-                    </Badge>
-                  </div>
-
-                  <div className={styles.middleSection}>
-                    <p className={styles.identityText}>
-                      {f.identidade || 'Sem peculiaridade informada'}
-                    </p>
-
-                    <div className={styles.classesBox}>
-                      <span className={styles.classesLabel}>Classes:</span>
-                      <div className={styles.classesList}>
-                        {f.fichas_classes && f.fichas_classes.length > 0 ? (
-                          f.fichas_classes.map((c, idx) => (
-                            <Badge key={idx} variant="gold" size="sm">
-                              {c.nome_classe} ({c.nivel}v)
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className={styles.noClassesText}>Nenhuma classe informada</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.resourcesSection}>
-                    <ResourceBar
-                      type="pv"
-                      current={f.hp_atual}
-                      max={hpMaxFinal}
-                      label="PV"
-                    />
-                    <ResourceBar
-                      type="pm"
-                      current={f.mp_atual}
-                      max={mpMaxFinal}
-                      label="PM"
-                    />
-                    <ResourceBar
-                      type="pi"
-                      current={ipAtualFinal}
-                      max={ipMaxFinal}
-                      label="IP"
-                    />
-                    <div className={styles.badgesRow}>
-                      <Badge variant="ether" size="sm">
-                        ✨ Fábula: {f.fabula ?? 3}
-                      </Badge>
-                      <Badge variant="gold" size="sm">
-                        Nível {f.nivel || 1}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div
-                    className={styles.qrSection}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className={styles.qrPreview}>
-                      <div className={styles.qrSvgBox}>
-                        <div ref={(el) => { if (el) qrRefs.current[f.id] = el; }}>
-                          <QRCodeSVG
-                            value={urlFicha}
-                            size={72}
-                            fgColor="#060d17"
-                            bgColor="#ffffff"
-                            level="M"
-                          />
-                        </div>
-                      </div>
-                      <div className={styles.qrTextInfo}>
-                        <span className={styles.qrTitle}>QR Crachá</span>
-                        <span className={styles.qrToken}>{f.jogador_token}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        baixarQRCode(f.nome_personagem, f.id);
-                      }}
-                      title="Baixar SVG do QR Code para crachá físico"
-                    >
-                      <FaDownload /> Baixar QR
-                    </Button>
-                  </div>
-                </div>
-
-                <div
-                  className={styles.cardActions}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button
-                    variant="core"
-                    size="sm"
-                    onClick={() => navigate(`/mestre/editar/${f.id}`)}
-                  >
-                    <FaEdit /> Editar Ficha
-                  </Button>
-
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={(e) => handleDeletarFicha(f, e)}
-                  >
-                    <FaTrash /> Excluir
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
+          {fichas.map((f) => (
+            <MestreFichaCard
+              key={f.id}
+              ficha={f}
+              onAbrirFicha={(fichaId) => navigate(`/mestre/editar/${fichaId}`)}
+              onBaixarQr={baixarQRCode}
+              onRotacionarToken={handleRotacionarToken}
+              onDeletarFicha={handleDeletarFicha}
+            />
+          ))}
         </div>
       )}
 
-      {/* Modal Criar Crachá */}
       <Modal
         isOpen={modalCriarAberto}
         onClose={() => setModalCriarAberto(false)}
@@ -411,7 +313,7 @@ export default function MestreFichasPage({ isMestre }) {
             <Input
               label="REGISTRO ID (Automático)"
               value={registroId}
-              onChange={(e) => setRegistroId(e.target.value)}
+              onChange={handleRegistroIdChange}
               className={styles.inputFlex}
               required
             />
@@ -419,8 +321,8 @@ export default function MestreFichasPage({ isMestre }) {
               type="button"
               variant="secondary"
               className={styles.diceBtn}
-              title="Gerar novo código aleatório"
-              onClick={() => setRegistroId(gerarIdAutomatico(nomePersonagem))}
+              title="Gerar novo código aleatório único"
+              onClick={() => setRegistroId(gerarIdAutomatico(nomePersonagem, registroId))}
             >
               <FaDice />
             </Button>

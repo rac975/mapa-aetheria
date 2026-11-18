@@ -30,8 +30,9 @@ export function calcularModificadoresCondicoes(condicoes = [], imunidades = []) 
  *
  * @param {string|number} id - ID da ficha recebido via rota
  * @param {Function} navigate - Função de navegação do react-router
+ * @param {boolean} [isMestre=false] - Indica se o usuário atual está em God Mode (Mestre)
  */
-export function useCharacterSheet(id, navigate) {
+export function useCharacterSheet(id, navigate, isMestre = false) {
   const [ficha, setFicha] = useState(null);
   const [classes, setClasses] = useState([]);
   const [magias, setMagias] = useState([]);
@@ -43,36 +44,89 @@ export function useCharacterSheet(id, navigate) {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
 
-  // 1. Carregamento inicial de todos os dados da ficha
+  // 1. Carregamento inicial de todos os dados da ficha respeitando God Mode (Item 6) e Sessão de Jogador (Item 7)
   const carregarDadosCompletos = useCallback(async () => {
     setCarregando(true);
     setErro('');
 
+    const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
+
     try {
-      // Verificação de expiração de sessão do jogador (permanência / inatividade)
-      const statusSessao = playerSessionService.verificarExpiracao();
-      if (statusSessao.expirada) {
-        playerSessionService.encerrarSessao(statusSessao.mensagem);
-        if (navigate) navigate('/ficha/login', { replace: true });
-        return;
-      }
+      let fichaData = null;
 
-      const tokenAtual = localStorage.getItem('aetheria_jogador_token');
-      if (!id && !tokenAtual) {
-        if (navigate) navigate('/ficha/login', { replace: true });
-        return;
-      }
+      if (modoMestreAtivo) {
+        // ITEM 6: God Mode do Mestre - Imune a timeouts de ficha, tokens de jogador ou redirecionamento para login
+        playerSessionService.ativarGodMode();
+        let idAlvoMestre = id || playerSessionService.obterUltimaFichaMestre();
+        if (!idAlvoMestre) {
+          idAlvoMestre = await fichaService.getPrimeiraFichaId();
+        }
+        if (!idAlvoMestre) {
+          if (navigate) navigate('/mestre/fichas', { replace: true });
+          return;
+        }
 
-      const fichaData = await fichaService.getFichaByIdOrToken({ id, token: tokenAtual });
-      if (!fichaData) {
-        setErro('Ficha não encontrada ou ID inválido.');
-        return;
-      }
+        fichaData = await fichaService.getFichaByIdOrToken({ id: idAlvoMestre });
+        if (!fichaData && !id) {
+          const fallbackId = await fichaService.getPrimeiraFichaId();
+          if (fallbackId) {
+            fichaData = await fichaService.getFichaByIdOrToken({ id: fallbackId });
+          }
+        }
 
-      if (fichaData.jogador_token) {
-        playerSessionService.iniciarSessao(fichaData.jogador_token, fichaData.id, fichaData.nome_personagem);
+        if (!fichaData) {
+          setErro('Ficha não encontrada no painel do Mestre.');
+          return;
+        }
+
+        playerSessionService.sincronizarSessaoAtiva(fichaData, { isMestre: true });
+      } else {
+        // ITEM 7: Controle estrito de sessão e validação de token/ID para Jogador
+        const validacaoRota = playerSessionService.validarAcessoRotaFicha({
+          idRota: id,
+          isMestre: false
+        });
+
+        if (!validacaoRota.permitido) {
+          if (validacaoRota.motivo && validacaoRota.motivo !== 'sem_sessao') {
+            playerSessionService.encerrarSessao({
+              titulo: validacaoRota.titulo,
+              mensagem: validacaoRota.mensagem,
+              motivo: validacaoRota.motivo
+            });
+          } else {
+            playerSessionService.encerrarSessao();
+          }
+          if (navigate) navigate('/ficha/login', { replace: true });
+          return;
+        }
+
+        fichaData = await fichaService.getFichaByIdOrToken({
+          id: validacaoRota.fichaIdAlvo,
+          token: validacaoRota.token
+        });
+
+        if (!fichaData) {
+          playerSessionService.encerrarSessao({
+            titulo: 'Crachá Não Encontrado',
+            mensagem: 'A ficha associada à sua sessão não foi encontrada ou o código foi atualizado pelo Mestre. Reconecte seu crachá.',
+            motivo: 'ficha_removida'
+          });
+          if (navigate) navigate('/ficha/login', { replace: true });
+          return;
+        }
+
+        const sincronia = playerSessionService.sincronizarSessaoAtiva(fichaData, { isMestre: false });
+        if (!sincronia.valida) {
+          playerSessionService.encerrarSessao({
+            titulo: sincronia.titulo,
+            mensagem: sincronia.mensagem,
+            motivo: sincronia.motivo
+          });
+          if (navigate) navigate('/ficha/login', { replace: true });
+          return;
+        }
       }
-      localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
 
       const [classesData, magiasData, itensData, condicoesData] = await Promise.all([
         fichaService.getClassesByFichaId(fichaData.id),
@@ -104,7 +158,7 @@ export function useCharacterSheet(id, navigate) {
     } finally {
       setCarregando(false);
     }
-  }, [id, navigate]);
+  }, [id, navigate, isMestre]);
 
   useEffect(() => {
     carregarDadosCompletos();
@@ -115,11 +169,18 @@ export function useCharacterSheet(id, navigate) {
     const fichaId = ficha?.id;
     if (!fichaId) return;
 
+    let canalFicha = null;
     let canalEquip = null;
     let canalCondicoes = null;
     let canalClasses = null;
 
     try {
+      canalFicha = fichaService.subscribeFichaById(fichaId, (payload) => {
+        if (payload?.eventType === 'UPDATE' && payload?.new) {
+          setFicha((prev) => (prev ? { ...prev, ...payload.new } : payload.new));
+        }
+      });
+
       canalEquip = fichaService.subscribeItens(fichaId, async () => {
         try {
           const novosItens = await fichaService.getItensByFichaId(fichaId);
@@ -148,6 +209,7 @@ export function useCharacterSheet(id, navigate) {
     }
 
     return () => {
+      if (canalFicha) fichaService.removeChannel(canalFicha);
       if (canalEquip) fichaService.removeChannel(canalEquip);
       if (canalCondicoes) fichaService.removeChannel(canalCondicoes);
       if (canalClasses) fichaService.removeChannel(canalClasses);
@@ -357,14 +419,14 @@ export function useCharacterSheet(id, navigate) {
     }
 
     setFicha(prev => ({ ...prev, ...dadosAtualizar }));
-    playerSessionService.registrarAtividade();
+    playerSessionService.registrarAtividade({ isMestre });
 
     try {
       await fichaService.atualizarFicha(ficha.id, dadosAtualizar);
     } catch (err) {
       console.error('Erro ao salvar recurso:', err);
     }
-  }, [ficha, statusFicha]);
+  }, [ficha, statusFicha, isMestre]);
 
   // 7. Salvar edição completa da ficha
   const salvarEdicaoCompleta = useCallback(async ({ formData, formClasses, formMagias }) => {

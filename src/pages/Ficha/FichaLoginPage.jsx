@@ -9,7 +9,7 @@ import WelcomeAnimation from '../../components/WelcomeAnimation/WelcomeAnimation
 import QrScannerModal from '../../components/QrScanner/QrScanner';
 import styles from './FichaLoginPage.module.css';
 
-export default function FichaLoginPage() {
+export default function FichaLoginPage({ isMestre = false }) {
     const [tokenDigitado, setTokenDigitado] = useState('');
     const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
     const [personagemLogando, setPersonagemLogando] = useState(null);
@@ -18,37 +18,53 @@ export default function FichaLoginPage() {
     const [validando, setValidando] = useState(false);
     const navigate = useNavigate();
 
-    // Verifica se a sessão anterior foi expirada e exibe o aviso claro
+    // Regra Item 6: O Mestre (God Mode) nunca deve ficar na tela de Conectar Personagem
     useEffect(() => {
-        const avisoExpiracao = playerSessionService.consumirAvisoExpiracao();
-        if (avisoExpiracao) {
+        if (isMestre || playerSessionService.isGodModeAtivo()) {
+            navigate('/mestre/fichas', { replace: true });
+        }
+    }, [isMestre, navigate]);
+
+    // Regra Item 7: Verifica se a sessão anterior foi expirada/invalidada e exibe o aviso contextual
+    useEffect(() => {
+        if (isMestre || playerSessionService.isGodModeAtivo()) return;
+        const avisoReconexao = playerSessionService.consumirAvisoReconexao();
+        if (avisoReconexao) {
             setAlerta({
                 isOpen: true,
-                title: 'Sessão Expirada',
-                message: avisoExpiracao
+                title: avisoReconexao.titulo || 'Sessão Expirada',
+                message: avisoReconexao.mensagem
             });
         }
-    }, []);
+    }, [isMestre]);
 
-    // Aplica a máscara automática (AAA-000)
+    // Aplica a máscara automática (AAA-000) com remoção segura de acentos
     const handleInputChange = (e) => {
-        let valor = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (valor.length > 3) {
-            valor = `${valor.slice(0, 3)}-${valor.slice(3, 7)}`;
-        }
-        setTokenDigitado(valor);
+        const mascarado = playerSessionService.aplicarMascaraToken(e.target.value);
+        setTokenDigitado(mascarado);
     };
 
     const handleIdentificarRapido = async (e) => {
         e?.preventDefault();
-        const codigo = tokenDigitado.trim();
-        if (!codigo) return;
+        const codigo = playerSessionService.normalizarToken(tokenDigitado);
+        if (!codigo || !playerSessionService.validarFormatoToken(codigo)) {
+            setAlerta({
+                isOpen: true,
+                title: 'Formato Inválido',
+                message: 'Informe um código de crachá válido no padrão AAA-000 (ex: PLY-001).'
+            });
+            return;
+        }
 
         setValidando(true);
         try {
             const data = await fichaService.getFichaParaIdentificacao({ token: codigo });
             if (!data) {
-                setAlerta({ isOpen: true, title: 'Não Encontrado', message: 'ID de crachá inválido em Aetheria.' });
+                setAlerta({
+                    isOpen: true,
+                    title: 'Não Encontrado',
+                    message: 'ID de crachá inválido ou atualizado pelo Mestre em Aetheria.'
+                });
                 return;
             }
 
@@ -56,7 +72,11 @@ export default function FichaLoginPage() {
             setPersonagemLogando({ id: data.id, nome: data.nome_personagem });
             setMostrarBoasVindas(true);
         } catch {
-            setAlerta({ isOpen: true, title: 'Não Encontrado', message: 'ID de crachá inválido em Aetheria.' });
+            setAlerta({
+                isOpen: true,
+                title: 'Não Encontrado',
+                message: 'ID de crachá inválido em Aetheria.'
+            });
         } finally {
             setValidando(false);
         }
@@ -65,23 +85,39 @@ export default function FichaLoginPage() {
     const handleScanSuccess = async (decodedText) => {
         setMostrarScanner(false);
         try {
-            const url = new URL(decodedText);
-            const pathParts = url.hash.split('/');
-            const fichaId = pathParts[pathParts.length - 1];
-
-            if (fichaId) {
-                const data = await fichaService.getFichaParaIdentificacao({ id: fichaId });
-                if (!data) {
-                    setAlerta({ isOpen: true, title: 'Erro na Leitura', message: 'Ficha não encontrada no banco de Aetheria.' });
-                    return;
-                }
-
-                playerSessionService.iniciarSessao(data.jogador_token, data.id, data.nome_personagem);
-                setPersonagemLogando({ id: data.id, nome: data.nome_personagem });
-                setMostrarBoasVindas(true);
+            const credencial = playerSessionService.extrairCredencial(decodedText);
+            if (credencial.tipo === 'invalido') {
+                setAlerta({
+                    isOpen: true,
+                    title: 'QR Code Inválido',
+                    message: 'O código lido não pertence a um crachá válido de Aetheria.'
+                });
+                return;
             }
+
+            const data = await fichaService.getFichaParaIdentificacao({
+                id: credencial.id,
+                token: credencial.token
+            });
+
+            if (!data) {
+                setAlerta({
+                    isOpen: true,
+                    title: 'Erro na Leitura',
+                    message: 'Ficha não encontrada no banco de Aetheria.'
+                });
+                return;
+            }
+
+            playerSessionService.iniciarSessao(data.jogador_token, data.id, data.nome_personagem);
+            setPersonagemLogando({ id: data.id, nome: data.nome_personagem });
+            setMostrarBoasVindas(true);
         } catch {
-            setAlerta({ isOpen: true, title: 'QR Code Inválido', message: 'O código lido não pertence a um crachá válido.' });
+            setAlerta({
+                isOpen: true,
+                title: 'QR Code Inválido',
+                message: 'O código lido não pertence a um crachá válido.'
+            });
         }
     };
 
@@ -96,7 +132,7 @@ export default function FichaLoginPage() {
                         type="text"
                         className={styles.tokenInput}
                         placeholder="Ex: PLY-001"
-                        maxLength={7}
+                        maxLength={8}
                         value={tokenDigitado}
                         onChange={handleInputChange}
                         required

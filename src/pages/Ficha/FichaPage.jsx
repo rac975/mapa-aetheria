@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaIdCard, FaSignInAlt } from 'react-icons/fa';
+import { FaIdCard, FaSignInAlt, FaShieldAlt } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 import { useCharacterSheet } from '../../hooks/useCharacterSheet';
 import { usePlayerSession } from '../../hooks/usePlayerSession';
+import { playerSessionService } from '../../services/playerSessionService';
 import { useAlert } from '../../contexts/useAlert';
 import { Button, Card } from '../../components/ui';
 import FichaHeader from './secoes/FichaHeader';
@@ -15,6 +16,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showAlert } = useAlert();
+  const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
 
   const {
     ficha,
@@ -35,7 +37,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
     atualizarDadosMutante,
     atualizarDadosClasseLocal,
     salvarEdicaoCompleta
-  } = useCharacterSheet(id, navigate);
+  } = useCharacterSheet(id, navigate, modoMestreAtivo);
 
   const [editando, setEditando] = useState(false);
   const [formData, setFormData] = useState({});
@@ -44,9 +46,15 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
   const [opcoesGolpeAtivo, setOpcoesGolpeAtivo] = useState(null);
 
   usePlayerSession({
-    isMestre,
+    isMestre: modoMestreAtivo,
+    fichaIdAtiva: ficha?.id || id || null,
     onSessaoExpirada: () => {
+      if (modoMestreAtivo || playerSessionService.isGodModeAtivo()) return;
+      if (setFichaGlobal) setFichaGlobal(null);
       navigate('/ficha/login', { replace: true });
+    },
+    onFichaRealtimeUpdate: (novosDados) => {
+      setFicha((prev) => (prev ? { ...prev, ...novosDados } : novosDados));
     }
   });
 
@@ -103,11 +111,19 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
       <div className={`${styles.pageContainer} ${styles.centerWrapper}`}>
         <Card variant="default" className={styles.errorCard}>
           <FaIdCard className={styles.errorIcon} />
-          <h2 className={styles.errorTitle}>Acesso Não Identificado</h2>
+          <h2 className={styles.errorTitle}>
+            {modoMestreAtivo ? 'Ficha Não Localizada' : 'Acesso Não Identificado'}
+          </h2>
           <p className={styles.errorMsg}>{erro}</p>
-          <Button variant="primary" onClick={() => navigate('/ficha/login')}>
-            <FaSignInAlt /> Identificar-se no Sistema
-          </Button>
+          {modoMestreAtivo ? (
+            <Button variant="primary" onClick={() => navigate('/mestre/fichas')}>
+              <FaShieldAlt /> Voltar ao Painel do Mestre
+            </Button>
+          ) : (
+            <Button variant="primary" onClick={() => navigate('/ficha/login')}>
+              <FaSignInAlt /> Identificar-se no Sistema
+            </Button>
+          )}
         </Card>
       </div>
     );
@@ -118,12 +134,15 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
       <FichaHeader
         ficha={ficha}
         id={id}
-        isMestre={isMestre}
+        isMestre={modoMestreAtivo}
         editando={editando}
         nivelAtual={statusFicha.nivelTotal}
         condicoesAtivas={condicoesAtivas}
         statusCalculados={statusFicha}
         setFicha={setFicha}
+        onLogoutJogador={() => {
+          if (setFichaGlobal) setFichaGlobal(null);
+        }}
         handleAjustarRecurso={ajustarRecurso}
         onToggleEdit={handleToggleEdit}
       />

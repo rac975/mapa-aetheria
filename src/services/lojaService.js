@@ -192,5 +192,103 @@ export const lojaService = {
             .single();
 
         return { data, error };
+    },
+
+    /**
+     * Busca todas as lojas cadastradas ordenadas por nome
+     * @returns {Promise<Array<any>>}
+     */
+    async getLojas() {
+        const { data, error } = await supabase.from('lojas').select('*').order('nome');
+        if (error) return [];
+        return data || [];
+    },
+
+    /**
+     * Busca todos os itens do catálogo geral ordenados por nome
+     * @returns {Promise<Array<any>>}
+     */
+    async getItensCatalogo() {
+        const { data, error } = await supabase.from('itens_catalogo').select('*').order('nome');
+        if (error) return [];
+        return data || [];
+    },
+
+    /**
+     * Busca os itens vinculados a uma loja específica
+     * @param {string|number} lojaId
+     * @returns {Promise<Array<any>>}
+     */
+    async getItensDaLoja(lojaId) {
+        if (!lojaId) return [];
+        const { data, error } = await supabase
+            .from('loja_itens')
+            .select('item_id, itens_catalogo(*)')
+            .eq('loja_id', lojaId);
+
+        if (error || !data) return [];
+        return data.map(rel => rel.itens_catalogo).filter(Boolean);
+    },
+
+    /**
+     * Busca fichas disponíveis para a Loja respeitando o isolamento entre Mestre (todas) e Jogador (apenas sua sessão)
+     * @param {Object} params
+     * @param {boolean} [params.isMestre=false]
+     * @param {string|null} [params.tokenJogador=null]
+     * @param {string|number|null} [params.fichaIdSessao=null]
+     * @returns {Promise<Array<any>>}
+     */
+    async getFichasParaLoja({ isMestre = false, tokenJogador = null, fichaIdSessao = null } = {}) {
+        if (isMestre) {
+            const { data } = await supabase.from('fichas_personagens').select('*').order('nome_personagem');
+            return data || [];
+        }
+
+        if (!fichaIdSessao && !tokenJogador) {
+            return [];
+        }
+
+        let query = supabase.from('fichas_personagens').select('*');
+        if (fichaIdSessao) {
+            query = query.eq('id', fichaIdSessao);
+        } else if (tokenJogador) {
+            query = query.ilike('jogador_token', String(tokenJogador).trim());
+        }
+
+        const { data } = await query.order('nome_personagem');
+        return data || [];
+    },
+
+    /**
+     * Inscreve em tempo real nas tabelas de lojas, catálogo e estoque
+     * @param {Object} callbacks
+     * @param {Function} callbacks.onCatalogoOuLojaChange
+     * @param {Function} callbacks.onEstoqueLojaChange
+     * @returns {{ unsubscribe: () => void }}
+     */
+    subscribeLojasRealtime({ onCatalogoOuLojaChange, onEstoqueLojaChange } = {}) {
+        const sufixo = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const canalRealtime = supabase
+            .channel(`lojas_global_realtime_${sufixo}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'itens_catalogo' }, () => {
+                if (onCatalogoOuLojaChange) onCatalogoOuLojaChange();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'lojas' }, () => {
+                if (onCatalogoOuLojaChange) onCatalogoOuLojaChange();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'loja_itens' }, () => {
+                if (onEstoqueLojaChange) onEstoqueLojaChange();
+            })
+            .subscribe();
+
+        return {
+            unsubscribe: () => {
+                try {
+                    supabase.removeChannel(canalRealtime);
+                } catch {
+                    // Ignora erro ao remover canal
+                }
+            }
+        };
     }
 };

@@ -1,9 +1,10 @@
 // src/hooks/useFichaData.js
 import { useState, useEffect, useCallback } from 'react';
 import { fichaService } from '../services/fichaService';
+import { playerSessionService } from '../services/playerSessionService';
 import { calcularStatusPersonagem } from '../utils/calculosFicha';
 
-export function useFichaData(id, navigate) {
+export function useFichaData(id, navigate, isMestre = false) {
     const [ficha, setFicha] = useState(null);
     const [classes, setClasses] = useState([]);
     const [magias, setMagias] = useState([]);
@@ -14,24 +15,66 @@ export function useFichaData(id, navigate) {
         setCarregando(true);
         setErro('');
 
+        const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
+
         try {
-            const tokenAtual = localStorage.getItem('aetheria_jogador_token');
-            if (!id && !tokenAtual) {
-                navigate('/ficha/login', { replace: true });
-                return;
-            }
+            let fichaData = null;
 
-            const fichaData = await fichaService.getFichaByIdOrToken({ id, token: tokenAtual });
+            if (modoMestreAtivo) {
+                playerSessionService.ativarGodMode();
+                const idAlvo = id || playerSessionService.obterUltimaFichaMestre() || (await fichaService.getPrimeiraFichaId());
+                if (!idAlvo) {
+                    if (navigate) navigate('/mestre/fichas', { replace: true });
+                    return;
+                }
+                fichaData = await fichaService.getFichaByIdOrToken({ id: idAlvo });
+                if (!fichaData) {
+                    setErro('Ficha não encontrada no painel do Mestre.');
+                    return;
+                }
+                playerSessionService.sincronizarSessaoAtiva(fichaData, { isMestre: true });
+            } else {
+                const validacao = playerSessionService.validarAcessoRotaFicha({ idRota: id, isMestre: false });
+                if (!validacao.permitido) {
+                    if (validacao.motivo && validacao.motivo !== 'sem_sessao') {
+                        playerSessionService.encerrarSessao({
+                            titulo: validacao.titulo,
+                            mensagem: validacao.mensagem,
+                            motivo: validacao.motivo
+                        });
+                    } else {
+                        playerSessionService.encerrarSessao();
+                    }
+                    if (navigate) navigate('/ficha/login', { replace: true });
+                    return;
+                }
 
-            if (!fichaData) {
-                setErro('Ficha não encontrada ou ID inválido.');
-                return;
-            }
+                fichaData = await fichaService.getFichaByIdOrToken({
+                    id: validacao.fichaIdAlvo,
+                    token: validacao.token
+                });
 
-            if (fichaData.jogador_token) {
-                localStorage.setItem('aetheria_jogador_token', fichaData.jogador_token);
+                if (!fichaData) {
+                    playerSessionService.encerrarSessao({
+                        titulo: 'Ficha Não Encontrada',
+                        mensagem: 'A ficha associada à sua sessão não foi encontrada. Reconecte seu crachá.',
+                        motivo: 'ficha_removida'
+                    });
+                    if (navigate) navigate('/ficha/login', { replace: true });
+                    return;
+                }
+
+                const sincronia = playerSessionService.sincronizarSessaoAtiva(fichaData, { isMestre: false });
+                if (!sincronia.valida) {
+                    playerSessionService.encerrarSessao({
+                        titulo: sincronia.titulo,
+                        mensagem: sincronia.mensagem,
+                        motivo: sincronia.motivo
+                    });
+                    if (navigate) navigate('/ficha/login', { replace: true });
+                    return;
+                }
             }
-            localStorage.setItem('aetheria_ultima_ficha_id', fichaData.id);
 
             // Busca classes e itens para calibrar os máximos corretos na entrada
             const [classesData, magiasData, itensData] = await Promise.all([
@@ -72,7 +115,7 @@ export function useFichaData(id, navigate) {
         } finally {
             setCarregando(false);
         }
-    }, [id, navigate]);
+    }, [id, navigate, isMestre]);
 
     useEffect(() => {
         carregarDados();

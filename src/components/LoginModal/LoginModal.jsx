@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../../services/supabase';
+import { playerSessionService } from '../../services/playerSessionService';
 import { Modal, Input, Button } from '../ui';
 import styles from './LoginModal.module.css';
 
@@ -15,10 +15,7 @@ export default function LoginModal({ isOpen, onClose }) {
     setErro(false);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password: senha
-      });
+      const { error } = await playerSessionService.loginMestre(email, senha);
 
       if (error) throw error;
 

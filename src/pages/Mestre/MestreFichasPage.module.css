@@ -262,6 +262,12 @@
   text-overflow: ellipsis;
 }
 
+.qrActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 /* AÇÕES DO CARD */
 .cardActions {
   display: flex;

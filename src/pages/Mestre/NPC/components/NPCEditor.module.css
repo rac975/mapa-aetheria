@@ -193,6 +193,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-core-green);
   margin-bottom: var(--space-2);
+  display: inline-flex;
 }
 
 .listaScroll {

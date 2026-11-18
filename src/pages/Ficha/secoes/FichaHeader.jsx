@@ -17,16 +17,19 @@ export default function FichaHeader({
     condicoesAtivas = [],
     statusCalculados = null,
     setFicha,
+    onLogoutJogador,
     handleAjustarRecurso
 }) {
     const navigate = useNavigate();
-    const tokenJogadorSalvo = localStorage.getItem('aetheria_jogador_token');
-    const ehJogadorLogado = !!tokenJogadorSalvo && !isMestre;
+    const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
+    const sessaoJogador = modoMestreAtivo ? null : playerSessionService.obterSessao();
+    const ehJogadorLogado = Boolean(sessaoJogador?.token) && !modoMestreAtivo;
 
     const [modalZenitAberto, setModalZenitAberto] = useState(false);
 
     const handleLogout = () => {
         playerSessionService.encerrarSessao();
+        if (onLogoutJogador) onLogoutJogador();
         navigate('/ficha/login', { replace: true });
     };
 
@@ -51,7 +54,7 @@ export default function FichaHeader({
     return (
         <header className={styles.headerCard}>
             <div className={styles.headerInfoWrapper}>
-                {isMestre && id && (
+                {modoMestreAtivo && (id || ficha?.id) && (
                     <Button
                         type="button"
                         variant="secondary"
