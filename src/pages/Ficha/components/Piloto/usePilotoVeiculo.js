@@ -8,7 +8,10 @@ import {
   processarConfiguracaoFlexivel,
   processarTecnologiaCompressao,
   processarCoracaoNoMotor,
-  calcularTotalModulosHangar
+  calcularTotalModulosHangar,
+  isModuloDeFabrica,
+  obterPrecoModulo,
+  obterModuloPorId
 } from '../../../../domain/fabula/technoFantasyRules';
 
 export function usePilotoVeiculo({
@@ -78,6 +81,10 @@ export function usePilotoVeiculo({
   const [modulosReserva, setModulosReserva] = useState(() =>
     veiculoSalvo?.modulosReserva || ['blindagem_pesada', 'arma_machado', 'suporte_turbo']
   );
+  const [modulosAdquiridos, setModulosAdquiridos] = useState(() =>
+    Array.isArray(veiculoSalvo?.modulosAdquiridos) ? veiculoSalvo.modulosAdquiridos : []
+  );
+  const zenitAtual = Number(ficha?.zenit ?? 0);
   const [customizacoes, setCustomizacoes] = useState(() =>
     veiculoSalvo?.customizacoes || { elementoAntiElemento: 'fogo', usarPulsoFirme: false }
   );
@@ -163,10 +170,65 @@ export function usePilotoVeiculo({
   };
 
   const handleAdicionarAoHangar = (modId) => {
-    if (!modulosReserva.includes(modId) && !modulosAtivos.includes(modId)) {
-      setModulosReserva((prev) => [...prev, modId]);
-      setFeedback('Módulo adicionado à reserva.');
+    if (modulosReserva.includes(modId) || modulosAtivos.includes(modId)) {
+      return;
     }
+    const totalEmPosse = modulosReserva.length + modulosAtivos.length;
+    if (totalEmPosse >= totalModulosPermitidos) {
+      showAlert(`Limite do Hangar atingido (${totalModulosPermitidos} módulos). Aumente o SL de Veículo Pessoal para expandir a capacidade.`);
+      return;
+    }
+
+    setModulosReserva((prev) => [...prev, modId]);
+    setFeedback('Módulo adicionado à reserva do Hangar.');
+  };
+
+  const handleComprarModulo = (moduloOuId) => {
+    const mod = typeof moduloOuId === 'string'
+      ? obterModuloPorId(moduloOuId, catalogoModulos)
+      : moduloOuId;
+
+    if (!mod) {
+      showAlert('Módulo não encontrado no catálogo.');
+      return;
+    }
+
+    const preco = obterPrecoModulo(mod);
+
+    // Módulo de fábrica (gratuito)
+    if (preco === 0 || isModuloDeFabrica(mod)) {
+      handleAdicionarAoHangar(mod.id);
+      return;
+    }
+
+    // Já adquirido previamente
+    if (modulosAdquiridos.includes(mod.id)) {
+      handleAdicionarAoHangar(mod.id);
+      setFeedback(`Módulo "${mod.nome}" recuperado do seu acervo e adicionado ao Hangar.`);
+      return;
+    }
+
+    // Módulo da oficina/loja pago em zênites
+    if (zenitAtual < preco) {
+      showAlert(`Saldo insuficiente em Zênites! Você possui ${zenitAtual} Z, mas "${mod.nome}" custa ${preco} Z.`);
+      return;
+    }
+
+    const totalEmPosse = modulosReserva.length + modulosAtivos.length;
+    if (totalEmPosse >= totalModulosPermitidos) {
+      showAlert(`Limite do Hangar atingido (${totalModulosPermitidos} módulos). Descarte ou desative um módulo antes de adquirir um novo.`);
+      return;
+    }
+
+    if (handleAjustarRecurso) {
+      handleAjustarRecurso('zenit', -preco);
+    } else if (fichaIdReal) {
+      fichaService.atualizarFicha(fichaIdReal, { zenit: Math.max(0, zenitAtual - preco) });
+    }
+
+    setModulosAdquiridos((prev) => (prev.includes(mod.id) ? prev : [...prev, mod.id]));
+    setModulosReserva((prev) => (prev.includes(mod.id) ? prev : [...prev, mod.id]));
+    setFeedback(`Módulo "${mod.nome}" adquirido com sucesso por ${preco} Z! Adicionado ao Hangar.`);
   };
 
   const handleRemoverDaReserva = (modId) => {
@@ -229,6 +291,7 @@ export function usePilotoVeiculo({
       frameKey,
       modulosAtivos,
       modulosReserva,
+      modulosAdquiridos,
       customizacoes,
       veiculoInvocado
     };
@@ -263,6 +326,8 @@ export function usePilotoVeiculo({
     setFrameKey,
     modulosAtivos,
     modulosReserva,
+    modulosAdquiridos,
+    zenitAtual,
     customizacoes,
     veiculoInvocado,
     custoCompressao,
@@ -282,6 +347,7 @@ export function usePilotoVeiculo({
     handleAtivarModulo,
     handleDesativarModulo,
     handleAdicionarAoHangar,
+    handleComprarModulo,
     handleRemoverDaReserva,
     handleChangeCustomizacao,
     handleAlternarCompressao,

@@ -166,10 +166,8 @@ export function construirCombatente({
     ordem,
     hp_atual: hp,
     hp_max: hp,
-    maxHp: hp,
     mp_atual: mp,
     mp_max: mp,
-    maxMp: mp,
     ip: Number(ip) || 0,
     pontos_fabula: Number(pontosFabula) || 0,
     pontos_ultima: Number(pontosUltima) || 0,
@@ -181,6 +179,41 @@ export function construirCombatente({
     turno_atual: false,
     modificadores: npcId ? { npc_id: npcId } : {}
   };
+}
+
+/**
+ * Normaliza e sanitiza o payload para a tabela 'iniciativa_combate' do Supabase,
+ * garantindo estritamente as colunas canônicas 'hp_max' e 'mp_max' e eliminando
+ * propriedades legadas que geram erro 400 no banco (ex: maxHp, maxMp, pv_max, pm_max).
+ * @param {Object} dados
+ * @returns {Object}
+ */
+export function sanitizarPayloadIniciativa(dados) {
+  if (!dados || typeof dados !== 'object') return dados;
+
+  const payload = { ...dados };
+
+  // Mapeia caso venha como maxHp ou pv_max sem hp_max
+  if (payload.hp_max === undefined) {
+    if (payload.maxHp !== undefined) payload.hp_max = payload.maxHp;
+    else if (payload.pv_max !== undefined) payload.hp_max = payload.pv_max;
+  }
+
+  // Mapeia caso venha como maxMp ou pm_max sem mp_max
+  if (payload.mp_max === undefined) {
+    if (payload.maxMp !== undefined) payload.mp_max = payload.maxMp;
+    else if (payload.pm_max !== undefined) payload.mp_max = payload.pm_max;
+  }
+
+  // Remove propriedades que não são colunas da tabela iniciativa_combate
+  delete payload.maxHp;
+  delete payload.maxMp;
+  delete payload.pv_max;
+  delete payload.pm_max;
+  delete payload.pv_atual;
+  delete payload.pm_atual;
+
+  return payload;
 }
 
 /**

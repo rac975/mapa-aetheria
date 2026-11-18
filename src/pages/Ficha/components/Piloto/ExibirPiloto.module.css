@@ -330,13 +330,27 @@
   flex-direction: column;
   gap: var(--space-2);
   justify-content: space-between;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.moduleCard:hover {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 8px var(--color-border-gold-muted);
+}
+
+.moduleCardFabrica {
+  border-left: 3px solid var(--color-core-green);
+}
+
+.moduleCardLoja {
+  border-left: 3px solid var(--color-border-gold);
 }
 
 .moduleCardActive {
   border-color: var(--color-pi);
   background: rgba(var(--color-pi-rgb), 0.12);
-  box-shadow: 0 0 10px rgba(var(--color-pi-rgb), 0.2);
+  box-shadow: 0 0 12px rgba(var(--color-pi-rgb), 0.25);
 }
 
 .moduleHeader {
@@ -401,7 +415,47 @@
   outline: none;
 }
 
-/* --- FILTROS DE CATÁLOGO --- */
+/* --- FILTROS DE CATÁLOGO & SALDO TOP BAR --- */
+.catalogoTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.saldoBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.saldoIcon {
+  color: var(--color-border-gold-bright);
+  font-size: var(--font-size-sm);
+}
+
+.saldoValor {
+  color: var(--color-border-gold-bright);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  text-shadow: 0 0 8px var(--color-border-gold-glow);
+}
+
+.origemFilterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
 .filterRow {
   display: flex;
   flex-wrap: wrap;
@@ -517,6 +571,8 @@
   .headerActions,
   .moduleActions,
   .filterRow,
+  .catalogoTopBar,
+  .origemFilterRow,
   button,
   .inputNomeVeiculo {
     display: none !important;

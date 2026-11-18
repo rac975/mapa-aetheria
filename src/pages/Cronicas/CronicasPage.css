@@ -37,22 +37,26 @@
 }
 
 .btn-nova-cronica {
-  background: linear-gradient(135deg, var(--color-border-gold), var(--color-border-gold-bright));
-  color: var(--color-text-inverse);
-  border: none;
-  padding: var(--space-3) var(--space-4);
-  font-weight: 700;
+  background: rgba(var(--color-border-gold-rgb), 0.14);
+  color: var(--color-text-gold);
+  border: 1px solid var(--color-border-gold);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
   border-radius: var(--radius-md);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
+  backdrop-filter: var(--backdrop-blur);
+  transition: all var(--transition-fast);
 }
 
 .btn-nova-cronica:hover {
-  opacity: 0.92;
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
   box-shadow: var(--shadow-glow-gold);
+  transform: translateY(-1px);
 }
 
 .cronicas-list {
@@ -112,19 +116,21 @@
 
 .btn-salvar-cronica {
   width: 100%;
-  background: linear-gradient(135deg, var(--color-border-gold), var(--color-border-gold-bright));
-  color: var(--color-text-inverse);
-  border: none;
+  background: linear-gradient(135deg, rgba(var(--color-border-gold-rgb), 0.25), rgba(var(--color-ether-cyan-rgb), 0.12));
+  color: var(--color-text-gold);
+  border: 1px solid var(--color-border-gold);
   padding: var(--space-3);
-  font-weight: 700;
+  font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
   margin-top: var(--space-2);
-  transition: opacity var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .btn-salvar-cronica:hover {
-  opacity: 0.92;
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-glow-gold);
 }
 
 .tags-sugestoes {
@@ -144,11 +150,11 @@
 }
 
 .tag-chip {
-  background: var(--color-bg-surface);
+  background: rgba(var(--color-border-gold-rgb), 0.08);
   color: var(--color-text-gold);
-  border: 1px dashed var(--color-border-gold-muted);
+  border: 1px solid var(--color-border-gold-muted);
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -157,7 +163,7 @@
 .tag-chip:hover {
   background: var(--color-border-gold);
   color: var(--color-text-inverse);
-  border-style: solid;
+  box-shadow: var(--shadow-glow-gold);
 }
 
 @media (max-width: 800px) {

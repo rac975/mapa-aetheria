@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaSlidersH, FaCheck, FaExclamationTriangle, FaArrowDown } from 'react-icons/fa';
 import { Button, Badge } from '../../../../components/ui';
-import { obterModuloPorId } from '../../../../domain/fabula/technoFantasyRules';
+import { obterModuloPorId, isModuloDeFabrica } from '../../../../domain/fabula/technoFantasyRules';
 import styles from './ExibirPiloto.module.css';
 
 export default function PilotoModulosAtivos({
@@ -51,39 +51,49 @@ export default function PilotoModulosAtivos({
         </div>
       ) : (
         <div className={styles.modulesGrid}>
-          {modulosObjetos.map((mod) => (
-            <div key={mod.id} className={`${styles.moduleCard} ${styles.moduleCardActive}`}>
-              <div className={styles.moduleHeader}>
-                <div className={styles.moduleTitleGroup}>
-                  <span className={styles.moduleName}>{mod.nome}</span>
-                  <div className={styles.moduleMeta}>
-                    <Badge variant="gold" size="sm">
-                      {mod.tipo?.toUpperCase()}
-                    </Badge>
-                    <Badge variant={mod.slot_cost > 1 ? 'crise' : 'secondary'} size="sm">
-                      {mod.slot_cost || 1} {(mod.slot_cost || 1) === 1 ? 'Slot' : 'Slots'}
-                    </Badge>
+          {modulosObjetos.map((mod) => {
+            const deFabrica = isModuloDeFabrica(mod);
+
+            return (
+              <div
+                key={mod.id}
+                className={`${styles.moduleCard} ${styles.moduleCardActive} ${deFabrica ? styles.moduleCardFabrica : styles.moduleCardLoja}`}
+              >
+                <div className={styles.moduleHeader}>
+                  <div className={styles.moduleTitleGroup}>
+                    <span className={styles.moduleName}>{mod.nome}</span>
+                    <div className={styles.moduleMeta}>
+                      <Badge variant={deFabrica ? 'core' : 'gold'} size="sm">
+                        {deFabrica ? 'FÁBRICA' : 'OFICINA'}
+                      </Badge>
+                      <Badge variant="secondary" size="sm">
+                        {mod.tipo?.toUpperCase()}
+                      </Badge>
+                      <Badge variant={mod.slot_cost > 1 ? 'crise' : 'secondary'} size="sm">
+                        {mod.slot_cost || 1} {(mod.slot_cost || 1) === 1 ? 'Slot' : 'Slots'}
+                      </Badge>
+                    </div>
                   </div>
+                  <Badge variant="core" size="sm">
+                    <FaCheck /> Ativo
+                  </Badge>
                 </div>
-                <Badge variant="core" size="sm">
-                  <FaCheck /> Ativo
-                </Badge>
-              </div>
 
-              <div className={styles.moduleDesc}>{mod.descricao}</div>
+                <div className={styles.moduleDesc}>{mod.descricao}</div>
 
-              <div className={styles.moduleActions}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDesativarModulo(mod.id)}
-                  title="Desativar este módulo e transferir para a reserva"
-                >
-                  <FaArrowDown /> Desativar
-                </Button>
+                <div className={styles.moduleActions}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDesativarModulo(mod.id)}
+                    title="Desativar este módulo e transferir para a reserva"
+                  >
+                    <FaArrowDown /> Desativar
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

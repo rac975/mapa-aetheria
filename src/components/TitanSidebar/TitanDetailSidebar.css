@@ -161,32 +161,38 @@
 }
 
 .btn-add-contrato {
-  background: var(--color-border-gold);
-  color: var(--color-text-inverse);
-  border: none;
+  background: rgba(var(--color-border-gold-rgb), 0.12);
+  color: var(--color-text-gold);
+  border: 1px solid var(--color-border-gold);
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
-  font-weight: 700;
-  border-radius: var(--radius-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  transition: opacity var(--transition-fast);
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+  backdrop-filter: var(--backdrop-blur);
 }
 
 .btn-add-contrato:hover {
-  opacity: 0.9;
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-glow-gold);
+  transform: translateY(-1px);
 }
 
 .form-novo-contrato {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  background: var(--color-bg-base);
-  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  backdrop-filter: var(--backdrop-blur);
+  padding: var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-gold-muted);
+  box-shadow: var(--shadow-card);
 }
 
 .form-novo-contrato input,
@@ -195,18 +201,20 @@
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-main);
-  padding: var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;
+  transition: all var(--transition-fast);
 }
 
 .form-novo-contrato input:focus,
 .form-novo-contrato select:focus,
 .form-novo-contrato textarea:focus {
   border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 10px var(--color-ether-cyan-glow);
   outline: none;
 }
 
@@ -216,13 +224,22 @@
 }
 
 .btn-salvar-contrato {
+  background: linear-gradient(135deg, rgba(var(--color-pv-rgb), 0.25), rgba(var(--color-pv-rgb), 0.1));
+  border: 1px solid var(--color-pv);
+  color: var(--color-pv);
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-salvar-contrato:hover {
   background: var(--color-pv);
   color: var(--color-text-inverse);
-  border: none;
-  padding: var(--space-2);
-  font-weight: 700;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  box-shadow: var(--shadow-glow-green);
+  transform: translateY(-1px);
 }
 
 .contratos-lista {
@@ -233,14 +250,22 @@
 
 .contrato-card {
   background: var(--color-bg-surface);
+  backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-md);
   overflow: hidden;
-  transition: border-color var(--transition-fast);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.contrato-card:hover {
+  border-color: var(--color-border-gold-muted);
+  box-shadow: var(--shadow-card);
 }
 
 .contrato-card[open] {
   border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-card);
 }
 
 .contrato-summary {
@@ -252,6 +277,11 @@
   font-size: var(--font-size-xs);
   font-weight: 500;
   user-select: none;
+  transition: background var(--transition-fast);
+}
+
+.contrato-summary:hover {
+  background: rgba(var(--color-border-gold-rgb), 0.05);
 }
 
 .contrato-summary::-webkit-details-marker {
@@ -265,8 +295,8 @@
   flex-shrink: 0;
 }
 
-.contrato-status-dot.disponivel { background: var(--color-pv); }
-.contrato-status-dot.em_andamento { background: var(--color-pi); }
+.contrato-status-dot.disponivel { background: var(--color-pv); box-shadow: 0 0 6px var(--color-pv-glow); }
+.contrato-status-dot.em_andamento { background: var(--color-pi); box-shadow: 0 0 6px var(--color-pi-glow); }
 .contrato-status-dot.concluido { background: var(--color-text-dim); }
 
 .contrato-titulo {
@@ -274,20 +304,23 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text-main);
 }
 
 .contrato-recompensa {
   font-size: 11px;
   color: var(--color-text-gold);
-  background: rgba(var(--color-border-gold-rgb), 0.14);
+  background: rgba(var(--color-border-gold-rgb), 0.12);
+  border: 1px solid var(--color-border-gold-muted);
   padding: 2px var(--space-2);
   border-radius: var(--radius-sm);
+  font-weight: 600;
 }
 
 .contrato-body {
   padding: var(--space-3);
   border-top: 1px solid var(--color-border-gold-muted);
-  background: var(--color-bg-base);
+  background: rgba(var(--color-bg-surface-rgb), 0.6);
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   display: flex;
@@ -314,21 +347,32 @@
 }
 
 .btn-mudar-status {
-  background: var(--color-bg-surface);
+  background: var(--color-bg-input);
   color: var(--color-text-main);
   border: 1px solid var(--color-border-gold-muted);
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) var(--space-3);
   font-size: 11px;
-  border-radius: var(--radius-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .btn-mudar-status:hover {
   background: var(--color-bg-surface-hover);
   border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+  box-shadow: 0 0 8px var(--color-border-gold-muted);
 }
 
 .btn-mudar-status.btn-excluir-contrato {
   color: var(--color-crise);
+  border-color: rgba(var(--color-crise-rgb), 0.4);
+}
+
+.btn-mudar-status.btn-excluir-contrato:hover {
+  background: rgba(var(--color-crise-rgb), 0.15);
   border-color: var(--color-crise);
+  color: var(--color-crise-bright);
+  box-shadow: var(--shadow-glow-crise);
 }

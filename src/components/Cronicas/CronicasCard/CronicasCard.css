@@ -1,10 +1,18 @@
 .cronica-card {
   background: var(--color-bg-surface);
+  backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--color-border-gold-muted);
   border-left: 4px solid var(--color-border-gold);
   padding: var(--space-6);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  transition: all var(--transition-fast);
+}
+
+.cronica-card:hover {
+  border-color: var(--color-border-gold);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), var(--shadow-glow-gold);
+  transform: translateY(-2px);
 }
 
 .cronica-card-header {
@@ -64,30 +72,35 @@
 }
 
 .cronica-actions button {
-  background: var(--color-bg-base);
+  background: var(--color-bg-input);
   color: var(--color-text-gold);
-  border: 1px solid var(--color-border-gold);
+  border: 1px solid var(--color-border-gold-muted);
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: var(--font-size-xs);
-  display: flex;
+  font-weight: 500;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   transition: all var(--transition-fast);
 }
 
 .cronica-actions button:hover {
-  background: var(--color-border-gold);
-  color: var(--color-text-inverse);
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+  box-shadow: 0 0 8px var(--color-border-gold-muted);
 }
 
 .cronica-actions button.btn-delete {
   color: var(--color-crise);
-  border-color: var(--color-crise);
+  border-color: rgba(var(--color-crise-rgb), 0.4);
 }
 
 .cronica-actions button.btn-delete:hover {
-  background: var(--color-crise);
-  color: var(--color-text-main);
+  background: rgba(var(--color-crise-rgb), 0.15);
+  border-color: var(--color-crise);
+  color: var(--color-crise-bright);
+  box-shadow: var(--shadow-glow-crise);
 }
