@@ -1,0 +1,355 @@
+/* ==========================================================================
+   VILLAIN COMBAT DRAWER - CSS MODULE
+   Tokens do theme.css (Bordas Carmesim/Magenta Escuras & Micro-Glows)
+   ========================================================================== */
+
+.villainDrawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: linear-gradient(155deg, rgba(76, 5, 25, 0.85) 0%, rgba(6, 13, 23, 0.96) 75%);
+  border: 1px solid var(--color-villain-border-bright);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-glow-villain);
+  animation: slideVillainDrawer 0.16s ease-out;
+}
+
+@keyframes slideVillainDrawer {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-villain-border);
+  padding-bottom: var(--space-2);
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.headerTitleCluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.crownIcon {
+  color: var(--color-villain-bright);
+}
+
+.drawerTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-villain-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.closeBtn:hover {
+  color: #ffffff;
+  background: var(--color-villain-surface);
+}
+
+.triggerAlertBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  background: rgba(190, 24, 93, 0.32);
+  border: 1px solid var(--color-villain-border-bright);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: 0 0 18px var(--color-villain-glow);
+}
+
+.triggerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.triggerAlertIcon {
+  color: var(--color-villain-bright);
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.triggerTitle {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: #ffffff;
+}
+
+.triggerSub {
+  font-size: 0.7rem;
+  color: var(--color-text-gold);
+}
+
+.topControlsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.controlBlock {
+  background: rgba(6, 13, 23, 0.72);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.blockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.blockLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.highlightValue {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-villain-bright);
+}
+
+.deltaBtnGroup {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.stepBtn,
+.stepBtnPrimary {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-villain-border);
+  color: var(--color-text-main);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.stepBtnPrimary {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+}
+
+.stepBtn:hover,
+.stepBtnPrimary:hover,
+.stepBtnSelected {
+  background: var(--color-villain-border-bright);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.orbsStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.orb {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(190, 24, 93, 0.18);
+  border: 1px solid var(--color-villain-border);
+}
+
+.orbActive {
+  background: var(--color-villain-bright);
+  border-color: #ffffff;
+  box-shadow: 0 0 6px var(--color-villain-glow);
+}
+
+.totalAcoesRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.subHint {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}
+
+.abilitiesSection,
+.phasesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.subSectionLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.abilitiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+  gap: var(--space-2);
+}
+
+.abilityBtn {
+  background: rgba(6, 13, 23, 0.78);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all var(--transition-fast);
+}
+
+.abilityBtn:hover:not(:disabled) {
+  background: var(--color-villain-surface-hover);
+  border-color: var(--color-villain-border-bright);
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
+.abilityBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.abilityTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--color-text-gold);
+}
+
+.abilityDesc {
+  font-size: 0.66rem;
+  color: var(--color-text-muted);
+  line-height: 1.3;
+}
+
+.phasesRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+
+.phaseChipCard {
+  background: rgba(6, 13, 23, 0.75);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.phaseChipActive {
+  border-color: var(--color-villain-border-bright);
+  background: rgba(190, 24, 93, 0.2);
+  box-shadow: 0 0 12px var(--color-villain-glow);
+}
+
+.phaseChipTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.phaseChipTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phaseChipName {
+  font-size: 0.74rem;
+  color: var(--color-text-main);
+}
+
+.phaseSwitchBtn {
+  background: var(--color-villain);
+  border: 1px solid var(--color-villain-border-bright);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.phaseMetaText {
+  font-family: var(--font-family-mono);
+  font-size: 0.66rem;
+  color: var(--color-text-gold);
+}
+
+.phaseTransicaoNote {
+  margin: 0;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .topControlsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+}

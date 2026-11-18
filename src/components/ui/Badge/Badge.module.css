@@ -81,6 +81,13 @@
   animation: pulseCriseBadge 2s infinite ease-in-out;
 }
 
+.villain {
+  background: var(--color-villain-surface);
+  border-color: var(--color-villain-border);
+  color: var(--color-villain-bright);
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
 @keyframes pulseCriseBadge {
   0%, 100% {
     border-color: var(--color-crise);

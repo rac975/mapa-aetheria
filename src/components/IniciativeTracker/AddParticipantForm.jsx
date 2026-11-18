@@ -16,6 +16,8 @@ export default function AddParticipantForm({
   setHpMaxInput,
   mpMaxInput,
   setMpMaxInput,
+  tipoVilaoInput = 'padrao',
+  setTipoVilaoInput,
   onAddParticipante,
   onSelecionarNpcCatalogo
 }) {
@@ -114,6 +116,20 @@ export default function AddParticipantForm({
                     onChange={(e) => setMpMaxInput(e.target.value)}
                   />
                 </div>
+                {setTipoVilaoInput && (
+                  <select
+                    value={tipoVilaoInput}
+                    onChange={(e) => setTipoVilaoInput(e.target.value)}
+                    className={styles.selectSmall}
+                    aria-label="Escala de Vilão do inimigo"
+                    title="Escala de Vilania (define Pontos de Vilão e Multi-Ações)"
+                  >
+                    <option value="padrao">NPC Padrão (0 PVilão)</option>
+                    <option value="elite">Vilão Elite (5 PVilão)</option>
+                    <option value="campeao">Vilão Campeão (10 PVilão)</option>
+                    <option value="soberano">Vilão Soberano (15 PVilão)</option>
+                  </select>
+                )}
               </>
             ) : (
               <div className={styles.fieldGrow}>
@@ -123,11 +139,19 @@ export default function AddParticipantForm({
                   className={styles.select}
                   aria-label="Selecionar NPC do catálogo"
                 >
-                  {npcsDisponiveis.map((n) => (
-                    <option key={n.id} value={n.id}>
-                      {n.nome} (Nível {n.nivel} - {n.rank || 'soldado'})
-                    </option>
-                  ))}
+                  {npcsDisponiveis.map((n) => {
+                    const tagVilao = n.tipo_vilao && n.tipo_vilao !== 'padrao'
+                      ? ` • Vilão ${n.tipo_vilao.toUpperCase()}`
+                      : '';
+                    const tagFases = Array.isArray(n.fases_chefao) && n.fases_chefao.length > 0
+                      ? ` • ${n.fases_chefao.length} Fases`
+                      : '';
+                    return (
+                      <option key={n.id} value={n.id}>
+                        {n.nome} (Nível {n.nivel} - {n.rank || 'soldado'}{tagVilao}{tagFases})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}

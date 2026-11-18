@@ -1,0 +1,471 @@
+/* ==========================================================================
+   NPC VILLAIN TACTICAL PANEL - CSS MODULE
+   Tokens do theme.css (Bordas Carmesim/Magenta Escuras & Micro-Glows de Chefe)
+   ========================================================================== */
+
+.tacticalPanel {
+  border: 1px solid var(--color-villain-border) !important;
+  box-shadow: var(--shadow-glow-villain) !important;
+  background: linear-gradient(155deg, var(--color-villain-surface) 0%, var(--color-bg-surface) 65%) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.headerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-villain-border);
+  padding-bottom: var(--space-3);
+}
+
+.titleCluster {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.titleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.panelTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  color: var(--color-villain-bright);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  letter-spacing: 0.04em;
+}
+
+.panelSubtitle {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.multiActionControl {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(6, 13, 23, 0.78);
+  border: 1px solid var(--color-villain-border);
+  padding: 5px 10px;
+  border-radius: var(--radius-md);
+}
+
+.controlMiniLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.multiActionVal {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  min-width: 24px;
+  text-align: center;
+}
+
+.miniStepBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-villain-border);
+  color: var(--color-villain-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.miniStepBtn:hover {
+  background: var(--color-villain);
+  color: #ffffff;
+}
+
+/* ALERTA DE GATILHO DE TRANSIÇÃO DE FASE */
+.phaseTriggerAlert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  background: linear-gradient(90deg, rgba(190, 24, 93, 0.35) 0%, rgba(231, 76, 60, 0.22) 100%);
+  border: 1px solid var(--color-villain-border-bright);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: 0 0 22px var(--color-villain-glow);
+  animation: pulseVillainAlert 2s infinite ease-in-out;
+}
+
+@keyframes pulseVillainAlert {
+  0%, 100% {
+    border-color: var(--color-villain-border);
+    box-shadow: 0 0 12px var(--color-villain-glow);
+  }
+  50% {
+    border-color: var(--color-villain-border-bright);
+    box-shadow: 0 0 24px var(--color-crise-glow);
+  }
+}
+
+.triggerInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.triggerIcon {
+  font-size: var(--font-size-xl);
+  color: var(--color-villain-bright);
+  flex-shrink: 0;
+}
+
+.triggerHeadline {
+  display: block;
+  font-size: var(--font-size-sm);
+  color: #ffffff;
+  letter-spacing: 0.03em;
+}
+
+.triggerSub {
+  margin: 2px 0 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.feedbackBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  background: rgba(6, 13, 23, 0.85);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.closeFeedbackBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+}
+
+/* PONTOS DE VILÃO */
+.villainPointsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: rgba(6, 13, 23, 0.65);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.vpTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.vpCounterBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.vpLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  color: var(--color-villain-bright);
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vpNumberWrap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.vpBigNumber {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-2xl);
+  color: var(--color-text-main);
+  text-shadow: 0 0 12px var(--color-villain-glow);
+}
+
+.vpUnit {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.orbsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.villainOrb {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(190, 24, 93, 0.16);
+  border: 1px solid var(--color-villain-border);
+  transition: all var(--transition-fast);
+}
+
+.villainOrbActive {
+  background: var(--color-villain-bright);
+  border-color: #ffffff;
+  box-shadow: 0 0 8px var(--color-villain-glow);
+}
+
+.vpManualControls {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vpAdjustBtn {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-villain-border);
+  color: var(--color-text-main);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.vpAdjustBtn:hover {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
+.vpAbilitiesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.vpActionCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+
+.vpActionCard:hover:not(:disabled) {
+  background: var(--color-villain-surface-hover);
+  border-color: var(--color-villain-border-bright);
+  box-shadow: 0 0 12px var(--color-villain-glow);
+  transform: translateY(-1px);
+}
+
+.vpActionDisabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.vpActionTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.vpActionTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+}
+
+.vpActionDesc {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+/* FASES DO CHEFÃO */
+.phasesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phasesHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.subSectionTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-text-gold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.emptyPhasesNote {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.phasesTimelineGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+
+.phaseCard {
+  background: rgba(6, 13, 23, 0.72);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: all var(--transition-fast);
+}
+
+.phaseCardActive {
+  border-color: var(--color-villain-border-bright);
+  background: linear-gradient(145deg, rgba(190, 24, 93, 0.22) 0%, rgba(6, 13, 23, 0.88) 100%);
+  box-shadow: 0 0 16px var(--color-villain-glow);
+}
+
+.phaseCardDone {
+  opacity: 0.6;
+}
+
+.phaseCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.phaseNameWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.phaseName {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+}
+
+.activatePhaseBtn {
+  background: var(--color-villain-surface);
+  border: 1px solid var(--color-villain-border);
+  color: var(--color-villain-bright);
+  border-radius: var(--radius-sm);
+  padding: 4px 9px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.activatePhaseBtn:hover {
+  background: var(--color-villain);
+  color: #ffffff;
+}
+
+.phasePillsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.phaseStatPill {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-family: var(--font-family-mono);
+  color: var(--color-text-muted);
+}
+
+.phaseStatPill strong {
+  color: var(--color-text-gold);
+}
+
+.phaseEffectText,
+.phaseAbilityText {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.phaseEffectText strong {
+  color: var(--color-villain-bright);
+}
+
+.phaseAbilityText strong {
+  color: var(--color-ether-cyan);
+}
+
+@media print {
+  .tacticalPanel,
+  .villainPointsSection,
+  .phaseCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .noPrint {
+    display: none !important;
+  }
+}

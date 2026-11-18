@@ -11,7 +11,17 @@ import {
   ajustarRecursoNpc,
   isNpcCombatente,
   extrairHpMax,
-  extrairMpMax
+  extrairMpMax,
+  TIPOS_VILAO,
+  ACOES_PONTOS_VILAO,
+  normalizarTipoVilao,
+  calcularPontosVilaoPadrao,
+  calcularAcoesPorTurnoNpc,
+  isVilaoOuChefe,
+  criarFaseChefaoPadrao,
+  verificarGatilhoTransicaoFase,
+  executarTransicaoFaseChefao,
+  consumirPontoVilaoNpc
 } from './npcRules.js';
 
 export {
@@ -19,7 +29,17 @@ export {
   ajustarRecursoNpc,
   isNpcCombatente,
   extrairHpMax,
-  extrairMpMax
+  extrairMpMax,
+  TIPOS_VILAO,
+  ACOES_PONTOS_VILAO,
+  normalizarTipoVilao,
+  calcularPontosVilaoPadrao,
+  calcularAcoesPorTurnoNpc,
+  isVilaoOuChefe,
+  criarFaseChefaoPadrao,
+  verificarGatilhoTransicaoFase,
+  executarTransicaoFaseChefao,
+  consumirPontoVilaoNpc
 };
 
 /**
@@ -153,11 +173,33 @@ export function construirCombatente({
   ip = 0,
   pontosFabula = 0,
   pontosUltima = 0,
+  tipoVilao = 'padrao',
+  pontosVilao = null,
+  fasesChefao = [],
+  acoesPorTurno = 1,
+  faseAtual = 1,
   fichaId = null,
   npcId = null
 }) {
   const hp = Math.max(1, Number(hpMax) || 1);
   const mp = Math.max(0, Number(mpMax) || 0);
+  const vilaoNorm = tipo === 'heroi' ? 'padrao' : normalizarTipoVilao(tipoVilao);
+  const pvVilao = tipo === 'heroi'
+    ? 0
+    : Math.max(
+        0,
+        pontosVilao !== null && pontosVilao !== undefined
+          ? Number(pontosVilao)
+          : (Number(pontosUltima) || calcularPontosVilaoPadrao(vilaoNorm))
+      );
+  const acoes = tipo === 'heroi' ? 1 : Math.max(1, Number(acoesPorTurno) || 1);
+  const fases = tipo === 'heroi' || !Array.isArray(fasesChefao) ? [] : fasesChefao;
+  const faseInicial = Math.max(1, Number(faseAtual) || 1);
+
+  const modsIniciais = {
+    ...(npcId ? { npc_id: npcId } : {}),
+    ...(tipo !== 'heroi' ? { acoes_realizadas_rodada: 0, pontos_vilao_max: pvVilao } : {})
+  };
 
   return {
     nome: nome.trim(),
@@ -170,14 +212,19 @@ export function construirCombatente({
     mp_max: mp,
     ip: Number(ip) || 0,
     pontos_fabula: Number(pontosFabula) || 0,
-    pontos_ultima: Number(pontosUltima) || 0,
+    pontos_ultima: pvVilao,
+    tipo_vilao: vilaoNorm,
+    pontos_vilao: pvVilao,
+    fases_chefao: fases,
+    acoes_por_turno: acoes,
+    fase_atual: faseInicial,
     dano_acumulado: 0,
     condicoes: [],
     ficha_id: fichaId,
     guardando: false,
     protegendo_id: null,
     turno_atual: false,
-    modificadores: npcId ? { npc_id: npcId } : {}
+    modificadores: modsIniciais
   };
 }
 
@@ -717,12 +764,30 @@ export function resolverAcaoCombate({
   if (piGasto > 0) updatesAtor.ip = aplicarDeltaRecurso(ator.ip, -piGasto, null, 0);
   if (pfGasto > 0) updatesAtor.pontos_fabula = aplicarDeltaRecurso(ator.pontos_fabula, -pfGasto, null, 0);
 
-  if (marcarTurnoConcluido && acaoInfo.consomeTurno) {
-    updatesAtor.agiu = true;
-    updatesAtor.turno_atual = false;
-  }
-
   const resumoPartes = [];
+
+  if (marcarTurnoConcluido && acaoInfo.consomeTurno) {
+    const totalAcoes = isNpcCombatente(ator) ? Math.max(1, Number(ator.acoes_por_turno) || 1) : 1;
+    const modsAtor = ator.modificadores && typeof ator.modificadores === 'object' ? ator.modificadores : {};
+    const realizadasAntes = Math.max(0, Number(modsAtor.acoes_realizadas_rodada) || 0);
+    const realizadasAgora = realizadasAntes + 1;
+
+    if (totalAcoes > 1) {
+      updatesAtor.modificadores = {
+        ...modsAtor,
+        acoes_realizadas_rodada: realizadasAgora
+      };
+      resumoPartes.push(`Multi-Ação (${realizadasAgora}/${totalAcoes})`);
+    }
+
+    if (realizadasAgora >= totalAcoes) {
+      updatesAtor.agiu = true;
+      updatesAtor.turno_atual = false;
+    } else {
+      updatesAtor.agiu = false;
+      updatesAtor.turno_atual = false;
+    }
+  }
 
   if (codigoNorm === 'GUARDAR' || codigoNorm === 'COBERTURA_GUARDA') {
     updatesAtor.guardando = true;
@@ -772,6 +837,18 @@ export function resolverAcaoCombate({
       updatesAlvo.hp_atual = novoHpAlvo;
       updatesAlvo.dano_acumulado = calcularDanoAcumulado(novoHpAlvo, isAlvoNpc ? maxHpAlvo : alvoEfetivo.hp_max);
       resumoPartes.push(`${alvoEfetivo.nome} sofreu ${resDano.danoFinal} de dano (${tipoDano})`);
+
+      if (isAlvoNpc) {
+        const checkFase = verificarGatilhoTransicaoFase({
+          hpAtual: novoHpAlvo,
+          hpMax: maxHpAlvo,
+          faseAtual: alvoEfetivo.fase_atual,
+          fasesChefao: alvoEfetivo.fases_chefao
+        });
+        if (checkFase.gatilhoAtivo && checkFase.proximaFaseObj) {
+          resumoPartes.push(`⚡ GATILHO DE CHEFE: ${checkFase.proximaFaseObj.nome}`);
+        }
+      }
     }
   }
 
@@ -1268,7 +1345,7 @@ export function rolarDadosCombate({
   const formulaDados = `[${sigla1} d${faces1}: ${d1} + ${sigla2} d${faces2}: ${d2}]${modStr}`;
   const partesDetalhe = [
     `${formulaDados} = ${total}`,
-    `HR: ${hr}`
+    `RA: ${hr}`
   ];
 
   if (calcularDano && danoTotal !== null) {

@@ -3,7 +3,7 @@ import styles from './Badge.module.css';
 /**
  * Componente Badge estilizado para tags, status e afinidades de Fabula Ultima.
  * @param {Object} props
- * @param {'default' | 'gold' | 'ether' | 'core' | 'pv' | 'pm' | 'pi' | 'crise'} [props.variant='default']
+ * @param {'default' | 'gold' | 'ether' | 'core' | 'pv' | 'pm' | 'pi' | 'crise' | 'villain'} [props.variant='default']
  * @param {'sm' | 'md' | 'lg'} [props.size='md']
  * @param {React.ReactNode} props.children
  * @param {string} [props.className='']

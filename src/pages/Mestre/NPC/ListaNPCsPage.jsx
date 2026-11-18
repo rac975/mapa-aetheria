@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull, FaTrash, FaCrown, FaBolt, FaFire } from 'react-icons/fa';
 import { npcService } from '../../../services/npcService';
+import { TIPOS_VILAO, normalizarTipoVilao } from '../../../domain/fabula/npcRules';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAlert } from '../../../contexts/useAlert';
 import { Card, Button, Badge, ResourceBar } from '../../../components/ui';
@@ -85,7 +86,12 @@ export default function ListaNPCsPage() {
       tracos: ['', '', '', ''],
       ataques_basicos: [],
       poderes: [],
-      feiticos: []
+      feiticos: [],
+      tipo_vilao: 'padrao',
+      pontos_vilao: 0,
+      fases_chefao: [],
+      acoes_por_turno: 1,
+      fase_atual: 1
     };
 
     const { data, error } = await npcService.createNpc(novoNpc);
@@ -156,6 +162,26 @@ export default function ListaNPCsPage() {
                   <Badge variant="ether" size="sm">
                     Nível {npc.nivel}
                   </Badge>
+                  {normalizarTipoVilao(npc.tipo_vilao) !== 'padrao' && (
+                    <Badge variant="villain" size="sm">
+                      <FaCrown /> {TIPOS_VILAO[normalizarTipoVilao(npc.tipo_vilao)]?.badgeLabel}
+                    </Badge>
+                  )}
+                  {(Number(npc.pontos_vilao) || 0) > 0 && (
+                    <Badge variant="villain" size="sm">
+                      <FaSkull /> {npc.pontos_vilao} PVilão
+                    </Badge>
+                  )}
+                  {(Number(npc.acoes_por_turno) || 1) > 1 && (
+                    <Badge variant="gold" size="sm">
+                      <FaBolt /> {npc.acoes_por_turno}x Ações
+                    </Badge>
+                  )}
+                  {Array.isArray(npc.fases_chefao) && npc.fases_chefao.length > 0 && (
+                    <Badge variant="crise" size="sm">
+                      <FaFire /> {npc.fases_chefao.length} Fases
+                    </Badge>
+                  )}
                 </div>
               </div>
 

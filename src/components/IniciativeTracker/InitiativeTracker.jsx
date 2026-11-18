@@ -35,6 +35,9 @@ export default function InitiativeTracker({ isMestre }) {
     salvarEdicao,
     cancelarEdicao,
     alterarRecurso,
+    gastarPontoVilaoCombate,
+    transicionarFaseChefeCombate,
+    ajustarAcaoTurnoVilao,
     toggleCondicao,
     moverItem,
     obterPerfilRolagem,
@@ -46,6 +49,7 @@ export default function InitiativeTracker({ isMestre }) {
   const [nomeInimigo, setNomeInimigo] = useState('');
   const [hpMaxInput, setHpMaxInput] = useState(30);
   const [mpMaxInput, setMpMaxInput] = useState(20);
+  const [tipoVilaoInput, setTipoVilaoInput] = useState('padrao');
   const [npcCatalogoSelecionado, setNpcCatalogoSelecionado] = useState(null);
 
   const [mostrarFormAdicao, setMostrarFormAdicao] = useState(false);
@@ -62,12 +66,15 @@ export default function InitiativeTracker({ isMestre }) {
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    const acoesDefault = tipoVilaoInput === 'soberano' ? 3 : (tipoVilaoInput === 'elite' || tipoVilaoInput === 'campeao') ? 2 : 1;
     const sucesso = await addParticipante({
       tipo: novoTipo,
       fichaSelecionadaId: idFichaAtual,
       nomeInimigo,
       hpMaxInput,
       mpMaxInput,
+      tipoVilaoInput,
+      acoesPorTurnoInput: acoesDefault,
       npcCatalogoSelecionado
     });
     if (sucesso) setNomeInimigo('');
@@ -175,6 +182,8 @@ export default function InitiativeTracker({ isMestre }) {
           setHpMaxInput={setHpMaxInput}
           mpMaxInput={mpMaxInput}
           setMpMaxInput={setMpMaxInput}
+          tipoVilaoInput={tipoVilaoInput}
+          setTipoVilaoInput={setTipoVilaoInput}
           onAddParticipante={handleAddSubmit}
           onSelecionarNpcCatalogo={(npc) => {
             setNpcCatalogoSelecionado(npc);
@@ -207,6 +216,9 @@ export default function InitiativeTracker({ isMestre }) {
               onMoverItem={moverItem}
               onIniciarExclusao={iniciarExclusao}
               onAlterarRecurso={alterarRecurso}
+              onGastarPontoVilao={gastarPontoVilaoCombate}
+              onTransicionarFase={transicionarFaseChefeCombate}
+              onAjustarAcaoTurno={ajustarAcaoTurnoVilao}
               onToggleCondicao={toggleCondicao}
               onRolarDados={rolarDadosNoCombate}
             />

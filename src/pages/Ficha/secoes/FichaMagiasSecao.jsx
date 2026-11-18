@@ -200,7 +200,7 @@ export default function FichaMagiasSecao({
                     Teste [d{rolagem.facesAst}: {rolagem.d1} + d{rolagem.facesVon}: {rolagem.d2}
                     {rolagem.bonus > 0 ? ` + ${rolagem.bonus}` : ''}] ={' '}
                     <span className={styles.resultadoDestaque}>{rolagem.total}</span>
-                    {' '}| HR: <strong>{rolagem.hr}</strong>
+                    {' '}| RA: <strong>{rolagem.hr}</strong>
                     {rolagem.bonusDanoOfensivo > 0 ? ` (+${rolagem.bonusDanoOfensivo} bônus dano ofensivo)` : ''}
                   </span>
                   {rolagem.critico && <Badge variant="core" size="sm">Sucesso Crítico!</Badge>}

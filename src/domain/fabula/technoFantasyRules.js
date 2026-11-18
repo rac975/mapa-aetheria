@@ -1188,7 +1188,7 @@ export function calcularEstatisticasVeiculo(
         ...mod,
         formulaPrecisaoFormatada: `【${atr1} + ${atr2}】${bonusArma > 0 ? ` +${bonusArma}` : ''}`,
         pulsoFirmeAtivo,
-        danoFormatado: mod.dano_formula || `【HR + ${Number(mod.dano_bonus) || 8}】`,
+        danoFormatado: mod.dano_formula || `【RA + ${Number(mod.dano_bonus) || 8}】`,
         tipoDanoFormatado: (mod.tipo_dano || 'fisico').toUpperCase(),
         alcanceFormatado: mod.alcance === 'distancia' ? 'À Distância' : 'Corpo a Corpo'
       });

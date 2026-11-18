@@ -1,0 +1,212 @@
+/* ==========================================================================
+   NPC VILLAIN EDITOR SECTION - CSS MODULE
+   Tokens do theme.css (Bordas Carmesim/Magenta Escuras & Micro-Glows)
+   ========================================================================== */
+
+.villainCard {
+  border: 1px solid var(--color-villain-border) !important;
+  box-shadow: var(--shadow-glow-villain) !important;
+  background: linear-gradient(145deg, var(--color-villain-surface) 0%, var(--color-bg-surface) 60%) !important;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-villain-border);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-md);
+  color: var(--color-villain-bright);
+  margin: 0 0 var(--space-1) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  letter-spacing: 0.04em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.configGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.fieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.select,
+.input {
+  background: var(--color-bg-input);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--color-villain-border-bright);
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
+.inlineInputGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.presetPills {
+  display: flex;
+  gap: 4px;
+}
+
+.presetBtn {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-villain-border);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.presetBtn:hover,
+.presetBtnActive {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 8px var(--color-villain-glow);
+}
+
+.phasesBlock {
+  border-top: 1px solid var(--color-villain-border);
+  padding-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phasesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.phasesTitle {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gold);
+  margin: 0 0 2px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.phasesHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+}
+
+.phasesActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.emptyPhases {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-style: italic;
+  background: rgba(6, 13, 23, 0.55);
+  border: 1px dashed var(--color-villain-border);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.phasesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phaseItemCard {
+  background: rgba(6, 13, 23, 0.78);
+  border: 1px solid var(--color-villain-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phaseItemTop {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.phaseStatsRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+}
+
+.phaseDetailsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+@media (max-width: 900px) {
+  .configGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .phaseStatsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .phaseDetailsRow {
+    grid-template-columns: 1fr;
+  }
+}

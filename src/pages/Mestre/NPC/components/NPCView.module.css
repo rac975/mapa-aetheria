@@ -13,6 +13,65 @@
 }
 
 /* CABEÇALHO DO NPC */
+.bossHeaderBorder {
+  border: 1px solid var(--color-villain-border) !important;
+  box-shadow: var(--shadow-glow-villain) !important;
+}
+
+.tacticalTabsBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.tacticalTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tacticalTabBtn:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+}
+
+.tacticalTabActive {
+  background: rgba(var(--color-border-gold-rgb), 0.18);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-text-gold);
+  box-shadow: 0 0 12px var(--color-border-gold-glow);
+}
+
+.tacticalTabVillain {
+  border-color: var(--color-villain-border);
+  color: var(--color-villain-bright);
+}
+
+.tacticalTabVillain:hover {
+  background: var(--color-villain-surface);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+}
+
+.tacticalTabVillainActive {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 14px var(--color-villain-glow);
+}
+
 .headerCard {
   display: flex;
   justify-content: space-between;

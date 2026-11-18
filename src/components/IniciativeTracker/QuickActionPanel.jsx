@@ -110,7 +110,7 @@ export default function QuickActionPanel({
     });
     if (res) {
       if (!semDano && res.danoTotal !== null) setDanoAplicado(res.danoTotal);
-      setNotaLivre(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • HR ${res.hr}${res.statusCritico ? ` • ${res.statusCritico}` : ''}`);
+      setNotaLivre(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${res.statusCritico ? ` • ${res.statusCritico}` : ''}`);
     }
   };
 
@@ -132,7 +132,7 @@ export default function QuickActionPanel({
     if (res) {
       setCustoPm(Number(magia.custoPm) || 0);
       if (res.danoTotal !== null) setDanoAplicado(res.danoTotal);
-      setNotaLivre(`${magia.nome}: Magia ${res.total} ${res.formulaDados} • HR ${res.hr}`);
+      setNotaLivre(`${magia.nome}: Magia ${res.total} ${res.formulaDados} • RA ${res.hr}`);
     }
   };
 

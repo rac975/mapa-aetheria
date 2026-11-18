@@ -229,7 +229,7 @@ export default function CombatantDiceDrawer({
                 >
                   <div className={styles.weaponTop}>
                     <strong className={styles.weaponName}>{arma.nome}</strong>
-                    <Badge variant="gold" size="sm">HR + {arma.bonusDano} {arma.tipoDano}</Badge>
+                    <Badge variant="gold" size="sm">RA + {arma.bonusDano} {arma.tipoDano}</Badge>
                   </div>
                   <span className={styles.weaponFormula}>
                     [{s1} d{f1} + {s2} d{f2}]{arma.bonusPrecisao ? ` + ${arma.bonusPrecisao}` : ''}
@@ -262,7 +262,7 @@ export default function CombatantDiceDrawer({
                   </div>
                   <span className={styles.weaponFormula}>
                     [AST d{fAst} + VON d{fVon}]{magia.bonusPrecisao ? ` + ${magia.bonusPrecisao}` : ''}
-                    {magia.bonusDano > 0 ? ` • HR+${magia.bonusDano}` : ''}
+                    {magia.bonusDano > 0 ? ` • RA+${magia.bonusDano}` : ''}
                   </span>
                 </button>
               );
@@ -292,7 +292,7 @@ export default function CombatantDiceDrawer({
               <strong className={styles.statBoxValue}>{ultimaRolagem.total}</strong>
             </div>
             <div className={styles.statBox}>
-              <span className={styles.statBoxLabel}>HR</span>
+              <span className={styles.statBoxLabel}>RA</span>
               <strong className={styles.statBoxHr}>{ultimaRolagem.hr}</strong>
             </div>
             {ultimaRolagem.calcularDano && ultimaRolagem.danoTotal !== null && (

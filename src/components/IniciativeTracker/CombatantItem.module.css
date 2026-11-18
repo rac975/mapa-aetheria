@@ -35,6 +35,18 @@
   box-shadow: 2px 0 8px var(--color-crise-glow);
 }
 
+.itemCard.vilaoBossCard {
+  border-color: var(--color-villain-border);
+  background: linear-gradient(110deg, var(--color-villain-surface) 0%, rgba(var(--color-bg-surface-rgb), 0.72) 55%);
+  box-shadow: var(--shadow-glow-villain);
+}
+
+.itemCard.vilaoBossCard::before {
+  width: 5px;
+  background: var(--color-villain-bright);
+  box-shadow: 2px 0 12px var(--color-villain-glow);
+}
+
 .itemCard:hover {
   background: var(--color-bg-surface-hover);
   border-color: var(--color-border-gold);
@@ -145,6 +157,13 @@
   color: var(--color-border-gold);
   flex-shrink: 0;
   border: 1px solid var(--color-border-gold-muted);
+}
+
+.avatarBoss {
+  color: var(--color-villain-bright);
+  border-color: var(--color-villain-border);
+  background: var(--color-villain-surface);
+  box-shadow: 0 0 8px var(--color-villain-glow);
 }
 
 .nameAndBadges {
@@ -290,6 +309,12 @@
   border-color: rgba(var(--color-border-gold-rgb), 0.45);
 }
 
+.statPillVillain {
+  color: var(--color-villain-bright);
+  border-color: var(--color-villain-border);
+  background: var(--color-villain-surface);
+}
+
 .actionsCluster {
   display: flex;
   align-items: center;
@@ -332,6 +357,51 @@
   background: rgba(var(--color-border-gold-rgb), 0.22);
   border-color: var(--color-border-gold-bright);
   color: var(--color-text-gold);
+}
+
+.actionIconBtnVillain {
+  border-color: var(--color-villain-border);
+  color: var(--color-villain-bright);
+}
+
+.actionIconBtnVillain:hover {
+  background: var(--color-villain-surface);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+}
+
+.actionIconBtnVillainActive {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
+.bossPhaseBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: linear-gradient(90deg, rgba(190, 24, 93, 0.36) 0%, rgba(231, 76, 60, 0.22) 100%);
+  border: 1px solid var(--color-villain-border-bright);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: 0 0 18px var(--color-villain-glow);
+}
+
+.bossPhaseTextWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: #ffffff;
+}
+
+.bossPhaseIcon {
+  color: var(--color-villain-bright);
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
 }
 
 .actionIconBtnHasCond {

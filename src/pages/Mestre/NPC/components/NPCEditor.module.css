@@ -161,6 +161,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 
 /* ATAQUES */

@@ -14,7 +14,11 @@ import {
   isNpcCombatente,
   extrairHpMax,
   extrairMpMax,
-  calcularDanoAcumulado
+  calcularDanoAcumulado,
+  calcularAcoesPorTurnoNpc,
+  verificarGatilhoTransicaoFase,
+  executarTransicaoFaseChefao,
+  consumirPontoVilaoNpc
 } from '../domain/fabula/combatRules';
 
 /**
@@ -127,16 +131,26 @@ export function useCombatTracker(isMestre) {
     if (!isMestre) return;
     const novaRodada = (Number(estadoCombate?.rodada) || 1) + 1;
     setParticipantes((prev) =>
-      prev.map((p) => ({ ...p, agiu: false, guardando: false, protegendo_id: null, turno_atual: false }))
+      prev.map((p) => ({
+        ...p,
+        agiu: false,
+        guardando: false,
+        protegendo_id: null,
+        turno_atual: false,
+        modificadores: {
+          ...(p.modificadores && typeof p.modificadores === 'object' ? p.modificadores : {}),
+          acoes_realizadas_rodada: 0
+        }
+      }))
     );
     setEstadoCombate((prev) => ({ ...prev, rodada: novaRodada }));
-    await combatService.resetRodada(participantes.map((p) => p.id), novaRodada);
+    await combatService.resetRodada(participantes, novaRodada);
     await combatService.registrarAcaoCombate({
       autor_nome: 'Mestre',
       autor_tipo: 'sistema',
       acao_codigo: 'NOVA_RODADA',
       acao_titulo: `Rodada ${novaRodada} Iniciada`,
-      detalhes: 'Todos os combatentes recuperaram seus turnos e posturas de Guarda encerraram.',
+      detalhes: 'Todos os combatentes recuperaram seus turnos (e multi-ações de Vilão) e posturas de Guarda encerraram.',
       metadata: { rodada: novaRodada }
     });
   }, [isMestre, participantes, estadoCombate?.rodada]);
@@ -284,6 +298,8 @@ export function useCombatTracker(isMestre) {
     nomeInimigo,
     hpMaxInput,
     mpMaxInput,
+    tipoVilaoInput = 'padrao',
+    acoesPorTurnoInput = 1,
     npcCatalogoSelecionado
   }) => {
     if (!isMestre) return false;
@@ -312,13 +328,33 @@ export function useCombatTracker(isMestre) {
         fichaId: fichaEncontrada.id
       });
     } else if (npcCatalogoSelecionado && (!nomeInimigo || nomeInimigo.trim() === '')) {
+      const tipoVilaoNpc = npcCatalogoSelecionado.tipo_vilao || (
+        npcCatalogoSelecionado.rank === 'campeao'
+          ? 'campeao'
+          : npcCatalogoSelecionado.rank === 'elite'
+            ? 'elite'
+            : 'padrao'
+      );
+      const fasesNpc = Array.isArray(npcCatalogoSelecionado.fases_chefao) ? npcCatalogoSelecionado.fases_chefao : [];
+      const faseInicialNum = Math.max(1, Number(npcCatalogoSelecionado.fase_atual) || 1);
+      const faseObj = fasesNpc.find((f, idx) => (Number(f.numero) || idx + 1) === faseInicialNum) || fasesNpc[0] || null;
+      const acoesCalculadas = Number(faseObj?.acoes_por_turno) || Number(npcCatalogoSelecionado.acoes_por_turno) || calcularAcoesPorTurnoNpc({
+        rank: npcCatalogoSelecionado.rank,
+        tipoVilao: tipoVilaoNpc,
+        quantidadeSoldados: npcCatalogoSelecionado.quantidade_soldados
+      });
+
       novoCombatente = construirCombatente({
         tipo: 'inimigo',
         nome: npcCatalogoSelecionado.nome,
         ordem: novaOrdem,
-        hpMax: npcCatalogoSelecionado.pv_max || 30,
-        mpMax: npcCatalogoSelecionado.pm_max || 20,
-        pontosUltima: 3,
+        hpMax: Number(faseObj?.pv_max) || npcCatalogoSelecionado.pv_max || 30,
+        mpMax: Number(faseObj?.pm_max) || npcCatalogoSelecionado.pm_max || 20,
+        tipoVilao: tipoVilaoNpc,
+        pontosVilao: npcCatalogoSelecionado.pontos_vilao,
+        fasesChefao: fasesNpc,
+        acoesPorTurno: acoesCalculadas,
+        faseAtual: faseInicialNum,
         npcId: npcCatalogoSelecionado.id
       });
     } else {
@@ -332,7 +368,8 @@ export function useCombatTracker(isMestre) {
         ordem: novaOrdem,
         hpMax: Number(hpMaxInput),
         mpMax: Number(mpMaxInput),
-        pontosUltima: 3
+        tipoVilao: tipoVilaoInput,
+        acoesPorTurno: Number(acoesPorTurnoInput) || 1
       });
     }
 
@@ -405,7 +442,25 @@ export function useCombatTracker(isMestre) {
       updates[campo] = novoValor;
       if (campo === 'hp_atual') {
         updates.dano_acumulado = calcularDanoAcumulado(novoValor, maximoEfetivo);
+        const checkFase = verificarGatilhoTransicaoFase({
+          hpAtual: novoValor,
+          hpMax: maximoEfetivo,
+          faseAtual: participanteAtual.fase_atual || 1,
+          fasesChefao: participanteAtual.fases_chefao || []
+        });
+        if (checkFase.gatilhoAtivo && checkFase.proximaFaseObj && Number(valorAtual) > 0 && novoValor === 0) {
+          setAlerta({
+            isOpen: true,
+            type: 'warning',
+            title: `⚡ Gatilho de Fase — ${participanteAtual.nome}`,
+            message: checkFase.motivo
+          });
+        }
       }
+    } else if (campo === 'pontos_vilao') {
+      novoValor = aplicarDeltaRecurso(valorAtual, delta, maximo, 0);
+      updates.pontos_vilao = novoValor;
+      updates.pontos_ultima = novoValor;
     } else {
       novoValor = aplicarDeltaRecurso(valorAtual, delta, maximo, 0);
       updates[campo] = novoValor;
@@ -416,6 +471,145 @@ export function useCombatTracker(isMestre) {
 
     if (participanteAtual && participanteAtual.tipo === 'heroi' && participanteAtual.ficha_id) {
       await combatService.updateRecursoFicha(participanteAtual.ficha_id, campo, novoValor);
+    } else if (isNpc && participanteAtual?.modificadores?.npc_id) {
+      await combatService.updateNpcMestreFromCombat(participanteAtual.modificadores.npc_id, updates);
+    }
+  }, [isMestre, participantes]);
+
+  const gastarPontoVilaoCombate = useCallback(async (id, codigoAcao = 'INVOCAR_TRACO') => {
+    if (!isMestre) return false;
+    const participanteAtual = participantes.find((p) => p.id === id);
+    if (!participanteAtual) return false;
+
+    const resultado = consumirPontoVilaoNpc(participanteAtual, { codigoAcao });
+    if (!resultado.valido) {
+      setAlerta({ isOpen: true, type: 'warning', title: 'Pontos de Vilão Insuficientes', message: resultado.erro });
+      return false;
+    }
+
+    const { entidadeAtualizada, acaoInfo, resumo } = resultado;
+    const updates = {
+      pontos_vilao: entidadeAtualizada.pontos_vilao,
+      pontos_ultima: entidadeAtualizada.pontos_ultima,
+      mp_atual: entidadeAtualizada.mp_atual,
+      condicoes: entidadeAtualizada.condicoes
+    };
+
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    await combatService.updateParticipante(id, updates);
+
+    if (participanteAtual.modificadores?.npc_id) {
+      await combatService.updateNpcMestreFromCombat(participanteAtual.modificadores.npc_id, updates);
+    }
+
+    const { data } = await combatService.registrarAcaoCombate({
+      combatente_id: id,
+      autor_nome: participanteAtual.nome,
+      autor_tipo: 'inimigo',
+      acao_codigo: `VILAO_${codigoAcao}`,
+      acao_titulo: `💀 ${acaoInfo.titulo}`,
+      detalhes: resumo,
+      metadata: {
+        pontos_vilao_restantes: updates.pontos_vilao,
+        custo: resultado.custoAplicado
+      }
+    });
+    if (data) {
+      setAcoesFeed((prev) => [data, ...prev].slice(0, 30));
+    }
+
+    return true;
+  }, [isMestre, participantes]);
+
+  const transicionarFaseChefeCombate = useCallback(async (id, numeroFaseDestino = null) => {
+    if (!isMestre) return false;
+    const participanteAtual = participantes.find((p) => p.id === id);
+    if (!participanteAtual) return false;
+
+    const resultado = executarTransicaoFaseChefao(participanteAtual, numeroFaseDestino);
+    if (!resultado.valido) {
+      setAlerta({ isOpen: true, type: 'warning', title: 'Transição de Fase', message: resultado.erro });
+      return false;
+    }
+
+    const { entidadeAtualizada, faseAtivada, resumo } = resultado;
+    const updates = {
+      fase_atual: entidadeAtualizada.fase_atual,
+      acoes_por_turno: entidadeAtualizada.acoes_por_turno,
+      hp_max: entidadeAtualizada.hp_max,
+      hp_atual: entidadeAtualizada.hp_atual,
+      mp_max: entidadeAtualizada.mp_max,
+      mp_atual: entidadeAtualizada.mp_atual,
+      dano_acumulado: 0,
+      agiu: false,
+      condicoes: entidadeAtualizada.condicoes,
+      modificadores: entidadeAtualizada.modificadores
+    };
+
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    await combatService.updateParticipante(id, updates);
+
+    if (participanteAtual.modificadores?.npc_id) {
+      await combatService.updateNpcMestreFromCombat(participanteAtual.modificadores.npc_id, updates);
+    }
+
+    const { data } = await combatService.registrarAcaoCombate({
+      combatente_id: id,
+      autor_nome: participanteAtual.nome,
+      autor_tipo: 'inimigo',
+      acao_codigo: 'TRANSICAO_FASE_CHEFE',
+      acao_titulo: `🔥 ${faseAtivada.nome || `Fase ${entidadeAtualizada.fase_atual}`}`,
+      detalhes: resumo,
+      metadata: {
+        fase_atual: entidadeAtualizada.fase_atual,
+        hp_max: entidadeAtualizada.hp_max
+      }
+    });
+    if (data) {
+      setAcoesFeed((prev) => [data, ...prev].slice(0, 30));
+    }
+
+    setAlerta({
+      isOpen: true,
+      type: 'warning',
+      title: `🔥 ${participanteAtual.nome} — ${faseAtivada.nome || `Fase ${entidadeAtualizada.fase_atual}`}`,
+      message: resumo
+    });
+
+    return true;
+  }, [isMestre, participantes]);
+
+  const ajustarAcaoTurnoVilao = useCallback(async (id, deltaRealizadas = 1, novoTotalAcoes = null) => {
+    if (!isMestre) return;
+    const participanteAtual = participantes.find((p) => p.id === id);
+    if (!participanteAtual) return;
+
+    const totalAcoes = novoTotalAcoes !== null && novoTotalAcoes !== undefined
+      ? Math.max(1, Number(novoTotalAcoes) || 1)
+      : Math.max(1, Number(participanteAtual.acoes_por_turno) || 1);
+
+    const modsAtuais = participanteAtual.modificadores && typeof participanteAtual.modificadores === 'object'
+      ? participanteAtual.modificadores
+      : {};
+    const realizadasAtuais = Math.max(0, Number(modsAtuais.acoes_realizadas_rodada) || 0);
+    const novasRealizadas = Math.max(0, Math.min(totalAcoes, realizadasAtuais + (Number(deltaRealizadas) || 0)));
+    const concluiuTodas = novasRealizadas >= totalAcoes;
+
+    const updates = {
+      acoes_por_turno: totalAcoes,
+      agiu: concluiuTodas,
+      turno_atual: concluiuTodas ? false : participanteAtual.turno_atual,
+      modificadores: {
+        ...modsAtuais,
+        acoes_realizadas_rodada: novasRealizadas
+      }
+    };
+
+    setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    await combatService.updateParticipante(id, updates);
+
+    if (novoTotalAcoes !== null && participanteAtual.modificadores?.npc_id) {
+      await combatService.updateNpcMestreFromCombat(participanteAtual.modificadores.npc_id, { acoes_por_turno: totalAcoes });
     }
   }, [isMestre, participantes]);
 
@@ -526,6 +720,9 @@ export function useCombatTracker(isMestre) {
     salvarEdicao,
     cancelarEdicao,
     alterarRecurso,
+    gastarPontoVilaoCombate,
+    transicionarFaseChefeCombate,
+    ajustarAcaoTurnoVilao,
     toggleCondicao,
     moverItem,
     obterPerfilRolagem,

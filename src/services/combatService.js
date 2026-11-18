@@ -141,6 +141,29 @@ export const combatService = {
   },
 
   /**
+   * Sincroniza atributos táticos (PV, PM, Pontos de Vilão, Fase Atual) de um NPC em combate
+   * de volta para sua ficha original na tabela npcs_mestre.
+   */
+  async updateNpcMestreFromCombat(npcId, updates = {}) {
+    if (!npcId) return { data: null, error: null };
+    const payload = {};
+    if (updates.hp_atual !== undefined) payload.pv_atual = updates.hp_atual;
+    if (updates.hp_max !== undefined) payload.pv_max = updates.hp_max;
+    if (updates.mp_atual !== undefined) payload.pm_atual = updates.mp_atual;
+    if (updates.mp_max !== undefined) payload.pm_max = updates.mp_max;
+    if (updates.pontos_vilao !== undefined) payload.pontos_vilao = updates.pontos_vilao;
+    if (updates.fase_atual !== undefined) payload.fase_atual = updates.fase_atual;
+    if (updates.acoes_por_turno !== undefined) payload.acoes_por_turno = updates.acoes_por_turno;
+
+    if (Object.keys(payload).length === 0) return { data: null, error: null };
+
+    return await supabase
+      .from('npcs_mestre')
+      .update(payload)
+      .eq('id', npcId);
+  },
+
+  /**
    * Busca o estado global da cena de combate (rodada atual e modificadores).
    */
   async getEstadoCombate() {
@@ -230,18 +253,26 @@ export const combatService = {
   },
 
   /**
-   * Reseta os turnos (agiu, guardando, protegendo_id, turno_atual) para todos os IDs e avança a rodada.
+   * Reseta os turnos (agiu, guardando, protegendo_id, turno_atual e contador de multi-ações) para todos os combatentes e avança a rodada.
    */
-  async resetRodada(ids, novaRodada = null) {
-    for (const id of ids) {
+  async resetRodada(participantesOuIds = [], novaRodada = null) {
+    for (const item of participantesOuIds) {
+      const id = typeof item === 'object' ? item.id : item;
+      const modsBase = (typeof item === 'object' && item.modificadores && typeof item.modificadores === 'object')
+        ? { ...item.modificadores, acoes_realizadas_rodada: 0 }
+        : undefined;
+
+      const updatePayload = {
+        agiu: false,
+        guardando: false,
+        protegendo_id: null,
+        turno_atual: false
+      };
+      if (modsBase) updatePayload.modificadores = modsBase;
+
       await supabase
         .from('iniciativa_combate')
-        .update({
-          agiu: false,
-          guardando: false,
-          protegendo_id: null,
-          turno_atual: false
-        })
+        .update(updatePayload)
         .eq('id', id);
     }
     if (novaRodada !== null) {

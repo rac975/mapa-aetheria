@@ -186,8 +186,8 @@ export default function FichaSlotMaoVazia({
               onChange={(e) => setTipoAlcanceImprovisada(e.target.value)}
               className={styles.acroSelect}
             >
-              <option value="corpo_a_corpo">Corpo a Corpo (DES + VIG | HR + 2 Físico)</option>
-              <option value="distancia">Arremesso à Distância (DES + VIG | HR + 2 Físico)</option>
+              <option value="corpo_a_corpo">Corpo a Corpo (DES + VIG | RA + 2 Físico)</option>
+              <option value="distancia">Arremesso à Distância (DES + VIG | RA + 2 Físico)</option>
             </select>
           </div>
         )}
