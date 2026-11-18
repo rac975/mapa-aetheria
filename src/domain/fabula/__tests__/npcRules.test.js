@@ -11,7 +11,14 @@ import {
   ajustarRecursoNpc,
   extrairHpMax,
   extrairMpMax,
-  isNpcCombatente
+  isNpcCombatente,
+  calcularPontosVilaoPadrao,
+  calcularAcoesPorTurnoNpc,
+  criarFaseChefaoPadrao,
+  verificarGatilhoTransicaoFase,
+  executarTransicaoFaseChefao,
+  consumirPontoVilaoNpc,
+  isVilaoOuChefe
 } from '../npcRules.js';
 
 function assert(condition, message) {
@@ -112,5 +119,75 @@ assert(isNpcCombatente({ tipo: 'npc' }) === true, 'NPC é NPC');
 assert(isNpcCombatente({ tipo: 'heroi' }) === false, 'Herói não é NPC');
 assert(isNpcCombatente({ tipo: 'jogador' }) === false, 'Jogador não é NPC');
 assert(isNpcCombatente(null) === false, 'Null retorna false');
+
+console.log('--- 6. Testando Mecânicas de Vilão, Multi-Ações e Fases de Chefão ---');
+assert(calcularPontosVilaoPadrao('padrao') === 0, 'Vilão Padrão = 0 PVilão');
+assert(calcularPontosVilaoPadrao('elite') === 5, 'Vilão Elite = 5 PVilão');
+assert(calcularPontosVilaoPadrao('campeao') === 10, 'Vilão Campeão = 10 PVilão');
+assert(calcularPontosVilaoPadrao('soberano') === 15, 'Vilão Soberano = 15 PVilão');
+
+assert(calcularAcoesPorTurnoNpc({ rank: 'soldado', tipoVilao: 'padrao' }) === 1, 'Soldado Padrão = 1 ação/turno');
+assert(calcularAcoesPorTurnoNpc({ rank: 'elite', tipoVilao: 'elite' }) === 2, 'Elite = 2 ações/turno');
+assert(calcularAcoesPorTurnoNpc({ rank: 'campeao', tipoVilao: 'campeao', quantidadeSoldados: 4 }) === 4, 'Campeão 4x = 4 ações/turno');
+assert(calcularAcoesPorTurnoNpc({ rank: 'soldado', tipoVilao: 'soberano', quantidadeSoldados: 2 }) === 3, 'Soberano mínimo = 3 ações/turno');
+
+const fase1 = criarFaseChefaoPadrao(1, { pv_max: 120, pm_max: 60, acoes_por_turno: 2 });
+const fase2 = criarFaseChefaoPadrao(2, { pv_max: 180, pm_max: 80, acoes_por_turno: 3 });
+
+const checkSemGatilho = verificarGatilhoTransicaoFase({
+  hpAtual: 50,
+  hpMax: 120,
+  faseAtual: 1,
+  fasesChefao: [fase1, fase2]
+});
+assert(checkSemGatilho.gatilhoAtivo === false, 'Com 50 PV na Fase 1, gatilho hp_zero ainda não está ativo');
+
+const checkGatilhoZero = verificarGatilhoTransicaoFase({
+  hpAtual: 0,
+  hpMax: 120,
+  faseAtual: 1,
+  fasesChefao: [fase1, fase2]
+});
+assert(checkGatilhoZero.gatilhoAtivo === true, 'Com 0 PV na Fase 1, gatilho de transição para Fase 2 ativa!');
+assert(checkGatilhoZero.proximaFaseObj.numero === 2, 'Próxima fase identificada é a Fase 2');
+
+const chefeEmCombate = {
+  nome: 'Malos, Égide Sombrio',
+  tipo: 'inimigo',
+  tipo_vilao: 'soberano',
+  pontos_vilao: 15,
+  pontos_ultima: 15,
+  fase_atual: 1,
+  acoes_por_turno: 2,
+  fases_chefao: [fase1, fase2],
+  hp_atual: 0,
+  hp_max: 120,
+  mp_atual: 10,
+  mp_max: 60,
+  condicoes: ['lento', 'abalado'],
+  modificadores: { acoes_realizadas_rodada: 2 }
+};
+
+assert(isVilaoOuChefe(chefeEmCombate) === true, 'Identifica Soberano como Vilão/Chefe');
+
+const resTransicao = executarTransicaoFaseChefao(chefeEmCombate);
+assert(resTransicao.valido === true, 'Transição de Fase 1 para Fase 2 válida');
+assert(resTransicao.entidadeAtualizada.fase_atual === 2, 'Fase atual atualizada para 2');
+assert(resTransicao.entidadeAtualizada.hp_max === 180, 'HP Máximo atualizado para 180 da Fase 2');
+assert(resTransicao.entidadeAtualizada.hp_atual === 180, 'HP Atual restaurado para 180 da Fase 2');
+assert(resTransicao.entidadeAtualizada.mp_atual === 60, 'MP recuperou +50 (10 + 50 = 60)');
+assert(resTransicao.entidadeAtualizada.acoes_por_turno === 3, 'Ações por turno escaladas para 3 na Fase 2');
+assert(resTransicao.entidadeAtualizada.condicoes.length === 0, 'Condições negativas limpas na transição de fase');
+
+const chefeComCondicoes = {
+  ...resTransicao.entidadeAtualizada,
+  mp_atual: 20,
+  condicoes: ['envenenado']
+};
+const resGastoPv = consumirPontoVilaoNpc(chefeComCondicoes, { codigoAcao: 'RECUPERACAO_EPICA' });
+assert(resGastoPv.valido === true, 'Gasto de Ponto de Vilão válido');
+assert(resGastoPv.entidadeAtualizada.pontos_vilao === 14, 'Pontos de Vilão reduzidos de 15 para 14');
+assert(resGastoPv.entidadeAtualizada.mp_atual === 70, 'Recuperação de Vilão somou +50 PM (20 -> 70)');
+assert(resGastoPv.entidadeAtualizada.condicoes.length === 0, 'Recuperação de Vilão limpou condições negativas');
 
 console.log('TODOS OS TESTES DE REGRAS DE NPC PASSARAM COM SUCESSO!');

@@ -103,7 +103,7 @@ export default function QuickDiceStrip({
               >
                 <FaCrosshairs />
                 <span>{arma.nome} [{s1}+{s2}]</span>
-                <span className={styles.chipDmgTag}>HR+{arma.bonusDano}</span>
+                <span className={styles.chipDmgTag}>RA+{arma.bonusDano}</span>
               </button>
             );
           })

@@ -285,7 +285,7 @@ assert(
     rolagemAtaqueCrit.hr === 7 &&
     rolagemAtaqueCrit.danoTotal === 14 &&
     rolagemAtaqueCrit.isCritico === true,
-  'Rolagem de arma calcula Precisão (7+7+3=17), HR (7), Dano (7+7=14) e Sucesso Crítico'
+  'Rolagem de arma calcula Precisão (7+7+3=17), RA (7), Dano (7+7=14) e Sucesso Crítico'
 );
 
 const rolagemOpostaGuarda = rolarDadosCombate({

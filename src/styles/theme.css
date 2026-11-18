@@ -54,6 +54,19 @@
   --color-crise-glow: rgba(231, 76, 60, 0.6);
   --color-crise-track: rgba(231, 76, 60, 0.25);
 
+  /* --- MECÂNICAS DE VILÃO & CHEFÕES (Carmesim Escuro / Magenta Ameaçador) --- */
+  --color-villain-rgb: 190, 24, 93;
+  --color-villain: #be185d;
+  --color-villain-bright: #fb7185;
+  --color-villain-crimson: #9f1239;
+  --color-villain-dark: #4c0519;
+  --color-villain-surface: rgba(76, 5, 25, 0.42);
+  --color-villain-surface-hover: rgba(112, 10, 40, 0.58);
+  --color-villain-border: rgba(225, 29, 72, 0.55);
+  --color-villain-border-bright: #f43f5e;
+  --color-villain-glow: rgba(225, 29, 72, 0.48);
+  --color-villain-track: rgba(190, 24, 93, 0.24);
+
   /* --- TIPOGRAFIA & TEXTO --- */
   --color-text-main: #f0f4fc;
   --color-text-muted: #8ea3bf;
@@ -97,6 +110,7 @@
   --shadow-glow-green: 0 0 16px var(--color-core-green-glow);
   --shadow-glow-gold: 0 0 14px var(--color-border-gold-glow);
   --shadow-glow-crise: 0 0 20px var(--color-crise-glow);
+  --shadow-glow-villain: 0 0 18px var(--color-villain-glow), inset 0 0 14px rgba(190, 24, 93, 0.18);
 
   /* --- TRANSIÇÕES --- */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -145,6 +159,17 @@
     --color-crise-bright: #000000;
     --color-crise-glow: none;
     --color-crise-track: #cccccc;
+
+    --color-villain: #000000;
+    --color-villain-bright: #000000;
+    --color-villain-crimson: #222222;
+    --color-villain-dark: #ffffff;
+    --color-villain-surface: #ffffff;
+    --color-villain-surface-hover: #ffffff;
+    --color-villain-border: #000000;
+    --color-villain-border-bright: #000000;
+    --color-villain-glow: none;
+    --color-villain-track: #cccccc;
 
     --color-text-main: #000000;
     --color-text-muted: #222222;

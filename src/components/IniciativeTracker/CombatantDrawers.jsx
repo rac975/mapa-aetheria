@@ -1,4 +1,4 @@
-import { FaTimes, FaMinus, FaPlus, FaBoxOpen, FaStar } from 'react-icons/fa';
+import { FaTimes, FaMinus, FaPlus, FaBoxOpen, FaStar, FaSkull } from 'react-icons/fa';
 import { CONDICOES_DISPONIVEIS } from '../../constants/condicoes';
 import { extrairHpMax, extrairMpMax } from '../../domain/fabula/combatRules';
 import styles from './CombatantItem.module.css';
@@ -46,7 +46,7 @@ export default function CombatantDrawers({
             </div>
           </div>
 
-          {p.tipo === 'heroi' && (
+          {p.tipo === 'heroi' ? (
             <div className={styles.countersRow}>
               <div className={styles.statGroup}>
                 <span className={styles.statLabel}><FaBoxOpen /> IP: {p.ip}</span>
@@ -57,6 +57,28 @@ export default function CombatantDrawers({
                 <span className={styles.statLabel}><FaStar /> PF: {p.pontos_fabula}</span>
                 <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, -1)}><FaMinus /></button>
                 <button type="button" className={styles.counterBtn} onClick={() => onAlterarRecurso(p.id, 'pontos_fabula', p.pontos_fabula, 1)}><FaPlus /></button>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.countersRow}>
+              <div className={styles.statGroup}>
+                <span className={styles.statLabel}>
+                  <FaSkull /> PVilão: {p.pontos_vilao ?? p.pontos_ultima ?? 0}
+                </span>
+                <button
+                  type="button"
+                  className={styles.counterBtn}
+                  onClick={() => onAlterarRecurso(p.id, 'pontos_vilao', p.pontos_vilao ?? p.pontos_ultima ?? 0, -1)}
+                >
+                  <FaMinus />
+                </button>
+                <button
+                  type="button"
+                  className={styles.counterBtn}
+                  onClick={() => onAlterarRecurso(p.id, 'pontos_vilao', p.pontos_vilao ?? p.pontos_ultima ?? 0, 1)}
+                >
+                  <FaPlus />
+                </button>
               </div>
             </div>
           )}
