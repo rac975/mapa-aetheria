@@ -1,5 +1,4 @@
-import { FaDice, FaPlus, FaMinus } from 'react-icons/fa';
-import { LuDot } from 'react-icons/lu';
+import { FaDice, FaPlus, FaMinus, FaUndo } from 'react-icons/fa';
 import { Card, Badge } from '../../../components/ui';
 import { calcularBonusPassivosPoderesHeroicos } from '../../../domain/fabula/heroicAndQuirksRules';
 import styles from './FichaAtributosSecao.module.css';
@@ -136,27 +135,30 @@ export default function FichaAtributos({
                                     disabled={atingiuMinimo}
                                     onClick={(e) => alterarModificador(e, key, -1)}
                                     title="Reduzir dado"
+                                    aria-label="Reduzir dado"
                                     className={`${styles.btnControl} ${styles.btnMinus}`}
                                 >
-                                    <FaMinus size={10} />
+                                    <FaMinus size={9} />
                                 </button>
                                 <button
                                     type="button"
                                     disabled={atingiuBase}
                                     onClick={(e) => resetModificador(e, key)}
-                                    title="Resetar dado"
+                                    title="Resetar dado para o valor base"
+                                    aria-label="Resetar dado para o valor base"
                                     className={`${styles.btnControl} ${styles.btnReset}`}
                                 >
-                                    <LuDot size={32} />
+                                    <FaUndo size={9} />
                                 </button>
                                 <button
                                     type="button"
                                     disabled={atingiuMaximo}
                                     onClick={(e) => alterarModificador(e, key, 1)}
                                     title="Aumentar dado"
+                                    aria-label="Aumentar dado"
                                     className={`${styles.btnControl} ${styles.btnPlus}`}
                                 >
-                                    <FaPlus size={10} />
+                                    <FaPlus size={9} />
                                 </button>
                             </div>
 

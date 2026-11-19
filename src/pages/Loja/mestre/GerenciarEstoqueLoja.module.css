@@ -56,6 +56,8 @@
   gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .selectLoja {
@@ -70,62 +72,15 @@
   font-size: var(--font-size-sm);
   cursor: pointer;
   transition: border-color var(--transition-fast);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .selectLoja:focus {
   border-color: var(--color-ether-cyan);
-}
-
-/* Tokens de botões e abas de fallback com superfícies JRPG escuras */
-.btnEditar {
-  background: var(--color-bg-surface);
-  color: var(--color-text-gold);
-  border: 1px solid var(--color-border-gold);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  transition: all var(--transition-fast);
-}
-
-.btnEditar:hover {
-  background: var(--color-bg-surface-hover);
-  border-color: var(--color-border-gold-bright);
-  color: #ffffff;
-  box-shadow: var(--shadow-glow-gold);
-}
-
-.btnAba {
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  transition: all var(--transition-fast);
-}
-
-.btnAba:hover {
-  background: var(--color-bg-surface-hover);
-  color: var(--color-text-main);
-  border-color: var(--color-border-gold-muted);
-}
-
-.btnAbaAtiva {
-  background: var(--color-bg-surface-active);
-  color: var(--color-text-gold);
-  border-color: var(--color-border-gold);
-  box-shadow: var(--shadow-glow-gold);
 }
 
 .gridEstoque {
@@ -137,12 +92,6 @@
 @media (max-width: 1024px) {
   .gridEstoque {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .gridEstoque {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -253,41 +202,22 @@
   width: 100%;
 }
 
+@media (max-width: 800px) {
+  .painelEstoque { padding: var(--space-3); }
+  .cabecalho { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .tituloArea { width: 100%; min-width: 0; }
+  .acoesCabecalho { width: 100%; max-width: 100%; min-width: 0; flex-direction: column; align-items: stretch; gap: var(--space-2); }
+  .selectLoja { width: 100%; max-width: 100%; min-width: 0; min-height: 44px; font-size: var(--font-size-base); }
+  .acoesCabecalho button { width: 100%; min-height: 44px; justify-content: center; }
+  .gridEstoque { grid-template-columns: 1fr; }
+}
+
 /* MODO DE IMPRESSÃO (@media print) */
 @media print {
-  .cabecalho button,
-  .selectLoja,
-  .acoesCabecalho,
-  .itemEstoqueCard button {
-    display: none !important;
-  }
-
-  .painelEstoque {
-    background: #ffffff !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-
-  .titulo {
-    color: #000000 !important;
-    border-bottom: 2px solid #000000 !important;
-    padding-bottom: 2mm !important;
-  }
-
-  .gridEstoque {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 4mm !important;
-  }
-
-  .itemEstoqueCard {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-    color: #000000 !important;
-    break-inside: avoid !important;
-  }
-
-  .itemNome {
-    color: #000000 !important;
-  }
+  .cabecalho button, .selectLoja, .acoesCabecalho, .itemEstoqueCard button { display: none !important; }
+  .painelEstoque { background: #ffffff !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+  .titulo { color: #000000 !important; border-bottom: 2px solid #000000 !important; padding-bottom: 2mm !important; }
+  .gridEstoque { grid-template-columns: repeat(2, 1fr) !important; gap: 4mm !important; }
+  .itemEstoqueCard { background: #ffffff !important; border: 1px solid #000000 !important; color: #000000 !important; break-inside: avoid !important; }
+  .itemNome { color: #000000 !important; }
 }

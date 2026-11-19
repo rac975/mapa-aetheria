@@ -13,6 +13,7 @@ import {
   FaDiceD20,
   FaExchangeAlt
 } from 'react-icons/fa';
+import { LoadingScreen } from '../ui';
 import './TitanRotasManager.css';
 
 export default function TitanRotasManager({ titan, isMestre }) {
@@ -225,7 +226,7 @@ export default function TitanRotasManager({ titan, isMestre }) {
       )}
 
       {loading ? (
-        <p className="loading-text">Carregando rotas...</p>
+        <LoadingScreen subblock mensagem="Carregando rotas aéreas..." />
       ) : rotas.length === 0 ? (
         <p className="sem-contratos">Nenhuma rota aérea conectada a este Titã.</p>
       ) : (

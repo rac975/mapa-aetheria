@@ -1,0 +1,227 @@
+/* ==========================================================================
+   NPC ARSENAL SECTION - CSS MODULE
+   Tokens do theme.css (Fabula Ultima / Xenoblade 2)
+   ========================================================================== */
+
+.sectionTitle {
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-gold);
+  margin: 0 0 var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* TRAÇOS */
+.tracosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tracoCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.tracoLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tracoText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-main);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ATRIBUTOS */
+.atributosGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.atributoCard {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.atributoLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.atributoValue {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-gold);
+  font-weight: 800;
+  font-family: var(--font-family-mono);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* AFINIDADES ELEMENTARES */
+.afinidadesGrid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.afinidadeItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.tipoDanoNome {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-main);
+  text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+
+/* ATAQUES BÁSICOS */
+.ataquesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ataqueItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.ataqueName {
+  font-weight: 700;
+  color: var(--color-text-gold);
+  margin-right: var(--space-2);
+}
+
+.ataqueDado {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+}
+
+.ataqueDanoInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-family: var(--font-family-mono);
+}
+
+/* PODERES E FEITIÇOS */
+.poderesFeiticosGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.viewList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.viewItem {
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.itemHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.poderName { color: var(--color-text-gold); font-weight: 700; }
+.feiticoName { color: var(--color-ether-cyan); font-weight: 700; }
+.emptyText { color: var(--color-text-dim); font-style: italic; font-size: var(--font-size-sm); margin: 0; }
+
+/* RESPONSIVIDADE MOBILE */
+@media (max-width: 800px) {
+  .atributosGrid { gap: var(--space-1); }
+  .atributoCard { padding: var(--space-2) var(--space-1); }
+  .atributoValue { font-size: var(--font-size-lg); }
+  .afinidadesGrid { grid-template-columns: repeat(4, 1fr); gap: var(--space-1); }
+  .afinidadeItem { padding: var(--space-1); }
+  .tipoDanoNome { font-size: 0.65rem; }
+  .ataqueItem { flex-direction: column; align-items: flex-start; padding: var(--space-2) var(--space-3); }
+  .poderesFeiticosGrid { grid-template-columns: 1fr; gap: var(--space-3); }
+}
+
+/* MODO DE IMPRESSÃO */
+@media print {
+  .tracoCard, .atributoCard, .afinidadeItem, .ataqueItem, .viewItem {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+  .tracoLabel, .atributoLabel, .sectionTitle { color: #000000 !important; border-color: #000000 !important; }
+  .atributoValue, .poderName, .feiticoName, .ataqueDanoInfo { color: #000000 !important; }
+  .afinidadesGrid { grid-template-columns: repeat(8, 1fr) !important; gap: 4px !important; }
+  .tracosGrid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+  .poderesFeiticosGrid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .ataqueItem, .viewItem { break-inside: avoid !important; page-break-inside: avoid !important; }
+}

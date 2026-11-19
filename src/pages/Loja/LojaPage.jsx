@@ -3,7 +3,7 @@ import { FaStore, FaTools, FaCoins, FaUserAlt } from 'react-icons/fa';
 import { useLojaSupabase } from './hooks/useLojaSupabase';
 import LojaClienteTab from './components/LojaClienteTab';
 import LojaMestreTab from './components/LojaMestreTab';
-import { Button, Badge } from '../../components/ui';
+import { Button, Badge, ScrollToTopButton } from '../../components/ui';
 import styles from './LojaPage.module.css';
 
 export default function LojaPage({ ficha, setFicha, isMestre }) {
@@ -134,6 +134,8 @@ export default function LojaPage({ ficha, setFicha, isMestre }) {
                     ficha={ficha}
                 />
             )}
+
+            <ScrollToTopButton />
         </div>
     );
 }

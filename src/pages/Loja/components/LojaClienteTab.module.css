@@ -4,17 +4,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .abasNavegacao {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 
-.abaBtn {
-  flex: 1;
-}
+.abaBtn { flex: 1; min-width: 0; }
 
 .infoVenda {
   background: var(--color-bg-surface);
@@ -24,30 +27,17 @@
   margin-bottom: var(--space-4);
 }
 
-.infoVendaTexto {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1.5;
-}
+.infoVendaTexto { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: 1.5; }
 
 .lojaGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
+  min-width: 0;
 }
 
-@media (max-width: 1024px) {
-  .lojaGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .lojaGrid {
-    grid-template-columns: 1fr;
-  }
-}
+@media (max-width: 1024px) { .lojaGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .lojaGrid { grid-template-columns: minmax(0, 1fr); } }
 
 .itemCard {
   display: flex;
@@ -55,6 +45,8 @@
   justify-content: space-between;
   padding: var(--space-4);
   min-height: 280px;
+  min-width: 0;
+  max-width: 100%;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-lg);
@@ -62,26 +54,17 @@
   transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
-.itemCard:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border-gold);
-}
-
-.itemCardEquipado {
-  opacity: 0.78;
-}
-
-.cardTopo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
+.itemCard:hover { transform: translateY(-2px); border-color: var(--color-border-gold); }
+.itemCardEquipado { opacity: 0.78; }
+.cardTopo { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .cardTitulo {
@@ -90,23 +73,15 @@
   font-size: var(--font-size-md);
   color: var(--color-text-gold);
   line-height: 1.3;
+  min-width: 0;
+  flex: 1 1 150px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.tagsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-top: var(--space-1);
-}
+.tagsRow { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-1); }
+.cardDescricao { font-size: var(--font-size-xs); color: var(--color-text-muted); line-height: 1.4; margin: var(--space-2) 0; overflow-wrap: anywhere; }
 
-.cardDescricao {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  line-height: 1.4;
-  margin: var(--space-2) 0;
-}
-
-/* Tabela e box de estatísticas */
 .statsBox {
   background: var(--color-bg-base);
   border: 1px solid var(--color-border-gold-muted);
@@ -116,6 +91,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .statLinha {
@@ -127,52 +103,20 @@
   border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
   padding-bottom: 3px;
   line-height: 1.35;
+  min-width: 0;
 }
 
-.statLinha:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
+.statLinha:last-child { border-bottom: none; padding-bottom: 0; }
+.statChave { color: var(--color-text-dim); font-weight: 500; text-transform: capitalize; flex-shrink: 0; white-space: nowrap; }
+.statValor { color: var(--color-text-main); font-weight: 600; font-family: var(--font-family-mono); text-align: right; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 
-.statChave {
-  color: var(--color-text-dim);
-  font-weight: 500;
-  text-transform: capitalize;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.statValor {
-  color: var(--color-text-main);
-  font-weight: 600;
-  font-family: var(--font-family-mono);
-  text-align: right;
-  word-break: break-word;
-}
-
-/* Quando o efeito ou atributo for longo, quebra linha em bloco sem espremer o rótulo */
-.statLinhaEfeito {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-}
-
-.statLinhaEfeito .statChave {
-  color: var(--color-text-gold);
-  font-weight: 600;
-}
-
-.statLinhaEfeito .statValor {
-  text-align: left;
-  font-family: var(--font-family-sans);
-  font-weight: 400;
-  color: var(--color-text-muted);
-  line-height: 1.45;
-  word-break: break-word;
-}
+.statLinhaEfeito { flex-direction: column; align-items: flex-start; gap: var(--space-1); }
+.statLinhaEfeito .statChave { color: var(--color-text-gold); font-weight: 600; }
+.statLinhaEfeito .statValor { text-align: left; font-family: var(--font-family-sans); font-weight: 400; color: var(--color-text-muted); line-height: 1.45; word-break: break-word; }
 
 .cardAcoes {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
   margin-top: var(--space-4);
@@ -180,9 +124,7 @@
   border-top: 1px solid var(--color-border-gold-muted);
 }
 
-.btnAcaoPrincipal {
-  flex: 1;
-}
+.btnAcaoPrincipal { flex: 1; min-width: 0; }
 
 .lojaVazio {
   text-align: center;
@@ -195,11 +137,7 @@
 }
 
 /* Modal de Compra e Configuração */
-.modalConteudo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+.modalConteudo { display: flex; flex-direction: column; gap: var(--space-4); }
 
 .modalItemResumo {
   background: var(--color-bg-base);
@@ -209,37 +147,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.modalItemNome {
-  font-weight: 700;
-  color: var(--color-text-main);
-  font-size: var(--font-size-md);
-}
-
-.modalOpcoesDestino {
-  display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.modalLabel {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-weight: 700;
-}
-
-.modalDestinoBotoes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-}
-
-.modalSelectGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
+.modalItemNome { font-weight: 700; color: var(--color-text-main); font-size: var(--font-size-md); overflow-wrap: anywhere; }
+.modalOpcoesDestino { display: flex; flex-direction: column; gap: var(--space-2); }
+.modalLabel { font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: 700; }
+.modalDestinoBotoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.modalSelectGroup { display: flex; flex-direction: column; gap: var(--space-1); }
 
 .modalSelect {
   background: var(--color-bg-base);
@@ -250,97 +166,50 @@
   outline: none;
   font-family: inherit;
   font-size: var(--font-size-sm);
-}
-
-.modalSelect:focus {
-  border-color: var(--color-ether-cyan);
-}
-
-.modalFooter {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
   width: 100%;
+  max-width: 100%;
+}
+
+.modalSelect:focus { border-color: var(--color-ether-cyan); }
+.modalFooter { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); width: 100%; }
+
+@media (max-width: 800px) {
+  .abasNavegacao {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    width: 100%;
+  }
+
+  .abasNavegacao > button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .abasNavegacao > button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .itemCard { padding: var(--space-3); }
+}
+
+@media (max-width: 420px) {
+  .abasNavegacao,
+  .modalDestinoBotoes { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ==========================================================================
    MODO HÍBRIDO (@media print) - Formatação como Carta Física de Equipamento
    ========================================================================== */
 @media print {
-  .abasNavegacao,
-  .infoVenda,
-  .cardAcoes,
-  .btnAcaoPrincipal,
-  .lojaVazio {
-    display: none !important;
-  }
-
-  .lojaGrid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 15mm !important;
-    page-break-inside: auto !important;
-  }
-
-  .itemCard {
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-    padding: 10mm !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-    min-height: 85mm !important;
-    max-width: 90mm !important;
-  }
-
-  .cardTitulo {
-    color: #000000 !important;
-    font-size: 14pt !important;
-    font-weight: 800 !important;
-    border-bottom: 1.5px solid #000000 !important;
-    padding-bottom: 2mm !important;
-  }
-
-  .cardDescricao {
-    color: #222222 !important;
-    font-size: 8pt !important;
-    margin: 3mm 0 !important;
-  }
-
-  .statsBox {
-    background: #f8f8f8 !important;
-    border: 1px solid #000000 !important;
-    border-radius: 4px !important;
-    padding: 3mm !important;
-  }
-
-  .statLinha {
-    border-bottom: 1px dotted #666666 !important;
-    gap: 2mm !important;
-  }
-
-  .statChave {
-    color: #111111 !important;
-    font-size: 8pt !important;
-    flex-shrink: 0 !important;
-  }
-
-  .statValor {
-    color: #000000 !important;
-    font-size: 8pt !important;
-    font-weight: bold !important;
-  }
-
-  .statLinhaEfeito {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-  }
-
-  .statLinhaEfeito .statValor {
-    text-align: left !important;
-    font-weight: normal !important;
-    color: #222222 !important;
-  }
+  .abasNavegacao, .infoVenda, .cardAcoes, .btnAcaoPrincipal, .lojaVazio { display: none !important; }
+  .lojaGrid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 15mm !important; page-break-inside: auto !important; }
+  .itemCard { background: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; border-radius: 8px !important; box-shadow: none !important; padding: 10mm !important; break-inside: avoid !important; page-break-inside: avoid !important; min-height: 85mm !important; max-width: 90mm !important; }
+  .cardTitulo { color: #000000 !important; font-size: 14pt !important; font-weight: 800 !important; border-bottom: 1.5px solid #000000 !important; padding-bottom: 2mm !important; }
+  .cardDescricao { color: #222222 !important; font-size: 8pt !important; margin: 3mm 0 !important; }
+  .statsBox { background: #f8f8f8 !important; border: 1px solid #000000 !important; border-radius: 4px !important; padding: 3mm !important; }
+  .statLinha { border-bottom: 1px dotted #666666 !important; gap: 2mm !important; }
+  .statChave { color: #111111 !important; font-size: 8pt !important; flex-shrink: 0 !important; }
+  .statValor { color: #000000 !important; font-size: 8pt !important; font-weight: bold !important; }
+  .statLinhaEfeito { flex-direction: column !important; align-items: flex-start !important; }
+  .statLinhaEfeito .statValor { text-align: left !important; font-weight: normal !important; color: #222222 !important; }
 }

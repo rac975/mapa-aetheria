@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { FaPlus, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaClock } from 'react-icons/fa';
 import { Badge, Button } from '../ui';
 import { combatService } from '../../services/combatService';
@@ -22,13 +22,6 @@ export default function ClockManager({ isMestre }) {
   const scrollLeft = useRef(0);
   const hasDragged = useRef(false);
 
-  const carregarRelogios = useCallback(async () => {
-    const { data, error } = await combatService.getRelogios();
-    if (!error && data) {
-      setRelogios(data);
-    }
-  }, []);
-
   useEffect(() => {
     let ativo = true;
 
@@ -40,12 +33,12 @@ export default function ClockManager({ isMestre }) {
     }
 
     fetchRelogios();
-    const subscription = combatService.subscribeRelogios(carregarRelogios);
+    const subscription = combatService.subscribeRelogios(fetchRelogios);
     return () => {
       ativo = false;
       subscription.unsubscribe();
     };
-  }, [carregarRelogios]);
+  }, []);
 
   const handlePointerDown = (e) => {
     if (e.target.closest('button, [data-clock-slice="true"]')) return;

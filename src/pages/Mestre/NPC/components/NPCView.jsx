@@ -126,7 +126,9 @@ export default function NPCView({ npc, onUpdate }) {
           className={`${styles.tacticalTabBtn} ${abaAtiva === 'completa' ? styles.tacticalTabActive : ''}`}
           onClick={() => setAbaAtiva('completa')}
         >
-          <FaDragon /> Visão Completa
+          <FaDragon />
+          <span className={styles.tabLabelFull}>Visão Completa</span>
+          <span className={styles.tabLabelShort}>Completa</span>
         </button>
         <button
           type="button"
@@ -135,8 +137,10 @@ export default function NPCView({ npc, onUpdate }) {
           className={`${styles.tacticalTabBtn} ${styles.tacticalTabVillain} ${abaAtiva === 'vilao' ? styles.tacticalTabVillainActive : ''}`}
           onClick={() => setAbaAtiva('vilao')}
         >
-          <FaCrown /> Aba Tática de Vilão
-          {statusFase.gatilhoAtivo && <Badge variant="crise" size="sm">⚡ GATILHO DE FASE</Badge>}
+          <FaCrown />
+          <span className={styles.tabLabelFull}>Aba Tática de Vilão</span>
+          <span className={styles.tabLabelShort}>Tática Vilão</span>
+          {statusFase.gatilhoAtivo && <Badge variant="crise" size="sm" className={styles.tabBadge}>⚡ FASE</Badge>}
         </button>
         <button
           type="button"
@@ -145,7 +149,9 @@ export default function NPCView({ npc, onUpdate }) {
           className={`${styles.tacticalTabBtn} ${abaAtiva === 'atributos' ? styles.tacticalTabActive : ''}`}
           onClick={() => setAbaAtiva('atributos')}
         >
-          <FaShieldAlt /> Atributos & Arsenal
+          <FaShieldAlt />
+          <span className={styles.tabLabelFull}>Atributos & Arsenal</span>
+          <span className={styles.tabLabelShort}>Arsenal</span>
         </button>
       </div>
 

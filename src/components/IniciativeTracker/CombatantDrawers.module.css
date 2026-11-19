@@ -1,0 +1,184 @@
+/* Popover Drawer (Recursos / Condições sob demanda) */
+.popoverDrawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: rgba(6, 13, 23, 0.92);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+  animation: slideDownFade 0.16s ease-out;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+  min-width: 0;
+}
+
+.drawerTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.drawerCloseBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.drawerCloseBtn:hover { color: var(--color-text-main); background: var(--color-bg-surface); }
+
+.recursosPopoverGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recursoControlBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.recursoLabel {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-main);
+  min-width: 90px;
+}
+
+.btnGroupDelta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.deltaBtn {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-gold);
+  min-width: 30px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  padding: 0 6px;
+}
+
+.deltaBtn:hover {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-gold-bright);
+}
+
+.countersRow { display: flex; gap: var(--space-2); flex-wrap: wrap; max-width: 100%; }
+
+.statGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--color-bg-surface);
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+}
+
+.statLabel {
+  color: var(--color-text-gold);
+  font-weight: 700;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 4px;
+}
+
+.counterBtn {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-gold);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.counterBtn:hover { background: var(--color-border-gold); color: var(--color-text-inverse); }
+
+.condicoesPopoverGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(135px, 100%), 1fr));
+  gap: var(--space-2);
+}
+
+.condBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 6px var(--space-2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: left;
+  min-width: 0;
+}
+
+.condBtn:hover { border-color: var(--color-border-gold); color: var(--color-text-main); background: var(--color-bg-surface-hover); }
+
+.condBtnActive {
+  background: rgba(var(--color-border-gold-rgb), 0.22);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-text-gold);
+  box-shadow: 0 0 10px var(--color-border-gold-glow);
+}
+
+@media print {
+  .popoverDrawer,
+  .noPrint { display: none !important; }
+}

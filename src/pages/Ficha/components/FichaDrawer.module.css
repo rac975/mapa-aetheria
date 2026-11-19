@@ -101,6 +101,35 @@
   }
 }
 
+@media (max-width: 800px) {
+  .drawerHeader {
+    min-height: 48px;
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .headerLeft {
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .headerTitle {
+    white-space: normal;
+    font-size: var(--font-size-sm);
+  }
+
+  .drawerBody {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .toggleText {
+    display: none;
+  }
+}
+
 /* =====================================================
    MODO HÍBRIDO / IMPRESSÃO FÍSICA A4 (@media print)
    ===================================================== */

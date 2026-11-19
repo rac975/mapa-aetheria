@@ -42,13 +42,32 @@
   font-size: var(--font-size-xs);
 }
 
+.combat-bottom-spacer {
+  display: none;
+}
+
 @media (max-width: 800px) {
   .combat-page {
-    padding: var(--space-3) var(--space-3) var(--space-6);
+    padding: var(--space-3) var(--space-3) var(--space-4);
     gap: var(--space-3);
+    min-height: auto;
   }
 
   .combat-header h1 {
     font-size: var(--font-size-base);
+  }
+
+  .combat-bottom-spacer {
+    display: block;
+    width: 100%;
+    height: calc(env(safe-area-inset-bottom, 0px));
+    /* 88px +  */
+    flex-shrink: 0;
+  }
+}
+
+@media print {
+  .combat-bottom-spacer {
+    display: none !important;
   }
 }

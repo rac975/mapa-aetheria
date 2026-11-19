@@ -182,6 +182,23 @@
   .specsGrid {
     grid-template-columns: 1fr;
   }
+
+  .actionsBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .actionGroup {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .actionGroup button {
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
 }
 
 @media print {

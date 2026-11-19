@@ -11,6 +11,15 @@
   border: 1px solid transparent;
   line-height: 1;
   white-space: nowrap;
+  max-width: 100%;
+}
+
+@media (max-width: 800px) {
+  .badge {
+    flex-wrap: wrap;
+    white-space: normal;
+    line-height: 1.25;
+  }
 }
 
 /* Tamanhos */

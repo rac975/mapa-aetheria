@@ -6,7 +6,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  max-height: 70vh;
+  max-height: 75vh;
+  max-height: 75dvh;
 }
 
 /* Banner do status atual do slot */
@@ -92,7 +93,9 @@
   flex-direction: column;
   gap: var(--space-2);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   max-height: 48vh;
+  max-height: 48dvh;
   padding-right: var(--space-1);
 }
 
@@ -202,4 +205,22 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
+}
+
+@media (max-width: 800px) {
+  .slotAtualBanner,
+  .itemLinha {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .tabBtn {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .itemAcoes {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

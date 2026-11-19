@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { fichaService } from '../../../../services/fichaService';
 import { useAlert } from '../../../../contexts/useAlert';
 import { Button, Modal, Input } from '../../../../components/ui';
-import styles from '../FichaHeader.module.css';
+import styles from './ModalZenit.module.css';
 
 /**
  * Modal para gerenciar acréscimo e retirada de Zênites da ficha do personagem.

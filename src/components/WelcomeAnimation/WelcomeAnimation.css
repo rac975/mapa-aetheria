@@ -1,9 +1,10 @@
 .welcome-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
+  inset: 0;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  padding: var(--space-4);
   background: radial-gradient(circle, var(--color-bg-elevated) 0%, var(--color-bg-base) 100%);
   display: flex;
   justify-content: center;
@@ -18,10 +19,11 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
+  max-width: 100%;
 }
 
 .welcome-sparkle-icon {
-  font-size: 3rem;
+  font-size: clamp(2.25rem, 8vw, 3rem);
   color: var(--color-text-gold);
   animation: pulseSpin 2s infinite linear;
 }
@@ -29,7 +31,7 @@
 .welcome-title {
   color: var(--color-text-muted);
   font-family: var(--font-family-serif);
-  font-size: var(--font-size-lg);
+  font-size: clamp(0.95rem, 3.8vw, var(--font-size-lg));
   text-transform: uppercase;
   letter-spacing: 3px;
   margin: 0;
@@ -38,9 +40,11 @@
 .welcome-hero-name {
   color: var(--color-text-gold);
   font-family: var(--font-family-serif);
-  font-size: 2.5rem;
+  font-size: clamp(1.6rem, 7vw, 2.5rem);
   font-weight: bold;
   margin: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
   text-shadow: var(--shadow-glow-gold);
 }
 

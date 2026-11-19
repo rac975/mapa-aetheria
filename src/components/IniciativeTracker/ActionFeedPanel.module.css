@@ -1,0 +1,157 @@
+/* ActionFeedPanel.module.css */
+.feedCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: rgba(var(--color-bg-surface-rgb), 0.55);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.feedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  padding-bottom: var(--space-2);
+}
+
+.headerTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.feedTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-base);
+  color: var(--color-ether-cyan);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.feedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.feedItem {
+  background: rgba(6, 13, 23, 0.72);
+  border: 1px solid var(--color-border-gold-muted);
+  border-left: 3px solid var(--color-border-gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  transition: border-color var(--transition-fast);
+}
+
+.feedItemRoll { border-left-color: var(--color-ether-cyan); }
+.feedItemCrit {
+  border-color: var(--color-core-green);
+  border-left: 3px solid var(--color-core-green);
+  background: rgba(var(--color-core-green-rgb), 0.08);
+}
+
+.feedItemFumble {
+  border-color: var(--color-crise);
+  border-left: 3px solid var(--color-crise);
+  background: rgba(var(--color-crise-rgb), 0.1);
+}
+
+.feedItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 4px;
+}
+
+.feedBadgesWrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.feedAutor {
+  font-weight: 700;
+  color: var(--color-text-gold);
+}
+
+.feedDetalhes {
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.feedRollBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.feedDiceChipRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.feedDieChip,
+.feedModChip,
+.feedTotalChip,
+.feedHrChip,
+.feedDmgChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-family-mono);
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 25, 47, 0.85);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+}
+
+.feedDieChip strong { color: var(--color-text-main); }
+.feedModChip { color: var(--color-text-gold); }
+.feedTotalChip { border-color: var(--color-ether-cyan); color: var(--color-ether-cyan); }
+.feedHrChip { border-color: var(--color-border-gold); color: var(--color-text-gold); }
+.feedDmgChip { border-color: var(--color-crise); background: rgba(var(--color-crise-rgb), 0.16); color: #ff8577; }
+
+.emptyFeed {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-6) var(--space-3);
+  background: rgba(6, 13, 23, 0.45);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+}
+
+@media print {
+  .feedCard {
+    background: #ffffff !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+}

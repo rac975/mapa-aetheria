@@ -2,7 +2,7 @@ import { FaShieldAlt, FaHandHolding, FaRing, FaSkull, FaBrain } from 'react-icon
 import { SLOTS_EQUIPAMENTO, isArmaDuasMaos } from '../../../domain/fabula/equipmentRules';
 import { normalizarTextoHF } from '../../../domain/fabula/highFantasyRules';
 import { useEquipamentosSecao } from '../../../hooks/useEquipamentosSecao';
-import { Card, Button, Badge, Modal } from '../../../components/ui';
+import { Card, Button, Badge, Modal, LoadingScreen } from '../../../components/ui';
 import FichaArmasVeiculoSecao from './FichaArmasVeiculoSecao';
 import FichaSlotMaoVazia from './components/FichaSlotMaoVazia';
 import FichaSlotEquipado from './components/FichaSlotEquipado';
@@ -50,7 +50,7 @@ export default function FichaEquipamentosSecao({
     statusFicha
   });
 
-  if (carregando) return <div className={styles.loadingText}>Carregando equipamentos...</div>;
+  if (carregando) return <LoadingScreen subblock mensagem="Carregando equipamentos do herói..." />;
 
   const slotConfig = [
     { id: SLOTS_EQUIPAMENTO.MAO_DOMINANTE, label: 'Mão Dominante', icone: <FaHandHolding /> },

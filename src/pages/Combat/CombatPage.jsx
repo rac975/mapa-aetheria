@@ -13,6 +13,7 @@ export default function CombatPage({ isMestre }) {
 
       <ClockManager isMestre={isMestre} />
       <InitiativeTracker isMestre={isMestre} />
+      <div className="combat-bottom-spacer" aria-hidden="true" />
     </div>
   );
 }

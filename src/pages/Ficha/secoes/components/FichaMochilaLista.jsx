@@ -1,7 +1,7 @@
 import { FaBoxOpen, FaTimes } from 'react-icons/fa';
 import { Card, Button, Badge } from '../../../../components/ui';
 import { getItemCategoryIcon, formatarNomeSlot } from './FichaEquiparModal';
-import styles from '../FichaEquipamentosSecao.module.css';
+import styles from './FichaMochilaLista.module.css';
 
 export default function FichaMochilaLista({
   itensInventario = [],

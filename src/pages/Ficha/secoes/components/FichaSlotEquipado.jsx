@@ -2,7 +2,7 @@ import { FaExchangeAlt, FaDice } from 'react-icons/fa';
 import { Badge, Button } from '../../../../components/ui';
 import { SLOTS_EQUIPAMENTO } from '../../../../domain/fabula/equipmentRules';
 import ResultadoRolagemArma from './ResultadoRolagemArma';
-import styles from '../FichaEquipamentosSecao.module.css';
+import styles from './FichaSlotEquipado.module.css';
 
 export default function FichaSlotEquipado({
   slot,

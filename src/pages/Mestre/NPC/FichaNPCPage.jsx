@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaPen, FaPrint, FaArrowLeft, FaTrash } from 'react-icons/fa';
+import { FaPen, FaArrowLeft, FaTrash } from 'react-icons/fa';
 import { CiSaveDown2 } from 'react-icons/ci';
 import NPCView from './components/NPCView';
 import NPCEditor from './components/NPCEditor';
 import { useNPCManager } from '../../../hooks/useNPCManager';
-import { Button } from '../../../components/ui';
+import { Button, LoadingScreen } from '../../../components/ui';
 import styles from './FichaNPCPage.module.css';
 
 export default function FichaNPCPage() {
@@ -30,12 +30,15 @@ export default function FichaNPCPage() {
     onNavigateAway: handleNavigateAway
   });
 
-  const handleImprimir = () => {
-    window.print();
-  };
-
   if (loading || !npc) {
-    return <div className={styles.loadingContainer}>Carregando ficha do NPC...</div>;
+    return (
+      <div className={styles.pageContainer}>
+        <LoadingScreen
+          mensagem="Carregando dados e parâmetros do adversário..."
+          subtitulo="Bestiário Arcano"
+        />
+      </div>
+    );
   }
 
   return (
@@ -46,35 +49,27 @@ export default function FichaNPCPage() {
           variant="secondary"
           size="sm"
           onClick={handleNavigateAway}
+          className={styles.backBtn}
         >
-          <FaArrowLeft /> Voltar para Lista
+          <FaArrowLeft /> Voltar
         </Button>
 
         <div className={styles.navActions}>
-          {!modoEdicao && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleImprimir}
-              title="Imprimir ficha física do NPC"
-            >
-              <FaPrint /> Imprimir Ficha
-            </Button>
-          )}
-
           <Button
             variant={modoEdicao ? 'core' : 'primary'}
             size="sm"
             onClick={() => setModoEdicao(!modoEdicao)}
+            className={styles.actionBtn}
           >
             {modoEdicao ? <CiSaveDown2 /> : <FaPen />}{' '}
-            {modoEdicao ? 'Salvar / Visualizar' : 'Editar Ficha'}
+            {modoEdicao ? 'Salvar' : 'Editar'}
           </Button>
 
           <Button
             variant="danger"
             size="sm"
             onClick={() => excluirNpc()}
+            className={styles.actionBtn}
           >
             <FaTrash /> Excluir
           </Button>

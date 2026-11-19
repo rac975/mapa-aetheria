@@ -186,6 +186,17 @@ export default function MestreFichasPage({ isMestre }) {
     );
   }
 
+  if (carregando) {
+    return (
+      <div className={styles.page}>
+        <LoadingScreen
+          mensagem="Sincronizando fichas e crachás da mesa..."
+          subtitulo="Painel do Mestre"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -198,9 +209,7 @@ export default function MestreFichasPage({ isMestre }) {
         </Button>
       </header>
 
-      {carregando ? (
-        <LoadingScreen mensagem="Sincronizando fichas e crachás da mesa..." />
-      ) : fichas.length === 0 ? (
+      {fichas.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nenhuma ficha cadastrada na mesa ainda.</p>
           <Button variant="secondary" onClick={() => setModalCriarAberto(true)}>

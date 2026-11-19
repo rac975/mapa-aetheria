@@ -1,6 +1,6 @@
 import { FaHistory, FaTrash, FaDice, FaBolt } from 'react-icons/fa';
 import { Button, Badge } from '../ui';
-import styles from './QuickActionPanel.module.css';
+import styles from './ActionFeedPanel.module.css';
 
 export default function ActionFeedPanel({
   acoesFeed = [],

@@ -201,6 +201,35 @@
   }
 }
 
+@media (max-width: 800px) {
+  .alertPortalContainer {
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .alertBox {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .closeBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .alertFooter {
+    flex-wrap: wrap;
+  }
+
+  .btnCancel,
+  .btnConfirm {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--space-2) var(--space-4);
+  }
+}
+
 @media print {
   .alertPortalContainer {
     display: none !important;

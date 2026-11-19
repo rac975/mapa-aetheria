@@ -2,15 +2,22 @@
 
 .rotas-section {
   margin-top: var(--space-5);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .rotas-row-inline {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   gap: var(--space-2);
+  width: 100%;
 }
 
 .rotas-flex-field {
   flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .rota-card {
@@ -21,6 +28,8 @@
   border-radius: var(--radius-md);
   margin-bottom: var(--space-2);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  min-width: 0;
+  max-width: 100%;
   transition: all var(--transition-fast);
 }
 
@@ -33,9 +42,11 @@
 .rota-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   margin-bottom: var(--space-1);
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .rota-card-title {
@@ -43,6 +54,10 @@
   font-size: var(--font-size-sm);
   font-family: var(--font-family-serif);
   letter-spacing: 0.04em;
+  flex: 1 1 150px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .rota-tipo-badge {
@@ -56,6 +71,9 @@
   border-radius: var(--radius-sm);
   color: var(--color-ether-cyan);
   border: 1px solid rgba(var(--color-ether-cyan-rgb), 0.3);
+  max-width: 100%;
+  flex-shrink: 0;
+  overflow-wrap: anywhere;
 }
 
 .rota-conexoes {
@@ -64,12 +82,21 @@
   margin: var(--space-1) 0;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
+  min-width: 0;
+}
+
+.rota-conexoes span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .rota-exchange-icon {
   font-size: 10px;
   color: var(--color-text-gold);
+  flex-shrink: 0;
 }
 
 .rota-descricao {
@@ -77,23 +104,29 @@
   color: var(--color-text-dim);
   margin: var(--space-1) 0;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .rota-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   font-size: 11px;
   margin-top: var(--space-2);
   padding-top: var(--space-2);
   border-top: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-main);
+  min-width: 0;
 }
 
 .rota-footer span {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  min-width: 0;
 }
 
 .rota-delete-btn {
@@ -102,6 +135,8 @@
   border-radius: var(--radius-sm);
   color: var(--color-crise);
   padding: 3px 8px;
+  margin-left: auto;
+  flex-shrink: 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -130,4 +165,11 @@
   text-align: center;
   padding: var(--space-3) 0;
   margin: 0;
+}
+
+@media (max-width: 800px) {
+  .rota-delete-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
 }

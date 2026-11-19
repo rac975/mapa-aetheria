@@ -1,0 +1,57 @@
+/* =====================================================
+   MODAL ZENIT MODULE - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.zenitModalForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.zenitTypeSwitcher {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.zenitTypeBtn {
+  flex: 1;
+  min-height: 44px;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border-gold-muted);
+  background: var(--color-bg-input);
+  color: var(--color-text-muted);
+}
+
+.zenitTypeBtnActiveAdd {
+  background: rgba(46, 204, 113, 0.2);
+  border-color: var(--color-pv);
+  color: var(--color-pv);
+  box-shadow: 0 0 10px var(--color-pv-glow);
+}
+
+.zenitTypeBtnActiveSub {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: var(--color-crise);
+  color: var(--color-crise);
+  box-shadow: 0 0 10px var(--color-crise-glow);
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 800px) {
+  .modalFooterActions button {
+    flex: 1 1 120px;
+  }
+}

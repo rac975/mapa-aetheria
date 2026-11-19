@@ -23,7 +23,7 @@
 
 .gridAtributos {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
@@ -31,11 +31,14 @@
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-md);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-2);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  min-height: 145px;
+  min-width: 0;
+  box-sizing: border-box;
   position: relative;
   cursor: pointer;
   transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -49,23 +52,10 @@
   box-shadow: var(--shadow-glow-gold);
 }
 
-.boxBuff {
-  border-color: var(--color-pv);
-}
-
-.boxBuff:hover {
-  border-color: var(--color-core-green);
-  box-shadow: var(--shadow-glow-green);
-}
-
-.boxDebuff {
-  border-color: var(--color-crise);
-}
-
-.boxDebuff:hover {
-  border-color: var(--color-crise-bright);
-  box-shadow: var(--shadow-glow-crise);
-}
+.boxBuff { border-color: var(--color-pv); }
+.boxBuff:hover { border-color: var(--color-core-green); box-shadow: var(--shadow-glow-green); }
+.boxDebuff { border-color: var(--color-crise); }
+.boxDebuff:hover { border-color: var(--color-crise-bright); box-shadow: var(--shadow-glow-crise); }
 
 .sigla {
   font-size: var(--font-size-xs);
@@ -77,29 +67,26 @@
 
 .valorDado {
   font-family: var(--font-family-serif);
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 700;
   margin: var(--space-1) 0;
   transition: color var(--transition-fast);
 }
 
-.valNormal {
-  color: var(--color-border-gold-bright);
-}
-
-.valBuff {
-  color: var(--color-core-green);
-}
-
-.valDebuff {
-  color: var(--color-crise);
-}
+.valNormal { color: var(--color-border-gold-bright); }
+.valBuff { color: var(--color-core-green); }
+.valDebuff { color: var(--color-crise); }
 
 .controlesBox {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px 4px;
+  margin-top: var(--space-1);
 }
 
 .btnControl {
@@ -107,8 +94,10 @@
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-main);
   border-radius: var(--radius-sm);
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,25 +111,11 @@
   background: var(--color-bg-surface-hover);
 }
 
-.btnMinus {
-  color: var(--color-crise);
-}
-
-.btnMinus:hover:not(:disabled) {
-  border-color: var(--color-crise);
-}
-
-.btnReset {
-  color: var(--color-border-gold-bright);
-}
-
-.btnPlus {
-  color: var(--color-core-green);
-}
-
-.btnPlus:hover:not(:disabled) {
-  border-color: var(--color-core-green);
-}
+.btnMinus { color: var(--color-crise); }
+.btnMinus:hover:not(:disabled) { border-color: var(--color-crise); }
+.btnReset { color: var(--color-border-gold-bright); }
+.btnPlus { color: var(--color-core-green); }
+.btnPlus:hover:not(:disabled) { border-color: var(--color-core-green); }
 
 .btnControl:disabled {
   opacity: 0.35;
@@ -150,22 +125,63 @@
 }
 
 .rolarPrompt {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
-  margin-top: var(--space-1);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-dim);
-  opacity: 0.85;
+  margin-top: var(--space-2);
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(var(--color-border-gold-rgb), 0.1);
+  border: 1px solid var(--color-border-gold-muted);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-gold);
+  letter-spacing: 0.04em;
+  transition: all var(--transition-fast);
+}
+
+.atribBox:hover .rolarPrompt {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-glow-gold);
 }
 
 .rolarIcone {
   color: var(--color-border-gold);
 }
 
-@media (max-width: 600px) {
+.atribBox:hover .rolarIcone {
+  color: var(--color-text-inverse);
+}
+
+@media (max-width: 800px) {
   .gridAtributos {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .atribBox {
+    padding: var(--space-3) var(--space-2);
+    min-height: 155px;
+  }
+
+  .controlesBox {
+    gap: 4px;
+    padding: 3px 5px;
+  }
+
+  .btnControl {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    font-size: var(--font-size-xs);
+  }
+
+  .rolarPrompt {
+    padding: 4px var(--space-3);
+    font-size: 12px;
   }
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { LoadingScreen } from '../ui';
 
 export default function TitanContratosManager({ titan, isMestre }) {
   const [contratos, setContratos] = useState([]);
@@ -188,7 +189,7 @@ export default function TitanContratosManager({ titan, isMestre }) {
       )}
 
       {loadingContratos ? (
-        <p className="loading-text">Carregando contratos...</p>
+        <LoadingScreen subblock mensagem="Carregando contratos deste Titã..." />
       ) : contratos.length === 0 ? (
         <p className="sem-contratos">Nenhum contrato ativo neste Titã.</p>
       ) : (

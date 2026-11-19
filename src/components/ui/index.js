@@ -6,3 +6,4 @@ export { default as Modal } from './Modal/Modal';
 export { default as ResourceBar } from './ResourceBar/ResourceBar';
 export { default as UndoToast } from './UndoToast';
 export { default as LoadingScreen } from './LoadingScreen/LoadingScreen';
+export { default as ScrollToTopButton } from './ScrollToTopButton/ScrollToTopButton';

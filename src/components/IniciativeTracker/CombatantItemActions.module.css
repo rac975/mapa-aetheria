@@ -1,0 +1,254 @@
+/* Barra de Ações do Combatente e Banner de Transição de Fase */
+.actionsCluster {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.actionIconBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 var(--space-2);
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.actionIconBtn:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-gold);
+  background: var(--color-bg-surface-active);
+}
+
+.actionIconBtnActive {
+  background: rgba(var(--color-ether-cyan-rgb), 0.16);
+  border-color: var(--color-ether-cyan);
+  color: var(--color-ether-cyan);
+  box-shadow: 0 0 10px rgba(var(--color-ether-cyan-rgb), 0.25);
+}
+
+.actionIconBtnGold {
+  background: rgba(var(--color-border-gold-rgb), 0.22);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-text-gold);
+}
+
+.actionIconBtnVillain {
+  border-color: var(--color-villain-border);
+  color: var(--color-villain-bright);
+}
+
+.actionIconBtnVillain:hover {
+  background: var(--color-villain-surface);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+}
+
+.actionIconBtnVillainActive {
+  background: var(--color-villain);
+  border-color: var(--color-villain-border-bright);
+  color: #ffffff;
+  box-shadow: 0 0 10px var(--color-villain-glow);
+}
+
+.actionIconBtnHasCond {
+  border-color: rgba(var(--color-pi-rgb), 0.55);
+}
+
+.btnLabelDesktop {
+  font-size: 0.7rem;
+}
+
+.condCountBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-pi);
+  color: var(--color-text-inverse);
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.orderControls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: var(--space-1);
+  border-left: 1px solid var(--color-border-gold-muted);
+}
+
+.dragHandle {
+  touch-action: none;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-gold);
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  padding: 0;
+}
+
+.dragHandle:hover {
+  background: rgba(var(--color-border-gold-rgb), 0.15);
+  border-color: var(--color-border-gold);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.miniControlBtn {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.miniControlBtn:hover:not(:disabled) {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  border-color: var(--color-border-gold);
+}
+
+.miniControlBtn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.deleteBtn {
+  color: var(--color-crise-bright);
+  border-color: rgba(var(--color-crise-rgb), 0.35);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: var(--color-crise) !important;
+  color: #ffffff !important;
+  border-color: var(--color-crise-bright) !important;
+}
+
+.bossPhaseBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: linear-gradient(90deg, rgba(190, 24, 93, 0.36) 0%, rgba(231, 76, 60, 0.22) 100%);
+  border: 1px solid var(--color-villain-border-bright);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  box-shadow: 0 0 18px var(--color-villain-glow);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.bossPhaseTextWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: #ffffff;
+  min-width: 0;
+  flex: 1 1 180px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.bossPhaseIcon {
+  color: var(--color-villain-bright);
+  font-size: var(--font-size-md);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .btnLabelDesktop {
+    display: none;
+  }
+
+  .actionsCluster {
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: var(--space-2);
+    border-top: 1px solid rgba(var(--color-border-gold-rgb), 0.18);
+  }
+
+  .actionIconBtn {
+    min-width: 36px;
+    min-height: 36px;
+    height: 36px;
+    padding: 0 8px;
+  }
+
+  .orderControls {
+    border-left: none;
+    padding-left: 0;
+    margin-left: auto;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .miniControlBtn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+}
+
+@media print {
+
+  .actionsCluster,
+  .bossPhaseBanner,
+  .noPrint {
+    display: none !important;
+  }
+}
+
+
+@media (max-width: 800px) {
+  .actionIconBtn {
+    min-width: 24px;
+    min-height: 24px;
+    height: 24px;
+    padding: 0 8px;
+  }
+}

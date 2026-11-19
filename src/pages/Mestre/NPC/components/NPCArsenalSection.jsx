@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaShieldAlt, FaFistRaised, FaDice } from 'react-icons/fa';
 import { Card, Badge } from '../../../../components/ui';
-import styles from './NPCView.module.css';
+import styles from './NPCArsenalSection.module.css';
 
 const TIPOS_DANO = [
   { key: 'fisico', label: 'Físico' },

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FaDice, FaCrosshairs, FaMagic } from 'react-icons/fa';
 import { Badge } from '../ui';
 import { ATRIBUTOS_CONFLITO } from '../../domain/fabula/combatRules';
-import styles from './QuickActionPanel.module.css';
+import styles from './QuickDiceStrip.module.css';
 
 const LISTA_ATRIBS = Object.values(ATRIBUTOS_CONFLITO);
 

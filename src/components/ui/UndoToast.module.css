@@ -9,8 +9,8 @@
   transform: translateX(-50%);
   z-index: 9999;
   pointer-events: auto;
-  min-width: 320px;
-  max-width: calc(100vw - 32px);
+  width: min(420px, calc(100% - 2rem));
+  max-width: calc(100% - 2rem);
   animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -98,6 +98,23 @@
   to {
     transform: translate(-50%, 0) scale(1);
     opacity: 1;
+  }
+}
+
+@media (max-width: 800px) {
+  .undoPortalContainer {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    width: calc(100% - 1.5rem);
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .undoContent {
+    gap: var(--space-3);
+  }
+
+  .btnUndo {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
   }
 }
 

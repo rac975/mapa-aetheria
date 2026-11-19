@@ -272,15 +272,16 @@ export function sanitizarPayloadIniciativa(dados) {
  * @returns {Array<Object>}
  */
 export function reordenarParticipantes(lista, indexOrigem, direcao) {
-  const targetIndex = direcao === 'cima' ? indexOrigem - 1 : indexOrigem + 1;
-  if (targetIndex < 0 || targetIndex >= lista.length) {
+  const targetIndex = typeof direcao === 'number'
+    ? direcao
+    : (direcao === 'cima' ? indexOrigem - 1 : indexOrigem + 1);
+  if (targetIndex < 0 || targetIndex >= lista.length || targetIndex === indexOrigem) {
     return lista;
   }
 
   const novaLista = [...lista];
-  const temp = novaLista[indexOrigem];
-  novaLista[indexOrigem] = novaLista[targetIndex];
-  novaLista[targetIndex] = temp;
+  const [removido] = novaLista.splice(indexOrigem, 1);
+  novaLista.splice(targetIndex, 0, removido);
 
   return novaLista.map((item, idx) => ({ ...item, ordem: idx }));
 }

@@ -5,7 +5,7 @@ import { npcService } from '../../../services/npcService';
 import { TIPOS_VILAO, normalizarTipoVilao } from '../../../domain/fabula/npcRules';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAlert } from '../../../contexts/useAlert';
-import { Card, Button, Badge, ResourceBar } from '../../../components/ui';
+import { Card, Button, Badge, ResourceBar, LoadingScreen } from '../../../components/ui';
 import styles from './ListaNPCsPage.module.css';
 
 export default function ListaNPCsPage() {
@@ -115,6 +115,17 @@ export default function ListaNPCsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <LoadingScreen
+          mensagem="Carregando bestiário de adversários da mesa..."
+          subtitulo="Bestiário de NPCs"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -127,9 +138,7 @@ export default function ListaNPCsPage() {
         </Button>
       </header>
 
-      {loading ? (
-        <p className={styles.loadingText}>Carregando bestiário da mesa...</p>
-      ) : npcs.length === 0 ? (
+      {npcs.length === 0 ? (
         <div className={styles.emptyState}>
           <FaSkull className={styles.emptyIcon} />
           <p>Nenhum NPC ou adversário cadastrado ainda.</p>

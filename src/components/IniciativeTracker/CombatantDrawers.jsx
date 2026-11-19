@@ -1,7 +1,7 @@
 import { FaTimes, FaMinus, FaPlus, FaBoxOpen, FaStar, FaSkull } from 'react-icons/fa';
 import { CONDICOES_DISPONIVEIS } from '../../constants/condicoes';
 import { extrairHpMax, extrairMpMax } from '../../domain/fabula/combatRules';
-import styles from './CombatantItem.module.css';
+import styles from './CombatantDrawers.module.css';
 
 export default function CombatantDrawers({
   p,

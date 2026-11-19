@@ -52,6 +52,13 @@
   border-color: var(--color-border-gold);
 }
 
+@media (max-width: 800px) {
+  .textarea {
+    font-size: var(--font-size-base);
+    min-height: 88px;
+  }
+}
+
 /* =====================================================
    MODO HÍBRIDO / IMPRESSÃO (@media print)
    ===================================================== */

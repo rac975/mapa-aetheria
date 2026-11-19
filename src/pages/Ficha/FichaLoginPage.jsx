@@ -142,6 +142,10 @@ export default function FichaLoginPage({ isMestre = false }) {
                         maxLength={8}
                         value={tokenDigitado}
                         onChange={handleInputChange}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="characters"
+                        spellCheck={false}
                         required
                     />
                     <Button

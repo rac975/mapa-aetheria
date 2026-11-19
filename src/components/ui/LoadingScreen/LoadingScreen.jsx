@@ -24,20 +24,9 @@ const DICAS_LORE = [
   'Projetos na Oficina permitem criar relíquias, veículos e invenções permanentes com materiais raros.'
 ];
 
-/**
- * Componente visual de carregamento imersivo e de alto desempenho para o AetheriaMap.
- * Segue rigorosamente o Design System do projeto com estética Core-Crystal / Arcanotécnica.
- *
- * @param {Object} props
- * @param {boolean} [props.fullscreen=false] - Se deve cobrir a janela inteira (overlay)
- * @param {string} [props.mensagem] - Mensagem fixa opcional (se omitida, rotaciona frases)
- * @param {string} [props.subtitulo] - Subtítulo técnico opcional
- * @param {boolean} [props.showTip=true] - Se deve exibir as dicas de lore/regras
- * @param {'core'|'carmine'|'gold'} [props.variant='core'] - Variação cromática do núcleo
- * @param {string} [props.className=''] - Classes adicionais
- */
 function LoadingScreen({
   fullscreen = false,
+  subblock = false,
   mensagem,
   subtitulo,
   showTip = true,
@@ -48,9 +37,8 @@ function LoadingScreen({
   const [indiceDica, setIndiceDica] = useState(0);
   const [animandoTexto, setAnimandoTexto] = useState(false);
 
-  // Rotação suave de frases estilo Core-Crystal a cada 2.8s
   useEffect(() => {
-    if (mensagem) return;
+    if (mensagem || subblock) return;
 
     const timer = setInterval(() => {
       setAnimandoTexto(true);
@@ -61,18 +49,34 @@ function LoadingScreen({
     }, 2800);
 
     return () => clearInterval(timer);
-  }, [mensagem]);
+  }, [mensagem, subblock]);
 
-  // Rotação de dicas de lore/regras a cada 5s
   useEffect(() => {
-    if (!showTip) return;
+    if (!showTip || subblock) return;
 
     const timer = setInterval(() => {
       setIndiceDica((prev) => (prev + 1) % DICAS_LORE.length);
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [showTip]);
+  }, [showTip, subblock]);
+
+  if (subblock) {
+    return (
+      <div
+        className={`${styles.subblockContainer} ${styles[variant] || styles.core} ${className}`}
+        role="status"
+        aria-live="polite"
+      >
+        <div className={styles.subblockSpinner} aria-hidden="true">
+          <div className={styles.subblockPulseRing} />
+          <LuSparkles className={styles.subblockIcon} />
+        </div>
+        <p className={styles.subblockText}>{mensagem || 'Carregando dados...'}</p>
+        {subtitulo && <span className={styles.subblockSubtitulo}>{subtitulo}</span>}
+      </div>
+    );
+  }
 
   const fraseAtual = mensagem || FRASES_CORE[indiceFrase];
   const dicaAtual = DICAS_LORE[indiceDica];
@@ -85,11 +89,9 @@ function LoadingScreen({
       role="status"
       aria-live="polite"
     >
-      {/* Grade etérea de fundo sutil */}
       <div className={styles.gridBackground} aria-hidden="true" />
 
       <div className={styles.content}>
-        {/* Core Crystal animado central */}
         <div className={styles.coreWrapper} aria-hidden="true">
           <div className={styles.outerRing} />
           <div className={styles.middleRing} />
@@ -101,12 +103,10 @@ function LoadingScreen({
           <div className={styles.energyPulse} />
         </div>
 
-        {/* Linha de status do núcleo */}
         <div className={styles.resonanceBar} aria-hidden="true">
           <span className={styles.resonanceTrack} />
         </div>
 
-        {/* Mensagem e subtítulo */}
         <div className={styles.textWrapper}>
           <p className={`${styles.mensagem} ${animandoTexto ? styles.fade : ''}`}>
             {fraseAtual}
@@ -114,7 +114,6 @@ function LoadingScreen({
           {subtitulo && <span className={styles.subtitulo}>{subtitulo}</span>}
         </div>
 
-        {/* Dica de Lore ou Regra na parte inferior */}
         {showTip && (
           <div className={styles.tipBox} aria-hidden="true">
             <span className={styles.tipIcon}>

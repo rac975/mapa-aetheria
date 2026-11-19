@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { FaBars, FaTimes, FaCog, FaShieldAlt, FaKey } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 import { MOBILE_TABS } from './sidebarConfig';
-import styles from './Sidebar.module.css';
+import styles from './SidebarMobileNav.module.css';
+import nucleoStyles from './SidebarNucleo.module.css';
 
 export default function SidebarMobileNav({
   gruposNavegacao,
@@ -61,13 +62,15 @@ export default function SidebarMobileNav({
           >
             <div className={styles.mobileDrawerHeader}>
               <div
-                className={`${styles.brandLink} ${nucleoAtivo ? styles.nucleoLink : ''}`}
+                className={styles.brandLink}
                 onClick={onLogoClick}
                 role="button"
                 tabIndex={0}
                 title={nucleoAtivo ? '⚡ Modo Núcleo de Aether Ativado!' : 'Aetheria'}
               >
-                <span className={styles.brandEmblem}><LuSparkles /></span>
+                <span className={`${styles.brandEmblem} ${nucleoAtivo ? nucleoStyles.brandEmblemNucleo : ''}`}>
+                  <LuSparkles />
+                </span>
                 <span className={styles.brandTitle}>
                   {nucleoAtivo ? 'Aetheria ⚡' : 'Aetheria'}
                 </span>

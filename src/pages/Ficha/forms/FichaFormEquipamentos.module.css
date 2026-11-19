@@ -71,6 +71,18 @@
   border-color: var(--color-border-gold);
 }
 
+@media (max-width: 800px) {
+  .headerRow,
+  .topRow {
+    flex-wrap: wrap;
+  }
+
+  .textareaDescricao {
+    font-size: var(--font-size-base);
+    min-height: 44px;
+  }
+}
+
 /* =====================================================
    MODO HÍBRIDO / IMPRESSÃO (@media print)
    ===================================================== */

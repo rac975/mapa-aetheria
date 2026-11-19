@@ -12,6 +12,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-3);
+  min-width: 0;
   transition: border-color var(--transition-normal);
 }
 
@@ -23,6 +24,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   border-bottom: 1px solid var(--color-border-gold-muted);
   padding-bottom: var(--space-2);
 }
@@ -38,7 +41,6 @@
   letter-spacing: 0.05em;
 }
 
-/* --- CARD DO ITEM VIRTUAL --- */
 .itemVirtualCard {
   display: flex;
   flex-direction: column;
@@ -46,12 +48,7 @@
   flex: 1;
 }
 
-.itemInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
+.itemInfo,
 .itemNomeRow {
   display: flex;
   flex-direction: column;
@@ -74,17 +71,22 @@
 }
 
 /* --- TOGGLE DESARMADO VS IMPROVISADA --- */
-.toggleTipoArma {
+.toggleTipoArma,
+.modoAtaqueSwitcher {
   display: flex;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-sm);
   padding: 2px;
   gap: 2px;
+}
+
+.toggleTipoArma {
   margin: var(--space-1) 0;
 }
 
-.toggleBtn {
+.toggleBtn,
+.modoAtaqueBtn {
   flex: 1;
   background: transparent;
   color: var(--color-text-dim);
@@ -102,15 +104,24 @@
   gap: var(--space-1);
 }
 
-.toggleBtn:hover {
-  color: var(--color-text-main);
-}
-
+.toggleBtn:hover { color: var(--color-text-main); }
 .toggleBtnActive {
   background: var(--color-bg-surface-active);
   color: var(--color-border-gold-bright);
   box-shadow: 0 0 8px var(--color-border-gold-glow);
   font-weight: 700;
+}
+
+.modoAtaqueBtnActive {
+  background: var(--color-bg-surface-active);
+  color: var(--color-text-main);
+  box-shadow: 0 0 6px var(--color-border-gold-glow);
+}
+
+.modoAtaqueBtnActiveMulti {
+  background: rgba(231, 76, 60, 0.25);
+  color: var(--color-crise-bright);
+  box-shadow: 0 0 6px var(--color-crise-glow);
 }
 
 /* --- SELETOR DE CATEGORIA ACROMORFOSE / USO --- */
@@ -133,6 +144,7 @@
 
 .acroSelect {
   flex: 1;
+  min-width: 0;
   background: var(--color-bg-input);
   color: var(--color-text-main);
   border: 1px solid var(--color-border-gold-muted);
@@ -144,10 +156,7 @@
   transition: border-color var(--transition-fast);
 }
 
-.acroSelect:focus {
-  outline: none;
-  border-color: var(--color-border-gold);
-}
+.acroSelect:focus { outline: none; border-color: var(--color-border-gold); }
 
 /* --- FÓRMULA E PROPRIEDADES --- */
 .formulaBox {
@@ -165,120 +174,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
   color: var(--color-text-main);
 }
 
-.formulaValor {
-  font-weight: 700;
-  color: var(--color-ether-cyan);
-}
+.formulaValor { font-weight: 700; color: var(--color-ether-cyan); }
+.qualidadeTexto { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; margin-top: 2px; }
 
-.qualidadeTexto {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  font-style: italic;
-  margin-top: 2px;
-}
-
-/* --- MODO DE ATAQUE E ROLAGEM --- */
 .ataqueArea {
   border-top: 1px solid var(--color-border-gold-muted);
   padding-top: var(--space-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-}
-
-.modoAtaqueSwitcher {
-  display: flex;
-  background: var(--color-bg-input);
-  border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-sm);
-  padding: 2px;
-  gap: 2px;
-}
-
-.modoAtaqueBtn {
-  flex: 1;
-  background: transparent;
-  color: var(--color-text-dim);
-  border: none;
-  padding: var(--space-1);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.modoAtaqueBtnActive {
-  background: var(--color-bg-surface-active);
-  color: var(--color-text-main);
-  box-shadow: 0 0 6px var(--color-border-gold-glow);
-}
-
-.modoAtaqueBtnActiveMulti {
-  background: rgba(231, 76, 60, 0.25);
-  color: var(--color-crise-bright);
-  box-shadow: 0 0 6px var(--color-crise-glow);
-}
-
-/* --- RESULTADO DA ROLAGEM --- */
-.resultadoCard {
-  background: rgba(197, 160, 89, 0.08);
-  border: 1px solid var(--color-border-gold);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.criticoBanner {
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  text-align: center;
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-}
-
-.criticoSucesso {
-  color: var(--color-core-green);
-}
-
-.criticoFalha {
-  color: var(--color-crise-bright);
-}
-
-.resultadoLinha {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-main);
-}
-
-.resultadoValorDestaque {
-  color: var(--color-border-gold-bright);
-  font-weight: 700;
-}
-
-.resultadoDanoDestaque {
-  color: var(--color-ether-cyan);
-  font-weight: 700;
-}
-
-.detalhesDiscriminados {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
 }
 
 .slotActions {
@@ -289,7 +197,6 @@
   border-top: 1px solid var(--color-border-gold-muted);
 }
 
-/* --- ESTADO OCUPADO POR ARMA DE DUAS MÃOS --- */
 .ocupadoCard {
   background: rgba(0, 0, 0, 0.2);
   border: 1px dashed var(--color-border-gold-muted);
@@ -304,42 +211,31 @@
   gap: var(--space-2);
 }
 
-.ocupadoTexto {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-dim);
-  font-style: italic;
+.ocupadoTexto { font-size: var(--font-size-xs); color: var(--color-text-dim); font-style: italic; }
+
+@media (max-width: 800px) {
+  .toggleBtn,
+  .modoAtaqueBtn {
+    min-height: 44px;
+    padding: var(--space-2);
+  }
+
+  .acroCategoriaRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .acroSelect {
+    width: 100%;
+    font-size: var(--font-size-base);
+    min-height: 44px;
+    padding: var(--space-2);
+  }
 }
 
-/* =====================================================
-   MODO HÍBRIDO / IMPRESSÃO (@media print)
-   ===================================================== */
 @media print {
-  .container {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-    box-shadow: none !important;
-    color: #000000 !important;
-  }
-
-  .slotHeader,
-  .slotActions,
-  .toggleTipoArma,
-  .modoAtaqueSwitcher,
-  .acroCategoriaRow {
-    display: none !important;
-  }
-
-  .itemNome {
-    color: #000000 !important;
-  }
-
-  .formulaBox {
-    background: transparent !important;
-    color: #000000 !important;
-  }
-
-  .formulaLinha,
-  .formulaValor {
-    color: #000000 !important;
-  }
+  .container { background: #ffffff !important; border: 1px solid #000000 !important; box-shadow: none !important; color: #000000 !important; }
+  .slotHeader, .slotActions, .toggleTipoArma, .modoAtaqueSwitcher, .acroCategoriaRow { display: none !important; }
+  .itemNome, .formulaLinha, .formulaValor { color: #000000 !important; }
+  .formulaBox { background: transparent !important; color: #000000 !important; }
 }

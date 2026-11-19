@@ -1,28 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FaShieldAlt, FaSkull, FaChevronUp, FaChevronDown, FaTrashAlt,
-  FaCheck, FaTimes, FaHeartbeat, FaMagic,
-  FaStar, FaBoxOpen, FaPlay, FaSlidersH, FaExclamationTriangle,
-  FaDice, FaCrown, FaBolt, FaFire
+  FaShieldAlt, FaSkull, FaGripVertical, FaTrashAlt, FaCheck, FaTimes, FaHeartbeat, FaMagic,
+  FaStar, FaBoxOpen, FaPlay, FaSlidersH, FaExclamationTriangle, FaDice, FaCrown, FaBolt, FaFire
 } from 'react-icons/fa';
 import { Badge, Button, Input, ResourceBar } from '../ui';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
 import {
   estaDerrotado as checkDerrotado, calcularStatusCrise, calcularDanoAcumulado,
-  extrairHpMax, extrairMpMax, TIPOS_VILAO, normalizarTipoVilao,
-  isVilaoOuChefe, verificarGatilhoTransicaoFase
+  extrairHpMax, extrairMpMax, TIPOS_VILAO, normalizarTipoVilao, isVilaoOuChefe, verificarGatilhoTransicaoFase
 } from '../../domain/fabula/combatRules';
 import CombatantDiceDrawer from './CombatantDiceDrawer';
 import CombatantDrawers from './CombatantDrawers';
 import VillainCombatDrawer from './VillainCombatDrawer';
 import styles from './CombatantItem.module.css';
+import actionStyles from './CombatantItemActions.module.css';
 
 export default function CombatantItem({
-  p, index, totalParticipantes, participantes = [], isMestre,
-  isEditando, editForm, setEditForm, fichasDisponiveis, perfilRolagem,
-  onToggleTurno, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
-  onMoverItem, onIniciarExclusao, onAlterarRecurso, onGastarPontoVilao,
-  onTransicionarFase, onAjustarAcaoTurno, onToggleCondicao, onRolarDados
+  p, index, participantes = [], isMestre, isEditando, editForm, setEditForm,
+  fichasDisponiveis, perfilRolagem, onToggleTurno, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
+  onIniciarExclusao, onAlterarRecurso, onGastarPontoVilao, onTransicionarFase,
+  onAjustarAcaoTurno, onToggleCondicao, onRolarDados, isDragging, isDragOver,
+  onDragHandleDown, onDragHandleMove, onDragHandleUp, onDragHandleCancel
 }) {
   const [painelAberto, setPainelAberto] = useState(null);
   const cardRef = useRef(null);
@@ -55,28 +53,28 @@ export default function CombatantItem({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [painelAberto]);
 
-  const fichaCorrespondente = fichasDisponiveis.find(
-    (f) => f.id === p.ficha_id || f.nome_personagem?.toLowerCase() === p.nome?.toLowerCase()
-  );
+  const fichaCorrespondente = fichasDisponiveis.find((f) => f.id === p.ficha_id || f.nome_personagem?.toLowerCase() === p.nome?.toLowerCase());
   const avatarUrl = fichaCorrespondente?.avatar_url;
   const defesaHeroi = perfilRolagem?.defesa || fichaCorrespondente?.defesa || 10;
   const mdefHeroi = perfilRolagem?.mdef || fichaCorrespondente?.mdef || 10;
   const podeRolarDados = isMestre || p.tipo === 'heroi';
   const alvoProtegido = p.protegendo_id ? participantes.find((item) => String(item.id) === String(p.protegendo_id)) : null;
-
   const alternarPainel = (tipo) => setPainelAberto((atual) => (atual === tipo ? null : tipo));
 
   const itemClasses = [
-    styles.itemCard,
-    p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
-    ehChefeOuVilao ? styles.vilaoBossCard : '',
-    p.turno_atual && !estaDerrotado ? styles.turnActiveCard : '',
-    p.agiu ? styles.turnCompleted : '',
-    estaDerrotado && !statusFase.gatilhoAtivo ? styles.isDefeated : ''
+    styles.itemCard, p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
+    ehChefeOuVilao ? styles.vilaoBossCard : '', p.turno_atual && !estaDerrotado ? styles.turnActiveCard : '',
+    p.agiu ? styles.turnCompleted : '', estaDerrotado && !statusFase.gatilhoAtivo ? styles.isDefeated : '',
+    isDragging ? styles.itemDragging : '', isDragOver ? styles.itemDragOver : ''
   ].filter(Boolean).join(' ');
 
   return (
-    <div ref={cardRef} className={itemClasses} onClick={() => !isEditando && onToggleTurno(p.id, p.agiu)}>
+    <div
+      ref={cardRef}
+      data-combatant-index={index}
+      className={itemClasses}
+      onClick={() => !isEditando && onToggleTurno(p.id, p.agiu)}
+    >
       <div className={styles.itemMainRow}>
         <div className={styles.identityCluster}>
           <input type="checkbox" checked={p.agiu} readOnly className={styles.turnCheckbox} aria-label={`Status de turno de ${p.nome}`} />
@@ -101,18 +99,12 @@ export default function CombatantItem({
                   {p.tipo === 'heroi' ? 'Herói' : tipoVilaoKey !== 'padrao' ? infoVilao.badgeLabel : 'Inimigo'}
                 </Badge>
                 {isInimigo && acoesPorTurno > 1 && (
-                  <Badge variant="gold" size="sm" title="Multi-Ações realizadas nesta rodada">
-                    <FaBolt /> {acoesRealizadas}/{acoesPorTurno} Ações
-                  </Badge>
+                  <Badge variant="gold" size="sm" title="Multi-Ações"><FaBolt /> {acoesRealizadas}/{acoesPorTurno} Ações</Badge>
                 )}
-                {statusFase.temFases && (
-                  <Badge variant="villain" size="sm"><FaFire /> Fase {statusFase.faseAtual}/{statusFase.totalFases}</Badge>
-                )}
+                {statusFase.temFases && <Badge variant="villain" size="sm"><FaFire /> Fase {statusFase.faseAtual}/{statusFase.totalFases}</Badge>}
                 {p.turno_atual && !estaDerrotado && <Badge variant="gold" size="sm"><FaPlay /> NO TURNO</Badge>}
                 {p.guardando && !estaDerrotado && (
-                  <Badge variant="ether" size="sm">
-                    <FaShieldAlt /> {alvoProtegido ? `Cobre ${alvoProtegido.nome}` : 'Em Guarda'}
-                  </Badge>
+                  <Badge variant="ether" size="sm"><FaShieldAlt /> {alvoProtegido ? `Cobre ${alvoProtegido.nome}` : 'Em Guarda'}</Badge>
                 )}
                 {estaDerrotado && !statusFase.gatilhoAtivo && <Badge variant="default" size="sm">CAÍDO</Badge>}
                 {emCrise && !estaDerrotado && <Badge variant="crise" size="sm">CRISE</Badge>}
@@ -130,8 +122,7 @@ export default function CombatantItem({
                         onClick={() => isMestre && onToggleCondicao(p, cId)}
                         title={isMestre ? `${condObj?.label || cId} (clique para remover)` : (condObj?.label || cId)}
                       >
-                        {getCondicaoIcon(cId)}
-                        <span>{condObj?.label?.split(' ')[0] || cId}</span>
+                        {getCondicaoIcon(cId)} <span>{condObj?.label?.split(' ')[0] || cId}</span>
                       </button>
                     );
                   })}
@@ -176,37 +167,45 @@ export default function CombatantItem({
           </div>
         )}
 
-        <div className={`${styles.actionsCluster} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`${actionStyles.actionsCluster} ${actionStyles.noPrint}`} onClick={(e) => e.stopPropagation()}>
           {!isEditando && !estaDerrotado && !p.agiu && onAtivarTurno && (
-            <button type="button" className={`${styles.actionIconBtn} ${p.turno_atual ? styles.actionIconBtnGold : ''}`} onClick={() => onAtivarTurno(p)} title="Definir como turno ativo atual">
+            <button type="button" className={`${actionStyles.actionIconBtn} ${p.turno_atual ? actionStyles.actionIconBtnGold : ''}`} onClick={() => onAtivarTurno(p)} title="Definir como turno ativo atual">
               <FaPlay />
             </button>
           )}
 
           {!isEditando && podeRolarDados && onRolarDados && (
-            <button type="button" className={`${styles.actionIconBtn} ${painelAberto === 'dados' ? styles.actionIconBtnActive : ''}`} onClick={() => alternarPainel('dados')} title="Rolar dados" aria-expanded={painelAberto === 'dados'}>
-              <FaDice /><span className={styles.btnLabelDesktop}>Dados</span>
+            <button type="button" className={`${actionStyles.actionIconBtn} ${painelAberto === 'dados' ? actionStyles.actionIconBtnActive : ''}`} onClick={() => alternarPainel('dados')} title="Rolar dados" aria-expanded={painelAberto === 'dados'}>
+              <FaDice /><span className={actionStyles.btnLabelDesktop}>Dados</span>
             </button>
           )}
 
           {isMestre && !isEditando && (
             <>
               {isInimigo && (
-                <button type="button" className={`${styles.actionIconBtn} ${styles.actionIconBtnVillain} ${painelAberto === 'vilao' ? styles.actionIconBtnVillainActive : ''}`} onClick={() => alternarPainel('vilao')} title="Painel Tático de Vilão" aria-expanded={painelAberto === 'vilao'}>
-                  <FaCrown /><span className={styles.btnLabelDesktop}>Vilão</span>
+                <button type="button" className={`${actionStyles.actionIconBtn} ${actionStyles.actionIconBtnVillain} ${painelAberto === 'vilao' ? actionStyles.actionIconBtnVillainActive : ''}`} onClick={() => alternarPainel('vilao')} title="Painel Tático de Vilão" aria-expanded={painelAberto === 'vilao'}>
+                  <FaCrown /><span className={actionStyles.btnLabelDesktop}>Vilão</span>
                 </button>
               )}
-              <button type="button" className={`${styles.actionIconBtn} ${painelAberto === 'recursos' ? styles.actionIconBtnActive : ''}`} onClick={() => alternarPainel('recursos')} title="Ajustar PV, PM, IP e Fábula" aria-expanded={painelAberto === 'recursos'}>
-                <FaSlidersH /><span className={styles.btnLabelDesktop}>PV/PM</span>
+              <button type="button" className={`${actionStyles.actionIconBtn} ${painelAberto === 'recursos' ? actionStyles.actionIconBtnActive : ''}`} onClick={() => alternarPainel('recursos')} title="Ajustar PV, PM, IP e Fábula" aria-expanded={painelAberto === 'recursos'}>
+                <FaSlidersH /><span className={actionStyles.btnLabelDesktop}>PV/PM</span>
               </button>
-              <button type="button" className={`${styles.actionIconBtn} ${painelAberto === 'condicoes' ? styles.actionIconBtnActive : ''} ${condicoesAtivas.length > 0 ? styles.actionIconBtnHasCond : ''}`} onClick={() => alternarPainel('condicoes')} title="Gerenciar Condições" aria-expanded={painelAberto === 'condicoes'}>
-                <FaExclamationTriangle /><span className={styles.btnLabelDesktop}>Status</span>
-                {condicoesAtivas.length > 0 && <span className={styles.condCountBadge}>{condicoesAtivas.length}</span>}
+              <button type="button" className={`${actionStyles.actionIconBtn} ${painelAberto === 'condicoes' ? actionStyles.actionIconBtnActive : ''} ${condicoesAtivas.length > 0 ? actionStyles.actionIconBtnHasCond : ''}`} onClick={() => alternarPainel('condicoes')} title="Gerenciar Condições" aria-expanded={painelAberto === 'condicoes'}>
+                <FaExclamationTriangle /><span className={actionStyles.btnLabelDesktop}>Status</span>
+                {condicoesAtivas.length > 0 && <span className={actionStyles.condCountBadge}>{condicoesAtivas.length}</span>}
               </button>
-              <div className={styles.orderControls}>
-                <button type="button" disabled={index === 0} onClick={() => onMoverItem(index, 'cima')} title="Subir na ordem" className={styles.miniControlBtn}><FaChevronUp /></button>
-                <button type="button" disabled={index === totalParticipantes - 1} onClick={() => onMoverItem(index, 'baixo')} title="Descer na ordem" className={styles.miniControlBtn}><FaChevronDown /></button>
-                <button type="button" className={`${styles.miniControlBtn} ${styles.deleteBtn}`} onClick={() => onIniciarExclusao(p)} title="Remover da cena"><FaTrashAlt /></button>
+              <div className={actionStyles.orderControls}>
+                <button
+                  type="button"
+                  className={actionStyles.dragHandle}
+                  onPointerDown={(e) => onDragHandleDown?.(e, index)}
+                  onPointerMove={onDragHandleMove}
+                  onPointerUp={onDragHandleUp}
+                  onPointerCancel={onDragHandleCancel}
+                  title="Segure e arraste para reordenar"
+                  aria-label={`Reordenar ${p.nome}`}
+                ><FaGripVertical /></button>
+                <button type="button" className={`${actionStyles.miniControlBtn} ${actionStyles.deleteBtn}`} onClick={() => onIniciarExclusao(p)} title="Remover da cena"><FaTrashAlt /></button>
               </div>
             </>
           )}
@@ -221,9 +220,9 @@ export default function CombatantItem({
       </div>
 
       {isMestre && statusFase.gatilhoAtivo && statusFase.proximaFaseObj && (
-        <div className={`${styles.bossPhaseBanner} ${styles.noPrint}`} onClick={(e) => e.stopPropagation()}>
-          <div className={styles.bossPhaseTextWrap}>
-            <FaFire className={styles.bossPhaseIcon} />
+        <div className={`${actionStyles.bossPhaseBanner} ${actionStyles.noPrint}`} onClick={(e) => e.stopPropagation()}>
+          <div className={actionStyles.bossPhaseTextWrap}>
+            <FaFire className={actionStyles.bossPhaseIcon} />
             <span><strong>GATILHO DE CHEFE ATIVADO:</strong> {statusFase.motivo}</span>
           </div>
           <Button variant="primary" size="sm" onClick={() => onTransicionarFase && onTransicionarFase(p.id, statusFase.proximaFaseObj.numero)}>

@@ -1,0 +1,124 @@
+/* =====================================================
+   FICHA MOCHILA LISTA - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+}
+
+.sectionTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-border-gold-bright);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+}
+
+.mochilaVazia {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--space-4) 0;
+  font-style: italic;
+}
+
+.mochilaLista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.mochilaItem {
+  background: var(--color-bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.mochilaItem:hover {
+  border-color: var(--color-border-gold-muted);
+}
+
+.mochilaItemDetails {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemIconWrapperSmall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  color: var(--color-border-gold-bright);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.mochilaItemNome {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-main);
+  overflow-wrap: break-word;
+}
+
+.mochilaItemActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 800px) {
+  .mochilaItem {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .mochilaItemActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media print {
+  .sectionTitle,
+  .mochilaItemNome {
+    color: #000000 !important;
+  }
+
+  .mochilaItem {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .mochilaItemActions,
+  button {
+    display: none !important;
+  }
+}

@@ -16,6 +16,7 @@
   position: relative;
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-elevated);
@@ -148,6 +149,42 @@
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* Ergonomia Touch e Viewport Mobile */
+@media (max-width: 800px) {
+  .backdrop {
+    padding: max(var(--space-3), env(safe-area-inset-top, 0px)) var(--space-3)
+      max(var(--space-3), env(safe-area-inset-bottom, 0px)) var(--space-3);
+  }
+
+  .modalWindow {
+    max-height: calc(100dvh - 1.5rem);
+  }
+
+  .header {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .title {
+    font-size: clamp(1rem, 4.2vw, var(--font-size-lg));
+  }
+
+  .closeButton {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .body {
+    padding: var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-3) var(--space-4);
+    flex-wrap: wrap;
   }
 }
 

@@ -35,7 +35,7 @@
 
 .gridRituais {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--space-3);
 }
 
@@ -122,9 +122,18 @@
   font-style: italic;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .gridRituais {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ritualCard {
+    min-height: 56px;
+  }
+
+  .checkboxInput {
+    width: 22px;
+    height: 22px;
   }
 }
 

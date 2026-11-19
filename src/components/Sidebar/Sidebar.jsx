@@ -13,6 +13,7 @@ import { useEasterEggNucleo } from '../../hooks/useEasterEggNucleo';
 import { getGruposNavegacao } from './sidebarConfig';
 import SidebarMobileNav from './SidebarMobileNav';
 import styles from './Sidebar.module.css';
+import nucleoStyles from './SidebarNucleo.module.css';
 
 const STORAGE_COLLAPSED_KEY = 'aetheria_sidebar_collapsed';
 
@@ -49,7 +50,7 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
     <>
       <aside
         className={`${styles.sidebar} ${recolhida ? styles.recolhida : ''} ${
-          nucleoAtivo ? styles.nucleoAtivo : ''
+          nucleoAtivo ? nucleoStyles.nucleoAtivo : ''
         } ${styles.noPrint}`}
         aria-label="Navegação principal"
       >
@@ -66,7 +67,7 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
         <div className={styles.brandHeader}>
           <Link
             to="/"
-            className={`${styles.brandLink} ${nucleoAtivo ? styles.nucleoLink : ''}`}
+            className={styles.brandLink}
             onClick={registrarClique}
             title={
               nucleoAtivo
@@ -77,7 +78,10 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
             }
             aria-label="Ir para a página inicial (Aetheria)"
           >
-            <span className={styles.brandEmblem} aria-hidden="true">
+            <span
+              className={`${styles.brandEmblem} ${nucleoAtivo ? nucleoStyles.brandEmblemNucleo : ''}`}
+              aria-hidden="true"
+            >
               <LuSparkles />
             </span>
             {!recolhida && (
@@ -87,11 +91,11 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
                   {nucleoAtivo ? 'Modo Núcleo' : 'Fabula Ultima Atlas'}
                 </span>
                 {nucleoAtivo && (
-                  <div className={styles.nucleoBarContainer} aria-live="polite">
-                    <div className={styles.nucleoBarTrack}>
-                      <div className={styles.nucleoBarFill} />
+                  <div className={nucleoStyles.nucleoBarContainer} aria-live="polite">
+                    <div className={nucleoStyles.nucleoBarTrack}>
+                      <div className={nucleoStyles.nucleoBarFill} />
                     </div>
-                    <span className={styles.nucleoBarLabel}>RESSONÂNCIA 100%</span>
+                    <span className={nucleoStyles.nucleoBarLabel}>RESSONÂNCIA 100%</span>
                   </div>
                 )}
               </div>

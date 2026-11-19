@@ -4,38 +4,59 @@
 
 .headerCard {
   width: 100%;
-  padding: var(--space-5);
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--space-4) var(--space-5);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-gold-muted);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-5);
+  flex-direction: column;
+  gap: var(--space-3);
   transition: border-color var(--transition-normal);
 }
 
-.headerInfoWrapper {
+/* 1. Linha superior: <- Mestre e Editar Ficha */
+.topActionsRow {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--space-4);
-  flex: 1;
-  min-width: 280px;
-  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+  gap: var(--space-2);
 }
 
-.backBtn {
+.topNavLeft, .topNavRight {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 
+.topNavRight { margin-left: auto; }
+
+.backBtn, .editBtn, .logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+/* 2. Área principal: Avatar à esquerda + Nome e Badge de Nível logo abaixo */
+.heroIdentityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+}
+
 .avatarContainer {
-  width: 72px;
-  height: 72px;
+  width: 60px;
+  height: 60px;
   border-radius: var(--radius-pill);
   border: 2px solid var(--color-border-gold);
   background: var(--color-bg-elevated);
@@ -47,49 +68,68 @@
   flex-shrink: 0;
 }
 
-.avatarImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.avatarImg { width: 100%; height: 100%; object-fit: cover; }
+.avatarPlaceholder { color: var(--color-border-gold); }
 
-.avatarPlaceholder {
-  color: var(--color-border-gold);
-}
-
-.headerTextGroup {
+.identityDetailsCol {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .characterName {
   margin: 0;
   font-family: var(--font-family-serif);
-  font-size: var(--font-size-2xl);
+  font-size: clamp(1.2rem, 4vw, var(--font-size-2xl));
   font-weight: 700;
   color: var(--color-text-main);
   letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  line-height: 1.2;
 }
 
-.badgesWrapper {
+.nivelBadgeWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* 3. Linha inferior: Bloco de moedas (430Z + engrenagem) e Fábula [- 1 +] lado a lado */
+.bottomResourcesRow {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.zenitBadge, .fabulaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
 }
 
 .zenitGearBtn {
-  margin-left: var(--space-1);
+  margin-left: 2px;
   background: var(--color-bg-surface-hover);
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-gold);
   border-radius: var(--radius-sm);
-  padding: 1px var(--space-1);
+  padding: 2px 4px;
   font-size: var(--font-size-xs);
   cursor: pointer;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all var(--transition-fast);
 }
 
@@ -99,17 +139,13 @@
   transform: scale(1.1);
 }
 
-.fabulaBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.badgeMiniControls {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: var(--space-1);
+.fabulaValor {
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  font-size: var(--font-size-xs);
+  color: var(--color-ether-cyan);
+  min-width: 14px;
+  text-align: center;
 }
 
 .badgeMiniBtn {
@@ -117,10 +153,11 @@
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-ether-cyan);
   border-radius: var(--radius-sm);
-  padding: 1px 4px;
-  font-size: 0.65rem;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 0.7rem;
   cursor: pointer;
-  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +168,7 @@
   background: var(--color-bg-surface-active);
   border-color: var(--color-ether-cyan);
   color: var(--color-text-main);
-  transform: scale(1.12);
+  transform: scale(1.1);
 }
 
 .badgeMiniBtn:disabled {
@@ -144,61 +181,25 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-1);
 }
 
-.headerActionsGroup {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
+/* =====================================================
+   ERGONOMIA TOUCH & RESPONSIVIDADE MOBILE
+   ===================================================== */
+@media (max-width: 800px) {
+  .headerCard { padding: var(--space-3); gap: var(--space-2); }
+  .heroIdentityRow { gap: var(--space-3); }
+  .avatarContainer { width: 50px; height: 50px; }
+  .characterName { font-size: 1.15rem; }
 
-/* --- MODAL DE ZÊNITES INTERNO --- */
-.zenitModalForm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+  .backBtn, .editBtn, .logoutBtn {
+    min-height: 36px;
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-size-xs);
+  }
 
-.zenitTypeSwitcher {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.zenitTypeBtn {
-  flex: 1;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family-sans);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border: 1px solid var(--color-border-gold-muted);
-  background: var(--color-bg-input);
-  color: var(--color-text-muted);
-}
-
-.zenitTypeBtnActiveAdd {
-  background: rgba(46, 204, 113, 0.2);
-  border-color: var(--color-pv);
-  color: var(--color-pv);
-  box-shadow: 0 0 10px var(--color-pv-glow);
-}
-
-.zenitTypeBtnActiveSub {
-  background: rgba(231, 76, 60, 0.2);
-  border-color: var(--color-crise);
-  color: var(--color-crise);
-  box-shadow: 0 0 10px var(--color-crise-glow);
-}
-
-.modalFooterActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  .zenitGearBtn { min-width: 28px; min-height: 28px; }
+  .badgeMiniBtn { min-width: 26px; min-height: 26px; width: 26px; height: 26px; }
 }
 
 /* =====================================================
@@ -215,27 +216,13 @@
     break-inside: avoid;
   }
 
-  .characterName {
-    color: #000000 !important;
-    text-shadow: none !important;
-  }
+  .characterName { color: #000000 !important; text-shadow: none !important; }
+  .avatarContainer { border-color: #000000 !important; box-shadow: none !important; background: #ffffff !important; }
+  .avatarPlaceholder { color: #000000 !important; }
 
-  .avatarContainer {
-    border-color: #000000 !important;
-    box-shadow: none !important;
-    background: #ffffff !important;
-  }
-
-  .avatarPlaceholder {
-    color: #000000 !important;
-  }
-
-  .headerActionsGroup,
+  .topActionsRow,
   .zenitGearBtn,
-  .badgeMiniControls,
-  .backBtn,
+  .badgeMiniBtn,
   [data-print="false"],
-  .no-print {
-    display: none !important;
-  }
+  .no-print { display: none !important; }
 }

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import TitanRotasManager from '../TitanRotasManager/TitanRotasManager';
 import TitanContratosManager from '../TitanContratosManager/TitanContratosManager';
+import '../TitanContratosManager/TitanContratosManager.css';
 import './TitanDetailSidebar.css';
 import { FaTimes } from 'react-icons/fa';
 
@@ -21,7 +22,15 @@ function TitanDetailSidebar({ titan, isMestre, onClose, onStatusChange }) {
     <aside className="titan-sidebar">
       <div className="titan-sidebar-header">
         <span className="modal-faccao">{titan.faccao}</span>
-        <button className="sidebar-close-btn" onClick={onClose}><FaTimes /></button>
+        <button
+          type="button"
+          className="sidebar-close-btn"
+          onClick={onClose}
+          aria-label="Fechar painel do Titã"
+          title="Fechar"
+        >
+          <FaTimes />
+        </button>
       </div>
 
       <div className="titan-sidebar-content">

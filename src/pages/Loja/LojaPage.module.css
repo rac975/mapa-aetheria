@@ -4,6 +4,7 @@
   padding: var(--space-6);
   width: 100%;
   max-width: 1200px;
+  min-width: 0;
   margin: 0 auto;
   color: var(--color-text-main);
   box-sizing: border-box;
@@ -18,6 +19,8 @@
   padding-bottom: var(--space-4);
   flex-wrap: wrap;
   gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lojaTituloArea {
@@ -25,6 +28,8 @@
   align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lojaTitulo {
@@ -36,19 +41,21 @@
   font-family: var(--font-family-serif);
   font-size: var(--font-size-xl);
   text-shadow: var(--shadow-glow-gold);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.lojaTituloIcon {
-  color: var(--color-border-gold);
-}
+.lojaTituloIcon { color: var(--color-border-gold); flex-shrink: 0; }
 
 .lojaAbasMestre {
   display: flex;
+  flex-wrap: wrap;
   background: var(--color-bg-base);
   padding: var(--space-1);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-gold-muted);
   gap: var(--space-1);
+  max-width: 100%;
 }
 
 /* Sub-abas do Mestre (Estabelecimentos, Estoque, Forja, Catálogo) */
@@ -60,14 +67,11 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-gold-muted);
   overflow-x: auto;
+  max-width: 100%;
 }
 
-.mestreSubAbaBtn {
-  flex: 1;
-  min-width: 150px;
-}
+.mestreSubAbaBtn { flex: 1; min-width: 150px; }
 
-/* Tokens de botões e abas de fallback com superfícies JRPG escuras */
 .btnEditar {
   background: var(--color-bg-surface);
   color: var(--color-text-gold);
@@ -83,12 +87,7 @@
   transition: all var(--transition-fast);
 }
 
-.btnEditar:hover {
-  background: var(--color-bg-surface-hover);
-  border-color: var(--color-border-gold-bright);
-  color: #ffffff;
-  box-shadow: var(--shadow-glow-gold);
-}
+.btnEditar:hover { background: var(--color-bg-surface-hover); border-color: var(--color-border-gold-bright); color: #ffffff; box-shadow: var(--shadow-glow-gold); }
 
 .btnAba {
   background: transparent;
@@ -106,24 +105,16 @@
   transition: all var(--transition-fast);
 }
 
-.btnAba:hover {
-  background: var(--color-bg-surface-hover);
-  color: var(--color-text-main);
-  border-color: var(--color-border-gold-muted);
-}
-
-.btnAbaAtiva {
-  background: var(--color-bg-surface-active);
-  color: var(--color-text-gold);
-  border-color: var(--color-border-gold);
-  box-shadow: var(--shadow-glow-gold);
-}
+.btnAba:hover { background: var(--color-bg-surface-hover); color: var(--color-text-main); border-color: var(--color-border-gold-muted); }
+.btnAbaAtiva { background: var(--color-bg-surface-active); color: var(--color-text-gold); border-color: var(--color-border-gold); box-shadow: var(--shadow-glow-gold); }
 
 .lojaAcoesDireita {
   display: flex;
   gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .simuladorMestre {
@@ -134,11 +125,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
 }
 
-.simuladorIcon {
-  color: var(--color-ether-cyan);
-}
+.simuladorIcon { color: var(--color-ether-cyan); flex-shrink: 0; }
 
 .simuladorSelect {
   background: transparent;
@@ -149,24 +140,17 @@
   font-size: var(--font-size-sm);
   cursor: pointer;
   font-family: inherit;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.simuladorOption {
-  background: var(--color-bg-base);
-  color: var(--color-text-main);
-}
-
-.lojaCarteira {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.personagemNome {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  margin-left: var(--space-1);
-}
+.simuladorOption { background: var(--color-bg-base); color: var(--color-text-main); }
+.lojaCarteira { display: flex; align-items: center; gap: var(--space-2); min-width: 0; max-width: 100%; }
+.personagemNome { color: var(--color-text-muted); font-size: var(--font-size-xs); margin-left: var(--space-1); }
 
 .alertaSemFicha {
   background: rgba(231, 76, 60, 0.12);
@@ -175,6 +159,7 @@
   border-radius: var(--radius-md);
   color: var(--color-crise-bright);
   font-size: var(--font-size-sm);
+  max-width: 100%;
 }
 
 /* Seletor de Lojas em Carrossel Horizontal */
@@ -183,7 +168,9 @@
   gap: var(--space-3);
   margin-bottom: var(--space-6);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: var(--space-2);
+  max-width: 100%;
 }
 
 .lojaBtnItem {
@@ -203,31 +190,10 @@
   text-align: left;
 }
 
-.lojaBtnItem:hover {
-  background: var(--color-bg-surface-hover);
-  border-color: var(--color-border-gold);
-  color: var(--color-text-main);
-}
-
-.lojaBtnItemAtivo {
-  background: var(--color-bg-surface-active);
-  color: var(--color-text-gold);
-  border-color: var(--color-border-gold);
-  box-shadow: var(--shadow-glow-gold);
-}
-
-.lojaBtnNome {
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.lojaBtnCidade {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
+.lojaBtnItem:hover { background: var(--color-bg-surface-hover); border-color: var(--color-border-gold); color: var(--color-text-main); }
+.lojaBtnItemAtivo { background: var(--color-bg-surface-active); color: var(--color-text-gold); border-color: var(--color-border-gold); box-shadow: var(--shadow-glow-gold); }
+.lojaBtnNome { font-weight: 700; font-size: var(--font-size-sm); display: flex; align-items: center; gap: var(--space-2); }
+.lojaBtnCidade { font-size: var(--font-size-xs); color: var(--color-text-muted); }
 
 .lojaVazio {
   text-align: center;
@@ -238,19 +204,22 @@
   color: var(--color-text-muted);
 }
 
-/* MODO DE IMPRESSÃO (Carta Física para Mesa) */
-@media print {
-  .lojaWrapper {
-    padding: 0;
-    max-width: 100%;
-  }
+@media (max-width: 800px) {
+  .lojaWrapper { padding: var(--space-2) 0 var(--space-6) 0; }
+  .lojaHeader { gap: var(--space-3); margin-bottom: var(--space-4); }
+  .lojaTituloArea { width: 100%; gap: var(--space-3); }
+  .lojaAbasMestre { width: 100%; }
+  .lojaAbasMestre > * { flex: 1 1 130px; min-width: 0; }
+  .lojaAcoesDireita { width: 100%; flex-direction: column; align-items: stretch; gap: var(--space-2); }
+  .simuladorMestre { width: 100%; min-height: 44px; }
+  .simuladorSelect { font-size: var(--font-size-base); }
+  .lojaCarteira { width: 100%; }
+  .lojaCarteira > * { width: 100%; max-width: 100%; justify-content: center; flex-wrap: wrap; white-space: normal; text-align: center; }
+  .mestreSubAbas { width: 100%; flex-wrap: wrap; gap: var(--space-1); }
+  .mestreSubAbaBtn { flex: 1 1 calc(50% - var(--space-1)); min-width: 0; font-size: var(--font-size-xs); padding: var(--space-2); min-height: 44px; }
+}
 
-  .lojaHeader,
-  .lojasCarrossel,
-  .lojaAbasMestre,
-  .simuladorMestre,
-  .lojaCarteira,
-  .alertaSemFicha {
-    display: none !important;
-  }
+@media print {
+  .lojaWrapper { padding: 0; max-width: 100%; }
+  .lojaHeader, .lojasCarrossel, .lojaAbasMestre, .simuladorMestre, .lojaCarteira, .alertaSemFicha { display: none !important; }
 }

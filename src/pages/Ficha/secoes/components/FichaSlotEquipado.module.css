@@ -1,0 +1,107 @@
+/* =====================================================
+   FICHA SLOT EQUIPADO - FABULA ULTIMA DESIGN SYSTEM
+   ===================================================== */
+
+.itemEquipadoCard {
+  background: var(--color-bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.itemNome {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-main);
+  overflow-wrap: break-word;
+}
+
+.ataqueArea {
+  border-top: 1px solid var(--color-border-gold-muted);
+  padding-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modoAtaqueSwitcher {
+  display: flex;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.modoAtaqueBtn {
+  flex: 1;
+  background: transparent;
+  color: var(--color-text-dim);
+  border: none;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modoAtaqueBtnActive {
+  background: var(--color-bg-surface-active);
+  color: var(--color-text-main);
+  box-shadow: 0 0 6px var(--color-border-gold-glow);
+}
+
+.modoAtaqueBtnActiveMulti {
+  background: rgba(231, 76, 60, 0.25);
+  color: var(--color-crise-bright);
+  box-shadow: 0 0 6px var(--color-crise-glow);
+}
+
+.slotActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 800px) {
+  .modoAtaqueBtn {
+    min-height: 44px;
+    padding: var(--space-2);
+  }
+
+  .slotActions button {
+    flex: 1 1 110px;
+  }
+}
+
+@media print {
+  .itemEquipadoCard {
+    background: #ffffff !important;
+    border: 1px solid #333333 !important;
+    color: #000000 !important;
+  }
+
+  .itemNome {
+    color: #000000 !important;
+  }
+
+  .slotActions,
+  .ataqueArea,
+  button {
+    display: none !important;
+  }
+}

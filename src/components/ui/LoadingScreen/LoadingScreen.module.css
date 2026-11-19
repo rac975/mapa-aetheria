@@ -8,32 +8,27 @@
   color: var(--color-text-main);
   font-family: var(--font-family-sans);
   user-select: none;
+  width: 100%;
+  max-width: 100%;
 }
 
 .fullscreen {
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 10000;
-  background: radial-gradient(
-    circle at 50% 45%,
-    rgba(var(--color-bg-surface-rgb), 0.95) 0%,
-    var(--color-bg-base) 100%
-  );
+  background: radial-gradient(circle at 50% 45%, rgba(var(--color-bg-surface-rgb), 0.95) 0%, var(--color-bg-base) 100%);
   backdrop-filter: var(--backdrop-blur);
 }
 
 .inline {
   width: 100%;
-  height: 100%;
-  min-height: 280px;
+  max-width: 100%;
+  min-height: calc(100dvh - 100px);
   flex: 1;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(var(--color-bg-surface-rgb), 0.7) 0%,
-    rgba(6, 13, 23, 0.9) 100%
-  );
+  background: radial-gradient(circle at 50% 50%, rgba(var(--color-bg-surface-rgb), 0.7) 0%, rgba(6, 13, 23, 0.9) 100%);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-gold-muted);
 }
@@ -41,8 +36,7 @@
 .gridBackground {
   position: absolute;
   inset: 0;
-  background-image: 
-    linear-gradient(rgba(56, 239, 239, 0.03) 1px, transparent 1px),
+  background-image: linear-gradient(rgba(56, 239, 239, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(56, 239, 239, 0.03) 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
@@ -56,13 +50,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
+  padding: clamp(1rem, 4vw, var(--space-6));
   max-width: 580px;
   width: 100%;
   text-align: center;
 }
 
-/* Core Crystal Animado */
 .coreWrapper {
   position: relative;
   width: 90px;
@@ -99,17 +92,9 @@
   height: 44px;
   transform: rotate(45deg);
   border-radius: var(--radius-sm);
-  background: linear-gradient(
-    135deg,
-    rgba(56, 239, 239, 0.35) 0%,
-    rgba(0, 245, 160, 0.45) 50%,
-    rgba(10, 25, 47, 0.95) 100%
-  );
+  background: linear-gradient(135deg, rgba(56, 239, 239, 0.35) 0%, rgba(0, 245, 160, 0.45) 50%, rgba(10, 25, 47, 0.95) 100%);
   border: 2px solid var(--color-ether-cyan);
-  box-shadow: 
-    0 0 16px var(--color-ether-cyan-glow),
-    0 0 30px rgba(0, 245, 160, 0.35),
-    inset 0 0 10px rgba(56, 239, 239, 0.6);
+  box-shadow: 0 0 16px var(--color-ether-cyan-glow), 0 0 30px rgba(0, 245, 160, 0.35), inset 0 0 10px rgba(56, 239, 239, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,7 +121,6 @@
   pointer-events: none;
 }
 
-/* Barra de Ressonância */
 .resonanceBar {
   width: 140px;
   height: 3px;
@@ -157,7 +141,6 @@
   animation: resonanceSlide 1.8s ease-in-out infinite alternate;
 }
 
-/* Tipografia e Mensagens */
 .textWrapper {
   min-height: 50px;
   display: flex;
@@ -178,20 +161,9 @@
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.mensagem.fade {
-  opacity: 0;
-  transform: translateY(-4px);
-}
+.mensagem.fade { opacity: 0; transform: translateY(-4px); }
+.subtitulo { font-size: var(--font-size-xs); letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); margin-top: var(--space-2); }
 
-.subtitulo {
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin-top: var(--space-2);
-}
-
-/* Dica de Lore / Regra */
 .tipBox {
   display: flex;
   align-items: center;
@@ -202,106 +174,84 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-surface);
   animation: fadeIn 0.4s ease;
-  max-width: 480px;
+  max-width: min(480px, 100%);
 }
 
-.tipIcon {
-  color: var(--color-border-gold);
-  font-size: var(--font-size-sm);
-  flex-shrink: 0;
+.tipIcon { color: var(--color-border-gold); font-size: var(--font-size-sm); flex-shrink: 0; display: flex; align-items: center; }
+.tipText { font-size: var(--font-size-xs); line-height: 1.45; color: var(--color-text-muted); text-align: left; }
+
+/* Sub-bloco / Feedback pontual */
+.subblockContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 140px;
+  background: rgba(var(--color-bg-surface-rgb), 0.35);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  text-align: center;
+  user-select: none;
+}
+
+.subblockSpinner {
+  position: relative;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.tipText {
-  font-size: var(--font-size-xs);
-  line-height: 1.45;
-  color: var(--color-text-muted);
-  text-align: left;
+.subblockPulseRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-ether-cyan);
+  border-top-color: transparent;
+  animation: rotateClockwise 0.9s linear infinite;
 }
+
+.subblockIcon { color: var(--color-ether-cyan); font-size: var(--font-size-md); animation: crystalPulse 1.8s ease-in-out infinite alternate; }
+.subblockText { margin: 0; font-family: var(--font-family-serif); font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text-main); letter-spacing: 0.03em; }
+.subblockSubtitulo { font-size: var(--font-size-xs); color: var(--color-text-muted); letter-spacing: 0.05em; text-transform: uppercase; }
 
 /* Variantes Cromáticas */
-.carmine .middleRing {
-  border-top-color: var(--color-villain-bright);
-  border-bottom-color: var(--color-crise-bright);
-  filter: drop-shadow(0 0 6px var(--color-villain-glow));
-}
-
-.carmine .crystal {
-  border-color: var(--color-villain-bright);
-  box-shadow: 
-    0 0 16px var(--color-villain-glow),
-    0 0 30px rgba(251, 113, 133, 0.35),
-    inset 0 0 10px rgba(225, 29, 72, 0.6);
-  background: linear-gradient(
-    135deg,
-    rgba(251, 113, 133, 0.35) 0%,
-    rgba(190, 24, 93, 0.45) 50%,
-    rgba(76, 5, 25, 0.95) 100%
-  );
-}
-
-.carmine .crystalInner {
-  color: var(--color-villain-bright);
-}
-
-.carmine .resonanceTrack {
-  background: linear-gradient(90deg, transparent, var(--color-villain-bright), transparent);
-}
-
-.gold .middleRing {
-  border-top-color: var(--color-border-gold-bright);
-  border-bottom-color: var(--color-pi);
-}
-
-.gold .crystal {
-  border-color: var(--color-border-gold);
-  box-shadow: 0 0 16px var(--color-border-gold-glow);
-}
-
-.gold .crystalInner {
-  color: var(--color-border-gold-bright);
-}
+.carmine .middleRing { border-top-color: var(--color-villain-bright); border-bottom-color: var(--color-crise-bright); filter: drop-shadow(0 0 6px var(--color-villain-glow)); }
+.carmine .crystal { border-color: var(--color-villain-bright); box-shadow: 0 0 16px var(--color-villain-glow), 0 0 30px rgba(251, 113, 133, 0.35); background: linear-gradient(135deg, rgba(251, 113, 133, 0.35) 0%, rgba(190, 24, 93, 0.45) 50%, rgba(76, 5, 25, 0.95) 100%); }
+.carmine .crystalInner, .carmine .subblockIcon { color: var(--color-villain-bright); }
+.carmine .subblockPulseRing { border-color: var(--color-villain-bright); border-top-color: transparent; }
+.gold .middleRing { border-top-color: var(--color-border-gold-bright); border-bottom-color: var(--color-pi); }
+.gold .crystal { border-color: var(--color-border-gold); box-shadow: 0 0 16px var(--color-border-gold-glow); }
+.gold .crystalInner, .gold .subblockIcon { color: var(--color-border-gold-bright); }
+.gold .subblockPulseRing { border-color: var(--color-border-gold); border-top-color: transparent; }
 
 /* Animações Keyframes */
-@keyframes rotateClockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes rotateClockwise { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes rotateCounterClockwise { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+@keyframes crystalPulse { 0% { transform: rotate(45deg) scale(0.96); filter: brightness(0.95); } 100% { transform: rotate(45deg) scale(1.08); filter: brightness(1.25); } }
+@keyframes energyExpand { 0% { transform: scale(0.7); opacity: 0.8; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes resonanceSlide { 0% { left: 0; } 100% { left: 60%; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Ergonomia Touch & Mobile */
+@media (max-width: 800px) {
+  .inline { min-height: calc(100dvh - 84px); }
+  .content { padding: var(--space-4) var(--space-3) calc(88px + env(safe-area-inset-bottom, 0px)) var(--space-3); max-width: 100%; }
+  .coreWrapper { width: 72px; height: 72px; margin-bottom: var(--space-4); }
+  .crystal { width: 36px; height: 36px; }
+  .textWrapper { margin-bottom: var(--space-4); min-height: 40px; }
+  .mensagem { font-size: var(--font-size-sm); }
+  .tipBox { padding: var(--space-2) var(--space-3); gap: var(--space-2); }
+  .tipText { font-size: 0.7rem; }
+  .subblockContainer { padding: var(--space-4) var(--space-3); }
 }
 
-@keyframes rotateCounterClockwise {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-
-@keyframes crystalPulse {
-  0% {
-    transform: rotate(45deg) scale(0.96);
-    filter: brightness(0.95);
-  }
-  100% {
-    transform: rotate(45deg) scale(1.08);
-    filter: brightness(1.25);
-  }
-}
-
-@keyframes energyExpand {
-  0% {
-    transform: scale(0.7);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1.8);
-    opacity: 0;
-  }
-}
-
-@keyframes resonanceSlide {
-  0% { left: 0; }
-  100% { left: 60%; }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+@media print {
+  .container, .subblockContainer { display: none !important; }
 }

@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { cronicaService } from '../../../services/cronicaService';
+import { useState, useImperativeHandle, forwardRef } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import CronicaCard from '../CronicasCard/CronicasCard';
 import CronicaBusca from '../CronicasBusca/CronicasBusca';
@@ -7,12 +6,16 @@ import CronicasModal from '../CronicasModal/CronicasModal';
 import CustomAlert from '../../CustomAlert/CustomAlert';
 import { LoadingScreen } from '../../ui';
 
-const CronicasManager = forwardRef(({ isMestre }, ref) => {
-  const [cronicas, setCronicas] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+const CronicasManager = forwardRef(({
+  isMestre = false,
+  cronicas = [],
+  setCronicas,
+  tagsDisponiveis = [],
+  carregandoPontual = false,
+  onSalvarCronica,
+  onExcluirCronica
+}, ref) => {
   const [termoBusca, setTermoBusca] = useState('');
-  const [tagsDisponiveis, setTagsDisponiveis] = useState([]);
-
   const [modalAberto, setModalAberto] = useState(false);
   const [cronicaEditando, setCronicaEditando] = useState(null);
 
@@ -25,46 +28,6 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
 
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '' });
   const { coldDelete } = useToast();
-
-  useImperativeHandle(ref, () => ({
-    abrirModalCriacao
-  }));
-
-  const processarTagsUnicas = (lista) => {
-    const todasTags = lista
-      .map(c => c.tags)
-      .filter(Boolean)
-      .flatMap(t => t.split(',').map(tag => tag.trim()))
-      .filter(t => t.length > 0);
-    setTagsDisponiveis([...new Set(todasTags)]);
-  };
-
-  const buscarCronicas = useCallback(async () => {
-    try {
-      const { data: lista, error } = await cronicaService.getCronicas();
-
-      if (error) throw error;
-      const res = lista || [];
-      setCronicas(res);
-      processarTagsUnicas(res);
-    } catch (error) {
-      console.error('Erro ao buscar crônicas:', error.message);
-    } finally {
-      setCarregando(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    buscarCronicas();
-
-    const channel = cronicaService.subscribeCronicas(() => {
-      buscarCronicas();
-    });
-
-    return () => {
-      cronicaService.removeChannel(channel);
-    };
-  }, [buscarCronicas]);
 
   const abrirModalCriacao = () => {
     setCronicaEditando(null);
@@ -86,6 +49,10 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
     setModalAberto(true);
   };
 
+  useImperativeHandle(ref, () => ({
+    abrirModalCriacao
+  }));
+
   const salvarCronica = async (e) => {
     e.preventDefault();
     if (!titulo.trim() || !conteudo.trim()) {
@@ -106,18 +73,14 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
         tags: tags.trim() || null
       };
 
-      if (cronicaEditando) {
-        const { error } = await cronicaService.atualizarCronica(cronicaEditando.id, dados);
-        if (error) throw error;
-      } else {
-        const { error } = await cronicaService.criarCronica(dados);
-        if (error) throw error;
+      if (onSalvarCronica) {
+        const res = await onSalvarCronica(dados, cronicaEditando?.id);
+        if (!res?.success) throw res?.error || new Error('Falha ao salvar crônica');
       }
 
       setModalAberto(false);
-      buscarCronicas();
     } catch (error) {
-      console.error('Erro ao salvar crônica:', error.message);
+      console.error('[CronicasManager] Erro ao salvar crônica:', error.message);
       setAlerta({
         isOpen: true,
         title: 'Erro ao Salvar',
@@ -138,18 +101,20 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
         </>
       ),
       onRemove: (item) => {
-        setCronicas(prev => prev.filter(x => x.id !== item.id));
+        setCronicas?.((prev) => prev.filter((x) => x.id !== item.id));
       },
       onCommit: async (item) => {
         try {
-          const { error } = await cronicaService.excluirCronica(item.id);
-          if (error) throw error;
+          if (onExcluirCronica) {
+            const res = await onExcluirCronica(item.id);
+            if (!res?.success) throw res?.error || new Error('Falha ao excluir crônica');
+          }
         } catch (error) {
-          console.error('Erro ao excluir crônica permanentemente:', error.message);
+          console.error('[CronicasManager] Erro ao excluir crônica permanentemente:', error.message);
         }
       },
       onRollback: (item) => {
-        setCronicas(prev => [item, ...prev]);
+        setCronicas?.((prev) => [item, ...prev]);
       },
       duration: 6000
     });
@@ -170,12 +135,15 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
       <CronicaBusca termoBusca={termoBusca} setTermoBusca={setTermoBusca} />
 
       <div className="cronicas-list">
-        {carregando ? (
+        {carregandoPontual && (
           <LoadingScreen
-            mensagem="Sincronizando crônicas e memoriais de Aetheria..."
+            subblock
+            mensagem="Atualizando crônicas..."
             subtitulo="Memória da Campanha"
           />
-        ) : cronicasFiltradas.length === 0 ? (
+        )}
+
+        {cronicasFiltradas.length === 0 && !carregandoPontual ? (
           <p className="sem-cronicas">Nenhuma crônica encontrada.</p>
         ) : (
           cronicasFiltradas.map((cronica) => (
@@ -195,11 +163,16 @@ const CronicasManager = forwardRef(({ isMestre }, ref) => {
         onClose={() => setModalAberto(false)}
         onSubmit={salvarCronica}
         isEdicao={!!cronicaEditando}
-        sessao={sessao} setSessao={setSessao}
-        data={data} setData={setData}
-        titulo={titulo} setTitulo={setTitulo}
-        conteudo={conteudo} setConteudo={setConteudo}
-        tags={tags} setTags={setTags}
+        sessao={sessao}
+        setSessao={setSessao}
+        data={data}
+        setData={setData}
+        titulo={titulo}
+        setTitulo={setTitulo}
+        conteudo={conteudo}
+        setConteudo={setConteudo}
+        tags={tags}
+        setTags={setTags}
         tagsDisponiveis={tagsDisponiveis}
       />
 

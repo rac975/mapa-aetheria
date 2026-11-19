@@ -168,6 +168,45 @@
   color: var(--color-text-main);
 }
 
+@media (max-width: 800px) {
+  .clockCard {
+    height: 36px;
+    min-height: 36px;
+    padding: 2px var(--space-2);
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .clockSvgWrapper {
+    width: 24px;
+    height: 24px;
+  }
+
+  .clockHeader h4 {
+    font-size: var(--font-size-xs);
+    max-width: 105px;
+  }
+
+  .clockCount {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+  }
+
+  .clockControls {
+    gap: 2px;
+    padding-left: 4px;
+  }
+
+  .clockControls button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+    font-size: 9px;
+    border-radius: var(--radius-sm);
+  }
+}
+
 @media print {
   .clockControls {
     display: none !important;

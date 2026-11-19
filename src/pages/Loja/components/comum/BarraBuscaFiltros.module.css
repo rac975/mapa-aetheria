@@ -158,6 +158,33 @@
   margin-right: var(--space-1);
 }
 
+@media (max-width: 800px) {
+  .container,
+  .linhaBuscaOrdenacao,
+  .buscaWrapper,
+  .ordenacaoWrapper {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .buscaWrapper,
+  .ordenacaoWrapper {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .ordenacaoWrapper {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .ordenacaoSelect {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 /* Modo Híbrido / Impressão */
 @media print {
   .container {

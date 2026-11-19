@@ -7,40 +7,19 @@ import CustomAlert from '../CustomAlert/CustomAlert';
 import CombatantItem from './CombatantItem';
 import QuickActionPanel from './QuickActionPanel';
 import AddParticipantForm from './AddParticipantForm';
+import { useCombatantDrag } from './useCombatantDrag';
 import { useCombatTracker } from '../../hooks/useCombatTracker';
 import styles from './InitiativeTracker.module.css';
 
 export default function InitiativeTracker({ isMestre }) {
   const {
-    participantes,
-    fichasDisponiveis,
-    npcsDisponiveis,
-    estadoCombate,
-    relogios,
-    acoesFeed,
-    alerta,
-    fecharAlerta,
-    editandoId,
-    editForm,
-    setEditForm,
-    toggleTurno,
-    ativarTurnoParticipante,
-    resetRodada,
-    restaurarTudoCena,
-    atualizarModificadorGlobal,
-    executarAcaoRapida,
-    limparHistoricoAcoes,
-    addParticipante,
-    iniciarExclusao,
-    salvarEdicao,
-    cancelarEdicao,
-    alterarRecurso,
-    gastarPontoVilaoCombate,
-    transicionarFaseChefeCombate,
-    ajustarAcaoTurnoVilao,
-    toggleCondicao,
-    moverItem,
-    obterPerfilRolagem,
+    participantes, fichasDisponiveis, npcsDisponiveis, estadoCombate,
+    relogios, acoesFeed, alerta, fecharAlerta, editandoId, editForm, setEditForm,
+    toggleTurno, ativarTurnoParticipante, resetRodada, restaurarTudoCena,
+    atualizarModificadorGlobal, executarAcaoRapida, limparHistoricoAcoes,
+    addParticipante, iniciarExclusao, salvarEdicao, cancelarEdicao,
+    alterarRecurso, gastarPontoVilaoCombate, transicionarFaseChefeCombate,
+    ajustarAcaoTurnoVilao, toggleCondicao, moverItem, obterPerfilRolagem,
     rolarDadosNoCombate
   } = useCombatTracker(isMestre);
 
@@ -63,6 +42,15 @@ export default function InitiativeTracker({ isMestre }) {
 
   const vivos = participantes.filter((p) => Number(p.hp_atual) > 0);
   const pendentesTurno = vivos.filter((p) => !p.agiu).length;
+
+  const {
+    draggedIndex,
+    targetIndex,
+    handlePointerDown: handleDragStart,
+    handlePointerMove: handleDragMove,
+    handlePointerUp: handleDragEnd,
+    handlePointerCancel: handleDragCancel
+  } = useCombatantDrag({ onReorder: moverItem, totalItems: participantes.length });
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -213,7 +201,6 @@ export default function InitiativeTracker({ isMestre }) {
               onAtivarTurno={ativarTurnoParticipante}
               onSalvarEdicao={salvarEdicao}
               onCancelarEdicao={cancelarEdicao}
-              onMoverItem={moverItem}
               onIniciarExclusao={iniciarExclusao}
               onAlterarRecurso={alterarRecurso}
               onGastarPontoVilao={gastarPontoVilaoCombate}
@@ -221,6 +208,12 @@ export default function InitiativeTracker({ isMestre }) {
               onAjustarAcaoTurno={ajustarAcaoTurnoVilao}
               onToggleCondicao={toggleCondicao}
               onRolarDados={rolarDadosNoCombate}
+              isDragging={draggedIndex === index}
+              isDragOver={targetIndex === index && draggedIndex !== index}
+              onDragHandleDown={handleDragStart}
+              onDragHandleMove={handleDragMove}
+              onDragHandleUp={handleDragEnd}
+              onDragHandleCancel={handleDragCancel}
             />
           ))
         )}

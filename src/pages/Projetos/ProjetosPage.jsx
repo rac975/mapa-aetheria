@@ -64,15 +64,8 @@ export default function ProjetosPage({ isMestre }) {
     };
   }, [projetos, isMestre]);
 
-  const abrirCriacao = () => {
-    setProjetoEditando(null);
-    setModalFormAberto(true);
-  };
-
-  const abrirEdicao = (projeto) => {
-    setProjetoEditando(projeto);
-    setModalFormAberto(true);
-  };
+  const abrirCriacao = () => { setProjetoEditando(null); setModalFormAberto(true); };
+  const abrirEdicao = (projeto) => { setProjetoEditando(projeto); setModalFormAberto(true); };
 
   const handleSalvarProjeto = async (payload) => {
     const resultado = projetoEditando
@@ -98,6 +91,17 @@ export default function ProjetosPage({ isMestre }) {
       duration: 6000
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <LoadingScreen
+          mensagem="Sincronizando projetos da Oficina e Aventura..."
+          subtitulo="Oficina Arcanotécnica"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -181,12 +185,7 @@ export default function ProjetosPage({ isMestre }) {
         </Card>
       )}
 
-      {isLoading ? (
-        <LoadingScreen
-          mensagem="Sincronizando projetos da Oficina e Aventura..."
-          subtitulo="Oficina Arcanotécnica"
-        />
-      ) : projetosFiltrados.length === 0 ? (
+      {projetosFiltrados.length === 0 ? (
         <Card className={styles.emptyState} ornamented={false}>
           <FaDraftingCompass className={styles.emptyIcon} />
           <p>
@@ -239,6 +238,8 @@ export default function ProjetosPage({ isMestre }) {
         isMestre={isMestre}
         onAplicarProgresso={avancarProgresso}
       />
+
+      <div className={styles.bottomSpacer} aria-hidden="true" />
     </div>
   );
 }

@@ -29,20 +29,10 @@
   border-right: 1px solid var(--color-border-gold-muted);
 }
 
-.clockIcon {
-  color: var(--color-text-gold);
-  font-size: var(--font-size-sm);
-}
-
-.barTitle {
-  margin: 0;
-  font-family: var(--font-family-serif);
-  color: var(--color-text-gold);
-  font-size: var(--font-size-sm);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
+.clockIcon { color: var(--color-text-gold); font-size: var(--font-size-sm); }
+.barTitle { margin: 0; font-family: var(--font-family-serif); color: var(--color-text-gold); font-size: var(--font-size-sm); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.btnLabelDesktop { font-size: 0.72rem; }
+.emptyInlineText { color: var(--color-text-dim); font-style: italic; font-size: var(--font-size-xs); white-space: nowrap; }
 
 .clocksStripWrapper {
   flex: 1;
@@ -104,10 +94,6 @@
   flex-shrink: 0;
 }
 
-.btnLabelDesktop {
-  font-size: 0.72rem;
-}
-
 .collapseBtn {
   background: transparent;
   border: 1px solid var(--color-border-gold-muted);
@@ -145,22 +131,8 @@
   flex-wrap: wrap;
 }
 
-.formCreateClock input[type="text"] {
-  flex: 2;
-  min-width: 180px;
-  background: var(--color-bg-input);
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-gold-muted);
-  padding: 5px var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  outline: none;
-  transition: all var(--transition-fast);
-}
-
+.formCreateClock input[type="text"],
 .formCreateClock select {
-  flex: 1;
-  min-width: 130px;
   background: var(--color-bg-input);
   color: var(--color-text-main);
   border: 1px solid var(--color-border-gold-muted);
@@ -170,11 +142,9 @@
   outline: none;
   transition: all var(--transition-fast);
 }
-
-.formCreateClock input:focus,
-.formCreateClock select:focus {
-  border-color: var(--color-ether-cyan);
-}
+.formCreateClock input[type="text"] { flex: 2; min-width: 180px; }
+.formCreateClock select { flex: 1; min-width: 130px; }
+.formCreateClock input:focus, .formCreateClock select:focus { border-color: var(--color-ether-cyan); }
 
 .visibilityToggleBtn {
   background: var(--color-bg-surface);
@@ -191,33 +161,69 @@
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
+.isVisible { background: var(--color-pv-track); color: var(--color-pv); border-color: var(--color-pv); }
+.visibilityToggleBtn:hover { border-color: var(--color-border-gold); color: var(--color-text-main); }
 
-.isVisible {
-  background: var(--color-pv-track);
-  color: var(--color-pv);
-  border-color: var(--color-pv);
-}
-
-.visibilityToggleBtn:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-text-main);
-}
-
-@media (max-width: 680px) {
-  .btnLabelDesktop {
-    display: none;
+@media (max-width: 800px) {
+  .btnLabelDesktop { display: none; }
+  .clockBarContainer { padding: var(--space-2); gap: 4px; }
+  .clockBarTop {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-1);
+    min-height: 32px;
   }
-
+  .brandCluster {
+    min-height: auto;
+    padding-right: 0;
+    border-right: none;
+    gap: 6px;
+  }
+  .barTitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+  .barActions {
+    margin-left: auto;
+    gap: 4px;
+  }
+  .collapseBtn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+  .clocksStripWrapper {
+    width: 100%;
+    order: 3;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0 0 0;
+  }
+  .clocksHorizontalStrip {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    width: max-content;
+  }
+  .collapsedSummaryStrip {
+    width: 100%;
+    order: 3;
+  }
   .formMainRow {
     flex-direction: column;
     align-items: stretch;
   }
-
   .formCreateClock input[type="text"],
   .formCreateClock select,
   .visibilityToggleBtn {
     width: 100%;
     min-width: 100%;
+    min-height: 38px;
   }
 }
 

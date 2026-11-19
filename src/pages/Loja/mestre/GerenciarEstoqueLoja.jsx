@@ -19,15 +19,11 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
 
     // Hook de busca aplicado para o modal de estoque do Mestre
     const {
-        busca,
-        setBusca,
-        categoriaFiltro,
-        setCategoriaFiltro,
-        categoriaArmaFiltro,
-        setCategoriaArmaFiltro,
+        busca, setBusca,
+        categoriaFiltro, setCategoriaFiltro,
+        categoriaArmaFiltro, setCategoriaArmaFiltro,
         categoriasArmasDisponiveis,
-        ordenacao,
-        setOrdenacao,
+        ordenacao, setOrdenacao,
         itensFiltrados: itensFiltradosModal
     } = useBuscaItens(itensCatalogo);
 
@@ -36,43 +32,21 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
             setItensDaLojaEstoque([]);
             return;
         }
-        const { data } = await supabase
-            .from('loja_itens')
-            .select('item_id, itens_catalogo(*)')
-            .eq('loja_id', lojaId);
-
-        if (data) {
-            setItensDaLojaEstoque(data.map(d => d.itens_catalogo).filter(Boolean));
-        } else {
-            setItensDaLojaEstoque([]);
-        }
+        const { data } = await supabase.from('loja_itens').select('item_id, itens_catalogo(*)').eq('loja_id', lojaId);
+        setItensDaLojaEstoque(data ? data.map(d => d.itens_catalogo).filter(Boolean) : []);
     }, []);
 
     useEffect(() => {
         let isMounted = true;
-        
-        async function fetchEstoque() {
-            if (lojaSelecionadaEstoqueId) {
-                const { data } = await supabase
-                    .from('loja_itens')
-                    .select('item_id, itens_catalogo(*)')
-                    .eq('loja_id', lojaSelecionadaEstoqueId);
-
-                if (isMounted) {
-                    if (data) {
-                        setItensDaLojaEstoque(data.map(d => d.itens_catalogo).filter(Boolean));
-                    } else {
-                        setItensDaLojaEstoque([]);
-                    }
-                }
+        (async () => {
+            if (!lojaSelecionadaEstoqueId) {
+                if (isMounted) setItensDaLojaEstoque([]);
+                return;
             }
-        }
-
-        fetchEstoque();
-
-        return () => {
-            isMounted = false;
-        };
+            const { data } = await supabase.from('loja_itens').select('item_id, itens_catalogo(*)').eq('loja_id', lojaSelecionadaEstoqueId);
+            if (isMounted) setItensDaLojaEstoque(data ? data.map(d => d.itens_catalogo).filter(Boolean) : []);
+        })();
+        return () => { isMounted = false; };
     }, [lojaSelecionadaEstoqueId]);
 
     const lojaAtivaId = lojaSelecionadaEstoqueId || (lojas.length > 0 ? lojas[0]?.id : null);
@@ -89,16 +63,12 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
         coldDelete({
             item,
             message: <>Item <strong>{item.nome}</strong> removido do estoque da loja.</>,
-            onRemove: (it) => {
-                setItensDaLojaEstoque(prev => prev.filter(i => i.id !== it.id));
-            },
+            onRemove: (it) => setItensDaLojaEstoque(prev => prev.filter(i => i.id !== it.id)),
             onCommit: async (it) => {
                 await lojaService.removerItemLoja(lojaAtivaId, it.id);
                 carregarEstoqueLoja(lojaAtivaId);
             },
-            onRollback: () => {
-                carregarEstoqueLoja(lojaAtivaId);
-            },
+            onRollback: () => carregarEstoqueLoja(lojaAtivaId),
             duration: 6000
         });
     };
@@ -107,14 +77,9 @@ export default function GerenciarEstoqueLoja({ lojas, itensCatalogo }) {
         if (!lojaAtivaId || itensIds.length === 0) return;
         const idsExistentes = new Set(itensDaLojaEstoque.map(i => i.id));
         const novosIds = itensIds.filter(id => !idsExistentes.has(id));
-
         if (novosIds.length === 0) return;
 
-        const payload = novosIds.map(itemId => ({
-            loja_id: lojaAtivaId,
-            item_id: itemId
-        }));
-
+        const payload = novosIds.map(itemId => ({ loja_id: lojaAtivaId, item_id: itemId }));
         await supabase.from('loja_itens').insert(payload);
         carregarEstoqueLoja(lojaAtivaId);
     };
