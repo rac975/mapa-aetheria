@@ -1,6 +1,4 @@
 import React from 'react';
-import { FaCopy } from 'react-icons/fa';
-import { Input, Button } from '../../../../components/ui';
 import {
     CATEGORIAS_ARMA,
     ALCANCES_ARMA,
@@ -8,6 +6,8 @@ import {
     PERSONALIZACOES_DISPONIVEIS,
     MAX_VAGAS_PERSONALIZACOES
 } from '../../../../domain/fabula/weaponForge';
+import ArmaMelhoriasRarasSecao from './ArmaMelhoriasRarasSecao';
+import ArmaSegundaFormaSecao from './ArmaSegundaFormaSecao';
 import styles from '../CriadorArmas.module.css';
 
 export default function ArmaAtlasSecao({
@@ -31,7 +31,23 @@ export default function ArmaAtlasSecao({
     setAlcanceSegundaForma,
     precisaoSegundaForma = '(DES + AST)',
     setPrecisaoSegundaForma,
-    onCopiarPrimeiraForma
+    onCopiarPrimeiraForma,
+    tipoDano,
+    setTipoDano,
+    bonusPrecisaoArma,
+    setBonusPrecisaoArma,
+    bonusDanoExtraArma,
+    setBonusDanoExtraArma,
+    atributoUnico,
+    setAtributoUnico,
+    atributoEscolhido,
+    setAtributoEscolhido,
+    caracteristicasDisponiveis,
+    caracteristicaSelecionada,
+    setCaracteristicaSelecionada,
+    paramsCaracteristica,
+    setParamsCaracteristica,
+    efeitoCaracteristicaExibicao
 }) {
     const handleCopiar = () => {
         if (onCopiarPrimeiraForma) {
@@ -42,6 +58,8 @@ export default function ArmaAtlasSecao({
         if (setAlcanceSegundaForma) setAlcanceSegundaForma(alcancePers);
         if (setPrecisaoSegundaForma) setPrecisaoSegundaForma(precisaoPers);
     };
+
+    const ehRara = raridadePers !== 'padrao';
 
     return (
         <>
@@ -139,82 +157,42 @@ export default function ArmaAtlasSecao({
                 </div>
             </fieldset>
 
+            {/* Aprimoramentos e Características da Arma Rara (Livro Básico no Atlas) */}
+            {ehRara && (
+                <ArmaMelhoriasRarasSecao
+                    tipoDano={tipoDano}
+                    setTipoDano={setTipoDano}
+                    bonusPrecisaoArma={bonusPrecisaoArma}
+                    setBonusPrecisaoArma={setBonusPrecisaoArma}
+                    bonusDanoExtraArma={bonusDanoExtraArma}
+                    setBonusDanoExtraArma={setBonusDanoExtraArma}
+                    atributoUnico={atributoUnico}
+                    setAtributoUnico={setAtributoUnico}
+                    atributoEscolhido={atributoEscolhido}
+                    setAtributoEscolhido={setAtributoEscolhido}
+                    caracteristicasDisponiveis={caracteristicasDisponiveis}
+                    caracteristicaSelecionada={caracteristicaSelecionada}
+                    setCaracteristicaSelecionada={setCaracteristicaSelecionada}
+                    paramsCaracteristica={paramsCaracteristica}
+                    setParamsCaracteristica={setParamsCaracteristica}
+                    efeitoCaracteristicaExibicao={efeitoCaracteristicaExibicao}
+                    temMutavel={temMutavel}
+                />
+            )}
+
             {/* Suporte Completo a Arma Mutável (2ª Forma) */}
             {temMutavel && (
-                <div className={styles.mutavelContainer}>
-                    <div className={styles.mutavelHeader}>
-                        <h4 className={styles.mutavelTitulo}>⚔️ Configuração da 2ª Forma (Arma Mutável)</h4>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={handleCopiar}
-                            title="Copia Categoria, Alcance e Atributos de Precisão da 1ª forma"
-                        >
-                            <FaCopy /> Copiar da 1ª forma
-                        </Button>
-                    </div>
-
-                    <Input
-                        label="Nome da Segunda Forma"
-                        value={nomeSegundaForma}
-                        onChange={e => setNomeSegundaForma(e.target.value)}
-                        placeholder="Ex: Modo Foice / Modo Tridente"
-                        required
-                    />
-
-                    <div className={styles.gridTresColunas}>
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="select-atlas-cat2" className={styles.labelCampo}>
-                                Categoria (2ª Forma)
-                            </label>
-                            <select
-                                id="select-atlas-cat2"
-                                className={styles.selectCampo}
-                                value={categoriaSegundaForma}
-                                onChange={e => setCategoriaSegundaForma && setCategoriaSegundaForma(e.target.value)}
-                            >
-                                {CATEGORIAS_ARMA.map(cat => (
-                                    <option key={cat} value={cat}>
-                                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="select-atlas-alc2" className={styles.labelCampo}>
-                                Alcance (2ª Forma)
-                            </label>
-                            <select
-                                id="select-atlas-alc2"
-                                className={styles.selectCampo}
-                                value={alcanceSegundaForma}
-                                onChange={e => setAlcanceSegundaForma && setAlcanceSegundaForma(e.target.value)}
-                            >
-                                {ALCANCES_ARMA.map(alc => (
-                                    <option key={alc} value={alc}>{alc}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="select-atlas-prec2" className={styles.labelCampo}>
-                                Atributos de Precisão (2ª Forma)
-                            </label>
-                            <select
-                                id="select-atlas-prec2"
-                                className={styles.selectCampo}
-                                value={precisaoSegundaForma}
-                                onChange={e => setPrecisaoSegundaForma && setPrecisaoSegundaForma(e.target.value)}
-                            >
-                                {ATRIBUTOS_PRECISAO.map(prec => (
-                                    <option key={prec} value={prec}>{prec}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <ArmaSegundaFormaSecao
+                    nomeSegundaForma={nomeSegundaForma}
+                    setNomeSegundaForma={setNomeSegundaForma}
+                    categoriaSegundaForma={categoriaSegundaForma}
+                    setCategoriaSegundaForma={setCategoriaSegundaForma}
+                    alcanceSegundaForma={alcanceSegundaForma}
+                    setAlcanceSegundaForma={setAlcanceSegundaForma}
+                    precisaoSegundaForma={precisaoSegundaForma}
+                    setPrecisaoSegundaForma={setPrecisaoSegundaForma}
+                    onCopiar={handleCopiar}
+                />
             )}
         </>
     );

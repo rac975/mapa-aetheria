@@ -50,6 +50,11 @@ export function useArmaForja(onSalvarItem, showAlert) {
     useEffect(() => {
         async function carregarDadosForja() {
             try {
+                const doBanco = await lojaService.getCaracteristicasArmas();
+                setCaracteristicasDisponiveis(
+                    mesclarCaracteristicasCatalogo(doBanco, { incluirAtingirVoador: true })
+                );
+
                 if (subMetodo === 'padrao_raro') {
                     const dadosBanco = await lojaService.getBasesArmas();
                     const nomesExistentes = new Set((dadosBanco || []).map(b => (b.nome || '').trim().toLowerCase()));
@@ -59,11 +64,6 @@ export function useArmaForja(onSalvarItem, showAlert) {
                     const listaCompleta = [...(dadosBanco || []), ...basesNaoCadastradas];
                     setItensBaseComuns(listaCompleta);
                     if (listaCompleta.length > 0) setItemBaseSelecionado(listaCompleta[0]);
-
-                    const doBanco = await lojaService.getCaracteristicasArmas();
-                    setCaracteristicasDisponiveis(
-                        mesclarCaracteristicasCatalogo(doBanco, { incluirAtingirVoador: true })
-                    );
                 }
             } catch (err) {
                 console.error('Erro ao carregar dados da forja de armas:', err);
@@ -109,7 +109,7 @@ export function useArmaForja(onSalvarItem, showAlert) {
 
     const caracResolvida = resolverCaracteristicaParametrizada(caracteristicaSelecionada, paramsCaracteristica);
 
-    // Cálculos do Atlas
+    // Cálculos do Atlas (com suporte total à Raridade Rara e Regras do Atlas)
     const vagasOcupadasAtlas = calcularVagasOcupadas(personalizacoesAtlas);
     const statsAtlas = construirStatsArmaPersonalizada({
         categoria: categoriaPers,
@@ -123,9 +123,17 @@ export function useArmaForja(onSalvarItem, showAlert) {
             alcance: alcanceSegundaForma,
             precisaoTipo: precisaoSegundaForma
         },
-        raridade: raridadePers === 'rara' ? 'personalizada_rara' : 'personalizada'
+        raridade: raridadePers === 'rara' ? 'personalizada_rara' : 'personalizada',
+        ehRara: raridadePers === 'rara',
+        bonusPrecisaoArma,
+        bonusDanoExtraArma,
+        atributoUnico,
+        atributoEscolhido,
+        tipoDano,
+        caracteristicaSelecionada,
+        caracResolvida
     });
-    const precoAtlasFinal = statsAtlas.custo + (raridadePers === 'rara' ? 200 : 0);
+    const precoAtlasFinal = statsAtlas.custo;
 
     const togglePersAtlas = (item) => {
         if (personalizacoesAtlas.some(p => p.id === item.id)) {
@@ -149,7 +157,9 @@ export function useArmaForja(onSalvarItem, showAlert) {
         const sigla = atributoEscolhido.substring(0, 3).toUpperCase();
         stringPrecisao = `(${sigla} + ${sigla})`;
     }
-    const precisaoFinalFormatada = bonusPrecisaoArma ? `${stringPrecisao} + 1` : stringPrecisao;
+    const precisaoFinalFormatada = subMetodo === 'padrao_raro'
+        ? (bonusPrecisaoArma ? `${stringPrecisao} + 1` : stringPrecisao)
+        : statsAtlas.precisao;
 
     const precoFinal = subMetodo === 'padrao_raro' ? precoTotalRaro : precoAtlasFinal;
     const danoFinalStr = subMetodo === 'padrao_raro' ? `RA + ${bonusDanoFinalNumerico}` : statsAtlas.dano;
@@ -158,7 +168,9 @@ export function useArmaForja(onSalvarItem, showAlert) {
     const salvarArma = async () => {
         if (!nomeItem.trim()) return showAlert('Dê um nome para a arma!');
         if (subMetodo === 'padrao_raro' && !itemBaseSelecionado) return showAlert('Selecione um item base!');
-        if (subMetodo === 'padrao_raro' && !caracResolvida.valido) return showAlert(caracResolvida.erroValidacao);
+        if ((subMetodo === 'padrao_raro' || raridadePers === 'rara') && !caracResolvida.valido) {
+            return showAlert(caracResolvida.erroValidacao);
+        }
         if (subMetodo === 'personalizada_atlas' && temMutavel && !nomeSegundaForma.trim()) {
             return showAlert('Informe o nome da 2ª forma da arma mutável!');
         }

@@ -105,6 +105,23 @@ export default function ArmaPreviewCard({
                         <div className={styles.segundaFormaMeta}>
                             {(segundaForma.categoria || '').toUpperCase()} • {segundaForma.alcance} • {segundaForma.precisao || segundaForma.precisao_tipo} • {segundaForma.dano} [{(segundaForma.tipo_dano || tipoDano).toUpperCase()}]
                         </div>
+                        {(segundaForma.atinge_voadores || segundaForma.especies_cacadora?.length > 0 || segundaForma.resistencias?.length > 0) && (
+                            <div className={styles.tagsRow}>
+                                {segundaForma.atinge_voadores && (
+                                    <Badge variant="info" size="sm">🦅 Voadores</Badge>
+                                )}
+                                {segundaForma.especies_cacadora?.length > 0 && (
+                                    <Badge variant="crise" size="sm">
+                                        🎯 Caçadora: {segundaForma.especies_cacadora.join(' / ')}
+                                    </Badge>
+                                )}
+                                {segundaForma.resistencias?.length > 0 && (
+                                    <Badge variant="ether" size="sm">
+                                        🛡️ Res: {segundaForma.resistencias.join(' / ')}
+                                    </Badge>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
