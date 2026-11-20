@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaStar, FaPlus, FaBook } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import { calcularBonusEscalaArcanista } from '../../../../domain/fabula/classRules';
-import { calcularInvocacaoArcano } from '../../../../domain/fabula/coreClassRules';
+import {
+  calcularInvocacaoArcano,
+  extrairArcanosVinculados,
+  sincronizarArcanosNaHabilidade
+} from '../../../../domain/fabula/coreClassRules';
 import { calcularNivelTotal } from '../../../../domain/fabula/characterProgression';
 import { Button } from '../../../../components/ui';
 import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
@@ -11,9 +15,27 @@ import ArcanosForms from './ArcanosForms';
 import ArcanosLista from './ArcanosLista';
 import styles from './ExibirArcanista.module.css';
 
-export default function ExibirArcanista({ fichaId, ficha, classe, classes, emCriseGlobal = false, handleAjustarRecurso }) {
+export default function ExibirArcanista({
+  fichaId,
+  ficha,
+  classe,
+  classes,
+  emCriseGlobal = false,
+  handleAjustarRecurso,
+  onAtualizarDadosClasse
+}) {
   const [catalogo, setCatalogo] = useState([]);
-  const [arcanosVinculados, setArcanosVinculados] = useState(() => classe?.arcanos_vinculados || ficha?.arcanos_vinculados || []);
+  const [arcanosLocais, setArcanosLocais] = useState(null);
+  const [prevProps, setPrevProps] = useState({ classe, ficha });
+
+  if (classe !== prevProps.classe || ficha !== prevProps.ficha) {
+    setPrevProps({ classe, ficha });
+    setArcanosLocais(null);
+  }
+
+  const arcanosFromProps = useMemo(() => extrairArcanosVinculados(classe, ficha), [classe, ficha]);
+  const arcanosVinculados = arcanosLocais !== null ? arcanosLocais : arcanosFromProps;
+
   const [arcanoAtivoIdx, setArcanoAtivoIdx] = useState(null);
   const [simularCrise, setSimularCrise] = useState(false);
   const [modoAdicao, setModoAdicao] = useState(null);
@@ -58,18 +80,34 @@ export default function ExibirArcanista({ fichaId, ficha, classe, classes, emCri
   const fecharAlerta = () => setAlerta({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
   const salvarNoBanco = async (novaLista) => {
-    setArcanosVinculados(novaLista);
+    setArcanosLocais(novaLista);
     const idReal = fichaId || ficha?.id;
-    if (!idReal || !classes) return;
-    const classesAtualizadas = classes.map((c) =>
-      (c.nome_classe || '').toLowerCase().includes('arcanista') ? { ...c, arcanos_vinculados: novaLista } : c
+    if (!idReal) return;
+
+    const arcanoPrincipal = novaLista[0] || null;
+
+    if (onAtualizarDadosClasse) {
+      onAtualizarDadosClasse(
+        (c) => (c.nome_classe || '').toLowerCase().includes('arcanista'),
+        (c) => ({
+          ...c,
+          arcanos_vinculados: novaLista,
+          arcano_vinculado: arcanoPrincipal,
+          habilidades: sincronizarArcanosNaHabilidade(c.habilidades, novaLista)
+        })
+      );
+    }
+
+    const { error } = await fichaService.salvarDadosArcanista(
+      idReal,
+      { arcanosVinculados: novaLista, arcanoVinculado: arcanoPrincipal },
+      classes
     );
-    const { error } = await fichaService.atualizarClassesPersonagem(idReal, classesAtualizadas);
     if (error) console.error('Erro ao salvar Arcanos vinculados:', error.message);
   };
 
   const vincularDoCatalogo = () => {
-    const item = catalogo.find((a) => a.id === selecionadoCatalogo);
+    const item = catalogo.find((a) => String(a.id) === String(selecionadoCatalogo)) || catalogo[0];
     if (!item) return;
     if (arcanosVinculados.some((a) => a.nome === item.nome)) {
       setAlerta({ isOpen: true, type: 'warning', title: 'Arcano Duplicado', message: 'Este Arcano já está vinculado!' });

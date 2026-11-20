@@ -143,6 +143,7 @@ export default function FichaClasseModuloEspecial({
           classes={classes}
           emCriseGlobal={emCrise}
           handleAjustarRecurso={handleAjustarRecurso}
+          onAtualizarDadosClasse={onAtualizarDadosClasse}
         />
       )}
       {nomeClasse.includes('erudito') && (

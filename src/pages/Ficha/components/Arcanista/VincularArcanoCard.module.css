@@ -1,0 +1,94 @@
+/* =====================================================
+   VINCULAR ARCANO CARD - DESIGN SYSTEM FABULA ULTIMA
+   ===================================================== */
+
+.container {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-border-gold-bright);
+  letter-spacing: 0.05em;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.select {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  outline: none;
+  width: 100%;
+}
+
+.select:focus {
+  border-color: var(--color-border-gold);
+}
+
+.arcanoInfo {
+  background: var(--color-bg-base);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.arcanoNomeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.arcanoNome {
+  font-weight: 700;
+  color: var(--color-text-main);
+  font-size: var(--font-size-sm);
+}
+
+.arcanoDominios {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.arcanoFundir {
+  font-size: var(--font-size-xs);
+  color: var(--color-ether-cyan);
+  line-height: 1.4;
+}
+
+.emptyAviso {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}

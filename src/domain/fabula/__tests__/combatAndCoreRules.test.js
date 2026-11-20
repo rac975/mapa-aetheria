@@ -4,6 +4,9 @@ import {
   calcularPassivosCoreClasses,
   calcularBonusGolpeBaixo,
   calcularInvocacaoArcano,
+  extrairArcanosVinculados,
+  extrairArcanoVinculadoPrincipal,
+  sincronizarArcanosNaHabilidade,
   calcularResultadoRouboDeAlma,
   calcularDadosOrador,
   calcularCustoVismagus,
@@ -159,6 +162,32 @@ assert(calcularBonusGolpeBaixo(3, ['lento', 'atordoado'], true) === 5, 'Golpe Ba
 assert(calcularBonusGolpeBaixo(3, ['lento'], false) === 0, 'Golpe Baixo não ativa em ataque multi-alvo');
 assert(calcularInvocacaoArcano({ nvArcanoEmergencial: 3, nvRegeneracaoArcana: 2, emCrise: true }).custoPm === 25, 'Arcano Emergencial Nv 3 em Crise reduz invocação para 25 PM');
 assert(calcularInvocacaoArcano({ nvArcanoEmergencial: 3, nvRegeneracaoArcana: 2, emCrise: false }).curaRegeneracao === 10, 'Regeneração Arcana Nv 2 cura 10 PV');
+
+// Testes de persistência e normalização de Arcanos do Arcanista
+const arcanoMock1 = { id: 'arc-1', nome: 'Arcano da Espada', dominios: 'Conquista' };
+const arcanoMock2 = { id: 'arc-2', nome: 'Arcano da Forja', dominios: 'Fogo' };
+
+const classeComArray = { nome_classe: 'Arcanista', arcanos_vinculados: [arcanoMock1, arcanoMock2] };
+assert(extrairArcanosVinculados(classeComArray).length === 2, 'Extrai arcanos de classe.arcanos_vinculados');
+assert(extrairArcanoVinculadoPrincipal(classeComArray).nome === 'Arcano da Espada', 'Extrai arcano principal de classe.arcanos_vinculados');
+
+const classeComHab = {
+  nome_classe: 'Arcanista',
+  habilidades: [
+    { nome: 'Vincular e Invocar', nivel: 1, arcano_vinculado: arcanoMock1, arcanos_vinculados: [arcanoMock1] }
+  ]
+};
+assert(extrairArcanosVinculados(classeComHab).length === 1 && extrairArcanosVinculados(classeComHab)[0].nome === 'Arcano da Espada', 'Extrai arcanos da habilidade Vincular e Invocar');
+
+const habsAtualizadas = sincronizarArcanosNaHabilidade(
+  [{ nome: 'Vincular e Invocar', nivel: 1, descricao: 'desc' }],
+  [arcanoMock2]
+);
+assert(habsAtualizadas[0].arcano_vinculado.nome === 'Arcano da Forja', 'Sincroniza arcano_vinculado na habilidade Vincular e Invocar');
+assert(habsAtualizadas[0].arcanos_vinculados[0].nome === 'Arcano da Forja', 'Sincroniza arcanos_vinculados na habilidade Vincular e Invocar');
+
+const habsCriadas = sincronizarArcanosNaHabilidade([], [arcanoMock1]);
+assert(habsCriadas.length === 1 && habsCriadas[0].nome === 'Vincular e Invocar' && habsCriadas[0].arcano_vinculado.nome === 'Arcano da Espada', 'Cria habilidade Vincular e Invocar se não existir');
 
 const dadosOrador = calcularDadosOrador(classesMock);
 assert(dadosOrador.perdaPmCondenar === 20 && dadosOrador.curaPvEncorajar === 15 && dadosOrador.curaPmConfioComLaco === 20, 'Orador usa NP individual de Condenar (20 PM), Encorajar (15 PV) e Confio em Você (20 PM)');

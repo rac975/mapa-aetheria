@@ -3,6 +3,10 @@ import {
   sanitizarPayloadFicha,
   normalizarFichaPersonagem
 } from '../domain/fabula/characterProgression.js';
+import {
+  extrairArcanosVinculados,
+  sincronizarArcanosNaHabilidade
+} from '../domain/fabula/coreClassRules.js';
 
 export { sanitizarPayloadFicha, normalizarFichaPersonagem };
 
@@ -161,7 +165,21 @@ export const fichaService = {
       console.error('Erro ao buscar classes da ficha:', error);
       throw error;
     }
-    return data || [];
+    return (data || []).map((c) => {
+      const normClasse = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      if (normClasse.includes('arcanista')) {
+        const arcanos = extrairArcanosVinculados(c);
+        const arcanoPrincipal = arcanos[0] || null;
+        const habsSincronizadas = sincronizarArcanosNaHabilidade(c.habilidades, arcanos);
+        return {
+          ...c,
+          habilidades: habsSincronizadas,
+          arcanos_vinculados: arcanos,
+          arcano_vinculado: arcanoPrincipal
+        };
+      }
+      return c;
+    });
   },
 
   /**
@@ -660,17 +678,25 @@ export const fichaService = {
   async salvarClassesEMagias(fichaId, classes = [], magias = []) {
     await supabase.from('fichas_classes').delete().eq('ficha_id', fichaId);
     if (classes.length > 0) {
-      const classesParaInserir = classes.map(c => ({
-        ficha_id: fichaId,
-        nome_classe: c.nome_classe,
-        nivel: c.nivel,
-        beneficios: c.beneficios,
-        habilidades: c.habilidades || [],
-        dados_floralista: c.dados_floralista || {},
-        dados_gourmet: c.dados_gourmet || {},
-        dados_invocador: c.dados_invocador || {},
-        dados_mercador: c.dados_mercador || {}
-      }));
+      const classesParaInserir = classes.map((c) => {
+        let habs = Array.isArray(c.habilidades) ? [...c.habilidades] : [];
+        const normClasse = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (normClasse.includes('arcanista')) {
+          const arcanos = extrairArcanosVinculados(c);
+          habs = sincronizarArcanosNaHabilidade(habs, arcanos);
+        }
+        return {
+          ficha_id: fichaId,
+          nome_classe: c.nome_classe,
+          nivel: c.nivel,
+          beneficios: c.beneficios,
+          habilidades: habs,
+          dados_floralista: c.dados_floralista || {},
+          dados_gourmet: c.dados_gourmet || {},
+          dados_invocador: c.dados_invocador || {},
+          dados_mercador: c.dados_mercador || {}
+        };
+      });
       const { error: errClasses } = await supabase.from('fichas_classes').insert(classesParaInserir);
       if (errClasses) throw errClasses;
     }
@@ -888,13 +914,19 @@ export const fichaService = {
     try {
       const updates = classes.map(async (c) => {
         if (c.id) {
+          let habs = Array.isArray(c.habilidades) ? [...c.habilidades] : [];
+          const normClasse = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          if (normClasse.includes('arcanista')) {
+            const arcanos = extrairArcanosVinculados(c);
+            habs = sincronizarArcanosNaHabilidade(habs, arcanos);
+          }
           return await supabase
             .from('fichas_classes')
             .update({
               nome_classe: c.nome_classe,
               nivel: c.nivel,
               beneficios: c.beneficios,
-              habilidades: c.habilidades || [],
+              habilidades: habs,
               dados_floralista: c.dados_floralista || {},
               dados_gourmet: c.dados_gourmet || {},
               dados_invocador: c.dados_invocador || {},
@@ -1259,10 +1291,15 @@ export const fichaService = {
       const aplicarAtualizacaoClasse = (c) => {
         const habsBase = Array.isArray(c.habilidades) ? c.habilidades : [];
         let encontrou = false;
+        const extraProp = {};
+        if (dadosProp === 'arcanos_vinculados') {
+          extraProp.arcano_vinculado = (Array.isArray(dadosValor) ? dadosValor[0] : dadosValor) || null;
+        }
+
         const habsAtualizadas = habsBase.map((h) => {
           if (matchSkill(h.nome || '')) {
             encontrou = true;
-            return { ...h, [dadosProp]: dadosValor };
+            return { ...h, [dadosProp]: dadosValor, ...extraProp };
           }
           return h;
         });
@@ -1271,7 +1308,8 @@ export const fichaService = {
           habsAtualizadas.push({
             nome: defaultSkillName,
             nivel: 1,
-            [dadosProp]: dadosValor
+            [dadosProp]: dadosValor,
+            ...extraProp
           });
         }
 
@@ -1300,6 +1338,9 @@ export const fichaService = {
         classes.forEach((c) => {
           if (matchClass(c.nome_classe || '')) {
             c[dadosProp] = dadosValor;
+            if (dadosProp === 'arcanos_vinculados') {
+              c.arcano_vinculado = (Array.isArray(dadosValor) ? dadosValor[0] : dadosValor) || null;
+            }
             if (beneficiosTexto) c.beneficios = beneficiosTexto;
             const payload = aplicarAtualizacaoClasse(c);
             c.habilidades = payload.habilidades;
@@ -1491,6 +1532,34 @@ export const fichaService = {
       colunaJsonb: true,
       classes,
       erroLabel: 'Mercador'
+    });
+  },
+
+  /**
+   * Salva os arcanos vinculados da classe Arcanista no Supabase (fichas_classes)
+   * garantindo sincronização na habilidade "Vincular e Invocar".
+   * @param {string|number} fichaId
+   * @param {Object} params
+   * @param {Array<Object>} [params.arcanosVinculados=[]]
+   * @param {Object|null} [params.arcanoVinculado=null]
+   * @param {Array<Object>} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosArcanista(fichaId, { arcanosVinculados = [], arcanoVinculado = null } = {}, classes = []) {
+    const lista = Array.isArray(arcanosVinculados) && arcanosVinculados.length > 0
+      ? arcanosVinculados
+      : (arcanoVinculado ? [arcanoVinculado] : []);
+
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('arcanista'),
+      matchSkill: (n) => norm(n).includes('vincular') && norm(n).includes('invocar'),
+      defaultSkillName: 'Vincular e Invocar',
+      dadosProp: 'arcanos_vinculados',
+      dadosValor: lista,
+      classes,
+      erroLabel: 'Arcanista'
     });
   }
 };

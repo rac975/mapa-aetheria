@@ -20,6 +20,7 @@ import {
 } from '../../../domain/fabula/naturalFantasyRules';
 import CompanheiroFielCard from '../components/Andarilho/CompanheiroFielCard';
 import ExibirEngenhocas from '../components/Inventor/ExibirEngenhocas';
+import VincularArcanoCard from '../components/Arcanista/VincularArcanoCard';
 import FichaFormMagiasClasse from './FichaFormMagiasClasse';
 import { Button, Badge } from '../../../components/ui';
 import { useAlert } from '../../../contexts/useAlert';
@@ -48,36 +49,30 @@ export default function FichaFormClasseCard({
   const infoInvocador = ehInvocador ? extrairBeneficioInicialInvocador(classe) : null;
 
   const handleAlterarBeneficioDancarino = (escolha) => {
-    const novoTexto = gerarTextoBeneficioDancarino(escolha);
     const atual = [...formClasses];
-    const dadosExistentes = atual[index].dados_dancarino || {};
-    const novosDados = { ...dadosExistentes, beneficioInicial: escolha };
+    const novosDados = { ...(atual[index].dados_dancarino || {}), beneficioInicial: escolha };
     atual[index] = {
       ...atual[index],
-      beneficios: novoTexto,
+      beneficios: gerarTextoBeneficioDancarino(escolha),
       dados_dancarino: novosDados,
       habilidades: (atual[index].habilidades || []).map((h) =>
-        (h.nome || '').toLowerCase().startsWith('danç') || (h.nome || '').toLowerCase().startsWith('danc')
-          ? { ...h, dados_dancarino: { ...(h.dados_dancarino || {}), ...novosDados } }
-          : h
+        (h.nome || '').toLowerCase().startsWith('danc') || (h.nome || '').toLowerCase().startsWith('danç')
+          ? { ...h, dados_dancarino: { ...(h.dados_dancarino || {}), ...novosDados } } : h
       )
     };
     setFormClasses(atual);
   };
 
   const handleAlterarBeneficioNatural = (escolha, dadosProp, habTermo) => {
-    const novoTexto = gerarTextoBeneficioPvOuPm(escolha);
     const atual = [...formClasses];
-    const dadosExistentes = atual[index][dadosProp] || {};
-    const novosDados = { ...dadosExistentes, beneficioInicial: escolha };
+    const novosDados = { ...(atual[index][dadosProp] || {}), beneficioInicial: escolha };
     atual[index] = {
       ...atual[index],
-      beneficios: novoTexto,
+      beneficios: gerarTextoBeneficioPvOuPm(escolha),
       [dadosProp]: novosDados,
       habilidades: (atual[index].habilidades || []).map((h) =>
         (h.nome || '').toLowerCase().includes(habTermo)
-          ? { ...h, [dadosProp]: { ...(h[dadosProp] || {}), ...novosDados } }
-          : h
+          ? { ...h, [dadosProp]: { ...(h[dadosProp] || {}), ...novosDados } } : h
       )
     };
     setFormClasses(atual);
@@ -158,6 +153,8 @@ export default function FichaFormClasseCard({
         {(classe.habilidades || []).map((h, hIndex) => {
           const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
           const ehEngenhocas = (h.nome || '').toLowerCase().includes('engenhocas');
+          const nomeNorm = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          const ehVincularArcano = nomeNorm.includes('vincular') && nomeNorm.includes('invocar');
           const nivelHab = parseInt(h.nivel, 10) || 0;
           const habCatalogoOficial = (classeCatalogoOficial?.habilidades_padrao || []).find(
             (hp) => hp.nome.trim().toLowerCase() === h.nome.trim().toLowerCase()
@@ -210,6 +207,22 @@ export default function FichaFormClasseCard({
                     aoAtualizarEngenhocas={(novosRamos) => {
                       const atual = [...formClasses];
                       atual[index].habilidades[hIndex].ramos = novosRamos;
+                      setFormClasses(atual);
+                    }}
+                  />
+                </div>
+              )}
+
+              {ehVincularArcano && nivelHab > 0 && (
+                <div className={styles.subCardContainer}>
+                  <VincularArcanoCard
+                    habilidade={h}
+                    aoAtualizarArcano={(novoArcano, novaLista) => {
+                      const atual = [...formClasses];
+                      atual[index].habilidades[hIndex].arcano_vinculado = novoArcano;
+                      atual[index].habilidades[hIndex].arcanos_vinculados = novaLista;
+                      atual[index].arcano_vinculado = novoArcano;
+                      atual[index].arcanos_vinculados = novaLista;
                       setFormClasses(atual);
                     }}
                   />

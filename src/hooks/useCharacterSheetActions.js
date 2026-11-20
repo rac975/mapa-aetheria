@@ -3,6 +3,10 @@ import { fichaService } from '../services/fichaService';
 import { playerSessionService } from '../services/playerSessionService';
 import { calcularNivelTotal } from '../domain/fabula/characterProgression';
 import { prepararHeroicAndQuirksParaBanco } from '../domain/fabula/heroicAndQuirksRules';
+import {
+  extrairArcanosVinculados,
+  sincronizarArcanosNaHabilidade
+} from '../domain/fabula/coreClassRules';
 
 /**
  * Hook auxiliar para isolar as mutações, ajustes de recursos e persistência da ficha de personagem.
@@ -138,11 +142,26 @@ export function useCharacterSheetActions({
           pi_max: statusCalculados.piMax || ficha.pi_max || 6
         };
 
+        const classesNormalizadas = (formClasses || []).map((c) => {
+          const norm = (c.nome_classe || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+          if (norm.includes('arcanista')) {
+            const arcanos = extrairArcanosVinculados(c);
+            const habs = sincronizarArcanosNaHabilidade(c.habilidades, arcanos);
+            return {
+              ...c,
+              habilidades: habs,
+              arcanos_vinculados: arcanos,
+              arcano_vinculado: arcanos[0] || null
+            };
+          }
+          return c;
+        });
+
         await fichaService.atualizarFicha(ficha.id, dadosParaSalvar);
-        await fichaService.salvarClassesEMagias(ficha.id, formClasses, formMagias);
+        await fichaService.salvarClassesEMagias(ficha.id, classesNormalizadas, formMagias);
 
         setFicha(dadosParaSalvar);
-        setClasses(formClasses);
+        setClasses(classesNormalizadas);
         setMagias(formMagias);
       } finally {
         setSalvando(false);

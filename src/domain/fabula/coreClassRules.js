@@ -521,3 +521,95 @@ export function calcularCustoFogoCruzado(nvFogoCruzado = 0, testePrecisaoAlvo = 
     custoPm: 5 + Math.max(0, parseInt(testePrecisaoAlvo, 10) || 0)
   };
 }
+
+/**
+ * Extrai a lista normalizada de Arcanos vinculados da classe ou ficha.
+ * Suporta leitura a partir de classe.arcanos_vinculados, habilidade "Vincular e Invocar",
+ * classe.arcano_vinculado ou ficha.arcanos_vinculados.
+ * @param {Object} [classe]
+ * @param {Object} [ficha]
+ * @returns {Array<Object>} Lista de arcanos normalizados
+ */
+export function extrairArcanosVinculados(classe = {}, ficha = {}) {
+  if (Array.isArray(classe?.arcanos_vinculados) && classe.arcanos_vinculados.length > 0) {
+    return classe.arcanos_vinculados.filter(Boolean);
+  }
+
+  const habs = Array.isArray(classe?.habilidades)
+    ? classe.habilidades
+    : (Array.isArray(ficha?.habilidades) ? ficha.habilidades : []);
+
+  const habVincular = habs.find((h) => {
+    const n = (h?.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return n.includes('vincular') && n.includes('invocar');
+  });
+
+  if (habVincular) {
+    if (Array.isArray(habVincular.arcanos_vinculados) && habVincular.arcanos_vinculados.length > 0) {
+      return habVincular.arcanos_vinculados.filter(Boolean);
+    }
+    if (habVincular.arcano_vinculado) {
+      return [habVincular.arcano_vinculado];
+    }
+  }
+
+  if (classe?.arcano_vinculado) {
+    return [classe.arcano_vinculado];
+  }
+
+  if (Array.isArray(ficha?.arcanos_vinculados) && ficha.arcanos_vinculados.length > 0) {
+    return ficha.arcanos_vinculados.filter(Boolean);
+  }
+
+  return [];
+}
+
+/**
+ * Retorna o Arcano vinculado principal ou null.
+ * @param {Object} [classe]
+ * @param {Object} [ficha]
+ * @returns {Object|null}
+ */
+export function extrairArcanoVinculadoPrincipal(classe = {}, ficha = {}) {
+  const lista = extrairArcanosVinculados(classe, ficha);
+  return lista.length > 0 ? lista[0] : null;
+}
+
+/**
+ * Atualiza ou insere os arcanos vinculados na habilidade "Vincular e Invocar" dentro do array de habilidades.
+ * Retorna um novo array de habilidades sem mutar o original (função pura).
+ * @param {Array<Object>} habilidades
+ * @param {Array<Object>|Object} arcanos
+ * @returns {Array<Object>}
+ */
+export function sincronizarArcanosNaHabilidade(habilidades = [], arcanos = []) {
+  const lista = Array.isArray(arcanos) ? arcanos : (arcanos ? [arcanos] : []);
+  const arcanoPrincipal = lista[0] || null;
+  const base = Array.isArray(habilidades) ? [...habilidades] : [];
+  let encontrou = false;
+
+  const atualizadas = base.map((h) => {
+    const n = (h?.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (n.includes('vincular') && n.includes('invocar')) {
+      encontrou = true;
+      return {
+        ...h,
+        arcanos_vinculados: lista,
+        arcano_vinculado: arcanoPrincipal
+      };
+    }
+    return h;
+  });
+
+  if (!encontrou && lista.length > 0) {
+    atualizadas.push({
+      nome: 'Vincular e Invocar',
+      nivel: 1,
+      descricao: 'Você pode vincular Arcanos à sua alma para invocá-los usando uma ação e 40 PM. Na criação de personagem, começa vinculado a um Arcano à sua escolha; novos Arcanos são obtidos na história.',
+      arcanos_vinculados: lista,
+      arcano_vinculado: arcanoPrincipal
+    });
+  }
+
+  return atualizadas;
+}

@@ -145,6 +145,11 @@ export default function FichaClassesSecao({
                   <div className={styles.subSectionTitle}>Habilidades</div>
                   {habilidadesAtivas.map((h, hIdx) => {
                     const ehCompanheiroFiel = (h.nome || '').toLowerCase().includes('companheiro fiel');
+                    const ehVincular = (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('vincular') &&
+                      (h.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes('invocar');
+                    const arcanoNome = h.arcano_vinculado?.nome || (h.arcanos_vinculados && h.arcanos_vinculados[0]?.nome) ||
+                      c.arcano_vinculado?.nome || (c.arcanos_vinculados && c.arcanos_vinculados[0]?.nome);
+
                     return (
                       <div key={hIdx} className={styles.habilidadeItem}>
                         <strong className={styles.habilidadeNome}>{h.nome}</strong>{' '}
@@ -152,6 +157,12 @@ export default function FichaClassesSecao({
                           Nv. {h.nivel}
                         </Badge>:{' '}
                         <span className={styles.habilidadeDescricao}>{h.descricao}</span>
+
+                        {ehVincular && arcanoNome && (
+                          <div className={styles.arcanoVinculadoInfo}>
+                            <Badge variant="ether" size="sm">★ Arcano Vinculado: {arcanoNome}</Badge>
+                          </div>
+                        )}
 
                         {ehCompanheiroFiel && (
                           <ExibirCompanheiroFiel
