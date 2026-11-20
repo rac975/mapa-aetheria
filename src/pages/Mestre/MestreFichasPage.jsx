@@ -19,10 +19,8 @@ import styles from './MestreFichasPage.module.css';
 function processarFicha(ficha) {
   const itensEquipados = (ficha.itens || []).filter((i) => i.stats_personalizados?.slot);
   const atributos = {
-    destreza: ficha.destreza || 8,
-    astucia: ficha.astucia || 8,
-    vigor: ficha.vigor || 8,
-    vontade: ficha.vontade || 8
+    destreza: ficha.destreza || 8, astucia: ficha.astucia || 8,
+    vigor: ficha.vigor || 8, vontade: ficha.vontade || 8
   };
   const statusCalc = calcularStatusPersonagem(atributos, ficha.fichas_classes || [], itensEquipados, ficha);
 
@@ -102,7 +100,6 @@ export default function MestreFichasPage({ isMestre }) {
       mp_atual: 20,
       mp_max: 20,
       pi_atual: 6,
-      ip_atual: 6,
       pi_max: 6,
       nivel: 1
     });

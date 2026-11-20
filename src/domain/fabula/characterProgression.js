@@ -149,3 +149,74 @@ export function classeAceitaMagia(nomeClasse) {
     .toLowerCase();
   return CLASSES_COM_MAGIA.some(cm => nomeClasseNorm.includes(cm));
 }
+
+/**
+ * Sanitiza o payload destinado à tabela public.fichas_personagens, garantindo que
+ * colunas inexistentes como 'ip_atual' ou 'ip_max' nunca sejam enviadas no PATCH/INSERT/UPDATE,
+ * mapeando seus valores para 'pi_atual' e 'pi_max'.
+ * @param {Object} dados
+ * @returns {Object}
+ */
+export function sanitizarPayloadFicha(dados) {
+  if (!dados || typeof dados !== 'object') return dados;
+  const payload = { ...dados };
+
+  if ('ip_atual' in payload) {
+    if (payload.pi_atual === undefined) {
+      payload.pi_atual = payload.ip_atual;
+    }
+    delete payload.ip_atual;
+  }
+
+  if ('ip_max' in payload) {
+    if (payload.pi_max === undefined) {
+      payload.pi_max = payload.ip_max;
+    }
+    delete payload.ip_max;
+  }
+
+  return payload;
+}
+
+/**
+ * Normaliza os Pontos de Inventário da ficha em memória, garantindo que
+ * 'pi_atual' e 'pi_max' estejam sempre preenchidos e fornecendo propriedades
+ * virtuais não-enumeráveis 'ip_atual' e 'ip_max' para retrocompatibilidade sem vazar no Supabase.
+ * @param {Object} ficha
+ * @returns {Object}
+ */
+export function normalizarFichaPersonagem(ficha) {
+  if (!ficha || typeof ficha !== 'object') return ficha;
+  const piAtual = ficha.pi_atual !== undefined && ficha.pi_atual !== null
+    ? Number(ficha.pi_atual)
+    : (ficha.ip_atual !== undefined && ficha.ip_atual !== null ? Number(ficha.ip_atual) : 6);
+  const piMax = ficha.pi_max !== undefined && ficha.pi_max !== null
+    ? Number(ficha.pi_max)
+    : (ficha.ip_max !== undefined && ficha.ip_max !== null ? Number(ficha.ip_max) : 6);
+
+  const normalizada = {
+    ...ficha,
+    pi_atual: piAtual,
+    pi_max: piMax
+  };
+
+  if (!Object.prototype.hasOwnProperty.call(normalizada, 'ip_atual')) {
+    Object.defineProperty(normalizada, 'ip_atual', {
+      get() { return this.pi_atual; },
+      set(v) { this.pi_atual = v; },
+      enumerable: false,
+      configurable: true
+    });
+  }
+  if (!Object.prototype.hasOwnProperty.call(normalizada, 'ip_max')) {
+    Object.defineProperty(normalizada, 'ip_max', {
+      get() { return this.pi_max; },
+      set(v) { this.pi_max = v; },
+      enumerable: false,
+      configurable: true
+    });
+  }
+
+  return normalizada;
+}
+

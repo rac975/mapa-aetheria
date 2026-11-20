@@ -77,7 +77,7 @@ export default function FichaPIComponent({
 
     const alterarPI = async (quantidade) => {
         const novoPiAtual = Math.max(0, Math.min(piMax, piAtual + quantidade));
-        await atualizarFichaNoBanco({ pi_atual: novoPiAtual, ip_atual: novoPiAtual });
+        await atualizarFichaNoBanco({ pi_atual: novoPiAtual });
     };
 
     const recarregarPIs = async () => {
@@ -91,7 +91,7 @@ export default function FichaPIComponent({
         }
 
         const novoZenit = zenitAtual - custoTotal;
-        await atualizarFichaNoBanco({ pi_atual: piMax, ip_atual: piMax, zenit: novoZenit });
+        await atualizarFichaNoBanco({ pi_atual: piMax, zenit: novoZenit });
     };
 
     // ==========================================
@@ -117,7 +117,7 @@ export default function FichaPIComponent({
         }
 
         const novoPiAtual = piAtual - custoFinalPI;
-        const novosDados = { pi_atual: novoPiAtual, ip_atual: novoPiAtual };
+        const novosDados = { pi_atual: novoPiAtual };
         const multiplicadorMax = temDosagemPrecisa ? 1.5 : 1;
 
         if (tipoEfeito === 'remedio') {

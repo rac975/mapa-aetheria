@@ -23,8 +23,8 @@ export default function MestreFichaCard({
   const tokenCracha = ficha.jogador_token || String(ficha.id);
   const hpMaxFinal = ficha.hp_max_real || ficha.hp_max || 30;
   const mpMaxFinal = ficha.mp_max_real || ficha.mp_max || 20;
-  const ipMaxFinal = ficha.pi_max_real || ficha.ip_max_real || ficha.pi_max || 6;
-  const ipAtualFinal = ficha.pi_atual ?? ficha.ip_atual ?? ipMaxFinal;
+  const piMaxFinal = ficha.pi_max_real || ficha.ip_max_real || ficha.pi_max || ficha.ip_max || 6;
+  const piAtualFinal = ficha.pi_atual ?? ficha.ip_atual ?? piMaxFinal;
 
   return (
     <Card
@@ -93,9 +93,9 @@ export default function MestreFichaCard({
           />
           <ResourceBar
             type="pi"
-            current={ipAtualFinal}
-            max={ipMaxFinal}
-            label="IP"
+            current={piAtualFinal}
+            max={piMaxFinal}
+            label="PI"
           />
           <div className={styles.badgesRow}>
             <Badge variant="ether" size="sm">

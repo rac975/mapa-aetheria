@@ -196,7 +196,7 @@ export function useGourmet({
     setFeedback('');
 
     const mpAtual = Number(ficha?.mp_atual ?? ficha?.pm_atual ?? 0);
-    const piAtual = Number(ficha?.ip_atual ?? ficha?.pi_atual ?? 0);
+    const piAtual = Number(ficha?.pi_atual ?? ficha?.ip_atual ?? 0);
 
     const resultado = processarPreparoIguaria({
       saboresEscolhidos,
@@ -233,7 +233,7 @@ export function useGourmet({
 
     if (handleAjustarRecurso) {
       if (resultado.custoPm > 0) handleAjustarRecurso('mp_atual', -resultado.custoPm);
-      if (resultado.custoPi > 0) handleAjustarRecurso('ip_atual', -resultado.custoPi);
+      if (resultado.custoPi > 0) handleAjustarRecurso('pi_atual', -resultado.custoPi);
       if (resultado.curaPvProprio > 0) {
         handleAjustarRecurso('hp_atual', resultado.curaPvProprio, { permitirDosagemPrecisa: temDosagemPrecisa });
       }

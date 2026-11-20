@@ -1,4 +1,10 @@
 import { supabase } from './supabase.js';
+import {
+  sanitizarPayloadFicha,
+  normalizarFichaPersonagem
+} from '../domain/fabula/characterProgression.js';
+
+export { sanitizarPayloadFicha, normalizarFichaPersonagem };
 
 /**
  * Service para operações com fichas de personagens e itens associados.
@@ -50,10 +56,10 @@ export const fichaService = {
           .select('*')
           .eq('ficha_id', ficha.id);
 
-        return {
+        return normalizarFichaPersonagem({
           ...ficha,
           itens: itensData || []
-        };
+        });
       })
     );
 
@@ -84,7 +90,7 @@ export const fichaService = {
       console.error('Erro ao buscar ficha:', error);
       throw error;
     }
-    return data || null;
+    return data ? normalizarFichaPersonagem(data) : null;
   },
 
   /**
@@ -292,17 +298,18 @@ export const fichaService = {
    * @returns {Promise<any>}
    */
   async atualizarFicha(fichaId, dados) {
+    const payloadSanitizado = sanitizarPayloadFicha(dados);
     const { data, error } = await supabase
       .from('fichas_personagens')
-      .update(dados)
+      .update(payloadSanitizado)
       .eq('id', fichaId)
       .select()
       .single();
 
     if (error) {
       // Fallback caso alguma coluna opcional JSONB (ex: peculiaridade) ainda não exista no schema do banco
-      if (error.code === 'PGRST204' && dados && typeof dados === 'object') {
-        const dadosCompat = { ...dados };
+      if (error.code === 'PGRST204' && payloadSanitizado && typeof payloadSanitizado === 'object') {
+        const dadosCompat = { ...payloadSanitizado };
         delete dadosCompat.peculiaridade;
         const retry = await supabase
           .from('fichas_personagens')
@@ -312,13 +319,13 @@ export const fichaService = {
           .single();
 
         if (!retry.error) {
-          return retry.data;
+          return normalizarFichaPersonagem(retry.data);
         }
       }
       console.error('Erro ao atualizar ficha:', error);
       throw error;
     }
-    return data;
+    return normalizarFichaPersonagem(data);
   },
 
   /**
@@ -725,6 +732,9 @@ export const fichaService = {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'iniciativa_combate', filter: `ficha_id=eq.${fichaId}` },
         (payload) => {
+          if (payload?.new) {
+            payload.new = normalizarFichaPersonagem(payload.new);
+          }
           if (onUpdate) onUpdate(payload);
         }
       )
@@ -750,6 +760,9 @@ export const fichaService = {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'fichas_personagens' },
         (payload) => {
+          if (payload?.new) {
+            payload.new = normalizarFichaPersonagem(payload.new);
+          }
           if (onUpdate) onUpdate(payload);
         }
       )
@@ -775,6 +788,9 @@ export const fichaService = {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'fichas_personagens', filter: `id=eq.${fichaId}` },
         (payload) => {
+          if (payload?.new) {
+            payload.new = normalizarFichaPersonagem(payload.new);
+          }
           if (onUpdate) onUpdate(payload);
         }
       )
@@ -801,6 +817,9 @@ export const fichaService = {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'fichas_classes', filter: `ficha_id=eq.${fichaId}` },
         (payload) => {
+          if (payload?.new) {
+            payload.new = normalizarFichaPersonagem(payload.new);
+          }
           if (onUpdate) onUpdate(payload);
         }
       )
@@ -829,9 +848,10 @@ export const fichaService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async criarFicha(ficha) {
+    const payloadSanitizado = sanitizarPayloadFicha(ficha);
     return await supabase
       .from('fichas_personagens')
-      .insert([ficha]);
+      .insert([payloadSanitizado]);
   },
 
   /**

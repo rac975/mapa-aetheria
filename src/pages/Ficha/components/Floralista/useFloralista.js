@@ -258,7 +258,7 @@ export function useFloralista({
     if (handleAjustarRecurso && ef) {
       if (ef.curaPvFimTurno > 0) handleAjustarRecurso('hp_atual', ef.curaPvFimTurno);
       if (ef.curaPmFimTurno > 0) handleAjustarRecurso('mp_atual', ef.curaPmFimTurno);
-      if (ef.curaPiFimTurno > 0) handleAjustarRecurso('ip_atual', ef.curaPiFimTurno);
+      if (ef.curaPiFimTurno > 0) handleAjustarRecurso('pi_atual', ef.curaPiFimTurno);
     }
 
     setSecaoRelogio(resultado.novaSecaoRelogio);

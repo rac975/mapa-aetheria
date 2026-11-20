@@ -138,7 +138,7 @@ export const combatService = {
     if (!fichaId) return { data: null, error: null };
     let campoFicha = campo;
     if (campo === 'pontos_fabula') campoFicha = 'fabula';
-    if (campo === 'ip') campoFicha = 'pi_atual';
+    if (campo === 'ip' || campo === 'ip_atual' || campo === 'pi') campoFicha = 'pi_atual';
 
     return await supabase
       .from('fichas_personagens')

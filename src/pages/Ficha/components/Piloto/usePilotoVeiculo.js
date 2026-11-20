@@ -250,7 +250,7 @@ export function usePilotoVeiculo({
     }
 
     if (resultado.custoIp > 0 && handleAjustarRecurso) {
-      handleAjustarRecurso('ip_atual', -resultado.custoIp);
+      handleAjustarRecurso('pi_atual', -resultado.custoIp);
     }
 
     setVeiculoInvocado(!veiculoInvocado);

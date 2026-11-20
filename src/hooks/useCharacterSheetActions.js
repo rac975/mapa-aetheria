@@ -86,7 +86,7 @@ export function useCharacterSheetActions({
         fallback = baseMax;
         maximo = permiteAcimaMax && valor > 0 ? Math.floor(baseMax * 1.5) : Math.max(baseMax, Number(ficha.mp_atual || 0));
       } else if (campo === 'ip_atual' || campo === 'pi_atual') {
-        maximo = statusFicha?.piMax || ficha.ip_max || ficha.pi_max || 6;
+        maximo = statusFicha?.piMax || ficha.pi_max || ficha.ip_max || 6;
         fallback = maximo;
       } else if (campo === 'fabula') {
         maximo = 99;
@@ -99,13 +99,14 @@ export function useCharacterSheetActions({
         fallback = 0;
       }
 
-      const valorBrutoAtual = Number(ficha[campo] !== undefined && ficha[campo] !== null ? ficha[campo] : fallback);
+      const campoNormalizado = (campo === 'ip_atual' || campo === 'pi_atual') ? 'pi_atual' : campo;
+      const valorBrutoAtual = (campo === 'ip_atual' || campo === 'pi_atual')
+        ? Number(ficha.pi_atual !== undefined && ficha.pi_atual !== null ? ficha.pi_atual : (ficha.ip_atual ?? fallback))
+        : Number(ficha[campo] !== undefined && ficha[campo] !== null ? ficha[campo] : fallback);
       const valorAtual = Math.min(valorBrutoAtual, maximo);
       const novoValor = Math.min(maximo, Math.max(0, valorAtual + valor));
 
-      const dadosAtualizar = { [campo]: novoValor };
-      if (campo === 'ip_atual') dadosAtualizar.pi_atual = novoValor;
-      else if (campo === 'pi_atual') dadosAtualizar.ip_atual = novoValor;
+      const dadosAtualizar = { [campoNormalizado]: novoValor };
 
       setFicha((prev) => ({ ...prev, ...dadosAtualizar }));
       playerSessionService.registrarAtividade({ isMestre });

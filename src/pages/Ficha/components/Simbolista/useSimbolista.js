@@ -154,7 +154,7 @@ export function useSimbolista({
       ? (opcoes.includes(escolhaOpcao) ? escolhaOpcao : (opcoes[0] || ''))
       : '';
 
-    const piAtual = Number(ficha?.ip_atual ?? ficha?.pi_atual ?? 0);
+    const piAtual = Number(ficha?.pi_atual ?? ficha?.ip_atual ?? 0);
     const resultado = processarCriacaoSimbolo({
       simbolo: simboloSelecionado,
       escolhaOpcao: opcaoFinal,
@@ -173,7 +173,7 @@ export function useSimbolista({
     }
 
     if (handleAjustarRecurso && resultado.custoPi > 0) {
-      handleAjustarRecurso('ip_atual', -resultado.custoPi);
+      handleAjustarRecurso('pi_atual', -resultado.custoPi);
     }
 
     setSimbolosAtivos(resultado.simbolosAtivos);
