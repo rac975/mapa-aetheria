@@ -18,6 +18,9 @@
 .textoDestaqueOuro { color: var(--color-text-gold); font-weight: 600; }
 .textoAviso { font-size: var(--font-size-xs); color: var(--color-crise-bright); font-style: italic; margin: var(--space-1) 0 0 0; }
 .efeitoDescricao { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; margin-top: var(--space-1); }
+.tagsRow { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.resumoDano { font-size: var(--font-size-sm); color: var(--color-text-muted); }
+.resumoDanoValor { color: var(--color-ether-cyan); font-weight: 700; }
 
 /* Painel de Rodapé e Resumo */
 .painelResumo { background: var(--color-bg-base); border: 1px solid var(--color-border-gold-muted); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); min-width: 0; }

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { FaStore, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
 import { lojaService } from '../../../services/lojaService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAlert } from '../../../contexts/useAlert';
@@ -13,6 +12,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
     const [lojaEditando, setLojaEditando] = useState(null);
     const [nomeLoja, setNomeLoja] = useState('');
     const [cidadeLoja, setCidadeLoja] = useState('');
+    const [vendedorLoja, setVendedorLoja] = useState('');
     const [descLoja, setDescLoja] = useState('');
     const [salvando, setSalvando] = useState(false);
     const { coldDelete } = useToast();
@@ -20,15 +20,15 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
     const salvarLoja = async (e) => {
         e.preventDefault();
         setSalvando(true);
-        const dados = { nome: nomeLoja, cidade: cidadeLoja, descricao: descLoja };
         try {
-            if (lojaEditando) {
-                const { error } = await supabase.from('lojas').update(dados).eq('id', lojaEditando.id);
-                if (error) throw error;
-            } else {
-                const { error } = await supabase.from('lojas').insert([dados]);
-                if (error) throw error;
-            }
+            const { error } = await lojaService.salvarEstabelecimento({
+                id: lojaEditando?.id,
+                nome: nomeLoja,
+                cidade: cidadeLoja,
+                descricao: descLoja,
+                vendedor: vendedorLoja
+            });
+            if (error) throw error;
             fecharModalLoja();
             if (recarregarDados) recarregarDados();
         } catch (err) {
@@ -62,6 +62,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
         setLojaEditando(null);
         setNomeLoja('');
         setCidadeLoja('');
+        setVendedorLoja('');
         setDescLoja('');
         setModalLojaAberto(false);
     };
@@ -91,7 +92,12 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
                     <div key={loja.id} className={styles.lojaCard}>
                         <div className={styles.lojaInfo}>
                             <h4 className={styles.lojaNome}>{loja.nome}</h4>
-                            <span className={styles.lojaCidade}>📍 {loja.cidade || 'Localização não informada'}</span>
+                            <div className={styles.lojaMeta}>
+                                <span className={styles.lojaCidade}>📍 {loja.cidade || 'Localização não informada'}</span>
+                                {(loja.vendedor || loja.atendente) && (
+                                    <span className={styles.lojaVendedor}>👤 {loja.vendedor || loja.atendente}</span>
+                                )}
+                            </div>
                             {loja.descricao && (
                                 <p className={styles.lojaDesc}>{loja.descricao}</p>
                             )}
@@ -105,6 +111,7 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
                                     setLojaEditando(loja);
                                     setNomeLoja(loja.nome);
                                     setCidadeLoja(loja.cidade || '');
+                                    setVendedorLoja(loja.vendedor || loja.atendente || '');
                                     setDescLoja(loja.descricao || '');
                                     setModalLojaAberto(true);
                                 }}
@@ -158,6 +165,12 @@ export default function GerenciarEstabelecimentos({ lojas, recarregarDados }) {
                             value={cidadeLoja}
                             onChange={e => setCidadeLoja(e.target.value)}
                             placeholder="Ex: Capital de Oakhaven"
+                        />
+                        <Input
+                            label="Vendedor / Atendente (Opcional)"
+                            value={vendedorLoja}
+                            onChange={e => setVendedorLoja(e.target.value)}
+                            placeholder="Ex: Mestre Ferreiro Boris, Lyra a Alquimista..."
                         />
                         <div className={styles.textareaGrupo}>
                             <label className={styles.textareaLabel}>Descrição / Especialidade</label>

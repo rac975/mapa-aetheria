@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FaHammer, FaShieldAlt, FaCrosshairs, FaRing } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
+import { lojaService } from '../../../services/lojaService';
 import { useAlert } from '../../../contexts/useAlert';
 import { Button, Card } from '../../../components/ui';
 import CriadorArmas from './CriadorArmas';
@@ -16,20 +16,24 @@ export default function CriadorEquipamentoUnificado({ ficha, onCriado }) {
         let erroBanco = null;
 
         if (ficha && ficha.id) {
-            const { error } = await supabase.from('itens_personagem').insert([{
-                ficha_id: ficha.id,
-                nome: novoItem.nome,
+            const { error } = await lojaService.adicionarItemPersonagem({
+                fichaId: ficha.id,
+                nomeItem: novoItem.nome,
                 tipo: novoItem.tipo,
-                stats_personalizados: novoItem.stats
-            }]);
+                statsPersonalizados: novoItem.stats
+            });
             erroBanco = error;
         } else {
-            const { error } = await supabase.from('itens_catalogo').insert([{
+            const desc = (novoItem.stats?.efeitos && novoItem.stats.efeitos[0]) ||
+                `${novoItem.tipo === 'escudo' ? 'Escudo' : novoItem.tipo === 'armadura' ? 'Armadura' : 'Equipamento'} raro forjado.`;
+
+            const { error } = await lojaService.cadastrarItemCatalogo({
                 nome: novoItem.nome,
                 tipo: novoItem.tipo,
                 custo: novoItem.custo,
+                descricao: desc,
                 stats: novoItem.stats
-            }]);
+            });
             erroBanco = error;
         }
 

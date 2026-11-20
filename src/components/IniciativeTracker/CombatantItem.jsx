@@ -39,6 +39,7 @@ export default function CombatantItem({
   const acoesPorTurno = isInimigo ? Math.max(1, Number(p.acoes_por_turno) || 1) : 1;
   const acoesRealizadas = isInimigo ? Math.max(0, Number(p.modificadores?.acoes_realizadas_rodada) || 0) : 0;
   const ehChefeOuVilao = isInimigo && isVilaoOuChefe(p);
+  const ehVoador = Boolean(p.voador || p.modificadores?.voador);
 
   const statusFase = isInimigo
     ? verificarGatilhoTransicaoFase({ hpAtual: p.hp_atual, hpMax: maxHp, faseAtual: p.fase_atual || 1, fasesChefao: p.fases_chefao || [] })
@@ -98,6 +99,9 @@ export default function CombatantItem({
                 <Badge variant={p.tipo === 'heroi' ? 'core' : ehChefeOuVilao ? 'villain' : 'crise'} size="sm">
                   {p.tipo === 'heroi' ? 'Herói' : tipoVilaoKey !== 'padrao' ? infoVilao.badgeLabel : 'Inimigo'}
                 </Badge>
+                {ehVoador && (
+                  <Badge variant="ether" size="sm" title="Criatura Voadora">🦅 Voador</Badge>
+                )}
                 {isInimigo && acoesPorTurno > 1 && (
                   <Badge variant="gold" size="sm" title="Multi-Ações"><FaBolt /> {acoesRealizadas}/{acoesPorTurno} Ações</Badge>
                 )}

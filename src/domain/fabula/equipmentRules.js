@@ -36,6 +36,294 @@ export const SLOTS_EQUIPAMENTO = {
 };
 
 /**
+ * Escudos Base Comuns oficiais do Livro Básico de Fabula Ultima.
+ * Utilizados como base na forja de escudos raros e no catálogo.
+ */
+export const ESCUDOS_BASE_COMUNS = [
+  {
+    id: 'escudo_de_bronze',
+    nome: 'Escudo de Bronze',
+    tipo: 'escudo',
+    custo: 100,
+    descricao: 'Um escudo resistente de bronze para bloquear golpes.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA,
+      categoria: 'Escudo',
+      escudo: true,
+      defesa: 2,
+      defesa_magica: 0,
+      iniciativa: 0,
+      marcial: false
+    }
+  },
+  {
+    id: 'escudo_pesado',
+    nome: 'Escudo Pesado',
+    tipo: 'escudo',
+    custo: 150,
+    descricao: 'Um escudo maciço reforçado. Exige proficiência marcial e reduz iniciativa.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA,
+      categoria: 'Escudo',
+      escudo: true,
+      defesa: 2,
+      defesa_magica: 0,
+      iniciativa: -2,
+      marcial: true
+    }
+  },
+  {
+    id: 'escudo_runico',
+    nome: 'Escudo Rúnico',
+    tipo: 'escudo',
+    custo: 150,
+    descricao: 'Um escudo gravado com runas protetoras que repelem aço e magia.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_SECUNDARIA,
+      categoria: 'Escudo',
+      escudo: true,
+      defesa: 1,
+      defesa_magica: 1,
+      iniciativa: 0,
+      marcial: false
+    }
+  }
+];
+
+/**
+ * Armas Base Comuns oficiais do Livro Básico de Fabula Ultima.
+ * Utilizadas como catálogo e fallback resiliente na Forja de Armas.
+ */
+export const ARMAS_BASE_COMUNS = [
+  {
+    id: 'espada_curta',
+    nome: 'Espada Curta',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Uma lâmina de aço equilibrada de uma mão.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_DOMINANTE,
+      categoria: 'Espada',
+      dano: 'RA + 6',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + VIG) + 1',
+      maos: 'Uma mão',
+      marcial: true
+    }
+  },
+  {
+    id: 'espada_longa',
+    nome: 'Espada Longa',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Espada de duas mãos com excelente alcance e impacto.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Espada',
+      dano: 'RA + 10',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + VIG) + 1',
+      maos: 'Duas mãos',
+      marcial: true
+    }
+  },
+  {
+    id: 'adaga_comum',
+    nome: 'Adaga',
+    tipo: 'arma',
+    custo: 100,
+    descricao: 'Arma ágil e discreta fácil de esconder e manejar.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_DOMINANTE,
+      categoria: 'Adaga',
+      dano: 'RA + 4',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + AST)',
+      maos: 'Uma mão',
+      marcial: false
+    }
+  },
+  {
+    id: 'lanca_leve',
+    nome: 'Lança Leve',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Lança ágil de uma mão.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_DOMINANTE,
+      categoria: 'Lança',
+      dano: 'RA + 8',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + VIG)',
+      maos: 'Uma mão',
+      marcial: true
+    }
+  },
+  {
+    id: 'lanca_pesada',
+    nome: 'Lança Pesada',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Pique longo de infantaria para combate a duas mãos.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Lança',
+      dano: 'RA + 12',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + VIG)',
+      maos: 'Duas mãos',
+      marcial: true
+    }
+  },
+  {
+    id: 'arco_curto',
+    nome: 'Arco Curto',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Arco flexível para ataques à distância.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Arco',
+      dano: 'RA + 8',
+      tipo_dano: 'físico',
+      alcance: 'À distância',
+      precisao: '(DES + AST)',
+      maos: 'Duas mãos',
+      marcial: false
+    }
+  },
+  {
+    id: 'arco_longo',
+    nome: 'Arco Longo',
+    tipo: 'arma',
+    custo: 250,
+    descricao: 'Arco de grande envergadura com alto poder de perfuração.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Arco',
+      dano: 'RA + 12',
+      tipo_dano: 'físico',
+      alcance: 'À distância',
+      precisao: '(DES + AST)',
+      maos: 'Duas mãos',
+      marcial: true
+    }
+  },
+  {
+    id: 'pistola',
+    nome: 'Pistola',
+    tipo: 'arma',
+    custo: 250,
+    descricao: 'Arma de fogo de tiro rápido e manejo em uma mão.',
+    stats: {
+      raridade: 'comum',
+      slot: SLOTS_EQUIPAMENTO.MAO_DOMINANTE,
+      categoria: 'Arma de fogo',
+      dano: 'RA + 8',
+      tipo_dano: 'físico',
+      alcance: 'À distância',
+      precisao: '(DES + AST)',
+      maos: 'Uma mão',
+      marcial: true
+    }
+  },
+  {
+    id: 'fuzil',
+    nome: 'Fuzil',
+    tipo: 'arma',
+    custo: 250,
+    descricao: 'Arma de fogo longa de grande calibre e longo alcance.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Arma de fogo',
+      dano: 'RA + 12',
+      tipo_dano: 'físico',
+      alcance: 'À distância',
+      precisao: '(DES + AST)',
+      maos: 'Duas mãos',
+      marcial: true
+    }
+  },
+  {
+    id: 'cajado_arcano',
+    nome: 'Cajado',
+    tipo: 'arma',
+    custo: 100,
+    descricao: 'Cajado tradicional que canaliza poder espiritual.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Arcana',
+      dano: 'RA + 6',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(VON + VON)',
+      maos: 'Duas mãos',
+      marcial: false
+    }
+  },{
+    id: 'chave_inglesa_comum',
+    nome: 'Chave Inglesa',
+    tipo: 'arma',
+    custo: 200,
+    descricao: 'Ferramenta pesada de duas mãos comum em oficinas e porões de naves.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Pesada',
+      dano: 'RA + 10',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(DES + VIG)',
+      maos: 'Duas mãos',
+      marcial: true
+    }
+  },
+  {
+    id: 'tomo_magico',
+    nome: 'Tomo',
+    tipo: 'arma',
+    custo: 100,
+    descricao: 'Grimório de encadernação robusta usado no combate.',
+    stats: {
+      raridade: 'comum',
+      slot: 'duas_maos',
+      duas_maos: true,
+      categoria: 'Arcana',
+      dano: 'RA + 6',
+      tipo_dano: 'físico',
+      alcance: 'Corpo a corpo',
+      precisao: '(AST + AST)',
+      maos: 'Duas mãos',
+      marcial: false
+    }
+  }
+];
+
+/**
  * Converte valor de atributo textual ou numérico (ex: 'd8', 'D10', 8) em número inteiro.
  * @param {string|number} valorAttr
  * @returns {number}
@@ -93,8 +381,12 @@ export function resolverValorNumerico(valorBruto, mapaAtributos = {}) {
 export function isEscudo(item) {
   if (!item) return false;
   const tipo = (item.tipo || '').toLowerCase();
-  const stats = item.stats_personalizados || {};
-  return tipo.includes('escudo') || stats.escudo === true;
+  const stats = item.stats_personalizados || item.stats || {};
+  return (
+    tipo.includes('escudo') ||
+    stats.escudo === true ||
+    (stats.categoria || '').toLowerCase().includes('escudo')
+  );
 }
 
 /**
@@ -104,6 +396,7 @@ export function isEscudo(item) {
  */
 export function isArmaduraMarcial(item) {
   if (!item) return false;
+  if (isEscudo(item)) return false;
   const stats = item.stats_personalizados || item.stats || {};
   const tipo = (item.tipo || '').toLowerCase();
   const nome = (item.nome || '').toLowerCase();
@@ -129,8 +422,15 @@ export function isArmaduraMarcial(item) {
 export function isArmaDuasMaos(item) {
   if (!item) return false;
   const tipo = (item.tipo || '').toLowerCase();
-  const stats = item.stats_personalizados || {};
-  return tipo.includes('2h') || stats.duas_maos === true || stats.maos === 2;
+  const stats = item.stats_personalizados || item.stats || {};
+  return (
+    tipo.includes('2h') ||
+    tipo.includes('duas mãos') ||
+    stats.duas_maos === true ||
+    stats.maos === 2 ||
+    stats.slot === 'duas_maos' ||
+    String(stats.maos || '').toLowerCase().includes('duas')
+  );
 }
 
 /**
@@ -404,10 +704,19 @@ export function calcularDefesasEIniciativa({ atributos = {}, itensEquipados = []
   const des = dadoParaNumero(atributos.destreza);
   const ast = dadoParaNumero(atributos.astucia);
 
-  const itemMaoDom = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.MAO_DOMINANTE);
-  const itemMaoSec = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
-  const itemArmadura = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.ARMADURA);
-  const itemAcessorio = itensEquipados.find(i => i.stats_personalizados?.slot === SLOTS_EQUIPAMENTO.ACESSORIO);
+  const getSlotItem = (item) => {
+    if (!item) return '';
+    const stats = item.stats_personalizados || item.stats || {};
+    return (stats.slot || item.slot || '').toLowerCase();
+  };
+
+  const itemMaoDom = itensEquipados.find(i => {
+    const s = getSlotItem(i);
+    return s === SLOTS_EQUIPAMENTO.MAO_DOMINANTE || s === 'duas_maos' || s === 'mao_dupla';
+  });
+  const itemMaoSec = itensEquipados.find(i => getSlotItem(i) === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
+  const itemArmadura = itensEquipados.find(i => getSlotItem(i) === SLOTS_EQUIPAMENTO.ARMADURA);
+  const itemAcessorio = itensEquipados.find(i => getSlotItem(i) === SLOTS_EQUIPAMENTO.ACESSORIO);
 
   const statsArmadura = extrairStatsArmadura(itemArmadura, des);
   const statsMaoDom = extrairStatsItemDefensivo(itemMaoDom);
@@ -623,4 +932,403 @@ export function obterArmaImprovisada({ tipoAlcance = 'corpo_a_corpo' } = {}) {
       qualidade: 'Destrói-se após o ataque.'
     }
   };
+}
+
+export const CARACTERISTICA_ATINGIR_VOADOR = {
+  id: 'atingir_voador',
+  nome: 'Atingir alvo voador',
+  tipo_item: 'caracteristica_arma_ofensiva',
+  custo: 100,
+  efeito: 'Ataques com esta arma podem atingir criaturas voadoras.',
+  atinge_voadores: true
+};
+
+export const ESPECIES_ALVO_EQUIPAMENTO = [
+  'Fera',
+  'Monstro',
+  'Construto',
+  'Morto-Vivo',
+  'Demônio',
+  'Elemental',
+  'Humanoide',
+  'Planta'
+];
+
+export const TIPOS_DANO_EQUIPAMENTO = [
+  'Físico',
+  'Fogo',
+  'Gelo',
+  'Raio',
+  'Ar',
+  'Terra',
+  'Veneno',
+  'Trevas',
+  'Luz'
+];
+
+export const CARACTERISTICAS_PARAMETRIZADAS_PADRAO = [
+  {
+    id: 'cacadora',
+    nome: 'Caçadora',
+    custo: 300,
+    efeito: 'Causa +5 de dano contra criaturas da espécie escolhida.',
+    tipo_parametro: 'especie_1'
+  },
+  {
+    id: 'dupla_cacadora',
+    nome: 'Dupla Caçadora',
+    custo: 500,
+    efeito: 'Causa +5 de dano contra criaturas das duas espécies escolhidas.',
+    tipo_parametro: 'especie_2'
+  },
+  {
+    id: 'resistencia_dano',
+    nome: 'Resistência',
+    custo: 500,
+    efeito: 'Você tem Resistência ao tipo de dano escolhido.',
+    tipo_parametro: 'dano_1'
+  },
+  {
+    id: 'dupla_resistencia_dano',
+    nome: 'Dupla Resistência',
+    custo: 800,
+    efeito: 'Você tem Resistência aos dois tipos de dano escolhidos.',
+    tipo_parametro: 'dano_2'
+  }
+];
+
+function normalizarTextoSimples(str = '') {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Identifica se uma característica especial exige parâmetros do usuário:
+ * - 'especie_1': Caçadora (1 espécie)
+ * - 'especie_2': Dupla Caçadora (2 espécies diferentes)
+ * - 'dano_1': Resistência (1 tipo de dano)
+ * - 'dano_2': Dupla Resistência (2 tipos de dano diferentes)
+ * - null: Não exige parâmetros
+ * @param {Object} carac
+ * @returns {'especie_1'|'especie_2'|'dano_1'|'dano_2'|null}
+ */
+export function identificarTipoParametroCaracteristica(carac) {
+  if (!carac || carac.id === 'nenhuma') return null;
+  if (carac.tipo_parametro) return carac.tipo_parametro;
+
+  const idNorm = normalizarTextoSimples(carac.id);
+  const nomeNorm = normalizarTextoSimples(carac.nome);
+  const efeitoNorm = normalizarTextoSimples(carac.efeito);
+  const combinado = `${idNorm} ${nomeNorm}`;
+
+  if (combinado.includes('dupla') && combinado.includes('cacador')) return 'especie_2';
+  if (combinado.includes('cacador')) return 'especie_1';
+  if (combinado.includes('dupla') && combinado.includes('resisten')) return 'dano_2';
+
+  const temElementoFixoNoNome = TIPOS_DANO_EQUIPAMENTO.some((t) =>
+    nomeNorm.includes(`de ${normalizarTextoSimples(t)}`) ||
+    nomeNorm.includes(`a ${normalizarTextoSimples(t)}`)
+  );
+  if (combinado.includes('resisten') && !temElementoFixoNoNome) {
+    if (efeitoNorm.includes('dois tipos') || efeitoNorm.includes('duas')) return 'dano_2';
+    return 'dano_1';
+  }
+
+  return null;
+}
+
+/**
+ * Mescla as características vindas do banco com as características parametrizadas padrão,
+ * enriquecendo itens existentes e garantindo que Caçadora, Dupla Caçadora, Resistência e Dupla Resistência estejam disponíveis.
+ * @param {Array<Object>} listaBanco
+ * @param {Object} [opcoes]
+ * @param {boolean} [opcoes.incluirAtingirVoador=false]
+ * @returns {Array<Object>}
+ */
+export function mesclarCaracteristicasCatalogo(listaBanco = [], { incluirAtingirVoador = false } = {}) {
+  const resultado = [
+    { id: 'nenhuma', nome: 'Nenhuma característica', custo: 0, efeito: '' }
+  ];
+
+  if (incluirAtingirVoador) {
+    resultado.push(CARACTERISTICA_ATINGIR_VOADOR);
+  }
+
+  const tiposParametrizadosPresentes = new Set();
+  const enriquecidosBanco = (listaBanco || [])
+    .filter((i) => i && i.id !== 'nenhuma' && (!incluirAtingirVoador || i.id !== 'atingir_voador'))
+    .map((item) => {
+      const tipoParam = identificarTipoParametroCaracteristica(item);
+      if (tipoParam) tiposParametrizadosPresentes.add(tipoParam);
+      return tipoParam ? { ...item, tipo_parametro: tipoParam } : item;
+    });
+
+  CARACTERISTICAS_PARAMETRIZADAS_PADRAO.forEach((padrao) => {
+    if (!tiposParametrizadosPresentes.has(padrao.tipo_parametro)) {
+      resultado.push(padrao);
+    }
+  });
+
+  resultado.push(...enriquecidosBanco);
+  return resultado;
+}
+
+/**
+ * Extrai bônus numéricos (defesa, defesa_magica, iniciativa) de uma característica especial.
+ * @param {Object} carac
+ * @returns {{ bonusDefesa: number, bonusDefMagica: number, bonusIniciativa: number }}
+ */
+export function extrairBonusNumericosCaracteristica(carac) {
+  if (!carac || carac.id === 'nenhuma') {
+    return { bonusDefesa: 0, bonusDefMagica: 0, bonusIniciativa: 0 };
+  }
+
+  const statsCarac = carac.stats || {};
+  let bonusDefesa = Number(carac.defesa ?? carac.bonus_defesa ?? statsCarac.defesa ?? 0) || 0;
+  let bonusDefMagica = Number(carac.defesa_magica ?? carac.bonus_defesa_magica ?? statsCarac.defesa_magica ?? 0) || 0;
+  let bonusIniciativa = Number(carac.iniciativa ?? carac.bonus_iniciativa ?? statsCarac.iniciativa ?? 0) || 0;
+
+  const texto = `${carac.nome || ''} ${carac.efeito || ''}`;
+  const textoNorm = normalizarTextoSimples(texto);
+
+  // Caso combinado: "+1 na Defesa e na Defesa Mágica" ou "+2 em Defesa e Defesa Mágica"
+  const matchAmbos = textoNorm.match(/([+-]\d+)\s*(?:na\s+|em\s+|de\s+)?defesa\s+e\s+(?:na\s+|em\s+|de\s+)?(?:defesa\s*magica|def\.?\s*magica|m\.?def\b)/i);
+  if (matchAmbos) {
+    const valAmbos = parseInt(matchAmbos[1], 10) || 0;
+    if (bonusDefesa === 0) bonusDefesa = valAmbos;
+    if (bonusDefMagica === 0) bonusDefMagica = valAmbos;
+  }
+
+  if (bonusDefesa === 0) {
+    const matchDef = textoNorm.match(/([+-]\d+)\s*(?:na\s+|em\s+|de\s+)?(?:defesa(?!\s*magica)|def\b(?!\s*\.?\s*mag))/i);
+    if (matchDef) bonusDefesa = parseInt(matchDef[1], 10) || 0;
+  }
+
+  if (bonusDefMagica === 0) {
+    const matchMDef = textoNorm.match(/([+-]\d+)\s*(?:na\s+|em\s+|de\s+)?(?:defesa\s*magica|def\.?\s*magica|m\.?def\b)/i);
+    if (matchMDef) bonusDefMagica = parseInt(matchMDef[1], 10) || 0;
+  }
+
+  if (bonusIniciativa === 0) {
+    const matchIni = textoNorm.match(/([+-]\d+)\s*(?:na\s+|em\s+|de\s+|no\s+teste\s+de\s+)?(?:iniciativa|ini\b)/i);
+    if (matchIni) bonusIniciativa = parseInt(matchIni[1], 10) || 0;
+  }
+
+  return { bonusDefesa, bonusDefMagica, bonusIniciativa };
+}
+
+/**
+ * Soma um bônus numérico de Defesa ou Defesa Mágica ao valor base de uma armadura ou escudo,
+ * preservando o formato ("Dado de DES + 1" ou número fixo).
+ * @param {string|number} valorBase
+ * @param {number} bonusExtra
+ * @param {string} [siglaAtributo='DES']
+ * @returns {string|number}
+ */
+export function aplicarBonusDefensivoEquipamento(valorBase, bonusExtra = 0, siglaAtributo = 'DES') {
+  const extra = Number(bonusExtra) || 0;
+  if (extra === 0) return valorBase;
+
+  if (typeof valorBase === 'number') {
+    return valorBase + extra;
+  }
+
+  const texto = String(valorBase ?? 0).trim();
+  const contemAtributo = /\b(des|destreza|ast|astucia|astúcia)\b/i.test(texto);
+  const matchNum = texto.match(/-?\d+/);
+  const numAtual = matchNum ? (parseInt(matchNum[0], 10) || 0) : 0;
+  const soma = numAtual + extra;
+
+  if (contemAtributo) {
+    if (soma > 0) return `Dado de ${siglaAtributo} + ${soma}`;
+    if (soma < 0) return `Dado de ${siglaAtributo} - ${Math.abs(soma)}`;
+    return `Dado de ${siglaAtributo}`;
+  }
+
+  return soma;
+}
+
+/**
+ * Resolve e valida uma característica especial (parametrizada ou padrão),
+ * gerando textos formatados, listas estruturadas de espécies/resistências e bônus numéricos.
+ * @param {Object|null} carac
+ * @param {Object} [params={}]
+ * @param {string} [params.especie1='Fera']
+ * @param {string} [params.especie2='Monstro']
+ * @param {string} [params.tipoDano1='Fogo']
+ * @param {string} [params.tipoDano2='Gelo']
+ * @returns {Object}
+ */
+export function resolverCaracteristicaParametrizada(carac, params = {}) {
+  const bonusNumericos = extrairBonusNumericosCaracteristica(carac);
+  if (!carac || carac.id === 'nenhuma') {
+    return {
+      possuiCaracteristica: false,
+      tipoParametro: null,
+      valido: true,
+      erroValidacao: null,
+      nomeFormatado: '',
+      efeitoFormatado: '',
+      especiesAlvo: [],
+      resistencias: [],
+      ...bonusNumericos,
+      caracteristicaMeta: null
+    };
+  }
+
+  const tipoParametro = identificarTipoParametroCaracteristica(carac);
+  const esp1 = params.especie1 || ESPECIES_ALVO_EQUIPAMENTO[0];
+  const esp2 = params.especie2 || ESPECIES_ALVO_EQUIPAMENTO[1];
+  const dano1 = params.tipoDano1 || TIPOS_DANO_EQUIPAMENTO[1];
+  const dano2 = params.tipoDano2 || TIPOS_DANO_EQUIPAMENTO[2];
+
+  let valido = true;
+  let erroValidacao = null;
+  let nomeFormatado = carac.nome || '';
+  let efeitoFormatado = carac.efeito || '';
+  let especiesAlvo = [];
+  let resistencias = [];
+
+  if (tipoParametro === 'especie_1') {
+    especiesAlvo = [esp1];
+    nomeFormatado = `Caçadora (${esp1})`;
+    efeitoFormatado = `Caçadora (${esp1}): Causa +5 de dano contra criaturas da espécie ${esp1}.`;
+  } else if (tipoParametro === 'especie_2') {
+    if (normalizarTextoSimples(esp1) === normalizarTextoSimples(esp2)) {
+      valido = false;
+      erroValidacao = 'Em "Dupla Caçadora", escolha 2 espécies diferentes!';
+    }
+    especiesAlvo = [esp1, esp2];
+    nomeFormatado = `Dupla Caçadora (${esp1} e ${esp2})`;
+    efeitoFormatado = `Dupla Caçadora (${esp1} e ${esp2}): Causa +5 de dano contra criaturas das espécies ${esp1} e ${esp2}.`;
+  } else if (tipoParametro === 'dano_1') {
+    resistencias = [dano1];
+    nomeFormatado = `Resistência (${dano1})`;
+    efeitoFormatado = `Resistência (${dano1}): Você tem Resistência a dano de ${dano1.toLowerCase()}.`;
+  } else if (tipoParametro === 'dano_2') {
+    if (normalizarTextoSimples(dano1) === normalizarTextoSimples(dano2)) {
+      valido = false;
+      erroValidacao = 'Em "Dupla Resistência", escolha 2 tipos de dano diferentes!';
+    }
+    resistencias = [dano1, dano2];
+    nomeFormatado = `Dupla Resistência (${dano1} e ${dano2})`;
+    efeitoFormatado = `Dupla Resistência (${dano1} e ${dano2}): Você tem Resistência a dano de ${dano1.toLowerCase()} e ${dano2.toLowerCase()}.`;
+  }
+
+  return {
+    possuiCaracteristica: true,
+    tipoParametro,
+    valido,
+    erroValidacao,
+    nomeFormatado,
+    efeitoFormatado,
+    especiesAlvo,
+    resistencias,
+    ...bonusNumericos,
+    caracteristicaMeta: {
+      id: carac.id,
+      nome: nomeFormatado,
+      tipo_parametro: tipoParametro,
+      ...(especiesAlvo.length > 0 ? { especies: especiesAlvo } : {}),
+      ...(resistencias.length > 0 ? { resistencias } : {})
+    }
+  };
+}
+
+/**
+ * Extrai um resumo estruturado das propriedades parametrizadas (Caçadora, Resistências, 2ª Forma)
+ * de um item ou de seu objeto stats para exibição em cards, ficha e combate.
+ * @param {Object} itemOuStats
+ * @returns {{ especiesCacadora: Array<string>, resistencias: Array<string>, segundaForma: Object|null }}
+ */
+export function extrairResumoCaracteristicasEquipamento(itemOuStats) {
+  if (!itemOuStats) {
+    return { especiesCacadora: [], resistencias: [], segundaForma: null };
+  }
+  const stats = itemOuStats.stats_personalizados || itemOuStats.stats || itemOuStats;
+
+  const especiesCacadora = Array.isArray(stats.especies_cacadora)
+    ? stats.especies_cacadora.filter(Boolean)
+    : Array.isArray(stats.caracteristica_especial?.especies)
+      ? stats.caracteristica_especial.especies.filter(Boolean)
+      : [];
+
+  const resistencias = Array.isArray(stats.resistencias)
+    ? stats.resistencias.filter(Boolean)
+    : Array.isArray(stats.caracteristica_especial?.resistencias)
+      ? stats.caracteristica_especial.resistencias.filter(Boolean)
+      : [];
+
+  const segundaForma = stats.segunda_forma && typeof stats.segunda_forma === 'object'
+    ? stats.segunda_forma
+    : null;
+
+  return {
+    especiesCacadora,
+    resistencias,
+    segundaForma
+  };
+}
+
+/**
+ * Formata um par chave/valor de stats de equipamento para exibição limpa em listas de atributos (ex: Loja).
+ * @param {string} chave
+ * @param {any} valor
+ * @returns {string}
+ */
+export function formatarValorStatEquipamento(chave, valor) {
+  if (valor === null || valor === undefined) return '';
+  const chaveLower = String(chave || '').toLowerCase();
+
+  if (chaveLower === 'segunda_forma' && typeof valor === 'object') {
+    const partes = [
+      valor.nome || '2ª Forma',
+      valor.categoria,
+      valor.alcance,
+      valor.precisao || valor.precisao_tipo,
+      valor.dano
+    ].filter(Boolean);
+    return partes.join(' • ');
+  }
+
+  if (chaveLower === 'caracteristica_especial' && typeof valor === 'object') {
+    return valor.nome || '';
+  }
+
+  if (Array.isArray(valor)) {
+    return valor.join(', ');
+  }
+
+  if (typeof valor === 'object') {
+    return Object.entries(valor)
+      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+      .join(' | ');
+  }
+
+  return String(valor);
+}
+
+/**
+ * Verifica se uma arma ou seus stats possuem a característica de atingir criaturas/alvos voadores.
+ * @param {Object} itemOuStats
+ * @returns {boolean}
+ */
+export function armaAtingeVoadores(itemOuStats) {
+  if (!itemOuStats) return false;
+  const stats = itemOuStats.stats_personalizados || itemOuStats.stats || itemOuStats;
+  if (stats.atinge_voadores === true || stats.atingeVoadores === true) return true;
+
+  const efeitos = Array.isArray(stats.efeitos) ? stats.efeitos : [];
+  if (efeitos.some((e) => String(e).toLowerCase().includes('voador'))) return true;
+
+  const desc = String(itemOuStats.descricao || stats.descricao || stats.qualidade || '').toLowerCase();
+  if (desc.includes('atingir alvos voadores') || desc.includes('atingir criaturas voadoras') || desc.includes('alvo voador') || desc.includes('criaturas voadoras')) {
+    return true;
+  }
+
+  return false;
 }

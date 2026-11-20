@@ -18,8 +18,14 @@
 .textoDestaqueOuro { color: var(--color-text-gold); font-weight: 600; }
 .textoAviso { font-size: var(--font-size-xs); color: var(--color-crise-bright); font-style: italic; margin: var(--space-1) 0 0 0; }
 .efeitoDescricao { font-size: var(--font-size-xs); color: var(--color-text-muted); font-style: italic; margin-top: var(--space-1); }
-.mutavelContainer { background: var(--color-bg-base); border: 1px dashed var(--color-border-gold); padding: var(--space-3); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.mutavelContainer { background: var(--color-bg-base); border: 1px dashed var(--color-border-gold); padding: var(--space-3); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.mutavelHeader { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
 .mutavelTitulo { margin: 0; color: var(--color-text-gold); font-size: var(--font-size-sm); font-family: var(--font-family-serif); }
+.gridTresColunas { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); min-width: 0; }
+.tagsRow { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }
+.segundaFormaCard { background: rgba(6, 13, 23, 0.55); border: 1px dashed var(--color-border-gold); border-radius: var(--radius-sm); padding: var(--space-2); display: flex; flex-direction: column; gap: 4px; font-size: var(--font-size-xs); }
+.segundaFormaHeader { display: flex; justify-content: space-between; align-items: center; gap: var(--space-1); color: var(--color-text-gold); font-weight: 700; }
+.segundaFormaMeta { color: var(--color-text-muted); font-family: var(--font-family-mono); font-size: 0.7rem; }
 
 /* Painel de Rodapé e Resumo */
 .painelResumo { background: var(--color-bg-base); border: 1px solid var(--color-border-gold-muted); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-3); min-width: 0; }
@@ -45,7 +51,7 @@
 @media (max-width: 800px) {
   .forjaCard { padding: var(--space-3); }
   .subMetodoNav { flex-direction: column; gap: var(--space-2); }
-  .gridDuasColunas, .gridQuatroColunas { grid-template-columns: 1fr; gap: var(--space-3); }
+  .gridDuasColunas, .gridTresColunas, .gridQuatroColunas { grid-template-columns: 1fr; gap: var(--space-3); }
   .selectCampo { min-height: 44px; font-size: var(--font-size-base); }
   .painelResumo { flex-direction: column; align-items: stretch; gap: var(--space-3); }
   .resumoBotoes { flex-direction: column; width: 100%; }

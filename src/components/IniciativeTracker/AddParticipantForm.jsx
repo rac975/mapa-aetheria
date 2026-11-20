@@ -18,6 +18,8 @@ export default function AddParticipantForm({
   setMpMaxInput,
   tipoVilaoInput = 'padrao',
   setTipoVilaoInput,
+  voadorInput = false,
+  setVoadorInput,
   onAddParticipante,
   onSelecionarNpcCatalogo
 }) {
@@ -130,6 +132,17 @@ export default function AddParticipantForm({
                     <option value="soberano">Vilão Soberano (15 PVilão)</option>
                   </select>
                 )}
+                {setVoadorInput && (
+                  <label className={styles.checkboxLabel} title="Marcar inimigo como voador">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(voadorInput)}
+                      onChange={(e) => setVoadorInput(e.target.checked)}
+                      className={styles.checkbox}
+                    />
+                    <span>🦅 Voador</span>
+                  </label>
+                )}
               </>
             ) : (
               <div className={styles.fieldGrow}>
@@ -146,9 +159,10 @@ export default function AddParticipantForm({
                     const tagFases = Array.isArray(n.fases_chefao) && n.fases_chefao.length > 0
                       ? ` • ${n.fases_chefao.length} Fases`
                       : '';
+                    const tagVoador = n.voador ? ' • 🦅 Voador' : '';
                     return (
                       <option key={n.id} value={n.id}>
-                        {n.nome} (Nível {n.nivel} - {n.rank || 'soldado'}{tagVilao}{tagFases})
+                        {n.nome} (Nível {n.nivel} - {n.rank || 'soldado'}{tagVilao}{tagFases}{tagVoador})
                       </option>
                     );
                   })}

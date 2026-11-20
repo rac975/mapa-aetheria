@@ -1,5 +1,9 @@
 import { FaTools, FaTrash, FaCoins } from 'react-icons/fa';
 import { lojaService } from '../../../services/lojaService';
+import {
+  armaAtingeVoadores,
+  extrairResumoCaracteristicasEquipamento
+} from '../../../domain/fabula/equipmentRules';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAlert } from '../../../contexts/useAlert';
 import { useBuscaItens } from '../hooks/useBuscaItens';
@@ -89,6 +93,25 @@ export default function GerenciarCatalogoRaros({ itensCatalogo, recarregarDados 
                   {item.stats?.categoria && (
                     <Badge variant="ether" size="sm">{item.stats.categoria}</Badge>
                   )}
+                  {armaAtingeVoadores(item) && (
+                    <Badge variant="ether" size="sm">🦅 Atinge Voadores</Badge>
+                  )}
+                  {(() => {
+                    const resCarac = extrairResumoCaracteristicasEquipamento(item);
+                    return (
+                      <>
+                        {resCarac.especiesCacadora.length > 0 && (
+                          <Badge variant="crise" size="sm">🎯 Caçadora: {resCarac.especiesCacadora.join(' / ')}</Badge>
+                        )}
+                        {resCarac.resistencias.length > 0 && (
+                          <Badge variant="ether" size="sm">🛡️ Res: {resCarac.resistencias.join(' / ')}</Badge>
+                        )}
+                        {resCarac.segundaForma && (
+                          <Badge variant="gold" size="sm">🔄 2ª Forma: {resCarac.segundaForma.nome}</Badge>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 <p className={styles.itemDescricao}>{item.descricao || 'Sem descrição.'}</p>
               </div>

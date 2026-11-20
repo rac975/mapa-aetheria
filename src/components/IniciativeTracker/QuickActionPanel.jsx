@@ -73,7 +73,8 @@ export default function QuickActionPanel({
     });
     if (res) {
       if (!semDano && res.danoTotal !== null) setDanoAplicado(res.danoTotal);
-      setNotaLivre(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${res.statusCritico ? ` • ${res.statusCritico}` : ''}`);
+      const tagVoador = arma.atingeVoadores ? ' • 🦅 Atinge Voadores' : '';
+      setNotaLivre(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${res.statusCritico ? ` • ${res.statusCritico}` : ''}${tagVoador}`);
     }
   };
 

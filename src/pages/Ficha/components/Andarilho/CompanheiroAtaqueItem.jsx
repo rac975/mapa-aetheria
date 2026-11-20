@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaDice, FaBolt } from 'react-icons/fa';
-import { Button } from '../../../../components/ui';
+import { formatarAtaqueBasicoNpc } from '../../../../domain/fabula/npcRules';
+import { Button, Badge } from '../../../../components/ui';
 import styles from './CompanheiroAtaqueItem.module.css';
 
 export default function CompanheiroAtaqueItem({
@@ -11,14 +12,21 @@ export default function CompanheiroAtaqueItem({
   onRolarAtaque,
   ultimaRolagem
 }) {
+  const info = formatarAtaqueBasicoNpc(ataque);
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <strong className={styles.name}>{ataque.nome}</strong>
+          <strong className={styles.name}>{info.nome}</strong>
           <div className={styles.desc}>
-            Atributos: [{ataque.atributo_dado1?.toUpperCase()} + {ataque.atributo_dado2?.toUpperCase()}] • Tipo: {ataque.tipo_dano || 'Físico'}
+            Atributos: [{info.attr1} + {info.attr2}]{info.modPrecisaoTexto} • Dano: RA + {info.bonusDano} • Tipo: {info.tipoDano.toUpperCase()}
           </div>
+          {info.resumoEfeito && (
+            <div className={styles.desc}>
+              <Badge variant="ether" size="sm">✦ {info.resumoEfeito}</Badge>
+            </div>
+          )}
         </div>
       </div>
 

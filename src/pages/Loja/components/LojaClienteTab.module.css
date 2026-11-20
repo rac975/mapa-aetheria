@@ -8,6 +8,77 @@
   max-width: 100%;
 }
 
+.lojaBannerCard {
+  background: linear-gradient(135deg, rgba(var(--color-bg-surface-rgb), 0.85) 0%, rgba(var(--color-bg-base-rgb), 0.95) 100%);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.lojaBannerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.lojaBannerTitulo {
+  margin: 0;
+  color: var(--color-text-gold);
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.lojaBannerIcone {
+  color: var(--color-border-gold-bright);
+  flex-shrink: 0;
+}
+
+.lojaBannerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  min-width: 0;
+}
+
+.lojaBannerCidade {
+  color: var(--color-text-gold);
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.lojaBannerVendedor {
+  color: var(--color-ether-blue);
+  background: rgba(14, 165, 233, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  word-break: break-word;
+}
+
+.lojaBannerDesc {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
 .abasNavegacao {
   display: flex;
   flex-wrap: wrap;

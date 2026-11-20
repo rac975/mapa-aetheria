@@ -46,7 +46,9 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
     const res1 = rolarDado(faces1);
     const res2 = rolarDado(faces2);
 
-    const bonusPrecisao = parseInt(companheiro.bonus_precisao || 5, 10);
+    const bonusPrecisaoBase = parseInt(companheiro.bonus_precisao || 5, 10) || 0;
+    const modPrecisaoAtk = parseInt(ataque.bonus_precisao || 0, 10) || 0;
+    const bonusPrecisao = bonusPrecisaoBase + modPrecisaoAtk;
     const testeAtaque = res1 + res2 + bonusPrecisao;
 
     let statusCritico = null;
@@ -60,7 +62,9 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
     const modoAtual = modoAtaqueState[indexAtaque] || 'normal';
     const isMulti = modoAtual === 'multi';
 
-    const bonusOriginal = parseInt(companheiro.bonus_dano || companheiro.nivel_poder || 5, 10);
+    const bonusOriginal = (ataque.bonus_dano !== undefined && ataque.bonus_dano !== null && ataque.bonus_dano !== '')
+      ? (parseInt(ataque.bonus_dano, 10) || 0)
+      : (parseInt(companheiro.bonus_dano || companheiro.nivel_poder || 5, 10) || 5);
     const bonusDanoFixo = isMulti ? 0 : bonusOriginal;
     const danoTotal = dadoMaisAlto + bonusDanoFixo;
 

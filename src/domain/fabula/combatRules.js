@@ -5,6 +5,11 @@ import {
   calcularPassivosCoreClasses,
   normalizarTextoCore
 } from './coreClassRules.js';
+import {
+  armaAtingeVoadores,
+  extrairResumoCaracteristicasEquipamento
+} from './equipmentRules.js';
+import { obterItemFormaAtivaArmaMutavel } from './weaponForge.js';
 import { calcularBonusPassivosPoderesHeroicos } from './heroicAndQuirksRules.js';
 import {
   clampRecursoNpc,
@@ -21,7 +26,9 @@ import {
   criarFaseChefaoPadrao,
   verificarGatilhoTransicaoFase,
   executarTransicaoFaseChefao,
-  consumirPontoVilaoNpc
+  consumirPontoVilaoNpc,
+  formatarAtaqueBasicoNpc,
+  formatarPoderNpcParaExibicao
 } from './npcRules.js';
 
 export {
@@ -179,7 +186,8 @@ export function construirCombatente({
   acoesPorTurno = 1,
   faseAtual = 1,
   fichaId = null,
-  npcId = null
+  npcId = null,
+  voador = false
 }) {
   const hp = Math.max(1, Number(hpMax) || 1);
   const mp = Math.max(0, Number(mpMax) || 0);
@@ -198,6 +206,7 @@ export function construirCombatente({
 
   const modsIniciais = {
     ...(npcId ? { npc_id: npcId } : {}),
+    ...(voador ? { voador: true } : {}),
     ...(tipo !== 'heroi' ? { acoes_realizadas_rodada: 0, pontos_vilao_max: pvVilao } : {})
   };
 
@@ -224,6 +233,7 @@ export function construirCombatente({
     guardando: false,
     protegendo_id: null,
     turno_atual: false,
+    voador: Boolean(voador),
     modificadores: modsIniciais
   };
 }
@@ -1143,9 +1153,9 @@ export function extrairPerfilRolagemCombatente({
       return (slot === 'mao_dominante' || slot === 'mao_secundaria' || tipo.includes('arma')) && !ehEscudo;
     });
 
-    armasMaos.forEach((item, idx) => {
-      const stats = item.stats_personalizados || {};
-      const alcanceTexto = normalizarTextoCore(`${stats.alcance || ''} ${stats.categoria || ''} ${item.tipo || ''}`);
+    const adicionarArmaEquipadaNoPerfil = (itemAlvo, sufixoId = '', ehSegundaForma = false) => {
+      const stats = itemAlvo.stats_personalizados || itemAlvo.stats || {};
+      const alcanceTexto = normalizarTextoCore(`${stats.alcance || ''} ${stats.categoria || ''} ${itemAlvo.tipo || ''}`);
       const ehDistancia =
         alcanceTexto.includes('distancia') ||
         alcanceTexto.includes('arco') ||
@@ -1166,17 +1176,34 @@ export function extrairPerfilRolagemCombatente({
         danoArma = parseInt(matchDano, 10) || 0;
       }
 
+      const atingeVoadores = ehDistancia || armaAtingeVoadores(itemAlvo);
+      const resumoCarac = extrairResumoCaracteristicasEquipamento(itemAlvo);
+      const efeitosTexto = Array.isArray(stats.efeitos) ? stats.efeitos.join(' • ') : '';
+
       armas.push({
-        id: item.id || `arma_${idx}`,
-        nome: item.nome || 'Arma Equipada',
+        id: `${itemAlvo.id || 'arma'}${sufixoId}`,
+        nome: itemAlvo.nome || 'Arma Equipada',
         attr1,
         attr2,
         bonusPrecisao: bonusArma + bonusMaestria,
         bonusDano: danoArma + passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
         tipoDano: normalizarTextoCore(stats.tipo_dano || 'fisico') || 'fisico',
         alcance: ehDistancia ? 'distancia' : 'corpo_a_corpo',
-        isPadrao: false
+        isPadrao: false,
+        atingeVoadores,
+        ehSegundaForma,
+        especiesCacadora: resumoCarac.especiesCacadora,
+        efeito: efeitosTexto
       });
+    };
+
+    armasMaos.forEach((item, idx) => {
+      adicionarArmaEquipadaNoPerfil(item, `_${idx}`, false);
+      const resumoCarac = extrairResumoCaracteristicasEquipamento(item);
+      if (resumoCarac.segundaForma) {
+        const itemForma2 = obterItemFormaAtivaArmaMutavel(item, true);
+        adicionarArmaEquipadaNoPerfil(itemForma2, `_${idx}_forma2`, true);
+      }
     });
 
     // Golpe Desarmado sempre disponível
@@ -1189,7 +1216,8 @@ export function extrairPerfilRolagemCombatente({
       bonusDano: passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
       tipoDano: 'fisico',
       alcance: 'corpo_a_corpo',
-      isPadrao: armas.length === 0
+      isPadrao: armas.length === 0,
+      atingeVoadores: false
     });
 
     // Magias da ficha
@@ -1217,16 +1245,24 @@ export function extrairPerfilRolagemCombatente({
 
     const ataquesNpc = Array.isArray(npc?.ataques_basicos) ? npc.ataques_basicos : [];
     ataquesNpc.forEach((atk, idx) => {
+      const infoAtk = formatarAtaqueBasicoNpc(atk);
+      const alcanceAtk = normalizarTextoCore(atk.alcance || atk.tipo_alcance || '');
+      const ehDistanciaAtk = alcanceAtk.includes('distancia');
+      const atingeVoadoresAtk = ehDistanciaAtk || armaAtingeVoadores(atk) || Boolean(atk.atinge_voadores);
       armas.push({
         id: `npc_atk_${idx}`,
         nome: atk.nome || `Ataque ${idx + 1}`,
         attr1: normalizarChaveAtributo(atk.atributo_dado1 || 'des', 'des'),
         attr2: normalizarChaveAtributo(atk.atributo_dado2 || 'vig', 'vig'),
-        bonusPrecisao: (Number(atk.bonus_precisao) || 0) + bonusPrecisaoNivel,
-        bonusDano: (Number(atk.bonus_dano) || 5) + bonusDanoNivel + decretoDanoExtra,
-        tipoDano: normalizarTextoCore(atk.tipo_dano || 'fisico') || 'fisico',
-        alcance: 'corpo_a_corpo',
-        isPadrao: idx === 0
+        bonusPrecisao: infoAtk.modPrecisao + bonusPrecisaoNivel,
+        bonusDano: infoAtk.bonusDano + bonusDanoNivel + decretoDanoExtra,
+        tipoDano: normalizarTextoCore(infoAtk.tipoDano || 'fisico') || 'fisico',
+        alcance: ehDistanciaAtk ? 'distancia' : 'corpo_a_corpo',
+        isPadrao: idx === 0,
+        atingeVoadores: atingeVoadoresAtk,
+        condicao: infoAtk.condicao,
+        efeito: infoAtk.efeito,
+        resumoEfeito: infoAtk.resumoEfeito
       });
     });
 
@@ -1261,6 +1297,10 @@ export function extrairPerfilRolagemCombatente({
     });
   }
 
+  const poderesNpcFormatados = Array.isArray(npc?.poderes)
+    ? npc.poderes.map(formatarPoderNpcParaExibicao)
+    : [];
+
   return {
     possuiFichaVinculada: Boolean(ficha || npc),
     origemNome: ficha?.nome_personagem || npc?.nome || combatente?.nome || 'Combatente',
@@ -1273,7 +1313,8 @@ export function extrairPerfilRolagemCombatente({
     bonusGuardaOposto: guardando ? 2 : 0,
     emCrise,
     armas,
-    magias
+    magias,
+    poderes: poderesNpcFormatados
   };
 }
 
@@ -1300,6 +1341,8 @@ export function rolarDadosCombate({
   tipoDano = 'fisico',
   custoPm = 0,
   ndAlvo = null,
+  condicao = '',
+  efeito = '',
   valoresFixos = null
 } = {}) {
   const k1 = normalizarChaveAtributo(attr1, 'des');
@@ -1361,6 +1404,11 @@ export function rolarDadosCombate({
   if (statusCritico) {
     partesDetalhe.push(statusCritico);
   }
+  if (efeito) {
+    partesDetalhe.push(`Efeito: ${efeito}`);
+  } else if (condicao) {
+    partesDetalhe.push(`Condição: ${condicao}`);
+  }
 
   const detalhes = partesDetalhe.join(' • ');
   const nomeAutor = combatente?.nome || perfil?.origemNome || 'Combatente';
@@ -1386,6 +1434,8 @@ export function rolarDadosCombate({
     danoTotal,
     tipoDano,
     custoPm: Number(custoPm) || 0,
+    condicao: condicao || '',
+    efeito: efeito || '',
     isCritico,
     isFumble,
     statusCritico,

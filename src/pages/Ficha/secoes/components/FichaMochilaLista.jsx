@@ -1,5 +1,6 @@
 import { FaBoxOpen, FaTimes } from 'react-icons/fa';
 import { Card, Button, Badge } from '../../../../components/ui';
+import { extrairResumoCaracteristicasEquipamento } from '../../../../domain/fabula/equipmentRules';
 import { getItemCategoryIcon, formatarNomeSlot } from './FichaEquiparModal';
 import styles from './FichaMochilaLista.module.css';
 
@@ -24,6 +25,7 @@ export default function FichaMochilaLista({
           {itensInventario.map((item) => {
             const estaEquipado = !!item.stats_personalizados?.slot;
             const categoryMeta = getItemCategoryIcon(item);
+            const resumoCarac = extrairResumoCaracteristicasEquipamento(item);
             return (
               <div key={item.id} className={styles.mochilaItem}>
                 <div className={styles.mochilaItemDetails}>
@@ -35,6 +37,15 @@ export default function FichaMochilaLista({
                   <Badge variant={estaEquipado ? 'core' : 'default'} size="sm">
                     {estaEquipado ? `Equipado (${formatarNomeSlot(item.stats_personalizados.slot)})` : 'Na Mochila'}
                   </Badge>
+                  {resumoCarac.especiesCacadora.length > 0 && (
+                    <Badge variant="crise" size="sm">🎯 Caçadora: {resumoCarac.especiesCacadora.join(' / ')}</Badge>
+                  )}
+                  {resumoCarac.resistencias.length > 0 && (
+                    <Badge variant="ether" size="sm">🛡️ Res: {resumoCarac.resistencias.join(' / ')}</Badge>
+                  )}
+                  {resumoCarac.segundaForma && (
+                    <Badge variant="gold" size="sm">🔄 2ª Forma: {resumoCarac.segundaForma.nome}</Badge>
+                  )}
                 </div>
                 <div className={styles.mochilaItemActions}>
                   {estaEquipado ? (

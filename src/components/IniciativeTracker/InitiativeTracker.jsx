@@ -29,6 +29,7 @@ export default function InitiativeTracker({ isMestre }) {
   const [hpMaxInput, setHpMaxInput] = useState(30);
   const [mpMaxInput, setMpMaxInput] = useState(20);
   const [tipoVilaoInput, setTipoVilaoInput] = useState('padrao');
+  const [voadorInput, setVoadorInput] = useState(false);
   const [npcCatalogoSelecionado, setNpcCatalogoSelecionado] = useState(null);
 
   const [mostrarFormAdicao, setMostrarFormAdicao] = useState(false);
@@ -63,9 +64,13 @@ export default function InitiativeTracker({ isMestre }) {
       mpMaxInput,
       tipoVilaoInput,
       acoesPorTurnoInput: acoesDefault,
+      voadorInput,
       npcCatalogoSelecionado
     });
-    if (sucesso) setNomeInimigo('');
+    if (sucesso) {
+      setNomeInimigo('');
+      setVoadorInput(false);
+    }
   };
 
   const exibirPainelAdicao = isMestre && (mostrarFormAdicao || participantes.length === 0);
@@ -172,6 +177,8 @@ export default function InitiativeTracker({ isMestre }) {
           setMpMaxInput={setMpMaxInput}
           tipoVilaoInput={tipoVilaoInput}
           setTipoVilaoInput={setTipoVilaoInput}
+          voadorInput={voadorInput}
+          setVoadorInput={setVoadorInput}
           onAddParticipante={handleAddSubmit}
           onSelecionarNpcCatalogo={(npc) => {
             setNpcCatalogoSelecionado(npc);

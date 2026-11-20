@@ -38,8 +38,16 @@ import {
   calcularDefesasEIniciativa,
   extrairStatsArmadura,
   extrairStatsItemDefensivo,
-  SLOTS_EQUIPAMENTO
+  SLOTS_EQUIPAMENTO,
+  armaAtingeVoadores,
+  CARACTERISTICA_ATINGIR_VOADOR,
+  isEscudo,
+  ESCUDOS_BASE_COMUNS,
+  isArmaDuasMaos,
+  ARMAS_BASE_COMUNS
 } from '../equipmentRules.js';
+import { isNpcVoador } from '../npcRules.js';
+import { construirStatsArmaPersonalizada } from '../weaponForge.js';
 
 function assert(condition, message) {
   if (!condition) {
@@ -384,6 +392,57 @@ assert(defLadinoComEscudo.defesaTotal === 11, 'Esquiva Nv 2 desativa quando escu
 const defLadinoComMarcial = calcularDefesasEIniciativa({ atributos: attrsPadrao, itensEquipados: [itemArmaduraMarcial], classes: classesLadino });
 assert(defLadinoComMarcial.defesaTotal === 11, 'Esquiva Nv 2 desativa quando armadura marcial é equipada (DEF Fixa 11)');
 
+// 6.8 Escudos Base Comuns (Bronze, Pesado e Rúnico) e isEscudo
+assert(ESCUDOS_BASE_COMUNS.length === 3, 'ESCUDOS_BASE_COMUNS contém exatamente 3 escudos canônicos');
+const [escBronze, escPesado, escRunico] = ESCUDOS_BASE_COMUNS;
+
+assert(escBronze.nome === 'Escudo de Bronze' && escBronze.custo === 100 && escBronze.stats.defesa === 2 && escBronze.stats.marcial === false, 'Escudo de Bronze: 100z, +2 DEF, Simples');
+assert(escPesado.nome === 'Escudo Pesado' && escPesado.custo === 150 && escPesado.stats.defesa === 2 && escPesado.stats.iniciativa === -2 && escPesado.stats.marcial === true, 'Escudo Pesado: 150z, +2 DEF, -2 Ini, Marcial');
+assert(escRunico.nome === 'Escudo Rúnico' && escRunico.custo === 150 && escRunico.stats.defesa === 1 && escRunico.stats.defesa_magica === 1 && escRunico.stats.marcial === false, 'Escudo Rúnico: 150z, +1 DEF, +1 M.DEF, Simples');
+
+assert(isEscudo(escBronze) === true, 'isEscudo identifica Escudo de Bronze');
+assert(isEscudo(escPesado) === true, 'isEscudo identifica Escudo Pesado');
+assert(isEscudo(escRunico) === true, 'isEscudo identifica Escudo Rúnico');
+assert(isEscudo(itemArmaduraMarcial) === false, 'isEscudo retorna false para Armadura Marcial');
+
+// 6.9 Cálculos de Combate com Escudo Pesado e Escudo Rúnico
+const itemEscPesadoEquipado = {
+  nome: escPesado.nome,
+  tipo: escPesado.tipo,
+  stats_personalizados: { ...escPesado.stats }
+};
+const itemEscRunicoEquipado = {
+  nome: escRunico.nome,
+  tipo: escRunico.tipo,
+  stats_personalizados: { ...escRunico.stats }
+};
+
+const defComPesadoEMarcial = calcularDefesasEIniciativa({
+  atributos: attrsPadrao,
+  itensEquipados: [itemArmaduraMarcial, itemEscPesadoEquipado],
+  classes: []
+});
+assert(
+  defComPesadoEMarcial.defesaTotal === 13 &&
+  defComPesadoEMarcial.mdefTotal === 8 &&
+  defComPesadoEMarcial.iniciativaTotal === -5 &&
+  defComPesadoEMarcial.temEscudoEquipado === true,
+  'Armadura Marcial (11 DEF, -3 Ini) + Escudo Pesado (+2 DEF, -2 Ini) = 13 DEF e -5 Iniciativa'
+);
+
+const defComRunicoELeve = calcularDefesasEIniciativa({
+  atributos: attrsPadrao,
+  itensEquipados: [itemArmaduraLeve, itemEscRunicoEquipado],
+  classes: []
+});
+assert(
+  defComRunicoELeve.defesaTotal === 10 &&
+  defComRunicoELeve.mdefTotal === 10 &&
+  defComRunicoELeve.iniciativaTotal === -1 &&
+  defComRunicoELeve.temEscudoEquipado === true,
+  'Armadura Leve (+1 DEF, +1 M.DEF, -1 Ini) + Escudo Rúnico (+1 DEF, +1 M.DEF) + Attrs (DES 8, AST 8) = 10 DEF, 10 M.DEF e -1 Ini'
+);
+
 console.log('--- 7. Testando Gestão de Recursos (PV e PM) e Clamping Restritivo de NPCs ---');
 
 // 7.1 Identificação de NPC e extração de tetos máximos
@@ -511,5 +570,116 @@ assert(payloadLimpo.pm_max === undefined, 'sanitizarPayloadIniciativa remove pm_
 assert(payloadLimpo.pv_atual === undefined, 'sanitizarPayloadIniciativa remove pv_atual');
 assert(payloadLimpo.pm_atual === undefined, 'sanitizarPayloadIniciativa remove pm_atual');
 assert(payloadLimpo.dano_acumulado === 5, 'sanitizarPayloadIniciativa preserva colunas válidas');
+
+console.log('--- 9. Testando Mecânicas de Voadores e Características Especiais ---');
+// Teste armaAtingeVoadores
+const espadaComum = { nome: 'Espada Longa', stats: { dano: 'RA + 6', tipo_dano: 'fisico' } };
+assert(!armaAtingeVoadores(espadaComum), 'Espada comum não atinge voadores');
+
+const lancaVoadora = {
+  nome: 'Lança dos Céus',
+  stats: { dano: 'RA + 8', atinge_voadores: true }
+};
+assert(armaAtingeVoadores(lancaVoadora), 'Arma com flag atinge_voadores: true é detectada');
+
+const arcoComEfeito = {
+  nome: 'Arco Espiritual',
+  stats: { dano: 'RA + 4', efeitos: ['Atingir alvo voador'] }
+};
+assert(armaAtingeVoadores(arcoComEfeito), 'Arma com efeito textual de voador é detectada');
+
+assert(CARACTERISTICA_ATINGIR_VOADOR.custo === 100, 'Característica de atingir voador custa 100z');
+assert(CARACTERISTICA_ATINGIR_VOADOR.atinge_voadores === true, 'Característica possui flag atinge_voadores');
+
+// Teste construirStatsArmaPersonalizada com atingir_voador
+const armaAtlasVoadora = construirStatsArmaPersonalizada({
+  categoria: 'espada',
+  alcance: 'Corpo a corpo',
+  precisaoTipo: '(DES + VIG)',
+  personalizacoes: [
+    { id: 'atingir_voador', nome: 'Atingir alvo voador', custoExtra: 100, atinge_voadores: true }
+  ]
+});
+assert(armaAtlasVoadora.custo === 400, 'Arma personalizada com voador soma 300 base + 100 custoExtra');
+assert(armaAtlasVoadora.atinge_voadores === true, 'Arma personalizada possui atinge_voadores: true');
+
+// Teste NPC voador
+const npcTerrestre = { nome: 'Lobo Cinzento', rank: 'soldado' };
+assert(!isNpcVoador(npcTerrestre), 'NPC padrão sem flag não é voador');
+
+const npcVoadorFlag = { nome: 'Harpia', rank: 'soldado', voador: true };
+assert(isNpcVoador(npcVoadorFlag), 'NPC com flag voador: true é identificado como voador');
+
+const npcVoadorPoder = { nome: 'Grifo', poderes: [{ nome: 'Voo Superior' }] };
+assert(isNpcVoador(npcVoadorPoder), 'NPC com poder de voo é identificado como voador');
+
+// Teste construirCombatente com voador
+const combatenteVoador = construirCombatente({
+  tipo: 'inimigo',
+  nome: 'Gárgula',
+  hpMax: 50,
+  mpMax: 30,
+  voador: true
+});
+assert(combatenteVoador.voador === true, 'construirCombatente define voador: true');
+assert(combatenteVoador.modificadores?.voador === true, 'modificadores também guarda flag voador');
+
+console.log('--- 10. Testando Auditoria de Forja e Armas Personalizadas ---');
+
+// 10.1 Armas Base Comuns oficiais e detecção de duas mãos
+assert(ARMAS_BASE_COMUNS.length >= 10, 'ARMAS_BASE_COMUNS contém catálogo canônico de armas');
+const espadaCurta = ARMAS_BASE_COMUNS.find(a => a.id === 'espada_curta');
+const espadaLonga = ARMAS_BASE_COMUNS.find(a => a.id === 'espada_longa');
+
+assert(!isArmaDuasMaos(espadaCurta), 'Espada curta é de 1 mão');
+assert(isArmaDuasMaos(espadaLonga), 'Espada longa é de 2 mãos');
+
+const armaCustom2H = { nome: 'Montante Custom', stats: { maos: 'Duas mãos' } };
+assert(isArmaDuasMaos(armaCustom2H), 'isArmaDuasMaos detecta string "Duas mãos" em stats');
+
+// 10.2 Arma Personalizada do Atlas com Defesa e Defesa Mágica
+const armaAtlasDefensiva = construirStatsArmaPersonalizada({
+  categoria: 'espada',
+  alcance: 'Corpo a corpo',
+  precisaoTipo: '(DES + VIG)',
+  personalizacoes: [
+    { id: 'defesa', nome: 'Aumento na Defesa (+2 Defesa, conta como escudo)', custoExtra: 0, marcial: false },
+    { id: 'defesa_magica', nome: 'Aumento na Defesa Mágica (+2 Def. Mágica)', custoExtra: 0, marcial: true }
+  ]
+});
+
+assert(armaAtlasDefensiva.defesa === 2, 'Arma com aumento de defesa grava defesa: 2 no stats');
+assert(armaAtlasDefensiva.escudo === true, 'Arma com aumento de defesa grava escudo: true no stats');
+assert(armaAtlasDefensiva.defesa_magica === 2, 'Arma com aumento de defesa mágica grava defesa_magica: 2 no stats');
+assert(armaAtlasDefensiva.slot === 'duas_maos' && armaAtlasDefensiva.duas_maos === true, 'Arma personalizada grava slot duas_maos');
+
+// 10.3 Interação de combate: Arma com aumento de defesa conta como escudo
+const itemArmaAtlasEquipada = {
+  nome: 'Espada Guarda-Real',
+  tipo: 'arma',
+  stats_personalizados: {
+    slot: SLOTS_EQUIPAMENTO.MAO_DOMINANTE,
+    ...armaAtlasDefensiva
+  }
+};
+
+const defComArmaDefensiva = calcularDefesasEIniciativa({
+  atributos: attrsPadrao,
+  itensEquipados: [itemArmaduraLeve, itemArmaAtlasEquipada],
+  classes: []
+});
+
+assert(
+  defComArmaDefensiva.defesaTotal === 11,
+  'Armadura Leve (+1) + Arma Defensiva (+2) + DES 8 = 11 DEF'
+);
+assert(
+  defComArmaDefensiva.mdefTotal === 11,
+  'Armadura Leve (+1) + Arma Defensiva (+2 MDEF) + AST 8 = 11 M.DEF'
+);
+assert(
+  defComArmaDefensiva.temEscudoEquipado === true,
+  'Arma com personalização de defesa é identificada como escudo pelo motor de combate'
+);
 
 console.log('TODOS OS TESTES CORE BOOK E COMBATE PASSARAM COM SUCESSO!');

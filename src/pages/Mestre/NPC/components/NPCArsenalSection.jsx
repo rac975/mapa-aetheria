@@ -1,5 +1,9 @@
 import React from 'react';
 import { FaShieldAlt, FaFistRaised, FaDice } from 'react-icons/fa';
+import {
+  formatarAtaqueBasicoNpc,
+  formatarPoderNpcParaExibicao
+} from '../../../../domain/fabula/npcRules';
 import { Card, Badge } from '../../../../components/ui';
 import styles from './NPCArsenalSection.module.css';
 
@@ -11,7 +15,7 @@ const TIPOS_DANO = [
   { key: 'sombrio', label: 'Sombrio' },
   { key: 'luz', label: 'Luz' },
   { key: 'veneno', label: 'Veneno' },
-  { key: 'terra', label: 'Terra' },
+  { key: 'terra', label: 'Terra' }
 ];
 
 function getAfinidadeBadge(valor) {
@@ -78,20 +82,34 @@ export default function NPCArsenalSection({ npc }) {
           <p className={styles.emptyText}>Nenhum ataque básico cadastrado.</p>
         ) : (
           <div className={styles.ataquesList}>
-            {npc.ataques_basicos.map((atk, i) => (
-              <div key={i} className={styles.ataqueItem}>
-                <div>
-                  <span className={styles.ataqueName}>{atk.nome}</span>
-                  <span className={styles.ataqueDado}>
-                    【{atk.atributo_dado1?.toUpperCase()} + {atk.atributo_dado2?.toUpperCase()}】
-                    {atk.bonus_precisao ? ` + ${atk.bonus_precisao}` : ''}
-                  </span>
+            {npc.ataques_basicos.map((atk, i) => {
+              const info = formatarAtaqueBasicoNpc(atk);
+              return (
+                <div key={i} className={styles.ataqueItem}>
+                  <div className={styles.ataqueMainLine}>
+                    <div>
+                      <span className={styles.ataqueName}>{info.nome}</span>
+                      <span className={styles.ataqueDado}>
+                        【{info.attr1} + {info.attr2}】{info.modPrecisaoTexto}
+                      </span>
+                    </div>
+                    <div className={styles.ataqueDanoInfo}>
+                      【RA + {info.bonusDano}】 Dano {info.tipoDano.toUpperCase()}
+                    </div>
+                  </div>
+                  {(info.condicao || info.efeito) && (
+                    <div className={styles.ataqueExtraLine}>
+                      {info.condicao && (
+                        <Badge variant="crise" size="sm">Condição: {info.condicao}</Badge>
+                      )}
+                      {info.efeito && (
+                        <p className={styles.ataqueEfeitoTexto}>✦ {info.efeito}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className={styles.ataqueDanoInfo}>
-                  【RA + {atk.bonus_dano || 0}】 Dano {atk.tipo_dano?.toUpperCase()}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
@@ -103,14 +121,24 @@ export default function NPCArsenalSection({ npc }) {
             <p className={styles.emptyText}>Nenhum poder adquirido.</p>
           ) : (
             <ul className={styles.viewList}>
-              {npc.poderes.map((p, i) => (
-                <li key={i} className={styles.viewItem}>
-                  <div className={styles.itemHeading}>
-                    <strong className={styles.poderName}>{p.nome}</strong>
-                  </div>
-                  <p>{p.descricao}</p>
-                </li>
-              ))}
+              {npc.poderes.map((p, i) => {
+                const info = formatarPoderNpcParaExibicao(p);
+                return (
+                  <li key={i} className={styles.viewItem}>
+                    <div className={styles.itemHeading}>
+                      <strong className={styles.poderName}>{info.nome}</strong>
+                      {info.tagsParametros.length > 0 && (
+                        <div className={styles.poderTagsRow}>
+                          {info.tagsParametros.map((tag, idx) => (
+                            <Badge key={idx} variant="ether" size="sm">{tag}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p>{info.descricao}</p>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Card>

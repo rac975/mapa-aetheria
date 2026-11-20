@@ -2,7 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaDragon, FaShieldAlt, FaArrowRight, FaSkull, FaTrash, FaCrown, FaBolt, FaFire } from 'react-icons/fa';
 import { npcService } from '../../../services/npcService';
-import { TIPOS_VILAO, normalizarTipoVilao } from '../../../domain/fabula/npcRules';
+import {
+  TIPOS_VILAO,
+  normalizarTipoVilao,
+  formatarPoderNpcParaExibicao
+} from '../../../domain/fabula/npcRules';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAlert } from '../../../contexts/useAlert';
 import { Card, Button, Badge, ResourceBar, LoadingScreen } from '../../../components/ui';
@@ -18,45 +22,28 @@ export default function ListaNPCsPage() {
   const handleExcluirNpc = (npcParaExcluir) => {
     coldDelete({
       item: npcParaExcluir,
-      message: (
-        <>
-          NPC <strong>{npcParaExcluir.nome}</strong> foi removido do Bestiário.
-        </>
-      ),
-      onRemove: (it) => {
-        setNpcs(prev => prev.filter(n => n.id !== it.id));
-      },
+      message: <>NPC <strong>{npcParaExcluir.nome}</strong> foi removido do Bestiário.</>,
+      onRemove: (it) => setNpcs(prev => prev.filter(n => n.id !== it.id)),
       onCommit: async (it) => {
         const { error } = await npcService.deleteNpc(it.id);
         if (error) console.error('Erro ao deletar NPC:', error);
       },
-      onRollback: (it) => {
-        setNpcs(prev => [...prev, it]);
-      },
+      onRollback: (it) => setNpcs(prev => [...prev, it]),
       duration: 6000
     });
   };
 
   useEffect(() => {
     let active = true;
-
     async function carregarNpcs() {
       const { data, error } = await npcService.getNpcsMestre();
-
       if (!active) return;
-
-      if (error) {
-        console.error('Erro ao buscar NPCs:', error);
-      } else {
-        setNpcs(data || []);
-      }
+      if (error) console.error('Erro ao buscar NPCs:', error);
+      else setNpcs(data || []);
       setLoading(false);
     }
-
     carregarNpcs();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   async function criarNovoNpc() {
@@ -95,7 +82,6 @@ export default function ListaNPCsPage() {
     };
 
     const { data, error } = await npcService.createNpc(novoNpc);
-
     if (error) {
       console.error('Erro ao criar NPC:', error);
       showAlert('Erro ao criar NPC.');
@@ -106,12 +92,9 @@ export default function ListaNPCsPage() {
 
   const getRankBadgeVariant = (rank) => {
     switch (rank?.toLowerCase()) {
-      case 'elite':
-        return 'ether';
-      case 'campeao':
-        return 'crise';
-      default:
-        return 'gold';
+      case 'elite': return 'ether';
+      case 'campeao': return 'crise';
+      default: return 'gold';
     }
   };
 
@@ -142,9 +125,7 @@ export default function ListaNPCsPage() {
         <div className={styles.emptyState}>
           <FaSkull className={styles.emptyIcon} />
           <p>Nenhum NPC ou adversário cadastrado ainda.</p>
-          <Button variant="secondary" onClick={criarNovoNpc}>
-            Criar Primeiro NPC
-          </Button>
+          <Button variant="secondary" onClick={criarNovoNpc}>Criar Primeiro NPC</Button>
         </div>
       ) : (
         <div className={styles.grid}>
@@ -165,48 +146,44 @@ export default function ListaNPCsPage() {
                 </div>
 
                 <div className={styles.cardMeta}>
-                  <Badge variant="default" size="sm">
-                    {npc.especie?.toUpperCase() || 'FERA'}
-                  </Badge>
-                  <Badge variant="ether" size="sm">
-                    Nível {npc.nivel}
-                  </Badge>
+                  <Badge variant="default" size="sm">{npc.especie?.toUpperCase() || 'FERA'}</Badge>
+                  <Badge variant="ether" size="sm">Nível {npc.nivel}</Badge>
+                  {Boolean(npc.voador) && (
+                    <Badge variant="ether" size="sm" title="Criatura Voadora">🦅 Voador</Badge>
+                  )}
                   {normalizarTipoVilao(npc.tipo_vilao) !== 'padrao' && (
                     <Badge variant="villain" size="sm">
                       <FaCrown /> {TIPOS_VILAO[normalizarTipoVilao(npc.tipo_vilao)]?.badgeLabel}
                     </Badge>
                   )}
                   {(Number(npc.pontos_vilao) || 0) > 0 && (
-                    <Badge variant="villain" size="sm">
-                      <FaSkull /> {npc.pontos_vilao} PVilão
-                    </Badge>
+                    <Badge variant="villain" size="sm"><FaSkull /> {npc.pontos_vilao} PVilão</Badge>
                   )}
                   {(Number(npc.acoes_por_turno) || 1) > 1 && (
-                    <Badge variant="gold" size="sm">
-                      <FaBolt /> {npc.acoes_por_turno}x Ações
-                    </Badge>
+                    <Badge variant="gold" size="sm"><FaBolt /> {npc.acoes_por_turno}x Ações</Badge>
                   )}
                   {Array.isArray(npc.fases_chefao) && npc.fases_chefao.length > 0 && (
-                    <Badge variant="crise" size="sm">
-                      <FaFire /> {npc.fases_chefao.length} Fases
-                    </Badge>
+                    <Badge variant="crise" size="sm"><FaFire /> {npc.fases_chefao.length} Fases</Badge>
                   )}
                 </div>
+
+                {Array.isArray(npc.poderes) && npc.poderes.length > 0 && (
+                  <div className={styles.poderesResumoBox}>
+                    {npc.poderes.map((p, idx) => {
+                      const info = formatarPoderNpcParaExibicao(p);
+                      return (
+                        <Badge key={idx} variant="core" size="sm" title={info.descricao}>
+                          ✦ {info.resumoCurto}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className={styles.resourcesBox}>
-                <ResourceBar
-                  type="pv"
-                  current={npc.pv_atual}
-                  max={npc.pv_max}
-                  label="PV"
-                />
-                <ResourceBar
-                  type="pm"
-                  current={npc.pm_atual}
-                  max={npc.pm_max}
-                  label="PM"
-                />
+                <ResourceBar type="pv" current={npc.pv_atual} max={npc.pv_max} label="PV" />
+                <ResourceBar type="pm" current={npc.pm_atual} max={npc.pm_max} label="PM" />
                 <div className={styles.statsRow}>
                   <span className={styles.statItem}>
                     <FaShieldAlt /> Def: <strong className={styles.statValue}>{npc.defesa}</strong>
@@ -221,9 +198,7 @@ export default function ListaNPCsPage() {
               </div>
 
               <div className={styles.cardFooter}>
-                <span className={styles.openFichaText}>
-                  Abrir Ficha <FaArrowRight />
-                </span>
+                <span className={styles.openFichaText}>Abrir Ficha <FaArrowRight /></span>
                 <Button
                   variant="ghost"
                   size="sm"

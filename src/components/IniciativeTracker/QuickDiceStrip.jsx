@@ -103,6 +103,9 @@ export default function QuickDiceStrip({
               >
                 <FaCrosshairs />
                 <span>{arma.nome} [{s1}+{s2}]</span>
+                {arma.atingeVoadores && (
+                  <span className={styles.chipFlyTag} title="Atinge alvos voadores">🦅</span>
+                )}
                 <span className={styles.chipDmgTag}>RA+{arma.bonusDano}</span>
               </button>
             );

@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
-import { FaShieldAlt, FaCoins, FaHammer, FaPrint } from 'react-icons/fa';
-import { supabase } from '../../../services/supabase';
+import { FaShieldAlt, FaCoins, FaHammer } from 'react-icons/fa';
+import {
+    isEscudo,
+    ESCUDOS_BASE_COMUNS,
+    mesclarCaracteristicasCatalogo,
+    resolverCaracteristicaParametrizada,
+    aplicarBonusDefensivoEquipamento
+} from '../../../domain/fabula/equipmentRules';
+import { lojaService } from '../../../services/lojaService';
 import { useAlert } from '../../../contexts/useAlert';
 import { Button, Badge, Input, Card } from '../../../components/ui';
+import SeletorParametrosCaracteristica from './comum/SeletorParametrosCaracteristica';
 import styles from './CriadorItensRaros.module.css';
 
 export default function CriadorArmadurasEscudos({ onSalvarItem }) {
@@ -11,63 +19,79 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
     const [itemBaseSelecionado, setItemBaseSelecionado] = useState(null);
     const [caracteristicas, setCaracteristicas] = useState([]);
     const [caracteristicaSelecionada, setCaracteristicaSelecionada] = useState(null);
+    const [paramsCaracteristica, setParamsCaracteristica] = useState({
+        especie1: 'Fera', especie2: 'Monstro', tipoDano1: 'Fogo', tipoDano2: 'Gelo'
+    });
     const [nomeItem, setNomeItem] = useState('');
     const [salvando, setSalvando] = useState(false);
 
     useEffect(() => {
         async function carregarDados() {
-            const { data: bases } = await supabase
-                .from('itens_catalogo')
-                .select('*')
-                .eq('tipo', 'armadura')
-                .eq('stats->>raridade', 'comum');
+            const basesBanco = await lojaService.getBasesArmadurasEEscudos();
+            const nomesExistentes = new Set((basesBanco || []).map(b => (b.nome || '').trim().toLowerCase()));
+            const escudosNaoCadastrados = ESCUDOS_BASE_COMUNS.filter(esc => !nomesExistentes.has(esc.nome.trim().toLowerCase()));
+            const listaCompleta = [...(basesBanco || []), ...escudosNaoCadastrados];
+            setItensBase(listaCompleta);
+            if (listaCompleta.length > 0) setItemBaseSelecionado(listaCompleta[0]);
 
-            if (bases && bases.length > 0) {
-                setItensBase(bases);
-                setItemBaseSelecionado(bases[0]);
-            }
-
-            const { data: catalogo } = await supabase.from('catalogo_itens').select('*');
-            if (catalogo) {
-                const filtrados = catalogo.filter(i => i.tipo_item?.includes('armadura'));
-                setCaracteristicas([{ id: 'nenhuma', nome: 'Nenhuma característica', custo: 0, efeito: '' }, ...filtrados]);
-            }
+            const catalogo = await lojaService.getCaracteristicasArmadurasEEscudos();
+            const filtrados = (catalogo || []).filter(i => i.tipo_item?.includes('armadura') || i.tipo_item?.includes('escudo'));
+            setCaracteristicas(mesclarCaracteristicasCatalogo(filtrados));
         }
         carregarDados();
     }, []);
 
-    const statsBase = itemBaseSelecionado?.stats || {};
-    const defesa = statsBase.defesa || 0;
-    const defesaMagica = statsBase.defesa_magica || statsBase['defesa magica'] || 0;
-    const iniciativa = statsBase.iniciativa || 0;
-    const ehMarcial = statsBase.marcial === true;
+    const ehEscudoBase = isEscudo(itemBaseSelecionado);
+    const statsBase = itemBaseSelecionado?.stats || itemBaseSelecionado?.stats_personalizados || {};
+    const caracResolvida = resolverCaracteristicaParametrizada(caracteristicaSelecionada, paramsCaracteristica);
 
-    const custoBase = itemBaseSelecionado?.custo || 100;
-    const custoCarac = caracteristicaSelecionada?.custo || 0;
-    const precoTotal = custoBase + custoCarac;
+    const defBaseRaw = ehEscudoBase && typeof statsBase.defesa === 'string'
+        ? (parseInt(statsBase.defesa.replace(/\+/g, ''), 10) || 0)
+        : (statsBase.defesa ?? 0);
+    const mdefBaseRaw = ehEscudoBase && typeof (statsBase.defesa_magica || statsBase['defesa magica']) === 'string'
+        ? (parseInt(String(statsBase.defesa_magica || statsBase['defesa magica']).replace(/\+/g, ''), 10) || 0)
+        : (statsBase.defesa_magica ?? statsBase['defesa magica'] ?? 0);
+    const iniBaseRaw = parseInt(String(statsBase.iniciativa || 0), 10) || 0;
+
+    const defesa = aplicarBonusDefensivoEquipamento(defBaseRaw, caracResolvida.bonusDefesa, 'DES');
+    const defesaMagica = aplicarBonusDefensivoEquipamento(mdefBaseRaw, caracResolvida.bonusDefMagica, 'AST');
+    const iniciativa = iniBaseRaw + caracResolvida.bonusIniciativa;
+    const ehMarcial = statsBase.marcial === true || (itemBaseSelecionado?.tipo || '').toLowerCase().includes('marcial');
+
+    const custoBase = itemBaseSelecionado?.custo || itemBaseSelecionado?.preco || 100;
+    const precoTotal = custoBase + (caracteristicaSelecionada?.custo || 0);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!nomeItem.trim()) return showAlert('Dê um nome para a armadura/escudo!');
-        if (!itemBaseSelecionado) return showAlert('Selecione uma armadura base!');
+        if (!nomeItem.trim()) return showAlert(`Dê um nome para ${ehEscudoBase ? 'o escudo' : 'a armadura'}!`);
+        if (!itemBaseSelecionado) return showAlert('Selecione um item base!');
+        if (!caracResolvida.valido) return showAlert(caracResolvida.erroValidacao);
 
         setSalvando(true);
-        const efeitosList = caracteristicaSelecionada?.efeito ? [caracteristicaSelecionada.efeito] : [];
+        const efeitosList = caracResolvida.efeitoFormatado ? [caracResolvida.efeitoFormatado] : [];
+        const tipoFinal = ehEscudoBase ? 'escudo' : 'armadura';
+        const slotFinal = ehEscudoBase ? 'mao_secundaria' : 'armadura';
+        const categoriaFinal = ehEscudoBase ? 'Escudo' : (statsBase.categoria || 'Armadura');
 
         try {
             await onSalvarItem({
                 nome: nomeItem,
-                tipo: 'armadura',
+                tipo: tipoFinal,
                 custo: precoTotal,
                 stats: {
-                    slot: 'armadura',
+                    slot: slotFinal,
+                    categoria: categoriaFinal,
+                    escudo: ehEscudoBase,
                     raridade: 'raro',
-                    defesa: defesa,
+                    defesa,
                     defesa_magica: defesaMagica,
-                    iniciativa: iniciativa,
+                    iniciativa,
                     marcial: ehMarcial,
                     custo: precoTotal,
-                    efeitos: efeitosList
+                    efeitos: efeitosList,
+                    ...(caracResolvida.especiesAlvo.length > 0 ? { especies_cacadora: caracResolvida.especiesAlvo } : {}),
+                    ...(caracResolvida.resistencias.length > 0 ? { resistencias: caracResolvida.resistencias.map(r => r.toLowerCase()) } : {}),
+                    ...(caracResolvida.caracteristicaMeta ? { caracteristica_especial: caracResolvida.caracteristicaMeta } : {})
                 }
             });
             setNomeItem('');
@@ -77,7 +101,9 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
         }
     };
 
-    const nomeExibicao = nomeItem || itemBaseSelecionado?.nome || 'Armadura Rara';
+    const nomeExibicao = nomeItem || itemBaseSelecionado?.nome || (ehEscudoBase ? 'Escudo Raro' : 'Armadura Rara');
+    const rotuloDefesa = ehEscudoBase && typeof defesa === 'number' && defesa > 0 ? `+${defesa}` : defesa;
+    const rotuloDefMagica = ehEscudoBase && typeof defesaMagica === 'number' && defesaMagica > 0 ? `+${defesaMagica}` : defesaMagica;
 
     return (
         <div className={styles.container}>
@@ -88,63 +114,55 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
 
                 <form onSubmit={handleSubmit} className={styles.formGrid}>
                     <Input
-                        label="Nome da Armadura / Escudo"
+                        label={ehEscudoBase ? 'Nome do Escudo' : 'Nome da Armadura'}
                         value={nomeItem}
                         onChange={e => setNomeItem(e.target.value)}
-                        placeholder="Ex: Armadura Aethelgard"
+                        placeholder={ehEscudoBase ? 'Ex: Égide Celestial' : 'Ex: Armadura Aethelgard'}
                         required
                     />
 
                     <div className={styles.gridDuasColunas}>
                         <div className={styles.campoGrupo}>
-                            <label htmlFor="select-armadura-base" className={styles.labelCampo}>
-                                Item Base Comum
-                            </label>
-                            <select
-                                id="select-armadura-base"
-                                className={styles.selectCampo}
-                                onChange={e => setItemBaseSelecionado(itensBase[e.target.value])}
-                            >
+                            <label htmlFor="select-armadura-base" className={styles.labelCampo}>Item Base Comum</label>
+                            <select id="select-armadura-base" className={styles.selectCampo} onChange={e => setItemBaseSelecionado(itensBase[e.target.value])}>
                                 {itensBase.map((i, idx) => (
-                                    <option key={i.id || idx} value={idx}>
-                                        {i.nome} ({i.custo}z)
-                                    </option>
+                                    <option key={i.id || idx} value={idx}>[{isEscudo(i) ? 'Escudo' : 'Armadura'}] {i.nome} ({i.custo || 100}z)</option>
                                 ))}
                             </select>
                         </div>
 
                         <div className={styles.campoGrupo}>
-                            <label htmlFor="select-armadura-caracteristica" className={styles.labelCampo}>
-                                Característica Especial
-                            </label>
+                            <label htmlFor="select-armadura-caracteristica" className={styles.labelCampo}>Característica Especial</label>
                             <select
                                 id="select-armadura-caracteristica"
                                 className={styles.selectCampo}
+                                value={caracteristicaSelecionada?.id || 'nenhuma'}
                                 onChange={e => {
                                     const val = e.target.value;
-                                    setCaracteristicaSelecionada(val === 'nenhuma' ? null : caracteristicas[val]);
+                                    setCaracteristicaSelecionada(val === 'nenhuma' ? null : caracteristicas.find(c => String(c.id) === val));
                                 }}
                             >
                                 {caracteristicas.map((c, idx) => (
-                                    <option key={c.id || idx} value={c.id === 'nenhuma' ? 'nenhuma' : idx}>
-                                        {c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}
-                                    </option>
+                                    <option key={c.id || idx} value={c.id}>{c.nome} {c.custo > 0 ? `(+${c.custo}z)` : ''}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
 
-                    {caracteristicaSelecionada?.efeito && (
-                        <p className={styles.efeitoDescricao}>
-                            Efeito: {caracteristicaSelecionada.efeito}
-                        </p>
-                    )}
+                    {caracResolvida.efeitoFormatado && <p className={styles.efeitoDescricao}>Efeito: {caracResolvida.efeitoFormatado}</p>}
 
-                    {/* Resumo Dinâmico e Ações */}
+                    <SeletorParametrosCaracteristica
+                        caracteristicaSelecionada={caracteristicaSelecionada}
+                        paramsCaracteristica={paramsCaracteristica}
+                        onChangeParams={setParamsCaracteristica}
+                        styles={styles}
+                    />
+
                     <div className={styles.painelResumo}>
                         <div className={styles.resumoValores}>
                             <div className={styles.resumoDano}>
-                                Defesa: <span className={styles.resumoDanoValor}>{defesa}</span> | Def. Mágica: <span className={styles.resumoDanoValor}>{defesaMagica}</span>
+                                Defesa: <span className={styles.resumoDanoValor}>{rotuloDefesa}</span> | Def. Mágica: <span className={styles.resumoDanoValor}>{rotuloDefMagica}</span>
+                                {iniciativa !== 0 && ` | Ini: ${iniciativa > 0 ? `+${iniciativa}` : iniciativa}`}
                             </div>
                             <Badge variant="gold" size="lg">
                                 <FaCoins /> {precoTotal} zênites
@@ -152,28 +170,14 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
                         </div>
 
                         <div className={styles.resumoBotoes}>
-                            {/* <Button
-                                variant="ghost"
-                                size="md"
-                                onClick={() => window.print()}
-                                title="Imprimir Carta Física para Mesa"
-                            >
-                                <FaPrint /> Imprimir Carta
-                            </Button> */}
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                size="md"
-                                disabled={salvando}
-                            >
-                                <FaHammer /> {salvando ? 'Forjando...' : 'Forjar Armadura'}
+                            <Button type="submit" variant="primary" size="md" disabled={salvando}>
+                                <FaHammer /> {salvando ? 'Forjando...' : ehEscudoBase ? 'Forjar Escudo' : 'Forjar Armadura'}
                             </Button>
                         </div>
                     </div>
                 </form>
             </Card>
 
-            {/* Prévia da Carta de Equipamento para a Mesa */}
             <section className={styles.previewArea} aria-label="Prévia da Carta de Equipamento">
                 <div className={styles.previewTitulo}>
                     <FaShieldAlt /> Prévia da Carta de Equipamento (Pronta para Impressão)
@@ -184,12 +188,10 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
                         <div>
                             <h4 className={styles.cardNomeFisico}>{nomeExibicao}</h4>
                             <span className={styles.cardSubtituloFisico}>
-                                ARMADURA • {ehMarcial ? 'MARCIAL' : 'SIMPLES'}
+                                {ehEscudoBase ? 'ESCUDO' : 'ARMADURA'} • {ehMarcial ? 'MARCIAL' : 'SIMPLES'}
                             </span>
                         </div>
-                        <Badge variant="gold" size="sm">
-                            <FaCoins /> {precoTotal}z
-                        </Badge>
+                        <Badge variant="gold" size="sm"><FaCoins /> {precoTotal}z</Badge>
                     </div>
 
                     <div className={styles.tagsRow}>
@@ -197,28 +199,35 @@ export default function CriadorArmadurasEscudos({ onSalvarItem }) {
                         <Badge variant={ehMarcial ? 'crise' : 'default'} size="sm">
                             {ehMarcial ? '⚔️ Marcial' : '🛡️ Simples'}
                         </Badge>
+                        {ehEscudoBase && <Badge variant="info" size="sm">🛡️ Mão Secundária</Badge>}
                         {iniciativa !== 0 && (
                             <Badge variant="core" size="sm">
                                 {iniciativa > 0 ? `+${iniciativa}` : iniciativa} Iniciativa
                             </Badge>
+                        )}
+                        {caracResolvida.especiesAlvo.length > 0 && (
+                            <Badge variant="crise" size="sm">🎯 Caçadora: {caracResolvida.especiesAlvo.join(' / ')}</Badge>
+                        )}
+                        {caracResolvida.resistencias.length > 0 && (
+                            <Badge variant="ether" size="sm">🛡️ Res: {caracResolvida.resistencias.join(' / ')}</Badge>
                         )}
                     </div>
 
                     <div className={styles.cardStatsGrid}>
                         <div className={styles.cardStatItem}>
                             <span className={styles.cardStatLabel}>Defesa</span>
-                            <span className={styles.cardStatValor}>{defesa}</span>
+                            <span className={styles.cardStatValor}>{rotuloDefesa}</span>
                         </div>
                         <div className={styles.cardStatItem}>
                             <span className={styles.cardStatLabel}>Def. Mágica</span>
-                            <span className={styles.cardStatValor}>{defesaMagica}</span>
+                            <span className={styles.cardStatValor}>{rotuloDefMagica}</span>
                         </div>
                     </div>
 
                     <div className={styles.cardEfeitosArea}>
                         <strong>Propriedades Mágicas & Efeitos:</strong>
                         <p className={styles.efeitoDescricao}>
-                            {caracteristicaSelecionada?.efeito || 'Nenhuma propriedade adicional selecionada.'}
+                            {caracResolvida.efeitoFormatado || 'Nenhuma propriedade adicional selecionada.'}
                         </p>
                     </div>
                 </div>

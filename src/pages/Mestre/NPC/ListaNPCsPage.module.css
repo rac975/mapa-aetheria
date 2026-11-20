@@ -113,8 +113,16 @@
 .cardMeta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-1);
+}
+
+.poderesResumoBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--space-2);
 }
 
 .resourcesBox {

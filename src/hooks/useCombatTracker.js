@@ -300,6 +300,7 @@ export function useCombatTracker(isMestre) {
     mpMaxInput,
     tipoVilaoInput = 'padrao',
     acoesPorTurnoInput = 1,
+    voadorInput = false,
     npcCatalogoSelecionado
   }) => {
     if (!isMestre) return false;
@@ -343,6 +344,11 @@ export function useCombatTracker(isMestre) {
         tipoVilao: tipoVilaoNpc,
         quantidadeSoldados: npcCatalogoSelecionado.quantidade_soldados
       });
+      const ehVoador = Boolean(
+        npcCatalogoSelecionado.voador ||
+        (npcCatalogoSelecionado.poderes || []).some((p) => String(p?.nome || p).toLowerCase().includes('voador')) ||
+        String(npcCatalogoSelecionado.regras_especiais || npcCatalogoSelecionado.descricao || '').toLowerCase().includes('voador')
+      );
 
       novoCombatente = construirCombatente({
         tipo: 'inimigo',
@@ -355,7 +361,8 @@ export function useCombatTracker(isMestre) {
         fasesChefao: fasesNpc,
         acoesPorTurno: acoesCalculadas,
         faseAtual: faseInicialNum,
-        npcId: npcCatalogoSelecionado.id
+        npcId: npcCatalogoSelecionado.id,
+        voador: ehVoador
       });
     } else {
       if (!nomeInimigo || !nomeInimigo.trim()) {
@@ -369,7 +376,8 @@ export function useCombatTracker(isMestre) {
         hpMax: Number(hpMaxInput),
         mpMax: Number(mpMaxInput),
         tipoVilao: tipoVilaoInput,
-        acoesPorTurno: Number(acoesPorTurnoInput) || 1
+        acoesPorTurno: Number(acoesPorTurnoInput) || 1,
+        voador: Boolean(voadorInput)
       });
     }
 

@@ -16,6 +16,7 @@ export const lojaService = {
     async adicionarItemPersonagem({ fichaId, nomeItem, tipo = 'arma', statsPersonalizados }) {
         const { data, error } = await supabase.from('itens_personagem').insert([{
             ficha_id: fichaId,
+            nome: nomeItem,
             nome_item: nomeItem,
             tipo,
             stats_personalizados: statsPersonalizados
@@ -92,6 +93,45 @@ export const lojaService = {
     async excluirLoja(lojaId) {
         const { error } = await supabase.from('lojas').delete().eq('id', lojaId);
         return { error };
+    },
+
+    /**
+     * Salva ou atualiza um estabelecimento de loja
+     * @param {Object} params
+     * @param {string|number} [params.id]
+     * @param {string} params.nome
+     * @param {string} [params.cidade]
+     * @param {string} [params.descricao]
+     * @param {string} [params.vendedor]
+     * @returns {Promise<{data: any, error: any}>}
+     */
+    async salvarEstabelecimento({ id, nome, cidade = '', descricao = '', vendedor = '' }) {
+        const dadosCompletos = {
+            nome,
+            cidade,
+            descricao,
+            vendedor: vendedor || null
+        };
+
+        try {
+            if (id) {
+                const { data, error } = await supabase.from('lojas').update(dadosCompletos).eq('id', id).select().single();
+                if (error && (error.code === '42703' || String(error.message || '').includes('vendedor'))) {
+                    const { data: d2, error: err2 } = await supabase.from('lojas').update({ nome, cidade, descricao }).eq('id', id).select().single();
+                    return { data: d2, error: err2 };
+                }
+                return { data, error };
+            } else {
+                const { data, error } = await supabase.from('lojas').insert([dadosCompletos]).select().single();
+                if (error && (error.code === '42703' || String(error.message || '').includes('vendedor'))) {
+                    const { data: d2, error: err2 } = await supabase.from('lojas').insert([{ nome, cidade, descricao }]).select().single();
+                    return { data: d2, error: err2 };
+                }
+                return { data, error };
+            }
+        } catch (err) {
+            return { data: null, error: err };
+        }
     },
 
     /**
@@ -290,5 +330,100 @@ export const lojaService = {
                 }
             }
         };
+    },
+
+    /**
+     * Busca itens base comuns de armaduras e escudos no catálogo (filtrando itens impróprios como Sem Armadura)
+     * @returns {Promise<Array<any>>}
+     */
+    async getBasesArmadurasEEscudos() {
+        const { data, error } = await supabase
+            .from('itens_catalogo')
+            .select('*')
+            .in('tipo', ['armadura', 'escudo'])
+            .eq('stats->>raridade', 'comum');
+
+        if (error) {
+            console.error('Erro ao buscar bases de armaduras/escudos:', error);
+            return [];
+        }
+        return (data || []).filter(item => {
+            const nomeLower = (item.nome || '').toLowerCase();
+            return !nomeLower.includes('sem armadura') && !nomeLower.includes('improvisad');
+        });
+    },
+
+    /**
+     * Busca características especiais disponíveis no catálogo para equipamentos
+     * @returns {Promise<Array<any>>}
+     */
+    async getCaracteristicasArmadurasEEscudos() {
+        const { data, error } = await supabase
+            .from('catalogo_itens')
+            .select('*');
+
+        if (error) {
+            console.error('Erro ao buscar características de armaduras/escudos:', error);
+            return [];
+        }
+        return data || [];
+    },
+
+    /**
+     * Busca armas base comuns no catálogo (filtrando improvisadas)
+     * @returns {Promise<Array<any>>}
+     */
+    async getBasesArmas() {
+        const { data, error } = await supabase
+            .from('itens_catalogo')
+            .select('*')
+            .eq('tipo', 'arma')
+            .eq('stats->>raridade', 'comum');
+
+        if (error) {
+            console.error('Erro ao buscar bases de armas:', error);
+            return [];
+        }
+        return (data || []).filter(item => {
+            const nomeLower = (item.nome || '').toLowerCase();
+            return !nomeLower.includes('improvisad') && !nomeLower.includes('desarmado');
+        });
+    },
+
+    /**
+     * Busca características de armas (ofensivas e defensivas)
+     * @returns {Promise<Array<any>>}
+     */
+    async getCaracteristicasArmas() {
+        const { data, error } = await supabase
+            .from('catalogo_itens')
+            .select('*');
+
+        if (error) {
+            console.error('Erro ao buscar características de armas:', error);
+            return [];
+        }
+        return (data || []).filter(i =>
+            i.tipo_item === 'caracteristica_arma_ofensiva' ||
+            i.tipo_item === 'caracteristica_arma_defensiva'
+        );
+    },
+
+    /**
+     * Busca características de acessórios
+     * @returns {Promise<Array<any>>}
+     */
+    async getCaracteristicasAcessorios() {
+        const { data, error } = await supabase
+            .from('catalogo_itens')
+            .select('*');
+
+        if (error) {
+            console.error('Erro ao buscar características de acessórios:', error);
+            return [];
+        }
+        return (data || []).filter(i =>
+            (i.tipo_item || '').includes('acessorio')
+        );
     }
 };

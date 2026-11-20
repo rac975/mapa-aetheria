@@ -53,11 +53,14 @@ export default function NPCEditor({
     } else if (campo === 'pv_max' || campo === 'pm_max') {
       const isPv = campo === 'pv_max';
       const novoMax = Math.max(0, parseInt(valor, 10) || 0);
-      const updates = isPv ? { pv_max: novoMax, hp_max: novoMax, maxHp: novoMax } : { pm_max: novoMax, mp_max: novoMax, maxMp: novoMax };
-      if (isPv && npc.pv_atual !== undefined) updates.pv_atual = clampRecursoNpc(npc.pv_atual, novoMax, 0);
-      if (isPv && npc.hp_atual !== undefined) updates.hp_atual = clampRecursoNpc(npc.hp_atual, novoMax, 0);
-      if (!isPv && npc.pm_atual !== undefined) updates.pm_atual = clampRecursoNpc(npc.pm_atual, novoMax, 0);
-      if (!isPv && npc.mp_atual !== undefined) updates.mp_atual = clampRecursoNpc(npc.mp_atual, novoMax, 0);
+      const updates = isPv ? { pv_max: novoMax } : { pm_max: novoMax };
+      if (isPv) {
+        const atual = npc.pv_atual !== undefined ? npc.pv_atual : (npc.hp_atual !== undefined ? npc.hp_atual : novoMax);
+        updates.pv_atual = clampRecursoNpc(atual, novoMax, 0);
+      } else {
+        const atual = npc.pm_atual !== undefined ? npc.pm_atual : (npc.mp_atual !== undefined ? npc.mp_atual : novoMax);
+        updates.pm_atual = clampRecursoNpc(atual, novoMax, 0);
+      }
       onUpdate({ ...npc, ...updates });
     } else {
       onUpdate({ ...npc, [campo]: valor });
@@ -69,7 +72,7 @@ export default function NPCEditor({
       showAlert('⚠️ Companheiros Fiéis podem ter no máximo dois ataques básicos.');
       return;
     }
-    const novoAtaque = { nome: 'Ataque Básico', atributo_dado1: 'des', atributo_dado2: 'vig', bonus_precisao: 0, bonus_dano: 0, tipo_dano: 'fisico' };
+    const novoAtaque = { nome: 'Ataque Básico', atributo_dado1: 'des', atributo_dado2: 'vig', bonus_precisao: 0, bonus_dano: 5, tipo_dano: 'fisico', condicao: '', efeito: '' };
     onUpdate({ ...npc, ataques_basicos: [...(npc.ataques_basicos || []), novoAtaque] });
   }
 
@@ -138,6 +141,13 @@ export default function NPCEditor({
           <div className={styles.fieldWrapper}>
             <label className={styles.label}>Nível {isCompanheiro ? '(Fixo)' : '(5 a 60)'}</label>
             <input type="number" min={5} max={60} disabled={isCompanheiro} className={`${styles.input} ${isCompanheiro ? styles.inputDisabled : ''}`} value={isCompanheiro ? 5 : (npc.nivel || 5)} onChange={(e) => handleChange('nivel', parseInt(e.target.value, 10) || 5)} />
+          </div>
+
+          <div className={styles.checkboxFieldWrapper}>
+            <label className={styles.checkboxLabel} title="Marcar criatura como voadora">
+              <input type="checkbox" checked={Boolean(npc.voador)} onChange={(e) => handleChange('voador', e.target.checked)} className={styles.checkbox} />
+              <span>🦅 Criatura Voadora</span>
+            </label>
           </div>
         </div>
 
@@ -224,14 +234,9 @@ export default function NPCEditor({
           onUpdate({ ...npc, ataques_basicos: atualizados });
         }}
         onRemoverAtaque={(idx) => onUpdate({ ...npc, ataques_basicos: (npc.ataques_basicos || []).filter((_, i) => i !== idx) })}
-        onAdicionarPoder={(p) => {
-          const novosPoderes = [...(npc.poderes || []), p];
-          onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: novosPoderes }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: novosPoderes });
-        }}
-        onRemoverPoder={(idx) => {
-          const novosPoderes = (npc.poderes || []).filter((_, i) => i !== idx);
-          onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: novosPoderes }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: novosPoderes });
-        }}
+        onAdicionarPoder={(p) => { const np = [...(npc.poderes || []), p]; onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
+        onAtualizarPoder={(idx, p) => { const np = [...(npc.poderes || [])]; np[idx] = p; onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
+        onRemoverPoder={(idx) => { const np = (npc.poderes || []).filter((_, i) => i !== idx); onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
         onAdicionarFeitico={(f) => onUpdate({ ...npc, feiticos: [...(npc.feiticos || []), f] })}
         onRemoverFeitico={(idx) => onUpdate({ ...npc, feiticos: (npc.feiticos || []).filter((_, i) => i !== idx) })}
       />

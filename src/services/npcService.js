@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js';
+import { sanitizarPayloadNpcMestre, normalizarNpcLeitura } from '../domain/fabula/npcRules.js';
 
 /**
  * Service para operações com NPCs e Adversários (npcs_mestre)
@@ -11,11 +12,16 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async getNpcsMestre() {
-    return await supabase
+    const res = await supabase
       .from('npcs_mestre')
       .select('*')
       .eq('tipo_registro', 'npc_mestre')
       .order('created_at', { ascending: false });
+
+    if (res.data && Array.isArray(res.data)) {
+      return { ...res, data: res.data.map(normalizarNpcLeitura) };
+    }
+    return res;
   },
 
   /**
@@ -24,11 +30,16 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async getNpcPorId(id) {
-    return await supabase
+    const res = await supabase
       .from('npcs_mestre')
       .select('*')
       .eq('id', id)
       .single();
+
+    if (res.data) {
+      return { ...res, data: normalizarNpcLeitura(res.data) };
+    }
+    return res;
   },
 
   /**
@@ -38,9 +49,10 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async updateNpc(id, npcData) {
+    const payload = sanitizarPayloadNpcMestre(npcData, { preservarId: false });
     return await supabase
       .from('npcs_mestre')
-      .update(npcData)
+      .update(payload)
       .eq('id', id);
   },
 
@@ -62,11 +74,17 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async createNpc(npcData) {
-    return await supabase
+    const payload = sanitizarPayloadNpcMestre(npcData);
+    const res = await supabase
       .from('npcs_mestre')
-      .insert([npcData])
+      .insert([payload])
       .select()
       .single();
+
+    if (res.data) {
+      return { ...res, data: normalizarNpcLeitura(res.data) };
+    }
+    return res;
   },
 
   /**
@@ -105,12 +123,17 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async getCompanheiroFielPorPersonagemId(personagemId) {
-    return await supabase
+    const res = await supabase
       .from('npcs_mestre')
       .select('*')
       .eq('personagem_id', personagemId)
       .eq('tipo_registro', 'companheiro')
       .maybeSingle();
+
+    if (res.data) {
+      return { ...res, data: normalizarNpcLeitura(res.data) };
+    }
+    return res;
   },
 
   /**
@@ -119,11 +142,17 @@ export const npcService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async createCompanheiroFiel(companheiroData) {
-    return await supabase
+    const payload = sanitizarPayloadNpcMestre(companheiroData);
+    const res = await supabase
       .from('npcs_mestre')
-      .insert([companheiroData])
+      .insert([payload])
       .select()
       .single();
+
+    if (res.data) {
+      return { ...res, data: normalizarNpcLeitura(res.data) };
+    }
+    return res;
   },
 
   /**

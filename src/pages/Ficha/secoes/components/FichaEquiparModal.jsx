@@ -2,78 +2,44 @@ import { useState, useMemo } from 'react';
 import { FaShieldAlt, FaExchangeAlt, FaBoxOpen } from 'react-icons/fa';
 import { GiBroadsword, GiArmorVest, GiRing, GiBowman } from 'react-icons/gi';
 import { Modal, Button, Badge } from '../../../../components/ui';
-import { validarSlotEquipamento, isEscudo } from '../../../../domain/fabula/equipmentRules';
+import {
+  validarSlotEquipamento,
+  isEscudo,
+  armaAtingeVoadores,
+  extrairResumoCaracteristicasEquipamento
+} from '../../../../domain/fabula/equipmentRules';
 import styles from './FichaEquiparModal.module.css';
 
-/**
- * Retorna o ícone e a classe temática para a categoria de equipamento
- */
 // eslint-disable-next-line react-refresh/only-export-components
 export function getItemCategoryIcon(item) {
   const tipo = (item?.tipo || '').toLowerCase();
   const nome = (item?.nome || '').toLowerCase();
 
-  if (isEscudo(item)) {
-    return {
-      icon: <FaShieldAlt />,
-      className: styles.itemIconEscudo,
-      label: 'Escudo'
-    };
-  }
-  if (tipo.includes('armadura') || nome.includes('armadura')) {
-    return {
-      icon: <GiArmorVest />,
-      className: styles.itemIconArmadura,
-      label: 'Armadura'
-    };
-  }
+  if (isEscudo(item)) return { icon: <FaShieldAlt />, className: styles.itemIconEscudo, label: 'Escudo' };
+  if (tipo.includes('armadura') || nome.includes('armadura')) return { icon: <GiArmorVest />, className: styles.itemIconArmadura, label: 'Armadura' };
   if (tipo.includes('acessorio') || tipo.includes('acessório') || nome.includes('anel') || nome.includes('colar')) {
-    return {
-      icon: <GiRing />,
-      className: styles.itemIconAcessorio,
-      label: 'Acessório'
-    };
+    return { icon: <GiRing />, className: styles.itemIconAcessorio, label: 'Acessório' };
   }
   if (tipo.includes('arco') || tipo.includes('distância') || tipo.includes('distancia')) {
-    return {
-      icon: <GiBowman />,
-      className: styles.itemIconArma,
-      label: 'Arma à Distância'
-    };
+    return { icon: <GiBowman />, className: styles.itemIconArma, label: 'Arma à Distância' };
   }
-  return {
-    icon: <GiBroadsword />,
-    className: styles.itemIconArma,
-    label: 'Arma'
-  };
+  return { icon: <GiBroadsword />, className: styles.itemIconArma, label: 'Arma' };
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function formatarNomeSlot(slotId) {
   switch (slotId) {
-    case 'mao_dominante':
-      return 'Mão Dominante';
-    case 'mao_secundaria':
-      return 'Mão Não Dominante / Escudo';
-    case 'armadura':
-      return 'Armadura';
-    case 'acessorio':
-      return 'Acessório';
-    default:
-      return slotId ? slotId.replace('_', ' ') : 'Slot';
+    case 'mao_dominante': return 'Mão Dominante';
+    case 'mao_secundaria': return 'Mão Não Dominante / Escudo';
+    case 'armadura': return 'Armadura';
+    case 'acessorio': return 'Acessório';
+    default: return slotId ? slotId.replace('_', ' ') : 'Slot';
   }
 }
 
 export default function FichaEquiparModal({
-  isOpen,
-  onClose,
-  slotAlvo,
-  slotConfig = [],
-  itensInventario = [],
-  classes = [],
-  onEquipar,
-  onDesequipar,
-  onTrocarRapido
+  isOpen, onClose, slotAlvo, slotConfig = [], itensInventario = [],
+  classes = [], onEquipar, onDesequipar, onTrocarRapido
 }) {
   const [categoriaAtiva, setCategoriaAtiva] = useState('compativeis');
 
@@ -85,50 +51,40 @@ export default function FichaEquiparModal({
     };
   }, [slotConfig, slotAlvo]);
 
-  // Item atualmente equipado no slot alvo
   const itemAtualNoSlot = useMemo(() => {
     if (!slotAlvo) return null;
     return itensInventario.find((i) => i.stats_personalizados?.slot === slotAlvo);
   }, [itensInventario, slotAlvo]);
 
-  // Filtragem dos itens de inventário
   const itensExibidos = useMemo(() => {
     if (!slotAlvo) return [];
-
     return itensInventario.filter((item) => {
       const tipo = (item.tipo || '').toLowerCase();
-
       switch (categoriaAtiva) {
-        case 'compativeis': {
-          const check = validarSlotEquipamento({ item, slotAlvo, classes });
-          return check.permitido;
-        }
-        case 'armas':
-          return tipo.includes('arma') && !isEscudo(item);
-        case 'escudos':
-          return isEscudo(item);
-        case 'armaduras':
-          return tipo.includes('armadura');
-        case 'acessorios':
-          return tipo.includes('acessorio') || tipo.includes('acessório');
-        case 'todos':
-        default:
-          return true;
+        case 'compativeis': return validarSlotEquipamento({ item, slotAlvo, classes }).permitido;
+        case 'armas': return tipo.includes('arma') && !isEscudo(item);
+        case 'escudos': return isEscudo(item);
+        case 'armaduras': return tipo.includes('armadura');
+        case 'acessorios': return tipo.includes('acessorio') || tipo.includes('acessório');
+        default: return true;
       }
     });
   }, [itensInventario, slotAlvo, categoriaAtiva, classes]);
 
   if (!isOpen) return null;
 
+  const abas = [
+    { key: 'compativeis', label: 'Compatíveis' },
+    { key: 'armas', label: 'Armas' },
+    { key: 'escudos', label: 'Escudos' },
+    { key: 'armaduras', label: 'Armaduras' },
+    { key: 'acessorios', label: 'Acessórios' },
+    { key: 'todos', label: `Todos (${itensInventario.length})` }
+  ];
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Equipar: ${slotInfo.label}`}
-      size="md"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={`Equipar: ${slotInfo.label}`} size="md">
       <div className={styles.modalContainer}>
-        {/* 1. BANNER DO QUE JÁ ESTÁ EQUIPADO NESTE SLOT */}
         <div className={styles.slotAtualBanner}>
           <div className={styles.slotAtualInfo}>
             {itemAtualNoSlot ? (
@@ -148,71 +104,29 @@ export default function FichaEquiparModal({
               </div>
             )}
           </div>
-
           {itemAtualNoSlot && (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              onClick={() => onDesequipar(itemAtualNoSlot)}
-            >
+            <Button type="button" variant="danger" size="sm" onClick={() => onDesequipar(itemAtualNoSlot)}>
               Desequipar
             </Button>
           )}
         </div>
 
-        {/* 2. ABAS DE FILTRO POR CATEGORIA */}
         <div className={styles.tabsFiltro}>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'compativeis' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('compativeis')}
-          >
-            Compatíveis
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'armas' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('armas')}
-          >
-            Armas
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'escudos' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('escudos')}
-          >
-            Escudos
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'armaduras' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('armaduras')}
-          >
-            Armaduras
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'acessorios' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('acessorios')}
-          >
-            Acessórios
-          </button>
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${categoriaAtiva === 'todos' ? styles.tabBtnActive : ''}`}
-            onClick={() => setCategoriaAtiva('todos')}
-          >
-            Todos ({itensInventario.length})
-          </button>
+          {abas.map((aba) => (
+            <button
+              key={aba.key}
+              type="button"
+              className={`${styles.tabBtn} ${categoriaAtiva === aba.key ? styles.tabBtnActive : ''}`}
+              onClick={() => setCategoriaAtiva(aba.key)}
+            >
+              {aba.label}
+            </button>
+          ))}
         </div>
 
-        {/* 3. LISTA DE ITENS DISPONÍVEIS */}
         <div className={styles.itensLista}>
           {itensExibidos.length === 0 ? (
-            <p className={styles.itensListaVazia}>
-              Nenhum item encontrado nesta categoria para este slot.
-            </p>
+            <p className={styles.itensListaVazia}>Nenhum item encontrado nesta categoria para este slot.</p>
           ) : (
             itensExibidos.map((item) => {
               const categoryMeta = getItemCategoryIcon(item);
@@ -220,16 +134,14 @@ export default function FichaEquiparModal({
               const estaEquipadoAqui = slotOcupado === slotAlvo;
               const estaEquipadoOutro = slotOcupado && slotOcupado !== slotAlvo;
               const stats = item.stats_personalizados || {};
+              const resumoCarac = extrairResumoCaracteristicasEquipamento(item);
+              const efeitosTexto = Array.isArray(stats.efeitos) ? stats.efeitos.join(' • ') : (stats.qualidade || '');
 
               return (
                 <div
                   key={item.id}
                   className={`${styles.itemLinha} ${
-                    estaEquipadoAqui
-                      ? styles.itemLinhaEquipadoAqui
-                      : estaEquipadoOutro
-                      ? styles.itemLinhaEquipadoOutro
-                      : ''
+                    estaEquipadoAqui ? styles.itemLinhaEquipadoAqui : estaEquipadoOutro ? styles.itemLinhaEquipadoOutro : ''
                   }`}
                 >
                   <div className={styles.itemLinhaEsquerda}>
@@ -244,52 +156,45 @@ export default function FichaEquiparModal({
                         {estaEquipadoAqui ? (
                           <Badge variant="core" size="sm">Equipado Aqui</Badge>
                         ) : estaEquipadoOutro ? (
-                          <Badge variant="ether" size="sm">
-                            Equipado em: {formatarNomeSlot(slotOcupado)}
-                          </Badge>
+                          <Badge variant="ether" size="sm">Equipado em: {formatarNomeSlot(slotOcupado)}</Badge>
                         ) : (
                           <Badge variant="default" size="sm">Na Mochila</Badge>
                         )}
+                        {armaAtingeVoadores(item) && (
+                          <Badge variant="ether" size="sm" title="Atinge alvos voadores">🦅 Atinge Voadores</Badge>
+                        )}
+                        {resumoCarac.especiesCacadora.length > 0 && (
+                          <Badge variant="crise" size="sm">🎯 Caçadora: {resumoCarac.especiesCacadora.join(' / ')}</Badge>
+                        )}
+                        {resumoCarac.resistencias.length > 0 && (
+                          <Badge variant="ether" size="sm">🛡️ Res: {resumoCarac.resistencias.join(' / ')}</Badge>
+                        )}
+                        {resumoCarac.segundaForma && (
+                          <Badge variant="gold" size="sm">🔄 2ª Forma: {resumoCarac.segundaForma.nome}</Badge>
+                        )}
                       </div>
 
-                      {/* Resumo de atributos/efeitos */}
                       <div className={styles.itemStatsResumo}>
                         {stats.precisao && <span>Precisão: {stats.precisao} | </span>}
                         {stats.dano && <span>Dano: {stats.dano} [{stats.tipo_dano || 'Físico'}] | </span>}
-                        {stats.defesa && <span>DEF: {stats.defesa} | </span>}
-                        {stats.defesa_magica && <span>M.DEF: {stats.defesa_magica} | </span>}
-                        {stats.qualidade && <span>{stats.qualidade}</span>}
+                        {Boolean(stats.defesa) && <span>DEF: {stats.defesa} | </span>}
+                        {Boolean(stats.defesa_magica) && <span>M.DEF: {stats.defesa_magica} | </span>}
+                        {efeitosTexto && <span>{efeitosTexto}</span>}
                       </div>
                     </div>
                   </div>
 
                   <div className={styles.itemAcoes}>
                     {estaEquipadoAqui ? (
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        onClick={() => onDesequipar(item)}
-                      >
+                      <Button type="button" variant="danger" size="sm" onClick={() => onDesequipar(item)}>
                         Desequipar
                       </Button>
                     ) : estaEquipadoOutro ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => onTrocarRapido(item, slotAlvo)}
-                        title="Move este item diretamente para este slot sem precisar desequipar antes"
-                      >
+                      <Button type="button" variant="secondary" size="sm" onClick={() => onTrocarRapido(item, slotAlvo)}>
                         <FaExchangeAlt /> Trocar para Cá
                       </Button>
                     ) : (
-                      <Button
-                        type="button"
-                        variant="core"
-                        size="sm"
-                        onClick={() => onEquipar(item, slotAlvo)}
-                      >
+                      <Button type="button" variant="core" size="sm" onClick={() => onEquipar(item, slotAlvo)}>
                         Equipar Aqui
                       </Button>
                     )}

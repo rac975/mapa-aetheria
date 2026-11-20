@@ -289,7 +289,7 @@ export function recalcularEstatisticasNpc({
     ? 1
     : Math.max(acoesSugeridas, Number(npc.acoes_por_turno) || 1);
 
-  return {
+  const resultado = {
     ...npc,
     nivel,
     atributos,
@@ -302,18 +302,242 @@ export function recalcularEstatisticasNpc({
     fase_atual: Math.max(1, Number(npc.fase_atual) || 1),
     pv_max: pvCalculado,
     pm_max: pmCalculado,
-    hp_max: pvCalculado,
-    mp_max: pmCalculado,
-    maxHp: pvCalculado,
-    maxMp: pmCalculado,
     pv_atual: pvAtualAtualizado,
     pm_atual: pmAtualAtualizado,
-    hp_atual: pvAtualAtualizado,
-    mp_atual: pmAtualAtualizado,
     iniciativa: iniciativaCalculada,
     defesa: defesaCalculada,
     defesa_magica: defMagicaCalculada
   };
+
+  return normalizarNpcLeitura(resultado);
+}
+
+/**
+ * Conjunto oficial de colunas existentes na tabela public.npcs_mestre.
+ * Impede que campos espúrios (como hp_atual, hp_max, maxHp, stats, etc.)
+ * sejam passados nas operações de INSERT ou UPDATE/PATCH.
+ */
+export const COLUNAS_VALIDAS_NPCS_MESTRE = new Set([
+  'id',
+  'user_id',
+  'nome',
+  'especie',
+  'nivel',
+  'rank',
+  'pv_max',
+  'pv_atual',
+  'pm_max',
+  'pm_atual',
+  'defesa',
+  'defesa_magica',
+  'iniciativa',
+  'atributos',
+  'afinidades',
+  'tracos',
+  'ataques_basicos',
+  'poderes',
+  'feiticos',
+  'created_at',
+  'tipo_registro',
+  'personagem_id',
+  'quantidade_soldados',
+  'tipo_vilao',
+  'pontos_vilao',
+  'fases_chefao',
+  'acoes_por_turno',
+  'fase_atual',
+  'voador'
+]);
+
+/**
+ * Normaliza um objeto de NPC vindo do banco ou de estado legado.
+ * Mapeia pv_max, pv_atual, pm_max e pm_atual garantindo retrocompatibilidade
+ * caso venham sob outras nomenclaturas (hp_atual, hp_max, maxHp, maxMp) ou dentro de stats.
+ * Adiciona getters não-enumeráveis para que acessos legados em memória continuem funcionando
+ * sem poluir o objeto com chaves enumeráveis nem reenviá-las ao banco.
+ *
+ * @param {Object} npc
+ * @returns {Object} Objeto NPC normalizado
+ */
+export function normalizarNpcLeitura(npc) {
+  if (!npc || typeof npc !== 'object') return npc;
+
+  const stats = (typeof npc.stats === 'object' && npc.stats !== null) ? npc.stats : {};
+
+  // Extração de PV Máximo
+  const pvMaxBruto = npc.pv_max ?? stats.pv_max ?? npc.hp_max ?? stats.hp_max ?? npc.maxHp ?? stats.maxHp;
+  const pvMax = pvMaxBruto !== undefined && pvMaxBruto !== null
+    ? Math.max(0, Number(pvMaxBruto) || 0)
+    : calcularPvMaxNpc({
+        nivel: npc.nivel || 5,
+        vigNum: dadoParaNumero(npc.atributos?.vig),
+        rank: npc.rank || 'soldado',
+        quantidadeSoldados: npc.quantidade_soldados || 2
+      });
+
+  // Extração de PV Atual
+  const pvAtualBruto = npc.pv_atual ?? stats.pv_atual ?? npc.hp_atual ?? stats.hp_atual;
+  const pvAtual = pvAtualBruto !== undefined && pvAtualBruto !== null
+    ? clampRecursoNpc(Number(pvAtualBruto) || 0, pvMax, 0)
+    : pvMax;
+
+  // Extração de PM Máximo
+  const pmMaxBruto = npc.pm_max ?? stats.pm_max ?? npc.mp_max ?? stats.mp_max ?? npc.maxMp ?? stats.maxMp;
+  const pmMax = pmMaxBruto !== undefined && pmMaxBruto !== null
+    ? Math.max(0, Number(pmMaxBruto) || 0)
+    : calcularPmMaxNpc({
+        nivel: npc.nivel || 5,
+        vonNum: dadoParaNumero(npc.atributos?.von),
+        rank: npc.rank || 'soldado'
+      });
+
+  // Extração de PM Atual
+  const pmAtualBruto = npc.pm_atual ?? stats.pm_atual ?? npc.mp_atual ?? stats.mp_atual;
+  const pmAtual = pmAtualBruto !== undefined && pmAtualBruto !== null
+    ? clampRecursoNpc(Number(pmAtualBruto) || 0, pmMax, 0)
+    : pmMax;
+
+  // Monta objeto sem chaves legadas como propriedades enumeráveis
+  const {
+    hp_atual: _hpa,
+    hp_max: _hpm,
+    maxHp: _mxh,
+    mp_atual: _mpa,
+    mp_max: _mpm,
+    maxMp: _mxm,
+    ...resto
+  } = npc;
+
+  const normalizado = {
+    ...resto,
+    pv_max: pvMax,
+    pv_atual: pvAtual,
+    pm_max: pmMax,
+    pm_atual: pmAtual
+  };
+
+  // Anexa getters não-enumeráveis para compatibilidade com código que leia npc.hp_atual / etc.
+  try {
+    Object.defineProperties(normalizado, {
+      hp_atual: {
+        get() { return this.pv_atual; },
+        set(v) { this.pv_atual = v; },
+        enumerable: false,
+        configurable: true
+      },
+      hp_max: {
+        get() { return this.pv_max; },
+        set(v) { this.pv_max = v; },
+        enumerable: false,
+        configurable: true
+      },
+      maxHp: {
+        get() { return this.pv_max; },
+        set(v) { this.pv_max = v; },
+        enumerable: false,
+        configurable: true
+      },
+      mp_atual: {
+        get() { return this.pm_atual; },
+        set(v) { this.pm_atual = v; },
+        enumerable: false,
+        configurable: true
+      },
+      mp_max: {
+        get() { return this.pm_max; },
+        set(v) { this.pm_max = v; },
+        enumerable: false,
+        configurable: true
+      },
+      maxMp: {
+        get() { return this.pm_max; },
+        set(v) { this.pm_max = v; },
+        enumerable: false,
+        configurable: true
+      }
+    });
+  } catch {
+    // Se o objeto não permitir defineProperties, mantém normalizado
+  }
+
+  return normalizado;
+}
+
+/**
+ * Sanitiza e filtra um payload destinado à tabela public.npcs_mestre.
+ * Mapeia pv_max, pv_atual, pm_max, pm_atual a partir de quaisquer aliases ou stats,
+ * e remove estritamente qualquer envio de hp_atual, hp_max, maxHp, mp_atual, mp_max, maxMp, stats ou colunas inexistentes.
+ *
+ * @param {Object} dados - Objeto ou atualizações parciais do NPC
+ * @param {Object} [opcoes]
+ * @param {boolean} [opcoes.preservarId=true] - Se false, remove o campo 'id' (útil em updates)
+ * @returns {Object} Payload limpo e seguro para INSERT ou UPDATE/PATCH
+ */
+export function sanitizarPayloadNpcMestre(dados, { preservarId = true } = {}) {
+  if (!dados || typeof dados !== 'object') return {};
+
+  const stats = (typeof dados.stats === 'object' && dados.stats !== null) ? dados.stats : {};
+
+  // Extrai pv_max se presente
+  let pvMax;
+  const pvMaxBruto = dados.pv_max ?? stats.pv_max ?? dados.hp_max ?? stats.hp_max ?? dados.maxHp ?? stats.maxHp;
+  if (pvMaxBruto !== undefined && pvMaxBruto !== null) {
+    pvMax = Math.max(0, Number(pvMaxBruto) || 0);
+  }
+
+  // Extrai pv_atual se presente
+  let pvAtual;
+  const pvAtualBruto = dados.pv_atual ?? stats.pv_atual ?? dados.hp_atual ?? stats.hp_atual;
+  if (pvAtualBruto !== undefined && pvAtualBruto !== null) {
+    pvAtual = Math.max(0, Number(pvAtualBruto) || 0);
+    if (pvMax !== undefined) {
+      pvAtual = Math.min(pvAtual, pvMax);
+    }
+  }
+
+  // Extrai pm_max se presente
+  let pmMax;
+  const pmMaxBruto = dados.pm_max ?? stats.pm_max ?? dados.mp_max ?? stats.mp_max ?? dados.maxMp ?? stats.maxMp;
+  if (pmMaxBruto !== undefined && pmMaxBruto !== null) {
+    pmMax = Math.max(0, Number(pmMaxBruto) || 0);
+  }
+
+  // Extrai pm_atual se presente
+  let pmAtual;
+  const pmAtualBruto = dados.pm_atual ?? stats.pm_atual ?? dados.mp_atual ?? stats.mp_atual;
+  if (pmAtualBruto !== undefined && pmAtualBruto !== null) {
+    pmAtual = Math.max(0, Number(pmAtualBruto) || 0);
+    if (pmMax !== undefined) {
+      pmAtual = Math.min(pmAtual, pmMax);
+    }
+  }
+
+  const payload = {};
+
+  // Copia apenas colunas válidas
+  for (const [chave, valor] of Object.entries(dados)) {
+    if (!preservarId && chave === 'id') continue;
+    if (COLUNAS_VALIDAS_NPCS_MESTRE.has(chave)) {
+      payload[chave] = valor;
+    }
+  }
+
+  // Sobrescreve com os valores normalizados de vida e mana
+  if (pvMax !== undefined) payload.pv_max = pvMax;
+  if (pvAtual !== undefined) payload.pv_atual = pvAtual;
+  if (pmMax !== undefined) payload.pm_max = pmMax;
+  if (pmAtual !== undefined) payload.pm_atual = pmAtual;
+
+  // Remoção estrita para segurança absoluta
+  delete payload.hp_atual;
+  delete payload.hp_max;
+  delete payload.maxHp;
+  delete payload.mp_atual;
+  delete payload.mp_max;
+  delete payload.maxMp;
+  delete payload.stats;
+
+  return payload;
 }
 
 /**
@@ -803,5 +1027,325 @@ export function consumirPontoVilaoNpc(entidade = {}, { codigoAcao = 'INVOCAR_TRA
     resumo: partes.join(' • ')
   };
 }
+
+/**
+ * Identifica se um NPC/inimigo é uma criatura voadora.
+ * Mantém compatibilidade com a flag estruturada `voador` e com descrições/poderes de NPCs antigos.
+ * @param {Object} npc
+ * @returns {boolean}
+ */
+export function isNpcVoador(npc) {
+  if (!npc) return false;
+  if (npc.voador === true) return true;
+  if (npc.modificadores?.voador === true) return true;
+
+  const poderes = Array.isArray(npc.poderes) ? npc.poderes : [];
+  if (poderes.some((p) => {
+    const txt = String(p?.nome || p?.efeito || p).toLowerCase();
+    return txt.includes('voador') || txt.includes('voo') || txt.includes('voa');
+  })) return true;
+
+  const regras = String(npc.regras_especiais || npc.descricao || '').toLowerCase();
+  if (regras.includes('criatura voadora') || regras.includes('alvo voador') || regras.includes('voa') || regras.includes('voo')) return true;
+
+  return false;
+}
+
+// =============================================================================
+// ATAQUES BÁSICOS E PODERES ESPECIAIS PARAMETRIZADOS DE NPCS
+// =============================================================================
+
+export const TIPOS_DANO_NPC = [
+  'Físico',
+  'Fogo',
+  'Gelo',
+  'Raio',
+  'Ar',
+  'Terra',
+  'Veneno',
+  'Trevas',
+  'Luz'
+];
+
+export const ESPECIES_ALVO_NPC = [
+  'Fera',
+  'Monstro',
+  'Construto',
+  'Morto-Vivo',
+  'Demônio',
+  'Elemental',
+  'Humanoide',
+  'Planta'
+];
+
+export const CONDICOES_APLICAVEIS_NPC = [
+  'Lento',
+  'Atordoado',
+  'Fraco',
+  'Abalado',
+  'Confuso',
+  'Enfurecido',
+  'Envenenado'
+];
+
+export const PODERES_PADRAO_NPC = [
+  {
+    id: 'resistencia_dano',
+    nome: 'Resistência a Dano',
+    descricao: 'A criatura possui Resistência aos tipos de dano escolhidos.',
+    tipo_parametro_npc: 'tipos_dano_2'
+  },
+  {
+    id: 'imunidade_dano',
+    nome: 'Imunidade a Dano',
+    descricao: 'A criatura possui Imunidade ao tipo de dano escolhido.',
+    tipo_parametro_npc: 'tipos_dano_1'
+  },
+  {
+    id: 'absorcao_dano',
+    nome: 'Absorção de Dano',
+    descricao: 'A criatura Absorve dano do tipo escolhido.',
+    tipo_parametro_npc: 'tipos_dano_1'
+  },
+  {
+    id: 'imunidade_condicao',
+    nome: 'Imunidade a Condição',
+    descricao: 'A criatura é imune à condição de status escolhida.',
+    tipo_parametro_npc: 'condicao'
+  },
+  {
+    id: 'cacador_especie',
+    nome: 'Predador de Espécie',
+    descricao: 'Causa +5 de dano contra criaturas da espécie alvo escolhida.',
+    tipo_parametro_npc: 'especie'
+  },
+  {
+    id: 'voador_poder',
+    nome: 'Voador',
+    descricao: 'Não pode ser atingido por ataques corpo a corpo padrão (exceto armas que atingem voadores).',
+    tipo_parametro_npc: 'detalhe'
+  },
+  {
+    id: 'vitalidade_ampliada',
+    nome: 'Vitalidade Ampliada (+10 PV)',
+    descricao: 'Aumenta os Pontos de Vida máximos em +10.',
+    tipo_mecanica: 'stat_bonus',
+    config_mecanica: { pv_max: 10 },
+    tipo_parametro_npc: 'detalhe'
+  },
+  {
+    id: 'reacao_especial',
+    nome: 'Reação / Poder Especial',
+    descricao: 'Habilidade reativa, passiva ou regra especial personalizada da criatura.',
+    tipo_parametro_npc: 'detalhe'
+  }
+];
+
+function normalizarTextoNpc(str = '') {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * Identifica quais parâmetros adicionais um poder especial de NPC utiliza.
+ * @param {Object} poder
+ * @returns {{ requerTiposDano: boolean, qtdTiposDano: number, requerEspecieAlvo: boolean, requerCondicao: boolean }}
+ */
+export function identificarConfigParametroPoderNpc(poder) {
+  if (!poder) {
+    return { requerTiposDano: false, qtdTiposDano: 0, requerEspecieAlvo: false, requerCondicao: false };
+  }
+
+  const tipoExpl = poder.tipo_parametro_npc || '';
+  if (tipoExpl === 'tipos_dano_2') {
+    return { requerTiposDano: true, qtdTiposDano: 2, requerEspecieAlvo: false, requerCondicao: false };
+  }
+  if (tipoExpl === 'tipos_dano_1') {
+    return { requerTiposDano: true, qtdTiposDano: 1, requerEspecieAlvo: false, requerCondicao: false };
+  }
+  if (tipoExpl === 'especie') {
+    return { requerTiposDano: false, qtdTiposDano: 0, requerEspecieAlvo: true, requerCondicao: false };
+  }
+  if (tipoExpl === 'condicao') {
+    return { requerTiposDano: false, qtdTiposDano: 0, requerEspecieAlvo: false, requerCondicao: true };
+  }
+
+  const texto = normalizarTextoNpc(`${poder.id || ''} ${poder.nome || ''} ${poder.descricao || ''}`);
+  const requerTiposDano =
+    texto.includes('resistencia a dano') ||
+    texto.includes('imunidade a dano') ||
+    texto.includes('absorcao de dano') ||
+    texto.includes('tipo de dano') ||
+    texto.includes('tipos de dano') ||
+    (texto.includes('resistencia') && !texto.includes('magica'));
+  const qtdTiposDano = requerTiposDano
+    ? (texto.includes('dois') || texto.includes('duas') || texto.includes('resistencia a dano') ? 2 : 1)
+    : 0;
+  const requerEspecieAlvo =
+    texto.includes('especie') ||
+    texto.includes('cacador') ||
+    texto.includes('predador') ||
+    texto.includes('inimigo jurado');
+  const requerCondicao =
+    texto.includes('condicao') ||
+    texto.includes('condicoes') ||
+    texto.includes('status') ||
+    texto.includes('imune a ');
+
+  return {
+    requerTiposDano,
+    qtdTiposDano,
+    requerEspecieAlvo,
+    requerCondicao
+  };
+}
+
+/**
+ * Mescla o catálogo de poderes de NPC do banco com os poderes padrão parametrizados.
+ * @param {Array<Object>} catalogoBanco
+ * @returns {Array<Object>}
+ */
+export function mesclarCatalogoPoderesNpc(catalogoBanco = []) {
+  const nomesBanco = new Set((catalogoBanco || []).map((p) => normalizarTextoNpc(p?.nome)));
+  const idsBanco = new Set((catalogoBanco || []).map((p) => normalizarTextoNpc(p?.id)));
+
+  const padroesFaltantes = PODERES_PADRAO_NPC.filter(
+    (p) => !nomesBanco.has(normalizarTextoNpc(p.nome)) && !idsBanco.has(normalizarTextoNpc(p.id))
+  );
+
+  return [...(catalogoBanco || []), ...padroesFaltantes];
+}
+
+/**
+ * Constrói um objeto estruturado de Poder Especial de NPC com parâmetros escolhidos pelo usuário.
+ * @param {Object} poderBase
+ * @param {Object} [params={}]
+ * @returns {Object}
+ */
+export function construirPoderNpcEstruturado(poderBase = {}, params = {}) {
+  const config = identificarConfigParametroPoderNpc(poderBase);
+  const tiposDano = [];
+  if (params.tipoDano1) tiposDano.push(params.tipoDano1);
+  if (params.tipoDano2 && params.tipoDano2 !== params.tipoDano1 && (config.qtdTiposDano >= 2 || params.usarSegundoDano)) {
+    tiposDano.push(params.tipoDano2);
+  }
+
+  const especieAlvo = (params.especieAlvo || '').trim();
+  const condicaoAlvo = (params.condicaoAlvo || '').trim();
+  const nomeBase = (params.nomeCustom || poderBase.nome || 'Poder Especial').trim();
+
+  const sufixos = [];
+  if (tiposDano.length > 0) sufixos.push(tiposDano.join(' / '));
+  if (especieAlvo) sufixos.push(`Alvo: ${especieAlvo}`);
+  if (condicaoAlvo) sufixos.push(`Condição: ${condicaoAlvo}`);
+
+  let descricaoFinal = (params.efeitoDetalhado ?? poderBase.descricao ?? '').trim();
+  if (!params.efeitoDetalhado && sufixos.length > 0) {
+    descricaoFinal = `${descricaoFinal ? `${descricaoFinal} ` : ''}[${sufixos.join(' • ')}]`.trim();
+  }
+
+  return {
+    ...poderBase,
+    id: poderBase.id || `custom_${Date.now()}`,
+    nome: nomeBase,
+    descricao: descricaoFinal || 'Poder especial da criatura.',
+    parametros: {
+      tipos_dano: tiposDano,
+      especie_alvo: especieAlvo,
+      condicao_alvo: condicaoAlvo,
+      efeito_detalhado: descricaoFinal
+    }
+  };
+}
+
+/**
+ * Formata um poder especial de NPC (estruturado ou legado) para exibição clara em NPCView, Bestiário e Combate.
+ * @param {Object} poder
+ * @returns {{ nome: string, descricao: string, tiposDano: Array<string>, especieAlvo: string, condicaoAlvo: string, tagsParametros: Array<string>, resumoCurto: string }}
+ */
+export function formatarPoderNpcParaExibicao(poder) {
+  if (!poder) {
+    return { nome: '', descricao: '', tiposDano: [], especieAlvo: '', condicaoAlvo: '', tagsParametros: [], resumoCurto: '' };
+  }
+  const params = poder.parametros || {};
+  const tiposDano = Array.isArray(params.tipos_dano) ? params.tipos_dano.filter(Boolean) : [];
+  const especieAlvo = params.especie_alvo || '';
+  const condicaoAlvo = params.condicao_alvo || '';
+
+  const tagsParametros = [];
+  if (tiposDano.length > 0) tagsParametros.push(`Dano: ${tiposDano.join(', ')}`);
+  if (especieAlvo) tagsParametros.push(`Espécie: ${especieAlvo}`);
+  if (condicaoAlvo) tagsParametros.push(`Condição: ${condicaoAlvo}`);
+
+  const nome = poder.nome || 'Poder Especial';
+  const descricao = params.efeito_detalhado || poder.descricao || '';
+  const sufixoCurto = [
+    ...(tiposDano.length > 0 ? [tiposDano.join('/')] : []),
+    ...(especieAlvo ? [especieAlvo] : []),
+    ...(condicaoAlvo ? [condicaoAlvo] : [])
+  ].join(', ');
+
+  const resumoCurto = sufixoCurto ? `${nome} (${sufixoCurto})` : nome;
+
+  return {
+    nome,
+    descricao,
+    tiposDano,
+    especieAlvo,
+    condicaoAlvo,
+    tagsParametros,
+    resumoCurto
+  };
+}
+
+/**
+ * Formata e normaliza os dados de um Ataque Básico de NPC para exibição e rolagem.
+ * @param {Object} atk
+ * @returns {{ nome: string, attr1: string, attr2: string, modPrecisao: number, modPrecisaoTexto: string, bonusDano: number, tipoDano: string, condicao: string, efeito: string, resumoEfeito: string }}
+ */
+export function formatarAtaqueBasicoNpc(atk = {}) {
+  const nome = atk.nome || 'Ataque Básico';
+  const attr1 = (atk.atributo_dado1 || 'des').toUpperCase();
+  const attr2 = (atk.atributo_dado2 || 'vig').toUpperCase();
+  const modPrecisao = Number(atk.bonus_precisao) || 0;
+  const modPrecisaoTexto = modPrecisao > 0
+    ? ` + ${modPrecisao}`
+    : modPrecisao < 0
+      ? ` - ${Math.abs(modPrecisao)}`
+      : '';
+
+  const bonusDano = (atk.bonus_dano !== undefined && atk.bonus_dano !== null && atk.bonus_dano !== '')
+    ? (Number(atk.bonus_dano) || 0)
+    : 5;
+  const tipoDano = (atk.tipo_dano || 'fisico').toLowerCase();
+  const condicao = (atk.condicao || '').trim();
+  const efeito = (atk.efeito || '').trim();
+
+  const partesEfeito = [];
+  if (condicao) {
+    const jaContemCond = normalizarTextoNpc(efeito).includes(normalizarTextoNpc(condicao));
+    if (!jaContemCond) {
+      partesEfeito.push(`Aplica ${condicao}`);
+    }
+  }
+  if (efeito) partesEfeito.push(efeito);
+
+  return {
+    nome,
+    attr1,
+    attr2,
+    modPrecisao,
+    modPrecisaoTexto,
+    bonusDano,
+    tipoDano,
+    condicao,
+    efeito,
+    resumoEfeito: partesEfeito.join(' • ')
+  };
+}
+
 
 

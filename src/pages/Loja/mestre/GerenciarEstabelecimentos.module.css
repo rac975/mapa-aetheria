@@ -93,6 +93,19 @@
   color: var(--color-text-gold);
 }
 
+.lojaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lojaVendedor {
+  font-size: var(--font-size-xs);
+  color: var(--color-ether-blue);
+  word-break: break-word;
+}
+
 .lojaDesc {
   margin: 0;
   font-size: var(--font-size-xs);

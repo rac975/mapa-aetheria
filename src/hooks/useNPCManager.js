@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { npcService } from '../services/npcService';
+import { normalizarNpcLeitura } from '../domain/fabula/npcRules';
 import { useToast } from '../contexts/ToastContext';
 
 // Cache compartilhado em memória para catálogos estáticos (evita refetching repetido)
@@ -78,7 +79,7 @@ export function useNPCManager(npcId, options = {}) {
         return;
       }
 
-      setNpc(npcRes.data);
+      setNpc(normalizarNpcLeitura(npcRes.data));
       setCatalogoFeiticos(cat.feiticos);
       setCatalogoPoderes(cat.poderes);
       setCatalogoEspecies(cat.especies);
@@ -111,8 +112,9 @@ export function useNPCManager(npcId, options = {}) {
    * @returns {Promise<boolean>}
    */
   const salvarNpc = useCallback(async (npcAtualizado) => {
-    setNpc(npcAtualizado);
-    const { error: saveErr } = await npcService.updateNpc(npcId, npcAtualizado);
+    const npcNormalizado = normalizarNpcLeitura(npcAtualizado);
+    setNpc(npcNormalizado);
+    const { error: saveErr } = await npcService.updateNpc(npcId, npcNormalizado);
     if (saveErr) {
       console.error('Erro ao salvar NPC:', saveErr);
       setError(saveErr);

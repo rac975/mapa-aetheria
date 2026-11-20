@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
-  FaDice, FaTimes, FaCrosshairs, FaMagic, FaBolt, FaShieldAlt
+  FaDice, FaTimes, FaBolt, FaShieldAlt
 } from 'react-icons/fa';
 import { Badge, Button } from '../ui';
 import {
   ATRIBUTOS_CONFLITO,
   TESTES_RAPIDOS_PADRAO
 } from '../../domain/fabula/combatRules';
+import CombatantArsenalRollSection from './CombatantArsenalRollSection';
 import styles from './CombatantDiceDrawer.module.css';
 
 const LISTA_ATRIBUTOS = Object.values(ATRIBUTOS_CONFLITO);
@@ -25,21 +26,14 @@ export default function CombatantDiceDrawer({
 
   if (!perfil) return null;
 
-  const { atributosAtuais, atributosBase, modsCondicoes, armas = [], magias = [] } = perfil;
+  const { atributosAtuais, atributosBase, modsCondicoes, armas = [], magias = [], poderes = [] } = perfil;
 
   const handleRolarAtributoCustom = async () => {
     const s1 = ATRIBUTOS_CONFLITO[attr1]?.sigla || 'DES';
     const s2 = ATRIBUTOS_CONFLITO[attr2]?.sigla || 'AST';
     const res = await onRolarDados({
-      combatente,
-      perfil,
-      categoria: 'atributo',
-      titulo: `Teste [${s1} + ${s2}]`,
-      attr1,
-      attr2,
-      bonusTeste: Number(modExtra) || 0,
-      isOposto,
-      calcularDano: false
+      combatente, perfil, categoria: 'atributo', titulo: `Teste [${s1} + ${s2}]`,
+      attr1, attr2, bonusTeste: Number(modExtra) || 0, isOposto, calcularDano: false
     });
     if (res) setUltimaRolagem(res);
   };
@@ -49,49 +43,32 @@ export default function CombatantDiceDrawer({
     setAttr2(preset.attr2);
     setIsOposto(Boolean(preset.isOposto));
     const res = await onRolarDados({
-      combatente,
-      perfil,
-      categoria: 'resistencia',
-      titulo: preset.titulo,
-      attr1: preset.attr1,
-      attr2: preset.attr2,
+      combatente, perfil, categoria: 'resistencia', titulo: preset.titulo,
+      attr1: preset.attr1, attr2: preset.attr2,
       bonusTeste: (Number(modExtra) || 0) + (preset.codigo === 'INICIATIVA' ? (perfil.iniciativaMod || 0) : 0),
-      isOposto: Boolean(preset.isOposto),
-      ndAlvo: preset.ndSugerido || null,
-      calcularDano: false
+      isOposto: Boolean(preset.isOposto), ndAlvo: preset.ndSugerido || null, calcularDano: false
     });
     if (res) setUltimaRolagem(res);
   };
 
   const handleRolarArma = async (arma) => {
     const res = await onRolarDados({
-      combatente,
-      perfil,
-      categoria: 'arma',
-      titulo: `Ataque: ${arma.nome}`,
-      attr1: arma.attr1,
-      attr2: arma.attr2,
+      combatente, perfil, categoria: 'arma', titulo: `Ataque: ${arma.nome}`,
+      attr1: arma.attr1, attr2: arma.attr2,
       bonusTeste: (Number(arma.bonusPrecisao) || 0) + (Number(modExtra) || 0),
-      bonusDano: Number(arma.bonusDano) || 0,
-      calcularDano: true,
-      tipoDano: arma.tipoDano || 'fisico'
+      bonusDano: Number(arma.bonusDano) || 0, calcularDano: true, tipoDano: arma.tipoDano || 'fisico',
+      condicao: arma.condicao || '', efeito: arma.resumoEfeito || arma.efeito || ''
     });
     if (res) setUltimaRolagem(res);
   };
 
   const handleRolarMagia = async (magia) => {
     const res = await onRolarDados({
-      combatente,
-      perfil,
-      categoria: 'magia',
-      titulo: `Feitiço: ${magia.nome}`,
-      attr1: magia.attr1 || 'ast',
-      attr2: magia.attr2 || 'von',
+      combatente, perfil, categoria: 'magia', titulo: `Feitiço: ${magia.nome}`,
+      attr1: magia.attr1 || 'ast', attr2: magia.attr2 || 'von',
       bonusTeste: (Number(magia.bonusPrecisao) || 0) + (Number(modExtra) || 0),
-      bonusDano: Number(magia.bonusDano) || 0,
-      calcularDano: Boolean(magia.ofensiva),
-      tipoDano: 'magico',
-      custoPm: Number(magia.custoPm) || 0
+      bonusDano: Number(magia.bonusDano) || 0, calcularDano: Boolean(magia.ofensiva),
+      tipoDano: 'magico', custoPm: Number(magia.custoPm) || 0
     });
     if (res) setUltimaRolagem(res);
   };
@@ -114,7 +91,6 @@ export default function CombatantDiceDrawer({
         </button>
       </div>
 
-      {/* 1. Atributos Reais e Seletor de Teste */}
       <div className={styles.sectionBlock}>
         <div className={styles.atributosRow}>
           {LISTA_ATRIBUTOS.map((atrib) => {
@@ -175,11 +151,7 @@ export default function CombatantDiceDrawer({
             </div>
 
             <label className={styles.opostoLabel} title="Em Testes Opostos, estar em Guarda soma +2 automaticamente">
-              <input
-                type="checkbox"
-                checked={isOposto}
-                onChange={(e) => setIsOposto(e.target.checked)}
-              />
+              <input type="checkbox" checked={isOposto} onChange={(e) => setIsOposto(e.target.checked)} />
               <span>Oposto</span>
             </label>
 
@@ -189,7 +161,6 @@ export default function CombatantDiceDrawer({
           </div>
         </div>
 
-        {/* Presets rápidos de Resistência / Iniciativa / Estudo */}
         <div className={styles.presetsStrip}>
           {TESTES_RAPIDOS_PADRAO.map((preset) => {
             const d1 = atributosAtuais[preset.attr1] || 8;
@@ -210,81 +181,29 @@ export default function CombatantDiceDrawer({
         </div>
       </div>
 
-      {/* 2. Armas e Ataques Cadastrados */}
-      {armas.length > 0 && (
-        <div className={styles.sectionBlock}>
-          <span className={styles.subTitle}><FaCrosshairs /> Armas & Ataques da Ficha</span>
-          <div className={styles.itemsRollGrid}>
-            {armas.map((arma) => {
-              const s1 = ATRIBUTOS_CONFLITO[arma.attr1]?.sigla || 'DES';
-              const s2 = ATRIBUTOS_CONFLITO[arma.attr2]?.sigla || 'VIG';
-              const f1 = atributosAtuais[arma.attr1] || 8;
-              const f2 = atributosAtuais[arma.attr2] || 8;
-              return (
-                <button
-                  key={arma.id}
-                  type="button"
-                  className={styles.weaponRollBtn}
-                  onClick={() => handleRolarArma(arma)}
-                >
-                  <div className={styles.weaponTop}>
-                    <strong className={styles.weaponName}>{arma.nome}</strong>
-                    <Badge variant="gold" size="sm">RA + {arma.bonusDano} {arma.tipoDano}</Badge>
-                  </div>
-                  <span className={styles.weaponFormula}>
-                    [{s1} d{f1} + {s2} d{f2}]{arma.bonusPrecisao ? ` + ${arma.bonusPrecisao}` : ''}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <CombatantArsenalRollSection
+        atributosAtuais={atributosAtuais}
+        armas={armas}
+        magias={magias}
+        poderes={poderes}
+        onRolarArma={handleRolarArma}
+        onRolarMagia={handleRolarMagia}
+      />
 
-      {/* 3. Magias e Feitiços Cadastrados */}
-      {magias.length > 0 && (
-        <div className={styles.sectionBlock}>
-          <span className={styles.subTitle}><FaMagic /> Magias & Feitiços da Ficha</span>
-          <div className={styles.itemsRollGrid}>
-            {magias.map((magia) => {
-              const fAst = atributosAtuais.ast || 8;
-              const fVon = atributosAtuais.von || 8;
-              return (
-                <button
-                  key={magia.id}
-                  type="button"
-                  className={styles.spellRollBtn}
-                  onClick={() => handleRolarMagia(magia)}
-                >
-                  <div className={styles.weaponTop}>
-                    <strong className={styles.weaponName}>{magia.nome}</strong>
-                    <Badge variant="ether" size="sm">{magia.custoPm} PM</Badge>
-                  </div>
-                  <span className={styles.weaponFormula}>
-                    [AST d{fAst} + VON d{fVon}]{magia.bonusPrecisao ? ` + ${magia.bonusPrecisao}` : ''}
-                    {magia.bonusDano > 0 ? ` • RA+${magia.bonusDano}` : ''}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 4. Resultado Imediato da Última Rolagem */}
       {ultimaRolagem && (
         <div
           className={`${styles.resultBanner} ${
-            ultimaRolagem.isCritico
-              ? styles.resultCrit
-              : ultimaRolagem.isFumble
-                ? styles.resultFumble
-                : ''
+            ultimaRolagem.isCritico ? styles.resultCrit : ultimaRolagem.isFumble ? styles.resultFumble : ''
           }`}
         >
           <div className={styles.resultLeft}>
             <span className={styles.resultTitle}>{ultimaRolagem.titulo}</span>
             <span className={styles.resultFormula}>{ultimaRolagem.formulaDados}</span>
+            {(ultimaRolagem.efeito || ultimaRolagem.condicao) && (
+              <span className={styles.weaponEffectNote}>
+                ✦ {ultimaRolagem.efeito || `Aplica ${ultimaRolagem.condicao}`}
+              </span>
+            )}
           </div>
           <div className={styles.resultNumbers}>
             <div className={styles.statBox}>

@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js';
 import { sanitizarPayloadIniciativa } from '../domain/fabula/combatRules.js';
+import { sanitizarPayloadNpcMestre, normalizarNpcLeitura } from '../domain/fabula/npcRules.js';
 
 export { sanitizarPayloadIniciativa };
 
@@ -64,11 +65,16 @@ export const combatService = {
    * Busca todos os NPCs/adversários do catálogo do Mestre para combate e rolagem de dados.
    */
   async getNpcsCombate() {
-    return await supabase
+    const res = await supabase
       .from('npcs_mestre')
       .select('*')
       .eq('tipo_registro', 'npc_mestre')
       .order('created_at', { ascending: false });
+
+    if (res.data && Array.isArray(res.data)) {
+      return { ...res, data: res.data.map(normalizarNpcLeitura) };
+    }
+    return res;
   },
 
   /**
@@ -146,14 +152,7 @@ export const combatService = {
    */
   async updateNpcMestreFromCombat(npcId, updates = {}) {
     if (!npcId) return { data: null, error: null };
-    const payload = {};
-    if (updates.hp_atual !== undefined) payload.pv_atual = updates.hp_atual;
-    if (updates.hp_max !== undefined) payload.pv_max = updates.hp_max;
-    if (updates.mp_atual !== undefined) payload.pm_atual = updates.mp_atual;
-    if (updates.mp_max !== undefined) payload.pm_max = updates.mp_max;
-    if (updates.pontos_vilao !== undefined) payload.pontos_vilao = updates.pontos_vilao;
-    if (updates.fase_atual !== undefined) payload.fase_atual = updates.fase_atual;
-    if (updates.acoes_por_turno !== undefined) payload.acoes_por_turno = updates.acoes_por_turno;
+    const payload = sanitizarPayloadNpcMestre(updates, { preservarId: false });
 
     if (Object.keys(payload).length === 0) return { data: null, error: null };
 

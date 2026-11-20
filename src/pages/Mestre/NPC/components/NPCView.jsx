@@ -43,13 +43,13 @@ export default function NPCView({ npc, onUpdate }) {
     const isMp = campo === 'pm_atual' || campo === 'mp_atual';
     const teto = isHp ? maxPv : isMp ? maxPm : 9999;
     const novo = clampRecursoNpc(novoValorBruto, teto, 0);
-    const updates = { [campo]: novo };
+    const updates = {};
     if (isHp) {
       updates.pv_atual = novo;
-      updates.hp_atual = novo;
     } else if (isMp) {
       updates.pm_atual = novo;
-      updates.mp_atual = novo;
+    } else {
+      updates[campo] = novo;
     }
     onUpdate({ ...npc, ...updates });
   }
@@ -91,6 +91,9 @@ export default function NPCView({ npc, onUpdate }) {
             <div className={styles.metaRow}>
               <Badge variant="default" size="sm"><FaDragon /> {npc.especie?.toUpperCase() || 'FERA'}</Badge>
               <Badge variant="ether" size="sm">Nível {npc.nivel}</Badge>
+              {Boolean(npc.voador) && (
+                <Badge variant="ether" size="sm" title="Criatura Voadora">🦅 Voador</Badge>
+              )}
               <Badge variant="gold" size="sm">
                 <FaBolt /> {acoesPorTurno} {acoesPorTurno === 1 ? 'Ação/Turno' : 'Ações/Turno'}
               </Badge>

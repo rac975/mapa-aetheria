@@ -18,8 +18,21 @@ import {
   verificarGatilhoTransicaoFase,
   executarTransicaoFaseChefao,
   consumirPontoVilaoNpc,
-  isVilaoOuChefe
+  isVilaoOuChefe,
+  formatarAtaqueBasicoNpc,
+  construirPoderNpcEstruturado,
+  formatarPoderNpcParaExibicao,
+  sanitizarPayloadNpcMestre,
+  normalizarNpcLeitura,
+  COLUNAS_VALIDAS_NPCS_MESTRE
 } from '../npcRules.js';
+import {
+  construirStatsArmaPersonalizada,
+  obterItemFormaAtivaArmaMutavel
+} from '../weaponForge.js';
+import {
+  resolverCaracteristicaParametrizada
+} from '../equipmentRules.js';
 
 function assert(condition, message) {
   if (!condition) {
@@ -189,5 +202,126 @@ assert(resGastoPv.valido === true, 'Gasto de Ponto de Vilão válido');
 assert(resGastoPv.entidadeAtualizada.pontos_vilao === 14, 'Pontos de Vilão reduzidos de 15 para 14');
 assert(resGastoPv.entidadeAtualizada.mp_atual === 70, 'Recuperação de Vilão somou +50 PM (20 -> 70)');
 assert(resGastoPv.entidadeAtualizada.condicoes.length === 0, 'Recuperação de Vilão limpou condições negativas');
+
+console.log('--- 7. Testando Ataques Básicos, Poderes Especiais, Armas Mutáveis e Características Parametrizadas ---');
+const atkFormatado = formatarAtaqueBasicoNpc({
+  nome: 'Mordida Gélida',
+  atributo_dado1: 'des',
+  atributo_dado2: 'vig',
+  bonus_precisao: -1,
+  bonus_dano: 0,
+  tipo_dano: 'gelo',
+  condicao: 'Lento',
+  efeito: 'Reduz deslocamento'
+});
+assert(atkFormatado.modPrecisao === -1 && atkFormatado.modPrecisaoTexto === ' - 1', 'Formata mod de precisão negativo (-1)');
+assert(atkFormatado.bonusDano === 0, 'Preserva bônus de dano 0 explicitamente');
+assert(atkFormatado.resumoEfeito.includes('Aplica Lento') && atkFormatado.resumoEfeito.includes('Reduz deslocamento'), 'Combina condição e efeito livre no ataque de NPC');
+
+const poderRes = construirPoderNpcEstruturado(
+  { id: 'resistencia_dano', nome: 'Resistência a Dano', descricao: 'Resiste aos elementos escolhidos.' },
+  { tipoDano1: 'Fogo', tipoDano2: 'Gelo', usarSegundoDano: true }
+);
+const poderView = formatarPoderNpcParaExibicao(poderRes);
+assert(poderView.tiposDano.length === 2 && poderView.resumoCurto.includes('Fogo/Gelo'), 'Formata poder especial parametrizado de NPC com 2 tipos de dano');
+
+const statsMutavel = construirStatsArmaPersonalizada({
+  categoria: 'espada',
+  alcance: 'Corpo a corpo',
+  precisaoTipo: '(DES + AST)',
+  personalizacoes: [
+    { id: 'mutavel', nome: 'Mutável', custoExtra: 100 },
+    { id: 'poderosa', nome: 'Poderosa', custoExtra: 0, marcial: true },
+    { id: 'certeira', nome: 'Certeira', custoExtra: 0 }
+  ],
+  temMutavel: true,
+  segundaForma: {
+    nome: 'Modo Canhão Pesado',
+    categoria: 'pesada',
+    alcance: 'À distância',
+    precisaoTipo: '(DES + VIG)'
+  }
+});
+assert(statsMutavel.dano === 'RA + 10', '1ª Forma (espada poderosa) = RA + 10');
+assert(statsMutavel.segunda_forma.dano === 'RA + 12', '2ª Forma (pesada poderosa) = RA + 12');
+assert(statsMutavel.segunda_forma.precisao === '(DES + VIG) + 2', '2ª Forma preserva Certeira (+2) com os atributos da 2ª forma');
+const itemForma2 = obterItemFormaAtivaArmaMutavel({ nome: 'Lâmina Aether', stats_personalizados: statsMutavel }, true);
+assert(itemForma2.stats_personalizados.alcance === 'À distância' && itemForma2.stats_personalizados.dano === 'RA + 12', 'Alterna para 2ª forma preservando personalizações');
+
+const duplaCacadoraOk = resolverCaracteristicaParametrizada(
+  { id: 'dupla_cacadora', nome: 'Dupla Caçadora', custo: 500, tipo_parametro: 'especie_2' },
+  { especie1: 'Fera', especie2: 'Demônio' }
+);
+assert(duplaCacadoraOk.valido === true && duplaCacadoraOk.especiesAlvo.length === 2, 'Dupla Caçadora com 2 espécies distintas válida');
+
+const duplaResInvalida = resolverCaracteristicaParametrizada(
+  { id: 'dupla_resistencia_dano', nome: 'Dupla Resistência', custo: 800, tipo_parametro: 'dano_2' },
+  { tipoDano1: 'Fogo', tipoDano2: 'Fogo' }
+);
+assert(duplaResInvalida.valido === false, 'Dupla Resistência bloqueia 2 tipos de dano iguais');
+
+console.log('--- 8. Testando Sanitização e Normalização de Colunas de npcs_mestre ---');
+// 8.1 - sanitizarPayloadNpcMestre deve mapear hp_atual para pv_atual e expurgar hp_atual / hp_max
+const payloadLegado = {
+  id: 'npc-123',
+  nome: 'Dragão de Cinzas',
+  hp_atual: 45,
+  hp_max: 90,
+  maxHp: 90,
+  mp_atual: 25,
+  mp_max: 50,
+  maxMp: 50,
+  campo_inexistente_ui: true
+};
+const sanitizado = sanitizarPayloadNpcMestre(payloadLegado, { preservarId: false });
+assert(sanitizado.pv_atual === 45, 'sanitizarPayloadNpcMestre mapeia hp_atual para pv_atual');
+assert(sanitizado.pv_max === 90, 'sanitizarPayloadNpcMestre mapeia hp_max para pv_max');
+assert(sanitizado.pm_atual === 25, 'sanitizarPayloadNpcMestre mapeia mp_atual para pm_atual');
+assert(sanitizado.pm_max === 50, 'sanitizarPayloadNpcMestre mapeia mp_max para pm_max');
+assert(!('hp_atual' in sanitizado), 'hp_atual foi estritamente expurgado do payload');
+assert(!('hp_max' in sanitizado), 'hp_max foi estritamente expurgado do payload');
+assert(!('maxHp' in sanitizado), 'maxHp foi estritamente expurgado do payload');
+assert(!('mp_atual' in sanitizado), 'mp_atual foi estritamente expurgado do payload');
+assert(!('mp_max' in sanitizado), 'mp_max foi estritamente expurgado do payload');
+assert(!('campo_inexistente_ui' in sanitizado), 'Colunas inexistentes na tabela npcs_mestre são removidas');
+assert(!('id' in sanitizado), 'ID foi removido quando preservarId é false');
+
+// 8.2 - sanitizarPayloadNpcMestre com dados aninhados em stats
+const payloadComStats = {
+  nome: 'Golem Guardião',
+  stats: {
+    pv_max: 120,
+    pv_atual: 100,
+    pm_max: 60,
+    pm_atual: 40
+  }
+};
+const sanitizadoStats = sanitizarPayloadNpcMestre(payloadComStats);
+assert(sanitizadoStats.pv_max === 120 && sanitizadoStats.pv_atual === 100, 'Lê pv_max e pv_atual de stats legados');
+assert(sanitizadoStats.pm_max === 60 && sanitizadoStats.pm_atual === 40, 'Lê pm_max e pm_atual de stats legados');
+assert(!('stats' in sanitizadoStats), 'stats (objeto legado) é removido do payload da tabela');
+
+// 8.3 - normalizarNpcLeitura
+const npcDoBancoAntigo = {
+  id: 'npc-456',
+  nome: 'Fera Antiga',
+  hp_atual: 35,
+  hp_max: 70,
+  mp_atual: 15,
+  mp_max: 30
+};
+const normalizado = normalizarNpcLeitura(npcDoBancoAntigo);
+assert(normalizado.pv_max === 70 && normalizado.pv_atual === 35, 'normalizarNpcLeitura define pv_max e pv_atual');
+assert(normalizado.pm_max === 30 && normalizado.pm_atual === 15, 'normalizarNpcLeitura define pm_max e pm_atual');
+assert(normalizado.hp_atual === 35, 'Getter não-enumerável hp_atual lê pv_atual perfeitamente');
+assert(normalizado.hp_max === 70, 'Getter não-enumerável hp_max lê pv_max perfeitamente');
+assert(!Object.prototype.propertyIsEnumerable.call(normalizado, 'hp_atual'), 'hp_atual NÃO é enumerável (não vaza em ...npc ou JSON.stringify)');
+assert(!Object.prototype.propertyIsEnumerable.call(normalizado, 'hp_max'), 'hp_max NÃO é enumerável');
+
+// 8.4 - recalcularEstatisticasNpc não expõe hp_atual ou hp_max como enumeráveis
+const recalculadoSemHp = recalcularEstatisticasNpc({ npc: npcDoBancoAntigo });
+assert(!Object.prototype.propertyIsEnumerable.call(recalculadoSemHp, 'hp_atual'), 'recalcularEstatisticasNpc não polui objeto com hp_atual enumerável');
+assert(!Object.prototype.propertyIsEnumerable.call(recalculadoSemHp, 'hp_max'), 'recalcularEstatisticasNpc não polui objeto com hp_max enumerável');
+assert(recalculadoSemHp.pv_max > 0 && recalculadoSemHp.pv_atual > 0, 'recalcularEstatisticasNpc mantém pv_max e pv_atual');
 
 console.log('TODOS OS TESTES DE REGRAS DE NPC PASSARAM COM SUCESSO!');

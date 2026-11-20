@@ -556,6 +556,25 @@ export function calcularStatusPersonagem(
     efeitosNF.resistenciasNF.forEach((r) => resistenciasAtivas.push(r));
   }
 
+  // Resistências concedidas por equipamentos equipados (Armas, Armaduras, Escudos, Acessórios)
+  [itemMaoDom, itemMaoSec, itemArmadura, itemAcessorio].forEach((itemEq) => {
+    if (!itemEq) return;
+    const statsEq = itemEq.stats_personalizados || itemEq.stats || {};
+    const listaRes = Array.isArray(statsEq.resistencias)
+      ? statsEq.resistencias
+      : Array.isArray(statsEq.caracteristica_especial?.resistencias)
+        ? statsEq.caracteristica_especial.resistencias
+        : [];
+    listaRes.forEach((tipoRes) => {
+      if (tipoRes) {
+        resistenciasAtivas.push({
+          tipo: String(tipoRes).toLowerCase(),
+          fonte: itemEq.nome || 'Equipamento'
+        });
+      }
+    });
+  });
+
   // Sangue das Trevas em Crise (Guerreiro Sombrio)
   const temSangueTrevas = emCriseCalculado && classes.some((c) =>
     (c.habilidades || []).some((h) => normalizarTextoHF(h?.nome).includes('sangue das trevas') && (parseInt(h.nivel, 10) || 0) > 0)
