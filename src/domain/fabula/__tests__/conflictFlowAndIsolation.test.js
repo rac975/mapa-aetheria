@@ -24,9 +24,29 @@ const fichaEnriquecida = {
   pi_atual: 4,
   fabula: 3,
   condicoes: ['lento'],
-  classes: [{ nome_classe: 'Guardião', nivel: 5 }],
+  classes: [
+    {
+      nome_classe: 'Guardião',
+      nivel: 5,
+      habilidades: [
+        { nome: 'Proteger', nivel: 2, descricao: 'Toma dano no lugar do aliado' },
+        { nome: 'Aumento de PV', nivel: 3, descricao: '+15 PV' } // passivo estatística
+      ]
+    },
+    {
+      nome_classe: 'Quimerista',
+      nivel: 2,
+      magias_imitadas: [{ id: 'quim-1', nome: 'Sopro Gélido', custo_pm: 10 }]
+    },
+    {
+      nome_classe: 'Arcanista',
+      nivel: 1,
+      arcanos_vinculados: [{ nome: 'Ifrit', efeito_invocacao: 'Dano de Fogo' }]
+    }
+  ],
   itens: [
-    { id: 'item-1', nome: 'Espada Longa', tipo: 'Arma', stats_personalizados: { slot: 'mao_dominante', dano: 9, alcance: 'corpo_a_corpo' } }
+    { id: 'item-1', nome: 'Espada Longa', tipo: 'Arma', stats_personalizados: { slot: 'mao_dominante', dano: 9, alcance: 'corpo_a_corpo' } },
+    { id: 'item-traje', nome: 'Traje de viagem', tipo: 'Armadura Leve', stats_personalizados: { slot: 'armadura' } }
   ]
 };
 
@@ -52,7 +72,26 @@ const perfil = extrairPerfilRolagemCombatente({
 assert.strictEqual(perfil.defesa, 13, 'Defesa no combate deve ser exatamente a defesa derivada calculada (13)');
 assert.strictEqual(perfil.mdef, 9, 'M.DEF no combate deve ser exatamente o mdef derivado calculado (9)');
 assert.strictEqual(perfil.atributosAtuais.des, 8, 'Condição Lento deve reduzir Destreza de d10 para d8');
-assert.strictEqual(perfil.armas.length > 0, true, 'Deve extrair a arma equipada da ficha');
+assert.strictEqual(perfil.armas.length, 1, 'Deve conter apenas 1 arma equipada (sem duplicata e sem Golpe Desarmado)');
+assert.strictEqual(perfil.armas[0].nome, 'Espada Longa', 'A única arma deve ser Espada Longa');
+assert.strictEqual(perfil.armas.some(a => a.nome.includes('Traje')), false, 'Traje de viagem não deve ser classificado como arma');
+assert.strictEqual(perfil.armas.some(a => a.id === 'desarmado'), false, 'Golpe Desarmado deve ser ocultado quando há arma equipada');
+
+// Magias de Quimerista e Arcanista
+assert.strictEqual(perfil.magias.some(m => m.nome === 'Sopro Gélido'), true, 'Feitiço do Quimerista deve estar nas magias');
+assert.strictEqual(perfil.magias.some(m => m.nome === 'Invocar: Ifrit'), true, 'Arcano do Arcanista deve estar nas magias');
+
+// Habilidades ativas usáveis
+assert.strictEqual(perfil.habilidades.some(h => h.nome === 'Proteger'), true, 'Habilidade ativa Proteger deve ser extraída');
+assert.strictEqual(perfil.habilidades.some(h => h.nome === 'Aumento de PV'), false, 'Passivo de estatística Aumento de PV deve ser ignorado');
+
+// Ficha sem armas: Golpe Desarmado deve aparecer
+const perfilDesarmado = extrairPerfilRolagemCombatente({
+  combatente: combatenteHeroi,
+  ficha: { ...fichaEnriquecida, itens: [] }
+});
+assert.strictEqual(perfilDesarmado.armas.length, 1);
+assert.strictEqual(perfilDesarmado.armas[0].id, 'desarmado');
 console.log('PASSED: Perfil de conflito sincronizado com status derivados da ficha');
 
 console.log('--- 2. Testando Sanitização e Sincronização Bidirecional Ficha <-> Combate ---');

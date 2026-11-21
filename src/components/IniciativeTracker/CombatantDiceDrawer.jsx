@@ -21,7 +21,6 @@ export default function CombatantDiceDrawer({
   const [attr1, setAttr1] = useState('des');
   const [attr2, setAttr2] = useState('ast');
   const [modExtra, setModExtra] = useState(0);
-  const [isOposto, setIsOposto] = useState(false);
   const [ultimaRolagem, setUltimaRolagem] = useState(null);
 
   if (!perfil) return null;
@@ -33,7 +32,7 @@ export default function CombatantDiceDrawer({
     const s2 = ATRIBUTOS_CONFLITO[attr2]?.sigla || 'AST';
     const res = await onRolarDados({
       combatente, perfil, categoria: 'atributo', titulo: `Teste [${s1} + ${s2}]`,
-      attr1, attr2, bonusTeste: Number(modExtra) || 0, isOposto, calcularDano: false
+      attr1, attr2, bonusTeste: Number(modExtra) || 0, calcularDano: false
     });
     if (res) setUltimaRolagem(res);
   };
@@ -41,12 +40,11 @@ export default function CombatantDiceDrawer({
   const handleRolarPreset = async (preset) => {
     setAttr1(preset.attr1);
     setAttr2(preset.attr2);
-    setIsOposto(Boolean(preset.isOposto));
     const res = await onRolarDados({
       combatente, perfil, categoria: 'resistencia', titulo: preset.titulo,
       attr1: preset.attr1, attr2: preset.attr2,
       bonusTeste: (Number(modExtra) || 0) + (preset.codigo === 'INICIATIVA' ? (perfil.iniciativaMod || 0) : 0),
-      isOposto: Boolean(preset.isOposto), ndAlvo: preset.ndSugerido || null, calcularDano: false
+      ndAlvo: preset.ndSugerido || null, calcularDano: false
     });
     if (res) setUltimaRolagem(res);
   };
@@ -149,11 +147,6 @@ export default function CombatantDiceDrawer({
                 onChange={(e) => setModExtra(Number(e.target.value))}
               />
             </div>
-
-            <label className={styles.opostoLabel} title="Em Testes Opostos, estar em Guarda soma +2 automaticamente">
-              <input type="checkbox" checked={isOposto} onChange={(e) => setIsOposto(e.target.checked)} />
-              <span>Oposto</span>
-            </label>
 
             <Button type="button" variant="primary" size="sm" onClick={handleRolarAtributoCustom}>
               <FaDice /> Rolar [{ATRIBUTOS_CONFLITO[attr1]?.sigla}+{ATRIBUTOS_CONFLITO[attr2]?.sigla}]

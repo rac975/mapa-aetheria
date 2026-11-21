@@ -1,0 +1,85 @@
+.accordionWrap {
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 17, 34, 0.6);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(10, 25, 47, 0.7);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.accordionHeader:hover {
+  background: var(--color-bg-surface-hover);
+}
+
+.accordionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.accordionIcon {
+  color: var(--color-text-dim);
+  font-size: var(--font-size-xs);
+}
+
+.accordionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border-gold-muted);
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-2);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-dim);
+  font-weight: 600;
+}
+
+.fieldInput,
+.fieldSelect {
+  background: var(--color-bg-input);
+  color: var(--color-text-bright);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: var(--font-size-sm);
+}
+
+.fieldInput:focus,
+.fieldSelect:focus {
+  outline: none;
+  border-color: var(--color-border-gold);
+}
+
+.fullWidthField {
+  grid-column: 1 / -1;
+}

@@ -3,7 +3,10 @@ import {
   PROGRESSAO_DADOS_ATRIBUTO,
   calcularModificadoresCondicoesOficiais,
   calcularPassivosCoreClasses,
-  normalizarTextoCore
+  normalizarTextoCore,
+  extrairArcanosVinculados,
+  extrairMagiasQuimerista,
+  extrairAtributoQuimerista
 } from './coreClassRules.js';
 import {
   armaAtingeVoadores,
@@ -1123,9 +1126,10 @@ export function extrairPerfilRolagemCombatente({
     von: aplicarPassosDadoCombate(vonBase, modsCondicoes.von, 20)
   };
 
-  // 2. Extrai armas / ataques e magias
+  // 2. Extrai armas / ataques, magias e habilidades ativas
   const armas = [];
   const magias = [];
+  const habilidades = [];
 
   if (ficha) {
     const classesFicha = Array.isArray(ficha.classes) ? ficha.classes : (Array.isArray(ficha.fichas_classes) ? ficha.fichas_classes : []);
@@ -1145,12 +1149,46 @@ export function extrairPerfilRolagemCombatente({
     });
     const bonusFeiticoPoderoso = temFeiticoPoderoso ? (nivelTotal >= 40 ? 10 : 5) : 0;
 
-    // Armas equipadas nas mãos
-    const armasMaos = itensEquipados.filter((i) => {
-      const slot = i.stats_personalizados?.slot;
+    // Armas equipadas nas mãos (excluindo armaduras, trajes/vestimentas, escudos e acessórios)
+    const armasMaos = [];
+    const nomesArmasVistas = new Set();
+
+    itensEquipados.forEach((i) => {
+      const slot = i.stats_personalizados?.slot || i.slot || '';
       const tipo = normalizarTextoCore(i.tipo || '');
-      const ehEscudo = tipo.includes('escudo') || i.stats_personalizados?.escudo === true;
-      return (slot === 'mao_dominante' || slot === 'mao_secundaria' || tipo.includes('arma')) && !ehEscudo;
+      const ehArmaduraOuAcessorio =
+        tipo.includes('armadura') ||
+        tipo.includes('vestimenta') ||
+        tipo.includes('traje') ||
+        tipo.includes('escudo') ||
+        tipo.includes('acessorio') ||
+        slot === 'armadura' ||
+        slot === 'acessorio' ||
+        i.stats_personalizados?.escudo === true;
+
+      if (ehArmaduraOuAcessorio) return;
+
+      const ehSlotMao = slot === 'mao_dominante' || slot === 'mao_secundaria';
+      const ehTipoArma =
+        tipo.includes('arma') ||
+        tipo.includes('corpo_a_corpo') ||
+        tipo.includes('distancia') ||
+        tipo.includes('arco') ||
+        tipo.includes('espada') ||
+        tipo.includes('lanca') ||
+        tipo.includes('adaga') ||
+        tipo.includes('machado') ||
+        tipo.includes('mangual') ||
+        tipo.includes('pistola') ||
+        tipo.includes('fogo');
+
+      if (ehSlotMao || ehTipoArma) {
+        const chaveArma = `${i.id || ''}_${i.nome || ''}`;
+        if (!nomesArmasVistas.has(chaveArma)) {
+          nomesArmasVistas.add(chaveArma);
+          armasMaos.push(i);
+        }
+      }
     });
 
     const adicionarArmaEquipadaNoPerfil = (itemAlvo, sufixoId = '', ehSegundaForma = false) => {
@@ -1206,28 +1244,36 @@ export function extrairPerfilRolagemCombatente({
       }
     });
 
-    // Golpe Desarmado sempre disponível
-    armas.push({
-      id: 'desarmado',
-      nome: 'Golpe Desarmado',
-      attr1: 'des',
-      attr2: 'vig',
-      bonusPrecisao: passivosCore.bonusPrecisaoCorpoACorpo,
-      bonusDano: passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
-      tipoDano: 'fisico',
-      alcance: 'corpo_a_corpo',
-      isPadrao: armas.length === 0,
-      atingeVoadores: false
-    });
+    // Golpe Desarmado só é exibido se o personagem NÃO possuir nenhuma arma equipada
+    if (armas.length === 0) {
+      armas.push({
+        id: 'desarmado',
+        nome: 'Golpe Desarmado',
+        attr1: 'des',
+        attr2: 'vig',
+        bonusPrecisao: passivosCore.bonusPrecisaoCorpoACorpo,
+        bonusDano: passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
+        tipoDano: 'fisico',
+        alcance: 'corpo_a_corpo',
+        isPadrao: true,
+        atingeVoadores: false
+      });
+    }
 
-    // Magias da ficha
+    // Feitiços aprendidos da ficha (incluindo Quimerista e Arcanista) sem duplicatas
+    const chavesMagiasVistas = new Set();
     const listaMagias = Array.isArray(ficha.magias) ? ficha.magias : [];
     listaMagias.forEach((m, idx) => {
-      const matchPm = String(m.custo_mp || '').match(/\d+/);
+      const nomeM = m.nome || 'Feitiço';
+      const chave = m.id || nomeM;
+      if (chavesMagiasVistas.has(chave)) return;
+      chavesMagiasVistas.add(chave);
+
+      const matchPm = String(m.custo_mp || m.custo_pm || '').match(/\d+/);
       const custoBase = matchPm ? parseInt(matchPm[0], 10) || 0 : 10;
       magias.push({
         id: m.id || `magia_${idx}`,
-        nome: m.nome || 'Feitiço',
+        nome: nomeM,
         attr1: 'ast',
         attr2: 'von',
         bonusPrecisao: passivosCore.bonusTesteArtilhariaMagica,
@@ -1235,6 +1281,83 @@ export function extrairPerfilRolagemCombatente({
         custoPm: modificadoresCena?.decretoDobrarPm ? custoBase * 2 : custoBase,
         ofensiva: true,
         descricao: m.descricao || ''
+      });
+    });
+
+    classesFicha.forEach((c, cIdx) => {
+      // Magias aprendidas de Quimerista
+      const magiasQuim = extrairMagiasQuimerista(c, ficha);
+      magiasQuim.forEach((mq, mIdx) => {
+        const nomeQuim = mq.nome || `Feitiço Quimérico ${mIdx + 1}`;
+        const chave = mq.id || nomeQuim;
+        if (chavesMagiasVistas.has(chave)) return;
+        chavesMagiasVistas.add(chave);
+
+        const matchPm = String(mq.custo_pm || mq.custo_mp || mq.custo || '').match(/\d+/);
+        const custoBase = matchPm ? parseInt(matchPm[0], 10) || 0 : 10;
+        const attrQuim = extrairAtributoQuimerista(c, ficha) || 'ast';
+        magias.push({
+          id: mq.id || `quim_${cIdx}_${mIdx}`,
+          nome: nomeQuim,
+          attr1: normalizarChaveAtributo(mq.attr1 || attrQuim, 'ast'),
+          attr2: normalizarChaveAtributo(mq.attr2 || 'von', 'von'),
+          bonusPrecisao: passivosCore.bonusTesteArtilhariaMagica,
+          bonusDano: bonusFeiticoPoderoso + decretoDanoExtra,
+          custoPm: modificadoresCena?.decretoDobrarPm ? custoBase * 2 : custoBase,
+          ofensiva: true,
+          descricao: mq.descricao || mq.efeito || ''
+        });
+      });
+
+      // Arcanos vinculados de Arcanista
+      const arcanos = extrairArcanosVinculados(c, ficha);
+      arcanos.forEach((arc, aIdx) => {
+        const nomeArcano = typeof arc === 'string' ? arc : (arc?.nome || `Arcano ${aIdx + 1}`);
+        const chave = `arcano_${nomeArcano}`;
+        if (chavesMagiasVistas.has(chave)) return;
+        chavesMagiasVistas.add(chave);
+
+        const descArcano = typeof arc === 'string' ? '' : (arc?.efeito_invocacao || arc?.efeito_descarte || arc?.descricao || '');
+        magias.push({
+          id: `arcano_${cIdx}_${aIdx}`,
+          nome: `Invocar: ${nomeArcano}`,
+          attr1: 'ast',
+          attr2: 'von',
+          bonusPrecisao: passivosCore.bonusTesteArtilhariaMagica,
+          bonusDano: bonusFeiticoPoderoso + decretoDanoExtra,
+          custoPm: modificadoresCena?.decretoDobrarPm ? 80 : 40,
+          ofensiva: false,
+          descricao: descArcano
+        });
+      });
+    });
+
+    // Habilidades ativas/usáveis em combate da ficha
+    classesFicha.forEach((c) => {
+      const habsClasse = Array.isArray(c.habilidades) ? c.habilidades : [];
+      habsClasse.forEach((h, hIdx) => {
+        const nivelHab = Number(h?.nivel ?? 0);
+        if (nivelHab > 0) {
+          const nomeHab = h?.nome || `Habilidade ${hIdx + 1}`;
+          const nomeNorm = normalizarTextoCore(nomeHab);
+          const ehPassivoEstatistica =
+            nomeNorm.includes('aumento de pv') ||
+            nomeNorm.includes('aumento de pm') ||
+            nomeNorm.includes('aumento de pi') ||
+            nomeNorm.includes('pontos de vida') ||
+            nomeNorm.includes('pontos de mente');
+
+          if (!ehPassivoEstatistica) {
+            habilidades.push({
+              id: h.id || `hab_${c.nome_classe || 'cls'}_${hIdx}`,
+              nome: nomeHab,
+              nivel: nivelHab,
+              classe: c.nome_classe || '',
+              descricao: h.descricao || h.efeito || '',
+              custoPm: Number(h.custo_pm || h.custoPm || 0)
+            });
+          }
+        }
       });
     });
   } else {
@@ -1314,6 +1437,7 @@ export function extrairPerfilRolagemCombatente({
     emCrise,
     armas,
     magias,
+    habilidades: ficha ? habilidades : poderesNpcFormatados,
     poderes: poderesNpcFormatados
   };
 }

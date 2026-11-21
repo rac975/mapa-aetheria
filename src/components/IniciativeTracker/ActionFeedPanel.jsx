@@ -28,6 +28,18 @@ export default function ActionFeedPanel({
           </div>
         ) : (
           acoesFeed.map((item) => {
+            if (item.acao_codigo === 'NOVA_RODADA') {
+              return (
+                <div key={item.id} className={styles.roundSeparator}>
+                  <div className={styles.roundSeparatorLine} />
+                  <div className={styles.roundSeparatorBadge}>
+                    ⚔️ {item.acao_titulo || `Rodada ${item.metadata?.rodada || ''} Iniciada`}
+                  </div>
+                  <div className={styles.roundSeparatorLine} />
+                </div>
+              );
+            }
+
             const rolagem = item.metadata?.rolagem;
             const ehRolagem = item.acao_codigo === 'ROLAGEM_DADOS' || Boolean(rolagem);
 

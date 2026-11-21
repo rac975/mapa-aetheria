@@ -1,0 +1,122 @@
+.arsenalWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--space-2);
+}
+
+.itemBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(10, 25, 47, 0.85);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-bright);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.itemBtn:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold-bright);
+  box-shadow: 0 0 10px var(--color-border-gold-glow);
+  transform: translateY(-1px);
+}
+
+.itemBtn:active {
+  transform: translateY(0);
+}
+
+.itemBtnSpell {
+  border-color: rgba(56, 239, 239, 0.4);
+}
+
+.itemBtnSpell:hover {
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 10px var(--color-ether-cyan-glow);
+}
+
+.itemBtnAbility {
+  border-color: rgba(0, 245, 160, 0.4);
+}
+
+.itemBtnAbility:hover {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 10px var(--color-core-green-glow);
+}
+
+.itemTopLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+}
+
+.itemTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemBadges {
+  display: flex;
+  gap: 4px;
+}
+
+.itemSubLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+
+.itemFormula {
+  color: var(--color-border-gold);
+  font-weight: 600;
+}
+
+.itemDmg {
+  color: var(--color-crise-bright);
+  font-weight: 600;
+}
+
+.itemDesc {
+  font-size: 10px;
+  color: var(--color-text-dim);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

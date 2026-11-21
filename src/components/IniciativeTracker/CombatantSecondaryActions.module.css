@@ -1,0 +1,63 @@
+.secondaryActionsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.secActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+  background: rgba(10, 25, 47, 0.7);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.secActionBtn:hover {
+  background: var(--color-bg-surface-hover);
+  color: var(--color-text-bright);
+  border-color: var(--color-border-gold);
+  transform: translateY(-1px);
+}
+
+.secActionBtn:active {
+  transform: translateY(0);
+}
+
+.secActionBtnGuard {
+  border-color: rgba(56, 239, 239, 0.4);
+  color: var(--color-ether-cyan);
+}
+
+.secActionBtnGuard:hover {
+  background: rgba(56, 239, 239, 0.15);
+  border-color: var(--color-ether-cyan);
+}
+
+.secActionBtnInv {
+  border-color: rgba(243, 156, 18, 0.4);
+  color: var(--color-pi);
+}
+
+.secActionBtnInv:hover {
+  background: rgba(243, 156, 18, 0.15);
+  border-color: var(--color-pi);
+}
+
+.secActionBtnSurrender {
+  border-color: rgba(231, 76, 60, 0.4);
+  color: var(--color-crise-bright);
+}
+
+.secActionBtnSurrender:hover {
+  background: rgba(231, 76, 60, 0.15);
+  border-color: var(--color-crise);
+}

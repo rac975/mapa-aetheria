@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '../ui';
 import CustomAlert from '../CustomAlert/CustomAlert';
 import CombatantItem from './CombatantItem';
-import QuickActionPanel from './QuickActionPanel';
-import AddParticipantForm from './AddParticipantForm';
+import CombatRoundBanner from './CombatRoundBanner';
+import ActionFeedPanel from './ActionFeedPanel';
+import AddParticipantContainer from './AddParticipantContainer';
 import CombatModifiersBar from './CombatModifiersBar';
 import CombatTrackerHeader from './CombatTrackerHeader';
 import { useCombatantDrag } from './useCombatantDrag';
@@ -25,20 +26,12 @@ export default function InitiativeTracker({ isMestre }) {
 
   const [atorFocoId, setAtorFocoId] = useState('');
   const [alvoFocoId, setAlvoFocoId] = useState('');
-
-  const [novoTipo, setNovoTipo] = useState('heroi');
-  const [fichaSelecionadaId, setFichaSelecionadaId] = useState('');
-  const [nomeInimigo, setNomeInimigo] = useState('');
-  const [hpMaxInput, setHpMaxInput] = useState(30);
-  const [mpMaxInput, setMpMaxInput] = useState(20);
-  const [tipoVilaoInput, setTipoVilaoInput] = useState('padrao');
-  const [voadorInput, setVoadorInput] = useState(false);
-  const [npcCatalogoSelecionado, setNpcCatalogoSelecionado] = useState(null);
+  const [alvosIds, setAlvosIds] = useState([]);
+  const [multiAlvoAtivo, setMultiAlvoAtivo] = useState(false);
 
   const [mostrarFormAdicao, setMostrarFormAdicao] = useState(false);
   const [mostrarModsCena, setMostrarModsCena] = useState(false);
 
-  const idFichaAtual = fichaSelecionadaId || (fichasDisponiveis.length > 0 ? fichasDisponiveis[0].id : '');
   const modsCena = estadoCombate?.modificadores_globais || {};
   const temModGlobalAtivo = Boolean(
     modsCena.decretoDobrarPm || modsCena.roqueBloquearCura || (modsCena.decretoDanoExtra > 0)
@@ -46,6 +39,16 @@ export default function InitiativeTracker({ isMestre }) {
 
   const vivos = participantes.filter((p) => Number(p.hp_atual) > 0);
   const pendentesTurno = vivos.filter((p) => !p.agiu).length;
+
+  const meuHeroi = useMemo(() => {
+    if (isMestre) return null;
+    return participantes.find(
+      (p) =>
+        p.tipo === 'heroi' &&
+        ((jogadorFichaId && String(p.ficha_id) === String(jogadorFichaId)) ||
+          (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase()))
+    ) || null;
+  }, [isMestre, participantes, jogadorFichaId, jogadorNome]);
 
   const {
     draggedIndex,
@@ -58,37 +61,35 @@ export default function InitiativeTracker({ isMestre }) {
 
   const handleSelecionarCombatente = (combatente) => {
     if (isMestre) {
-      setAtorFocoId(combatente.id);
+      if (!atorFocoId) {
+        setAtorFocoId(combatente.id);
+      } else if (String(atorFocoId) === String(combatente.id)) {
+        // Ator já focado
+      } else if (multiAlvoAtivo) {
+        setAlvosIds((prev) =>
+          prev.includes(String(combatente.id))
+            ? prev.filter((id) => id !== String(combatente.id))
+            : [...prev, String(combatente.id)]
+        );
+      } else {
+        setAlvoFocoId(String(combatente.id));
+      }
     } else {
       const ehMeu = Boolean(
-        (jogadorFichaId && String(combatente.ficha_id) === jogadorFichaId) ||
+        (jogadorFichaId && String(combatente.ficha_id) === String(jogadorFichaId)) ||
         (jogadorNome && combatente.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
       );
       if (ehMeu) {
         setAtorFocoId(combatente.id);
+      } else if (multiAlvoAtivo) {
+        setAlvosIds((prev) =>
+          prev.includes(String(combatente.id))
+            ? prev.filter((id) => id !== String(combatente.id))
+            : [...prev, String(combatente.id)]
+        );
       } else {
-        setAlvoFocoId(combatente.id);
+        setAlvoFocoId(String(combatente.id));
       }
-    }
-  };
-
-  const handleAddSubmit = async (e) => {
-    e.preventDefault();
-    const acoesDefault = tipoVilaoInput === 'soberano' ? 3 : (tipoVilaoInput === 'elite' || tipoVilaoInput === 'campeao') ? 2 : 1;
-    const sucesso = await addParticipante({
-      tipo: novoTipo,
-      fichaSelecionadaId: idFichaAtual,
-      nomeInimigo,
-      hpMaxInput,
-      mpMaxInput,
-      tipoVilaoInput,
-      acoesPorTurnoInput: acoesDefault,
-      voadorInput,
-      npcCatalogoSelecionado
-    });
-    if (sucesso) {
-      setNomeInimigo('');
-      setVoadorInput(false);
     }
   };
 
@@ -119,90 +120,92 @@ export default function InitiativeTracker({ isMestre }) {
         />
       )}
 
-      {exibirPainelAdicao && (
-        <AddParticipantForm
-          novoTipo={novoTipo}
-          setNovoTipo={setNovoTipo}
-          fichaSelecionadaId={idFichaAtual}
-          setFichaSelecionadaId={setFichaSelecionadaId}
-          fichasDisponiveis={fichasDisponiveis}
-          npcsDisponiveis={npcsDisponiveis}
-          nomeInimigo={nomeInimigo}
-          setNomeInimigo={setNomeInimigo}
-          hpMaxInput={hpMaxInput}
-          setHpMaxInput={setHpMaxInput}
-          mpMaxInput={mpMaxInput}
-          setMpMaxInput={setMpMaxInput}
-          tipoVilaoInput={tipoVilaoInput}
-          setTipoVilaoInput={setTipoVilaoInput}
-          voadorInput={voadorInput}
-          setVoadorInput={setVoadorInput}
-          onAddParticipante={handleAddSubmit}
-          onSelecionarNpcCatalogo={(npc) => {
-            setNpcCatalogoSelecionado(npc);
-            setNomeInimigo('');
-          }}
-        />
-      )}
+      <CombatRoundBanner
+        rodada={estadoCombate?.rodada || 1}
+        isMestre={isMestre}
+        pendentesTurno={pendentesTurno}
+        totalVivos={vivos.length}
+        onResetRodada={resetRodada}
+      />
+
+      <AddParticipantContainer
+        isMestre={isMestre}
+        mostrarFormAdicao={mostrarFormAdicao}
+        participantesLength={participantes.length}
+        fichasDisponiveis={fichasDisponiveis}
+        npcsDisponiveis={npcsDisponiveis}
+        onAddParticipante={addParticipante}
+      />
 
       <div className={styles.participantesList}>
         {participantes.length === 0 ? (
           <p className={styles.emptyText}>Nenhum combatente ativo na cena.</p>
         ) : (
-          participantes.map((p, index) => (
-            <CombatantItem
-              key={p.id}
-              p={p}
-              index={index}
-              totalParticipantes={participantes.length}
-              participantes={participantes}
-              isMestre={isMestre}
-              jogadorFichaId={jogadorFichaId}
-              jogadorNome={jogadorNome}
-              isAtorSelecionado={String(p.id) === String(atorFocoId)}
-              isAlvoSelecionado={String(p.id) === String(alvoFocoId)}
-              onSelecionarCombatente={handleSelecionarCombatente}
-              isEditando={editandoId === p.id}
-              editForm={editForm}
-              setEditForm={setEditForm}
-              fichasDisponiveis={fichasDisponiveis}
-              perfilRolagem={obterPerfilRolagem(p)}
-              onToggleTurno={toggleTurno}
-              onAtivarTurno={ativarTurnoParticipante}
-              onSalvarEdicao={salvarEdicao}
-              onCancelarEdicao={cancelarEdicao}
-              onIniciarExclusao={iniciarExclusao}
-              onAlterarRecurso={alterarRecurso}
-              onGastarPontoVilao={gastarPontoVilaoCombate}
-              onTransicionarFase={transicionarFaseChefeCombate}
-              onAjustarAcaoTurno={ajustarAcaoTurnoVilao}
-              onToggleCondicao={toggleCondicao}
-              onRolarDados={rolarDadosNoCombate}
-              isDragging={draggedIndex === index}
-              isDragOver={targetIndex === index && draggedIndex !== index}
-              onDragHandleDown={handleDragStart}
-              onDragHandleMove={handleDragMove}
-              onDragHandleUp={handleDragEnd}
-              onDragHandleCancel={handleDragCancel}
-            />
-          ))
+          participantes.map((p, index) => {
+            const isAtor = isMestre
+              ? String(p.id) === String(atorFocoId)
+              : Boolean(meuHeroi && String(p.id) === String(meuHeroi.id));
+
+            const isAlvo = multiAlvoAtivo
+              ? alvosIds.includes(String(p.id))
+              : String(p.id) === String(alvoFocoId);
+
+            return (
+              <CombatantItem
+                key={p.id}
+                p={p}
+                index={index}
+                totalParticipantes={participantes.length}
+                participantes={participantes}
+                relogios={relogios}
+                isMestre={isMestre}
+                jogadorFichaId={jogadorFichaId}
+                jogadorNome={jogadorNome}
+                isAtorSelecionado={isAtor}
+                isAlvoSelecionado={isAlvo}
+                alvoId={alvoFocoId}
+                alvosIds={alvosIds}
+                multiAlvoAtivo={multiAlvoAtivo}
+                onSelecionarCombatente={handleSelecionarCombatente}
+                onSelecionarAlvo={setAlvoFocoId}
+                onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
+                onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }}
+                onToggleAlvoMulti={(id) => setAlvosIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])}
+                onExecutarAcao={executarAcaoRapida}
+                isEditando={editandoId === p.id}
+                editForm={editForm}
+                setEditForm={setEditForm}
+                fichasDisponiveis={fichasDisponiveis}
+                perfilRolagem={obterPerfilRolagem(p)}
+                onToggleTurno={toggleTurno}
+                onAtivarTurno={(combatente) => {
+                  ativarTurnoParticipante(combatente);
+                  setAtorFocoId(combatente.id);
+                }}
+                onSalvarEdicao={salvarEdicao}
+                onCancelarEdicao={cancelarEdicao}
+                onIniciarExclusao={iniciarExclusao}
+                onAlterarRecurso={alterarRecurso}
+                onGastarPontoVilao={gastarPontoVilaoCombate}
+                onTransicionarFase={transicionarFaseChefeCombate}
+                onAjustarAcaoTurno={ajustarAcaoTurnoVilao}
+                onToggleCondicao={toggleCondicao}
+                onRolarDados={rolarDadosNoCombate}
+                isDragging={draggedIndex === index}
+                isDragOver={targetIndex === index && draggedIndex !== index}
+                onDragHandleDown={handleDragStart}
+                onDragHandleMove={handleDragMove}
+                onDragHandleUp={handleDragEnd}
+                onDragHandleCancel={handleDragCancel}
+              />
+            );
+          })
         )}
       </div>
 
-      <QuickActionPanel
-        participantes={participantes}
-        relogios={relogios}
+      <ActionFeedPanel
         acoesFeed={acoesFeed}
         isMestre={isMestre}
-        jogadorFichaId={jogadorFichaId}
-        jogadorNome={jogadorNome}
-        atorFocoId={atorFocoId}
-        setAtorFocoId={setAtorFocoId}
-        alvoFocoId={alvoFocoId}
-        setAlvoFocoId={setAlvoFocoId}
-        obterPerfilRolagem={obterPerfilRolagem}
-        onRolarDados={rolarDadosNoCombate}
-        onExecutarAcao={executarAcaoRapida}
         onLimparHistorico={limparHistoricoAcoes}
       />
 

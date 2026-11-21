@@ -1,0 +1,92 @@
+.turnActionArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(10, 25, 47, 0.95);
+  border: 1px solid var(--color-border-gold-bright);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5), 0 4px 16px var(--color-border-gold-glow);
+  margin-top: var(--space-3);
+  width: 100%;
+}
+
+.actionAreaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-gold-muted);
+}
+
+.actionAreaTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.triggerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-gold-muted);
+  flex-wrap: wrap;
+}
+
+.concluirTurnoLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-bright);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.concluirTurnoCheckbox {
+  accent-color: var(--color-border-gold);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.triggerBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btnDisparar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--color-border-gold) 0%, var(--color-border-gold-bright) 100%);
+  color: var(--color-bg-base);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border-gold-bright);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 10px var(--color-border-gold-glow);
+}
+
+.btnDisparar:hover {
+  background: var(--color-border-gold-bright);
+  box-shadow: 0 0 16px var(--color-border-gold-glow);
+  transform: translateY(-1px);
+}
+
+.btnDisparar:active {
+  transform: translateY(0);
+}

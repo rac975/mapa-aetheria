@@ -1,26 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  FaShieldAlt, FaSkull, FaCrown, FaBolt, FaFire,
-  FaMagic, FaStar, FaBoxOpen, FaPlay, FaHeartbeat
+  FaShieldAlt, FaSkull, FaCrown, FaBolt, FaFire, FaPlay
 } from 'react-icons/fa';
-import { Badge, Button, Input, ResourceBar } from '../ui';
+import { Badge, Button, Input } from '../ui';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
 import {
   estaDerrotado as checkDerrotado, calcularStatusCrise, calcularDanoAcumulado,
   extrairHpMax, extrairMpMax, TIPOS_VILAO, normalizarTipoVilao, isVilaoOuChefe, verificarGatilhoTransicaoFase
 } from '../../domain/fabula/combatRules';
-import CombatantDiceDrawer from './CombatantDiceDrawer';
 import CombatantDrawers from './CombatantDrawers';
 import VillainCombatDrawer from './VillainCombatDrawer';
 import CombatantActionButtons from './CombatantActionButtons';
+import CombatantTurnActionArea from './CombatantTurnActionArea';
+import CombatantVitalsCluster from './CombatantVitalsCluster';
 import styles from './CombatantItem.module.css';
 import actionStyles from './CombatantItemActions.module.css';
 
 export default function CombatantItem({
-  p, index, participantes = [], isMestre, jogadorFichaId, jogadorNome,
+  p, index, participantes = [], relogios = [], isMestre, jogadorFichaId, jogadorNome,
   isEditando, editForm, setEditForm, fichasDisponiveis, perfilRolagem,
-  isAtorSelecionado, isAlvoSelecionado, onSelecionarCombatente,
-  onToggleTurno, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
+  isAtorSelecionado, isAlvoSelecionado, alvoId, alvosIds = [], multiAlvoAtivo = false,
+  onSelecionarCombatente, onSelecionarAlvo, onToggleMultiAlvo, onLimparAlvo, onToggleAlvoMulti,
+  onExecutarAcao, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
   onIniciarExclusao, onAlterarRecurso, onGastarPontoVilao, onTransicionarFase,
   onAjustarAcaoTurno, onToggleCondicao, onRolarDados, isDragging, isDragOver,
   onDragHandleDown, onDragHandleMove, onDragHandleUp, onDragHandleCancel
@@ -40,7 +41,6 @@ export default function CombatantItem({
     (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
   );
   const podeAlterarTurno = isMestre || ehMeuPersonagem;
-  const podeRolarDados = isMestre || ehMeuPersonagem;
 
   const isInimigo = p.tipo !== 'heroi';
   const tipoVilaoKey = isInimigo ? normalizarTipoVilao(p.tipo_vilao || 'padrao') : 'padrao';
@@ -71,14 +71,23 @@ export default function CombatantItem({
   const alvoProtegido = p.protegendo_id ? participantes.find((item) => String(item.id) === String(p.protegendo_id)) : null;
   const alternarPainel = (tipo) => setPainelAberto((atual) => (atual === tipo ? null : tipo));
 
+  const deveExibirAreaAcoes = !isEditando && !estaDerrotado && (
+    (ehMeuPersonagem && (isAtorSelecionado || !isMestre)) ||
+    (isMestre && isAtorSelecionado)
+  );
+
   const itemClasses = [
-    styles.itemCard, p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
-    ehChefeOuVilao ? styles.vilaoBossCard : '', p.turno_atual && !estaDerrotado ? styles.turnActiveCard : '',
-    p.agiu ? styles.turnCompleted : '', estaDerrotado && !statusFase.gatilhoAtivo ? styles.isDefeated : '',
-    ehMeuPersonagem ? styles.meuHeroiCard : '',
-    isAtorSelecionado ? styles.actorSelectedCard : '',
-    isAlvoSelecionado ? styles.targetSelectedCard : '',
-    isDragging ? styles.itemDragging : '', isDragOver ? styles.itemDragOver : ''
+    styles.itemCard,
+    p.tipo === 'heroi' ? styles.heroi : styles.inimigo,
+    ehChefeOuVilao && styles.vilaoBossCard,
+    p.turno_atual && !estaDerrotado && styles.turnActiveCard,
+    p.agiu && styles.turnCompleted,
+    estaDerrotado && !statusFase.gatilhoAtivo && styles.isDefeated,
+    ehMeuPersonagem && styles.meuHeroiCard,
+    isAtorSelecionado && styles.actorSelectedCard,
+    isAlvoSelecionado && styles.targetSelectedCard,
+    isDragging && styles.itemDragging,
+    isDragOver && styles.itemDragOver
   ].filter(Boolean).join(' ');
 
   return (
@@ -90,17 +99,6 @@ export default function CombatantItem({
     >
       <div className={styles.itemMainRow}>
         <div className={styles.identityCluster}>
-          <input
-            type="checkbox"
-            checked={p.agiu}
-            disabled={!podeAlterarTurno}
-            onChange={() => podeAlterarTurno && onToggleTurno(p.id, p.agiu)}
-            onClick={(e) => e.stopPropagation()}
-            className={styles.turnCheckbox}
-            aria-label={`Status de turno de ${p.nome}`}
-            title={podeAlterarTurno ? `Marcar turno de ${p.nome}` : 'Apenas o Mestre ou o jogador dono deste herói pode alterar este turno'}
-          />
-
           {avatarUrl ? (
             <img src={avatarUrl} alt={p.nome} className={styles.avatarImg} />
           ) : (
@@ -118,6 +116,7 @@ export default function CombatantItem({
               <div className={styles.nameLine}>
                 <span className={styles.nome}>{p.nome}</span>
                 {ehMeuPersonagem && <Badge variant="gold" size="sm">★ Meu Herói</Badge>}
+                {isAlvoSelecionado && <Badge variant="crise" size="sm">🎯 ALVO</Badge>}
                 <Badge variant={p.tipo === 'heroi' ? 'core' : ehChefeOuVilao ? 'villain' : 'crise'} size="sm">
                   {p.tipo === 'heroi' ? 'Herói' : tipoVilaoKey !== 'padrao' ? infoVilao.badgeLabel : 'Inimigo'}
                 </Badge>
@@ -130,6 +129,7 @@ export default function CombatantItem({
                 {p.guardando && !estaDerrotado && (
                   <Badge variant="ether" size="sm"><FaShieldAlt /> {alvoProtegido ? `Cobre ${alvoProtegido.nome}` : 'Em Guarda'}</Badge>
                 )}
+                {p.agiu && <Badge variant="default" size="sm">AGIU</Badge>}
                 {estaDerrotado && !statusFase.gatilhoAtivo && <Badge variant="default" size="sm">CAÍDO</Badge>}
                 {emCrise && !estaDerrotado && <Badge variant="crise" size="sm">CRISE</Badge>}
               </div>
@@ -157,38 +157,19 @@ export default function CombatantItem({
         </div>
 
         {!isEditando && (
-          <div className={styles.vitalsCluster} onClick={(e) => isMestre && e.stopPropagation()}>
-            {(p.tipo === 'heroi' || isMestre) && (
-              <div className={styles.barsInline}>
-                <div className={styles.barCompact}><ResourceBar type="pv" current={p.hp_atual} max={maxHp} label="PV" isCrise={emCrise} /></div>
-                <div className={styles.barCompact}><ResourceBar type="pm" current={p.mp_atual} max={maxMp} label="PM" /></div>
-              </div>
-            )}
-
-            {p.tipo === 'heroi' ? (
-              <div className={styles.pillsInline}>
-                <span className={styles.statPill} title="Defesa Física"><FaShieldAlt /> DEF {defesaHeroi}</span>
-                <span className={styles.statPill} title="Defesa Mágica"><FaMagic /> M.DEF {mdefHeroi}</span>
-                <span className={styles.statPill} title="Pontos de Inventário"><FaBoxOpen /> IP {p.ip}</span>
-                <span className={`${styles.statPill} ${styles.statPillGold}`} title="Pontos de Fábula"><FaStar /> PF {p.pontos_fabula}</span>
-              </div>
-            ) : (
-              <div className={styles.pillsInline}>
-                {isMestre && perfilRolagem && (
-                  <>
-                    <span className={styles.statPill} title="Defesa Física"><FaShieldAlt /> DEF {perfilRolagem.defesa}</span>
-                    <span className={styles.statPill} title="Defesa Mágica"><FaMagic /> M.DEF {perfilRolagem.mdef}</span>
-                  </>
-                )}
-                {isMestre && (ehChefeOuVilao || pontosVilao > 0) && (
-                  <span className={`${styles.statPill} ${styles.statPillVillain}`} title="Pontos de Vilão (Última)">
-                    <FaSkull /> PVilão {pontosVilao}
-                  </span>
-                )}
-                {isMestre && <Badge variant="crise" size="sm"><FaHeartbeat /> Dano: {danoInimigo}</Badge>}
-              </div>
-            )}
-          </div>
+          <CombatantVitalsCluster
+            p={p}
+            isMestre={isMestre}
+            maxHp={maxHp}
+            maxMp={maxMp}
+            emCrise={emCrise}
+            defesaHeroi={defesaHeroi}
+            mdefHeroi={mdefHeroi}
+            perfilRolagem={perfilRolagem}
+            ehChefeOuVilao={ehChefeOuVilao}
+            pontosVilao={pontosVilao}
+            danoInimigo={danoInimigo}
+          />
         )}
 
         <CombatantActionButtons
@@ -198,13 +179,11 @@ export default function CombatantItem({
           ehMeuPersonagem={ehMeuPersonagem}
           isEditando={isEditando}
           estaDerrotado={estaDerrotado}
-          podeRolarDados={podeRolarDados}
           isInimigo={isInimigo}
           painelAberto={painelAberto}
           alternarPainel={alternarPainel}
           condicoesAtivas={condicoesAtivas}
           onAtivarTurno={onAtivarTurno}
-          onRolarDados={onRolarDados}
           onSalvarEdicao={onSalvarEdicao}
           onCancelarEdicao={onCancelarEdicao}
           onIniciarExclusao={onIniciarExclusao}
@@ -227,9 +206,24 @@ export default function CombatantItem({
         </div>
       )}
 
-      {!isEditando && painelAberto === 'dados' && podeRolarDados && (
-        <CombatantDiceDrawer combatente={p} perfil={perfilRolagem} onRolarDados={onRolarDados} onFechar={() => setPainelAberto(null)} />
+      {deveExibirAreaAcoes && (
+        <CombatantTurnActionArea
+          combatente={p}
+          perfil={perfilRolagem}
+          participantes={participantes}
+          relogios={relogios}
+          alvoId={alvoId}
+          alvosIds={alvosIds}
+          multiAlvoAtivo={multiAlvoAtivo}
+          onSelecionarAlvo={onSelecionarAlvo}
+          onToggleMultiAlvo={onToggleMultiAlvo}
+          onLimparAlvo={onLimparAlvo}
+          onToggleAlvoMulti={onToggleAlvoMulti}
+          onExecutarAcao={onExecutarAcao}
+          onRolarDados={onRolarDados}
+        />
       )}
+
       {isMestre && !isEditando && painelAberto === 'vilao' && isInimigo && (
         <VillainCombatDrawer p={p} onFechar={() => setPainelAberto(null)} onAlterarRecurso={onAlterarRecurso} onGastarPontoVilao={onGastarPontoVilao} onTransicionarFase={onTransicionarFase} onAjustarAcaoTurno={onAjustarAcaoTurno} />
       )}

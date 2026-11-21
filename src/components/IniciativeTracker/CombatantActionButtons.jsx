@@ -1,5 +1,5 @@
 import {
-  FaPlay, FaDice, FaCrown, FaSlidersH, FaExclamationTriangle,
+  FaPlay, FaCrown, FaSlidersH, FaExclamationTriangle,
   FaGripVertical, FaTrashAlt, FaCheck, FaTimes
 } from 'react-icons/fa';
 import { Button } from '../ui';
@@ -12,13 +12,11 @@ export default function CombatantActionButtons({
   ehMeuPersonagem,
   isEditando,
   estaDerrotado,
-  podeRolarDados,
   isInimigo,
   painelAberto,
   alternarPainel,
   condicoesAtivas = [],
   onAtivarTurno,
-  onRolarDados,
   onSalvarEdicao,
   onCancelarEdicao,
   onIniciarExclusao,
@@ -39,19 +37,6 @@ export default function CombatantActionButtons({
           title="Definir como turno ativo atual"
         >
           <FaPlay />
-        </button>
-      )}
-
-      {!isEditando && podeRolarDados && onRolarDados && (
-        <button
-          type="button"
-          className={`${actionStyles.actionIconBtn} ${painelAberto === 'dados' ? actionStyles.actionIconBtnActive : ''}`}
-          onClick={() => alternarPainel('dados')}
-          title="Rolar dados"
-          aria-expanded={painelAberto === 'dados'}
-        >
-          <FaDice />
-          <span className={actionStyles.btnLabelDesktop}>Dados</span>
         </button>
       )}
 
