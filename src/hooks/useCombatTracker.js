@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { combatService } from '../services/combatService';
+import { playerSessionService } from '../services/playerSessionService';
 import { useToast } from '../contexts/ToastContext';
 import {
   alternarTurno,
@@ -39,9 +40,18 @@ export function useCombatTracker(isMestre) {
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
 
+  const sessaoJogador = useMemo(() => playerSessionService.obterSessao(), []);
+  const jogadorFichaId = sessaoJogador?.fichaId ? String(sessaoJogador.fichaId) : null;
+  const jogadorNome = sessaoJogador?.nomePersonagem || null;
+
   const recarregarParticipantes = useCallback(async () => {
     const { data } = await combatService.getParticipantes();
     if (data) setParticipantes(data);
+  }, []);
+
+  const recarregarFichas = useCallback(async () => {
+    const { data } = await combatService.getFichasPersonagens();
+    if (data) setFichasDisponiveis(data);
   }, []);
 
   const recarregarRelogios = useCallback(async () => {
@@ -96,23 +106,62 @@ export function useCombatTracker(isMestre) {
     const subAcoes = combatService.subscribeAcoesCombate(() => {
       recarregarAcoes();
     });
+    const subFichas = combatService.subscribeFichasPersonagens(async (payload) => {
+      await recarregarFichas();
+      if (payload?.new && payload.new.id) {
+        const fichaIdAtualizada = String(payload.new.id);
+        setParticipantes((prev) =>
+          prev.map((p) => {
+            if (p.tipo === 'heroi' && String(p.ficha_id) === fichaIdAtualizada) {
+              const novoP = {
+                ...p,
+                hp_atual: payload.new.hp_atual !== undefined ? Number(payload.new.hp_atual) : p.hp_atual,
+                hp_max: payload.new.hp_max !== undefined ? Number(payload.new.hp_max) : p.hp_max,
+                mp_atual: payload.new.mp_atual !== undefined ? Number(payload.new.mp_atual) : p.mp_atual,
+                mp_max: payload.new.mp_max !== undefined ? Number(payload.new.mp_max) : p.mp_max,
+                ip: (payload.new.pi_atual ?? payload.new.ip) !== undefined ? Number(payload.new.pi_atual ?? payload.new.ip) : p.ip,
+                pontos_fabula: (payload.new.fabula ?? payload.new.pontos_fabula) !== undefined ? Number(payload.new.fabula ?? payload.new.pontos_fabula) : p.pontos_fabula,
+                condicoes: Array.isArray(payload.new.condicoes) ? payload.new.condicoes : p.condicoes
+              };
+              combatService.updateIniciativaFromFicha(p.ficha_id, payload.new).catch(() => {});
+              return novoP;
+            }
+            return p;
+          })
+        );
+      }
+    });
 
     return () => {
       ativo = false;
       subIniciativa.unsubscribe();
       subEstado.unsubscribe();
       subAcoes.unsubscribe();
+      subFichas.unsubscribe();
     };
-  }, [recarregarParticipantes, recarregarRelogios, recarregarAcoes]);
+  }, [recarregarParticipantes, recarregarRelogios, recarregarAcoes, recarregarFichas]);
 
   const toggleTurno = useCallback(async (id, statusAtual) => {
+    const participante = participantes.find((p) => p.id === id);
+    const ehMeuPersonagem = !isMestre && participante && (
+      (jogadorFichaId && String(participante.ficha_id) === jogadorFichaId) ||
+      (jogadorNome && participante.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+    );
+    if (!isMestre && !ehMeuPersonagem) return;
+
     const novoStatus = alternarTurno(statusAtual);
     setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, agiu: novoStatus, turno_atual: false } : p)));
     await combatService.updateParticipante(id, { agiu: novoStatus, turno_atual: false });
-  }, []);
+  }, [isMestre, participantes, jogadorFichaId, jogadorNome]);
 
   const ativarTurnoParticipante = useCallback(async (participante) => {
     if (!participante?.id) return;
+    const ehMeuPersonagem = !isMestre && (
+      (jogadorFichaId && String(participante.ficha_id) === jogadorFichaId) ||
+      (jogadorNome && participante.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+    );
+    if (!isMestre && !ehMeuPersonagem) return;
+
     // Ao iniciar seu próximo turno, o efeito da ação Guarda anterior expira automaticamente
     setParticipantes((prev) =>
       prev.map((p) =>
@@ -125,7 +174,7 @@ export function useCombatTracker(isMestre) {
     if (participante.guardando || participante.protegendo_id) {
       await combatService.updateParticipante(participante.id, { guardando: false, protegendo_id: null });
     }
-  }, [participantes]);
+  }, [isMestre, participantes, jogadorFichaId, jogadorNome]);
 
   const resetRodada = useCallback(async () => {
     if (!isMestre) return;
@@ -173,6 +222,18 @@ export function useCombatTracker(isMestre) {
     );
     setEstadoCombate((prev) => ({ ...prev, rodada: 1, modificadores_globais: {} }));
     await combatService.restaurarCena(participantes);
+
+    // Sincroniza restauração com fichas dos heróis
+    for (const p of participantes) {
+      if (p.tipo === 'heroi' && p.ficha_id) {
+        await combatService.updateFichaPersonagemFromCombat(p.ficha_id, {
+          hp_atual: p.hp_max,
+          mp_atual: p.mp_max,
+          condicoes: []
+        });
+      }
+    }
+
     await combatService.registrarAcaoCombate({
       autor_nome: 'Mestre',
       autor_tipo: 'sistema',
@@ -211,6 +272,22 @@ export function useCombatTracker(isMestre) {
     const ator = participantes.find((p) => String(p.id) === String(atorId));
     const alvo = alvoId ? participantes.find((p) => String(p.id) === String(alvoId)) : null;
 
+    if (!isMestre) {
+      const ehAtorValido = ator && (
+        (jogadorFichaId && String(ator.ficha_id) === jogadorFichaId) ||
+        (jogadorNome && ator.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+      );
+      if (!ehAtorValido) {
+        setAlerta({
+          isOpen: true,
+          type: 'warning',
+          title: 'Ação Bloqueada',
+          message: 'Você só pode executar ações e rolagens em nome do seu próprio herói.'
+        });
+        return false;
+      }
+    }
+
     const resultado = resolverAcaoCombate({
       acaoCodigo,
       ator,
@@ -241,12 +318,7 @@ export function useCombatTracker(isMestre) {
       await combatService.updateParticipante(ator.id, resultado.updatesAtor);
 
       if (ator.tipo === 'heroi' && ator.ficha_id) {
-        const camposSync = ['hp_atual', 'mp_atual', 'ip', 'pontos_fabula'];
-        for (const campo of camposSync) {
-          if (resultado.updatesAtor[campo] !== undefined) {
-            await combatService.updateRecursoFicha(ator.ficha_id, campo, resultado.updatesAtor[campo]);
-          }
-        }
+        await combatService.updateFichaPersonagemFromCombat(ator.ficha_id, resultado.updatesAtor);
       }
     }
 
@@ -257,11 +329,7 @@ export function useCombatTracker(isMestre) {
       await combatService.updateParticipante(resultado.alvoId, resultado.updatesAlvo);
 
       if (alvoObj?.tipo === 'heroi' && alvoObj.ficha_id) {
-        for (const campo of ['hp_atual', 'mp_atual']) {
-          if (resultado.updatesAlvo[campo] !== undefined) {
-            await combatService.updateRecursoFicha(alvoObj.ficha_id, campo, resultado.updatesAlvo[campo]);
-          }
-        }
+        await combatService.updateFichaPersonagemFromCombat(alvoObj.ficha_id, resultado.updatesAlvo);
       }
     }
 
@@ -284,7 +352,7 @@ export function useCombatTracker(isMestre) {
     }
 
     return true;
-  }, [participantes, estadoCombate?.modificadores_globais, relogios]);
+  }, [participantes, estadoCombate?.modificadores_globais, relogios, isMestre, jogadorFichaId, jogadorNome]);
 
   const limparHistoricoAcoes = useCallback(async () => {
     if (!isMestre) return;
@@ -429,13 +497,26 @@ export function useCombatTracker(isMestre) {
     setParticipantes((prev) => prev.map((p) => (p.id === id ? { ...p, ...payload } : p)));
     setEditandoId(null);
     await combatService.updateParticipante(id, payload);
+
+    if (participanteAtual?.tipo === 'heroi' && participanteAtual.ficha_id) {
+      await combatService.updateFichaPersonagemFromCombat(participanteAtual.ficha_id, {
+        hp_max: novoHpMax,
+        mp_max: novoMpMax,
+        pi_max: Number(editForm.ip),
+        fabula: Number(editForm.pontos_fabula)
+      });
+    }
   }, [editForm, participantes]);
 
   const cancelarEdicao = useCallback(() => setEditandoId(null), []);
 
   const alterarRecurso = useCallback(async (id, campo, valorAtual, delta, maximo = null) => {
-    if (!isMestre) return;
     const participanteAtual = participantes.find((p) => p.id === id);
+    const ehMeuPersonagem = !isMestre && participanteAtual && (
+      (jogadorFichaId && String(participanteAtual.ficha_id) === jogadorFichaId) ||
+      (jogadorNome && participanteAtual.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+    );
+    if (!isMestre && !ehMeuPersonagem) return;
     const isNpc = isNpcCombatente(participanteAtual);
 
     let novoValor;
@@ -482,7 +563,7 @@ export function useCombatTracker(isMestre) {
     } else if (isNpc && participanteAtual?.modificadores?.npc_id) {
       await combatService.updateNpcMestreFromCombat(participanteAtual.modificadores.npc_id, updates);
     }
-  }, [isMestre, participantes]);
+  }, [isMestre, participantes, jogadorFichaId, jogadorNome]);
 
   const gastarPontoVilaoCombate = useCallback(async (id, codigoAcao = 'INVOCAR_TRACO') => {
     if (!isMestre) return false;
@@ -622,11 +703,20 @@ export function useCombatTracker(isMestre) {
   }, [isMestre, participantes]);
 
   const toggleCondicao = useCallback(async (p, condicaoId) => {
-    if (!isMestre) return;
+    const ehMeuPersonagem = !isMestre && (
+      (jogadorFichaId && String(p.ficha_id) === jogadorFichaId) ||
+      (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+    );
+    if (!isMestre && !ehMeuPersonagem) return;
+
     const novasCondicoes = alternarCondicao(p.condicoes || [], condicaoId);
     setParticipantes((prev) => prev.map((item) => (item.id === p.id ? { ...item, condicoes: novasCondicoes } : item)));
     await combatService.updateParticipante(p.id, { condicoes: novasCondicoes });
-  }, [isMestre]);
+
+    if (p.tipo === 'heroi' && p.ficha_id) {
+      await combatService.updateFichaPersonagemFromCombat(p.ficha_id, { condicoes: novasCondicoes });
+    }
+  }, [isMestre, jogadorFichaId, jogadorNome]);
 
   const moverItem = useCallback(async (index, direcao) => {
     if (!isMestre) return;
@@ -672,6 +762,22 @@ export function useCombatTracker(isMestre) {
     const combatenteAlvo = combatente || participantes.find((p) => String(p.id) === String(opcoes.combatenteId));
     if (!combatenteAlvo) return null;
 
+    if (!isMestre) {
+      const ehMeuPersonagem = (
+        (jogadorFichaId && String(combatenteAlvo.ficha_id) === jogadorFichaId) ||
+        (jogadorNome && combatenteAlvo.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+      );
+      if (!ehMeuPersonagem) {
+        setAlerta({
+          isOpen: true,
+          type: 'warning',
+          title: 'Rolagem Não Permitida',
+          message: 'Você só pode rolar dados para o seu próprio herói.'
+        });
+        return null;
+      }
+    }
+
     const perfil = opcoes.perfil || obterPerfilRolagem(combatenteAlvo);
     const resultado = rolarDadosCombate({
       combatente: combatenteAlvo,
@@ -699,7 +805,7 @@ export function useCombatTracker(isMestre) {
     }
 
     return resultado;
-  }, [participantes, obterPerfilRolagem]);
+  }, [participantes, obterPerfilRolagem, isMestre, jogadorFichaId, jogadorNome]);
 
   const fecharAlerta = useCallback(() => setAlerta((prev) => ({ ...prev, isOpen: false })), []);
 
@@ -713,6 +819,10 @@ export function useCombatTracker(isMestre) {
     isLoading,
     alerta,
     fecharAlerta,
+    jogadorFichaId,
+    jogadorNome,
+    sessaoJogador,
+    recarregarFichas,
     editandoId,
     editForm,
     setEditForm,

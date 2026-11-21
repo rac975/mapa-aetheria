@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import {
-  FaUndoAlt, FaRedo, FaBroadcastTower, FaUserPlus, FaSlidersH
-} from 'react-icons/fa';
-import { Card, Button, Badge } from '../ui';
+import { Card } from '../ui';
 import CustomAlert from '../CustomAlert/CustomAlert';
 import CombatantItem from './CombatantItem';
 import QuickActionPanel from './QuickActionPanel';
 import AddParticipantForm from './AddParticipantForm';
+import CombatModifiersBar from './CombatModifiersBar';
+import CombatTrackerHeader from './CombatTrackerHeader';
 import { useCombatantDrag } from './useCombatantDrag';
 import { useCombatTracker } from '../../hooks/useCombatTracker';
 import styles from './InitiativeTracker.module.css';
@@ -14,7 +13,8 @@ import styles from './InitiativeTracker.module.css';
 export default function InitiativeTracker({ isMestre }) {
   const {
     participantes, fichasDisponiveis, npcsDisponiveis, estadoCombate,
-    relogios, acoesFeed, alerta, fecharAlerta, editandoId, editForm, setEditForm,
+    relogios, acoesFeed, alerta, fecharAlerta, jogadorFichaId, jogadorNome,
+    editandoId, editForm, setEditForm,
     toggleTurno, ativarTurnoParticipante, resetRodada, restaurarTudoCena,
     atualizarModificadorGlobal, executarAcaoRapida, limparHistoricoAcoes,
     addParticipante, iniciarExclusao, salvarEdicao, cancelarEdicao,
@@ -22,6 +22,9 @@ export default function InitiativeTracker({ isMestre }) {
     ajustarAcaoTurnoVilao, toggleCondicao, moverItem, obterPerfilRolagem,
     rolarDadosNoCombate
   } = useCombatTracker(isMestre);
+
+  const [atorFocoId, setAtorFocoId] = useState('');
+  const [alvoFocoId, setAlvoFocoId] = useState('');
 
   const [novoTipo, setNovoTipo] = useState('heroi');
   const [fichaSelecionadaId, setFichaSelecionadaId] = useState('');
@@ -53,6 +56,22 @@ export default function InitiativeTracker({ isMestre }) {
     handlePointerCancel: handleDragCancel
   } = useCombatantDrag({ onReorder: moverItem, totalItems: participantes.length });
 
+  const handleSelecionarCombatente = (combatente) => {
+    if (isMestre) {
+      setAtorFocoId(combatente.id);
+    } else {
+      const ehMeu = Boolean(
+        (jogadorFichaId && String(combatente.ficha_id) === jogadorFichaId) ||
+        (jogadorNome && combatente.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+      );
+      if (ehMeu) {
+        setAtorFocoId(combatente.id);
+      } else {
+        setAlvoFocoId(combatente.id);
+      }
+    }
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     const acoesDefault = tipoVilaoInput === 'soberano' ? 3 : (tipoVilaoInput === 'elite' || tipoVilaoInput === 'campeao') ? 2 : 1;
@@ -77,88 +96,27 @@ export default function InitiativeTracker({ isMestre }) {
 
   return (
     <Card variant="default" className={styles.combatBox}>
-      <header className={styles.boxHeader}>
-        <div className={styles.titleGroup}>
-          <div className={styles.titleRow}>
-            <h2 className={styles.title}>Ordem de Combate</h2>
-            <Badge variant="gold" size="sm">Rodada {estadoCombate?.rodada || 1}</Badge>
-            <Badge variant="core" size="sm"><FaBroadcastTower /> Ao Vivo</Badge>
-            {vivos.length > 0 && (
-              <Badge variant="default" size="sm">
-                {pendentesTurno}/{vivos.length} Turnos Pendentes
-              </Badge>
-            )}
-          </div>
-          <p className={styles.boxHint}>
-            {isMestre
-              ? 'Clique em um card para marcar o turno ou use Dados, PV/PM e Status para rolagens e ajustes.'
-              : 'Acompanhe a ordem de turnos, role dados da sua ficha e dispare ações rápidas sincronizadas.'}
-          </p>
-        </div>
-
-        {isMestre && (
-          <div className={`${styles.headerActions} ${styles.noPrint}`}>
-            <Button
-              variant={mostrarModsCena || temModGlobalAtivo ? 'core' : 'ghost'}
-              size="sm"
-              onClick={() => setMostrarModsCena((v) => !v)}
-              title="Alternar modificadores globais da cena"
-            >
-              <FaSlidersH className={styles.btnIcon} /> Efeitos de Cena
-            </Button>
-            <Button
-              variant={exibirPainelAdicao ? 'core' : 'ghost'}
-              size="sm"
-              onClick={() => setMostrarFormAdicao((v) => !v)}
-              title="Adicionar herói ou inimigo ao combate"
-            >
-              <FaUserPlus className={styles.btnIcon} /> Combatente
-            </Button>
-            <Button variant="secondary" size="sm" onClick={restaurarTudoCena} title="Cura total e limpa turnos">
-              <FaUndoAlt className={styles.btnIcon} /> Restaurar
-            </Button>
-            <Button variant="primary" size="sm" onClick={resetRodada} title="Avança rodada e limpa turnos">
-              <FaRedo className={styles.btnIcon} /> Nova Rodada
-            </Button>
-          </div>
-        )}
-      </header>
+      <CombatTrackerHeader
+        isMestre={isMestre}
+        rodada={estadoCombate?.rodada || 1}
+        jogadorNome={jogadorNome}
+        pendentesTurno={pendentesTurno}
+        totalVivos={vivos.length}
+        mostrarModsCena={mostrarModsCena}
+        temModGlobalAtivo={temModGlobalAtivo}
+        setMostrarModsCena={setMostrarModsCena}
+        exibirPainelAdicao={exibirPainelAdicao}
+        setMostrarFormAdicao={setMostrarFormAdicao}
+        restaurarTudoCena={restaurarTudoCena}
+        resetRodada={resetRodada}
+      />
 
       {(mostrarModsCena || temModGlobalAtivo) && (
-        <div className={`${styles.modifiersBar} ${styles.noPrint}`}>
-          <span className={styles.modifiersLabel}>Modificadores da Cena:</span>
-          {isMestre ? (
-            <div className={styles.modifiersControls}>
-              <button
-                type="button"
-                className={`${styles.modifierBtn} ${modsCena.decretoDobrarPm ? styles.modifierBtnActive : ''}`}
-                onClick={() => atualizarModificadorGlobal({ decretoDobrarPm: !modsCena.decretoDobrarPm })}
-              >
-                Decreto: Custo PM ×2
-              </button>
-              <button
-                type="button"
-                className={`${styles.modifierBtn} ${modsCena.roqueBloquearCura ? styles.modifierBtnActive : ''}`}
-                onClick={() => atualizarModificadorGlobal({ roqueBloquearCura: !modsCena.roqueBloquearCura })}
-              >
-                Roque do Rei: Bloquear Curas
-              </button>
-              <button
-                type="button"
-                className={`${styles.modifierBtn} ${modsCena.decretoDanoExtra > 0 ? styles.modifierBtnActive : ''}`}
-                onClick={() => atualizarModificadorGlobal({ decretoDanoExtra: modsCena.decretoDanoExtra > 0 ? 0 : 6 })}
-              >
-                Dano Global +6
-              </button>
-            </div>
-          ) : (
-            <div className={styles.modifiersControls}>
-              {modsCena.decretoDobrarPm && <Badge variant="crise" size="sm">Custo PM ×2</Badge>}
-              {modsCena.roqueBloquearCura && <Badge variant="crise" size="sm">Curas Bloqueadas</Badge>}
-              {modsCena.decretoDanoExtra > 0 && <Badge variant="gold" size="sm">Dano Global +{modsCena.decretoDanoExtra}</Badge>}
-            </div>
-          )}
-        </div>
+        <CombatModifiersBar
+          isMestre={isMestre}
+          modsCena={modsCena}
+          atualizarModificadorGlobal={atualizarModificadorGlobal}
+        />
       )}
 
       {exibirPainelAdicao && (
@@ -199,6 +157,11 @@ export default function InitiativeTracker({ isMestre }) {
               totalParticipantes={participantes.length}
               participantes={participantes}
               isMestre={isMestre}
+              jogadorFichaId={jogadorFichaId}
+              jogadorNome={jogadorNome}
+              isAtorSelecionado={String(p.id) === String(atorFocoId)}
+              isAlvoSelecionado={String(p.id) === String(alvoFocoId)}
+              onSelecionarCombatente={handleSelecionarCombatente}
               isEditando={editandoId === p.id}
               editForm={editForm}
               setEditForm={setEditForm}
@@ -231,6 +194,12 @@ export default function InitiativeTracker({ isMestre }) {
         relogios={relogios}
         acoesFeed={acoesFeed}
         isMestre={isMestre}
+        jogadorFichaId={jogadorFichaId}
+        jogadorNome={jogadorNome}
+        atorFocoId={atorFocoId}
+        setAtorFocoId={setAtorFocoId}
+        alvoFocoId={alvoFocoId}
+        setAlvoFocoId={setAlvoFocoId}
         obterPerfilRolagem={obterPerfilRolagem}
         onRolarDados={rolarDadosNoCombate}
         onExecutarAcao={executarAcaoRapida}

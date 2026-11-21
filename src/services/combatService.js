@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { sanitizarPayloadIniciativa } from '../domain/fabula/combatRules.js';
 import { sanitizarPayloadNpcMestre, normalizarNpcLeitura } from '../domain/fabula/npcRules.js';
+import { calcularStatusPersonagem } from '../utils/calculosFicha.js';
 
 export { sanitizarPayloadIniciativa };
 
@@ -50,11 +51,39 @@ export const combatService = {
     const dataEnriquecida = fichasRes.data.map((ficha) => {
       const itensFicha = todosItens.filter((i) => String(i.ficha_id) === String(ficha.id));
       const magiasFicha = todasMagias.filter((m) => String(m.ficha_id) === String(ficha.id));
+      const classesFicha = ficha.fichas_classes || [];
+      const itensEquipados = itensFicha.filter((i) => i.equipado || i.stats_personalizados?.slot);
+
+      let statusCalc = null;
+      try {
+        statusCalc = calcularStatusPersonagem(
+          {
+            destreza: ficha.destreza,
+            astucia: ficha.astucia,
+            vigor: ficha.vigor || 8,
+            vontade: ficha.vontade || 8,
+            poderes_heroicos: ficha.poderes_heroicos
+          },
+          classesFicha,
+          itensEquipados,
+          ficha
+        );
+      } catch (err) {
+        console.warn('Erro ao calcular status da ficha no combate:', err);
+      }
+
       return {
         ...ficha,
-        classes: ficha.fichas_classes || [],
+        classes: classesFicha,
         itens: itensFicha,
-        magias: magiasFicha
+        magias: magiasFicha,
+        defesa: statusCalc?.defesaTotal ?? ficha.destreza ?? 10,
+        mdef: statusCalc?.mdefTotal ?? ficha.astucia ?? 10,
+        hp_max: statusCalc?.pvMax ?? ficha.hp_max ?? 40,
+        mp_max: statusCalc?.mpMax ?? ficha.mp_max ?? 40,
+        pi_max: statusCalc?.piMax ?? ficha.pi_max ?? 6,
+        iniciativa: statusCalc?.iniciativaTotal ?? 0,
+        statusCalculados: statusCalc
       };
     });
 
@@ -144,6 +173,53 @@ export const combatService = {
       .from('fichas_personagens')
       .update({ [campoFicha]: valor })
       .eq('id', fichaId);
+  },
+
+  /**
+   * Sincroniza um conjunto de recursos (PV, PM, PI, Fábula, Condições) de um herói
+   * de volta para sua ficha original na tabela fichas_personagens.
+   */
+  async updateFichaPersonagemFromCombat(fichaId, updates = {}) {
+    if (!fichaId) return { data: null, error: null };
+    const payloadFicha = {};
+    if (updates.hp_atual !== undefined) payloadFicha.hp_atual = Number(updates.hp_atual);
+    if (updates.hp_max !== undefined) payloadFicha.hp_max = Number(updates.hp_max);
+    if (updates.mp_atual !== undefined) payloadFicha.mp_atual = Number(updates.mp_atual);
+    if (updates.mp_max !== undefined) payloadFicha.mp_max = Number(updates.mp_max);
+    if (updates.ip !== undefined) payloadFicha.pi_atual = Number(updates.ip);
+    if (updates.pi_atual !== undefined) payloadFicha.pi_atual = Number(updates.pi_atual);
+    if (updates.pontos_fabula !== undefined) payloadFicha.fabula = Number(updates.pontos_fabula);
+    if (updates.fabula !== undefined) payloadFicha.fabula = Number(updates.fabula);
+    if (updates.condicoes !== undefined) payloadFicha.condicoes = Array.isArray(updates.condicoes) ? updates.condicoes : [];
+
+    if (Object.keys(payloadFicha).length === 0) return { data: null, error: null };
+
+    return await supabase
+      .from('fichas_personagens')
+      .update(payloadFicha)
+      .eq('id', fichaId);
+  },
+
+  /**
+   * Sincroniza dados atualizados da ficha (fichas_personagens) para a linha de iniciativa_combate.
+   */
+  async updateIniciativaFromFicha(fichaId, updates = {}) {
+    if (!fichaId) return { data: null, error: null };
+    const payloadIniciativa = {};
+    if (updates.hp_atual !== undefined) payloadIniciativa.hp_atual = Number(updates.hp_atual);
+    if (updates.hp_max !== undefined) payloadIniciativa.hp_max = Number(updates.hp_max);
+    if (updates.mp_atual !== undefined) payloadIniciativa.mp_atual = Number(updates.mp_atual);
+    if (updates.mp_max !== undefined) payloadIniciativa.mp_max = Number(updates.mp_max);
+    if (updates.pi_atual !== undefined) payloadIniciativa.ip = Number(updates.pi_atual);
+    if (updates.fabula !== undefined) payloadIniciativa.pontos_fabula = Number(updates.fabula);
+    if (updates.condicoes !== undefined) payloadIniciativa.condicoes = Array.isArray(updates.condicoes) ? updates.condicoes : [];
+
+    if (Object.keys(payloadIniciativa).length === 0) return { data: null, error: null };
+
+    return await supabase
+      .from('iniciativa_combate')
+      .update(payloadIniciativa)
+      .eq('ficha_id', fichaId);
   },
 
   /**
@@ -433,6 +509,24 @@ export const combatService = {
       unsubscribe: () => {
         supabase.removeChannel(channel);
       }
+    };
+  },
+
+  /**
+   * Inscreve em tempo real para alterações na tabela fichas_personagens,
+   * permitindo sincronização bidirecional entre fichas e iniciativa de combate.
+   */
+  subscribeFichasPersonagens(onMudanca) {
+    const channelName = `realtime_combate_fichas_${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fichas_personagens' }, (payload) => {
+        if (onMudanca) onMudanca(payload);
+      })
+      .subscribe();
+
+    return {
+      unsubscribe: () => { supabase.removeChannel(channel); }
     };
   }
 };

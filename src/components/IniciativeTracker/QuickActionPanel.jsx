@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
-import { FaBolt, FaCrosshairs, FaShieldAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaBolt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { Badge } from '../ui';
 import { AFINIDADES_DANO, calcularProgressoRelogioPorTeste } from '../../domain/fabula/combatRules';
 import QuickDiceStrip from './QuickDiceStrip';
 import ActionFeedPanel from './ActionFeedPanel';
 import QuickActionForm from './QuickActionForm';
+import QuickActionTabs from './QuickActionTabs';
 import { CATEGORIAS_ACOES, TODAS_OPCOES } from './quickActionConstants';
 import styles from './QuickActionPanel.module.css';
 
@@ -13,6 +14,12 @@ export default function QuickActionPanel({
   relogios = [],
   acoesFeed = [],
   isMestre,
+  jogadorFichaId,
+  jogadorNome,
+  atorFocoId,
+  setAtorFocoId,
+  alvoFocoId,
+  setAlvoFocoId,
   obterPerfilRolagem,
   onRolarDados,
   onExecutarAcao,
@@ -36,12 +43,38 @@ export default function QuickActionPanel({
   const [notaLivre, setNotaLivre] = useState('');
   const [marcarTurnoConcluido, setMarcarTurnoConcluido] = useState(true);
 
+  const meuHeroi = useMemo(() => {
+    if (isMestre) return null;
+    return (
+      participantes.find(
+        (p) =>
+          p.tipo === 'heroi' &&
+          ((jogadorFichaId && String(p.ficha_id) === String(jogadorFichaId)) ||
+            (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase()))
+      ) || null
+    );
+  }, [isMestre, participantes, jogadorFichaId, jogadorNome]);
+
   const atorAtivoPadrao = useMemo(() => {
+    if (!isMestre && meuHeroi) return meuHeroi.id;
     const noTurno = participantes.find((p) => p.turno_atual && Number(p.hp_atual) > 0);
     return noTurno?.id || participantes.find((p) => Number(p.hp_atual) > 0)?.id || '';
-  }, [participantes]);
+  }, [isMestre, meuHeroi, participantes]);
 
-  const atorSelecionadoId = atorIdInput || atorAtivoPadrao;
+  const atorSelecionadoId = !isMestre
+    ? (meuHeroi?.id || '')
+    : (atorFocoId || atorIdInput || atorAtivoPadrao);
+
+  const alvoSelecionadoId = alvoFocoId !== undefined ? alvoFocoId : alvoId;
+  const setAlvoIdFinal = (novoAlvoId) => {
+    setAlvoId(novoAlvoId);
+    setAlvoFocoId?.(novoAlvoId);
+  };
+  const setAtorIdFinal = (novoAtorId) => {
+    setAtorIdInput(novoAtorId);
+    setAtorFocoId?.(novoAtorId);
+  };
+
   const atorSelecionado = useMemo(
     () => participantes.find((p) => String(p.id) === String(atorSelecionadoId)) || null,
     [participantes, atorSelecionadoId]
@@ -114,9 +147,10 @@ export default function QuickActionPanel({
   const handleDisparar = async (e) => {
     e.preventDefault();
     if (!atorSelecionadoId) return;
+    if (!isMestre && !meuHeroi) return;
 
     const ok = await onExecutarAcao({
-      acaoCodigo, atorId: atorSelecionadoId, alvoId: alvoId || null,
+      acaoCodigo, atorId: atorSelecionadoId, alvoId: alvoSelecionadoId || null,
       relogioId: acaoCodigo === 'OBJETIVO' ? relogioSelecionadoId : null,
       custoPm, custoPi, danoAplicado, curaAplicada, afinidadeAlvo,
       condicaoAlvo: condicaoAlvo || null, avancoRelogio: acaoCodigo === 'OBJETIVO' ? avancoRelogio : 0,
@@ -132,7 +166,7 @@ export default function QuickActionPanel({
   if (participantes.length === 0) return null;
 
   const temModAvancado = custoPm > 0 || custoPi > 0 || afinidadeAlvo !== 'normal' || Boolean(condicaoAlvo);
-  const podeExibirDadosAtor = isMestre || atorSelecionado?.tipo === 'heroi';
+  const podeExibirDadosAtor = isMestre || (atorSelecionado && atorSelecionado.id === meuHeroi?.id);
   const formState = { danoAplicado, curaAplicada, custoPm, custoPi, afinidadeAlvo, condicaoAlvo, avancoRelogio, notaLivre, marcarTurnoConcluido, mostrarAvancado, temModAvancado };
   const formSetters = { setDanoAplicado, setCuraAplicada, setCustoPm, setCustoPi, setAfinidadeAlvo, setCondicaoAlvo, setAvancoRelogio, setNotaLivre, setMarcarTurnoConcluido, setMostrarAvancado };
 
@@ -159,37 +193,13 @@ export default function QuickActionPanel({
 
         {!painelRecolhido && (
           <div className={styles.panelBody}>
-            <div className={styles.categoryTabs} role="tablist">
-              {CATEGORIAS_ACOES.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={abaAtiva === cat.id}
-                  className={`${styles.categoryTabBtn} ${abaAtiva === cat.id ? styles.categoryTabActive : ''}`}
-                  onClick={() => handleTrocarAba(cat.id)}
-                >
-                  {cat.id === 'principais' && <FaCrosshairs />}
-                  {cat.id === 'reacoes' && <FaBolt />}
-                  {cat.id === 'manobras' && <FaShieldAlt />}
-                  <span>{cat.label}</span>
-                  <span className={styles.categoryCount}>{cat.opcoes.length}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.actionChipsRow}>
-              {categoriaAtual.opcoes.map((op) => (
-                <button
-                  key={op.codigo}
-                  type="button"
-                  className={`${styles.actionChip} ${acaoCodigo === op.codigo ? styles.actionChipActive : ''}`}
-                  onClick={() => setAcaoCodigo(op.codigo)}
-                >
-                  {op.titulo}
-                </button>
-              ))}
-            </div>
+            <QuickActionTabs
+              abaAtiva={abaAtiva}
+              handleTrocarAba={handleTrocarAba}
+              categoriaAtual={categoriaAtual}
+              acaoCodigo={acaoCodigo}
+              setAcaoCodigo={setAcaoCodigo}
+            />
 
             {podeExibirDadosAtor && (
               <QuickDiceStrip
@@ -206,16 +216,18 @@ export default function QuickActionPanel({
               acaoAtual={acaoAtual}
               acaoCodigo={acaoCodigo}
               atorSelecionadoId={atorSelecionadoId}
-              setAtorIdInput={setAtorIdInput}
+              setAtorIdInput={setAtorIdFinal}
               participantes={participantes}
-              alvoId={alvoId}
-              setAlvoId={setAlvoId}
+              alvoId={alvoSelecionadoId}
+              setAlvoId={setAlvoIdFinal}
               relogios={relogios}
               relogioSelecionadoId={relogioSelecionadoId}
               setRelogioId={setRelogioId}
               formState={formState}
               formSetters={formSetters}
               handleDisparar={handleDisparar}
+              isMestre={isMestre}
+              meuHeroi={meuHeroi}
             />
           </div>
         )}

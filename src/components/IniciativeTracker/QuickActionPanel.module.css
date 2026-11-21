@@ -159,6 +159,36 @@
 }
 .select:focus, .input:focus, .noteInput:focus { border-color: var(--color-ether-cyan); }
 
+.lockedActorDisplay {
+  display: flex;
+  align-items: center;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--color-core-green, #10b981);
+  border-radius: var(--radius-sm);
+  padding: 6px var(--space-2);
+  min-height: 32px;
+  box-sizing: border-box;
+}
+
+.lockedActorName {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-core-green, #10b981);
+}
+
+.playerWarningBanner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid var(--color-crise, #ef4444);
+  color: var(--color-text-main);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
 .advancedToggleBar { display: flex; align-items: center; }
 .advancedToggleBtn {
   display: inline-flex;

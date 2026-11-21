@@ -1,4 +1,4 @@
-import { FaBolt, FaSlidersH } from 'react-icons/fa';
+import { FaBolt, FaSlidersH, FaExclamationCircle } from 'react-icons/fa';
 import { Button, Badge } from '../ui';
 import { CONDICOES_DISPONIVEIS } from '../../constants/condicoes';
 import styles from './QuickActionPanel.module.css';
@@ -6,21 +6,44 @@ import styles from './QuickActionPanel.module.css';
 export default function QuickActionForm({
   acaoAtual, acaoCodigo, atorSelecionadoId, setAtorIdInput,
   participantes, alvoId, setAlvoId, relogios, relogioSelecionadoId, setRelogioId,
-  formState, formSetters, handleDisparar
+  formState, formSetters, handleDisparar, isMestre, meuHeroi
 }) {
-  const { danoAplicado, curaAplicada, custoPm, custoPi, afinidadeAlvo, condicaoAlvo, avancoRelogio, notaLivre, marcarTurnoConcluido, mostrarAvancado, temModAvancado } = formState;
-  const { setDanoAplicado, setCuraAplicada, setCustoPm, setCustoPi, setAfinidadeAlvo, setCondicaoAlvo, setAvancoRelogio, setNotaLivre, setMarcarTurnoConcluido, setMostrarAvancado } = formSetters;
+  const {
+    danoAplicado, curaAplicada, custoPm, custoPi, afinidadeAlvo, condicaoAlvo,
+    avancoRelogio, notaLivre, marcarTurnoConcluido, mostrarAvancado, temModAvancado
+  } = formState;
+  const {
+    setDanoAplicado, setCuraAplicada, setCustoPm, setCustoPi, setAfinidadeAlvo,
+    setCondicaoAlvo, setAvancoRelogio, setNotaLivre, setMarcarTurnoConcluido, setMostrarAvancado
+  } = formSetters;
+
+  const podeSubmeter = isMestre || Boolean(meuHeroi);
 
   return (
     <form onSubmit={handleDisparar} className={styles.actionForm}>
+      {!isMestre && !meuHeroi && (
+        <div className={styles.playerWarningBanner}>
+          <FaExclamationCircle />
+          <span>Seu personagem não está na ordem de iniciativa. Aguarde o Mestre incluí-lo.</span>
+        </div>
+      )}
+
       <div className={styles.formPrimaryGrid}>
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Quem Age</label>
-          <select className={styles.select} value={atorSelecionadoId} onChange={(e) => setAtorIdInput(e.target.value)}>
-            {participantes.map((p) => (
-              <option key={p.id} value={p.id}>{p.nome} ({p.tipo === 'heroi' ? 'Herói' : 'NPC'})</option>
-            ))}
-          </select>
+          {isMestre ? (
+            <select className={styles.select} value={atorSelecionadoId} onChange={(e) => setAtorIdInput(e.target.value)}>
+              {participantes.map((p) => (
+                <option key={p.id} value={p.id}>{p.nome} ({p.tipo === 'heroi' ? 'Herói' : 'NPC'})</option>
+              ))}
+            </select>
+          ) : (
+            <div className={styles.lockedActorDisplay}>
+              <span className={styles.lockedActorName}>
+                {meuHeroi ? `★ ${meuHeroi.nome}` : 'Aguardando vínculo'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className={styles.fieldGroup}>
@@ -120,7 +143,7 @@ export default function QuickActionForm({
               <span>Concluir turno</span>
             </label>
           )}
-          <Button type="submit" variant="primary" size="sm">
+          <Button type="submit" variant="primary" size="sm" disabled={!podeSubmeter}>
             <FaBolt /> Disparar {acaoAtual.titulo}
           </Button>
         </div>

@@ -42,6 +42,21 @@
 .itemCard.turnCompleted .nome { text-decoration: line-through; color: var(--color-text-dim); }
 .itemCard.turnCompleted::before { background: var(--color-text-dim); box-shadow: none; }
 .itemCard.isDefeated { opacity: 0.45; border-color: var(--color-text-dim); filter: grayscale(0.75); }
+.itemCard.actorSelectedCard {
+  border-color: var(--color-border-gold-bright) !important;
+  box-shadow: 0 0 0 2px var(--color-border-gold), 0 0 16px var(--color-border-gold-glow) !important;
+}
+
+.itemCard.targetSelectedCard {
+  border-color: var(--color-crise) !important;
+  box-shadow: 0 0 0 2px var(--color-crise), 0 0 16px var(--color-crise-glow) !important;
+}
+
+.itemCard.meuHeroiCard {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 0 1px var(--color-core-green), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
 .itemCard.itemDragging { opacity: 0.5; border-style: dashed; transform: scale(0.99); }
 .itemCard.itemDragOver { border-color: var(--color-border-gold-bright) !important; box-shadow: 0 0 14px var(--color-border-gold-glow) !important; }
 
@@ -80,9 +95,10 @@
   transition: all var(--transition-fast);
 }
 
-.turnCheckbox:hover { border-color: var(--color-border-gold); box-shadow: 0 0 8px var(--color-border-gold-glow); }
+.turnCheckbox:hover:not(:disabled) { border-color: var(--color-border-gold); box-shadow: 0 0 8px var(--color-border-gold-glow); }
 .turnCheckbox:checked { background: var(--color-border-gold); border-color: var(--color-border-gold); }
 .turnCheckbox:checked::after { content: "✓"; color: var(--color-text-inverse); font-size: 12px; font-weight: 900; }
+.turnCheckbox:disabled { opacity: 0.35; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.15); }
 
 .avatarImg { width: 36px; height: 36px; border-radius: var(--radius-pill); object-fit: cover; border: 1px solid var(--color-border-gold); flex-shrink: 0; }
 
