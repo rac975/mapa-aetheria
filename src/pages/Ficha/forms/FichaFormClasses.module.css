@@ -100,16 +100,67 @@
   font-size: var(--font-size-sm);
 }
 
-.nivelInput {
-  width: 70px;
-  text-align: center;
+.stepperContainer {
+  display: inline-flex;
+  align-items: center;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
-  color: var(--color-text-main);
-  padding: var(--space-2);
   border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+.stepperBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--color-border-gold-bright);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stepperBtn:hover:not(:disabled) {
+  background: var(--color-border-gold-muted);
+  color: #ffffff;
+}
+
+.stepperBtn:active:not(:disabled) {
+  background: var(--color-border-gold);
+  color: #000000;
+  transform: scale(0.92);
+}
+
+.stepperBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.nivelInput {
+  width: 44px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  padding: 0;
   font-weight: 700;
   font-size: var(--font-size-sm);
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.nivelInput::-webkit-outer-spin-button,
+.nivelInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .beneficiosInput {
@@ -177,16 +228,67 @@
 .habilidadeInputGroup { display: flex; align-items: center; gap: var(--space-1); flex-shrink: 0; }
 .nivelLabel { font-size: var(--font-size-xs); color: var(--color-text-gold); font-weight: 600; }
 
-.habilidadeNivelInput {
-  width: 60px;
-  text-align: center;
+.habStepperContainer {
+  display: inline-flex;
+  align-items: center;
   background: var(--color-bg-input);
   border: 1px solid var(--color-border-gold-muted);
-  color: var(--color-text-main);
-  padding: var(--space-1);
   border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.habStepperBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--color-border-gold-bright);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.habStepperBtn:hover:not(:disabled) {
+  background: var(--color-border-gold-muted);
+  color: #ffffff;
+}
+
+.habStepperBtn:active:not(:disabled) {
+  background: var(--color-border-gold);
+  color: #000000;
+  transform: scale(0.92);
+}
+
+.habStepperBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.habilidadeNivelInput {
+  width: 36px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  padding: 0;
   font-weight: 700;
   font-size: var(--font-size-sm);
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.habilidadeNivelInput::-webkit-outer-spin-button,
+.habilidadeNivelInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .subCardContainer { margin-top: var(--space-2); }
@@ -202,21 +304,51 @@
   }
 
   .classHeaderGrid {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 1fr auto;
+    row-gap: var(--space-3);
   }
 
   .classNameInputWrapper { grid-column: 1 / -1; }
 
-  .classNameReadOnly,
-  .nivelInput,
-  .beneficiosInput,
+  .stepperContainer {
+    height: 44px;
+  }
+
+  .stepperBtn {
+    width: 44px;
+    height: 44px;
+    font-size: var(--font-size-base);
+  }
+
+  .nivelInput {
+    font-size: var(--font-size-base);
+    width: 50px;
+  }
+
+  .habStepperContainer {
+    height: 40px;
+  }
+
+  .habStepperBtn {
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-sm);
+  }
+
   .habilidadeNivelInput {
+    font-size: var(--font-size-base);
+    width: 40px;
+  }
+
+  .classNameReadOnly,
+  .beneficiosInput {
     font-size: var(--font-size-base);
     min-height: 44px;
   }
 
   .habilidadeRowTop {
     flex-wrap: wrap;
+    gap: var(--space-2);
   }
 }
 

@@ -9,7 +9,7 @@ import FichaFormClasseCard from './FichaFormClasseCard';
 import { useAlert } from '../../../contexts/useAlert';
 import styles from './FichaFormClasses.module.css';
 
-export default function FichaFormClasses({ fichaId, formClasses = [], setFormClasses, formData, setFormData }) {
+export default function FichaFormClasses({ fichaId, formClasses = [], setFormClasses, setFormData }) {
   const { showAlert } = useAlert();
   const [catalogoClasses, setCatalogoClasses] = useState([]);
 
@@ -49,7 +49,7 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
       ? (classeOficial.beneficios_iniciais?.texto || '')
       : (classeOficial.beneficios_iniciais || '');
 
-    const novas = [...formClasses, {
+    const novaClasse = {
       nome_classe: classeOficial.nome_classe,
       nivel: 1,
       beneficios: beneficioTexto,
@@ -59,26 +59,34 @@ export default function FichaFormClasses({ fichaId, formClasses = [], setFormCla
         descricao: h.descricao
       })),
       magias: []
-    }];
+    };
 
-    setFormClasses(novas);
-    setFormData({ ...formData, nivel: calcularNivelTotal(novas) });
+    setFormClasses((prevClasses) => {
+      const novas = [...prevClasses, novaClasse];
+      const novoNivel = calcularNivelTotal(novas);
+      setFormData((prevForm) => ({ ...prevForm, nivel: novoNivel }));
+      return novas;
+    });
     e.target.value = '';
   };
 
   const removerClasse = (index) => {
-    const atual = [...formClasses];
-    atual.splice(index, 1);
-    setFormClasses(atual);
-    setFormData({ ...formData, nivel: calcularNivelTotal(atual) });
+    setFormClasses((prevClasses) => {
+      const atual = prevClasses.filter((_, i) => i !== index);
+      const novoNivel = calcularNivelTotal(atual);
+      setFormData((prevForm) => ({ ...prevForm, nivel: novoNivel }));
+      return atual;
+    });
   };
 
   const alterarNivelClasse = (index, rawValor) => {
     const val = sanitizarNivelClasse(rawValor);
-    const atual = [...formClasses];
-    atual[index].nivel = val;
-    setFormClasses(atual);
-    setFormData({ ...formData, nivel: calcularNivelTotal(atual) });
+    setFormClasses((prevClasses) => {
+      const atual = prevClasses.map((c, i) => (i === index ? { ...c, nivel: val } : c));
+      const novoNivel = calcularNivelTotal(atual);
+      setFormData((prevForm) => ({ ...prevForm, nivel: novoNivel }));
+      return atual;
+    });
   };
 
   return (

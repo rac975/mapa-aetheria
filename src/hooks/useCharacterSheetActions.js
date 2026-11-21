@@ -5,8 +5,12 @@ import { calcularNivelTotal } from '../domain/fabula/characterProgression';
 import { prepararHeroicAndQuirksParaBanco } from '../domain/fabula/heroicAndQuirksRules';
 import {
   extrairArcanosVinculados,
-  sincronizarArcanosNaHabilidade
+  sincronizarArcanosNaHabilidade,
+  extrairMagiasQuimerista,
+  extrairAtributoQuimerista,
+  sincronizarQuimeristaNaHabilidade
 } from '../domain/fabula/coreClassRules';
+import { calcularStatusPersonagem } from '../utils/calculosFicha';
 
 /**
  * Hook auxiliar para isolar as mutações, ajustes de recursos e persistência da ficha de personagem.
@@ -131,15 +135,24 @@ export function useCharacterSheetActions({
       try {
         const nivelCalculado = calcularNivelTotal(formClasses);
         const camposHeroicQuirks = prepararHeroicAndQuirksParaBanco(formData);
-        const statusCalculados = statusFicha || {};
+        const statusNovos = calcularStatusPersonagem(
+          formData,
+          formClasses,
+          [],
+          { ...ficha, ...formData, nivel: nivelCalculado }
+        );
+
+        const pvMax = statusNovos.pvMax || statusFicha?.pvMax || ficha.hp_max || 30;
+        const mpMax = statusNovos.mpMax || statusFicha?.mpMax || ficha.mp_max || 20;
+        const piMax = statusNovos.piMax || statusFicha?.piMax || ficha.pi_max || 6;
 
         const dadosParaSalvar = {
           ...formData,
           ...camposHeroicQuirks,
           nivel: nivelCalculado,
-          hp_max: statusCalculados.pvMax || ficha.hp_max || 30,
-          mp_max: statusCalculados.mpMax || ficha.mp_max || 20,
-          pi_max: statusCalculados.piMax || ficha.pi_max || 6
+          hp_max: pvMax,
+          mp_max: mpMax,
+          pi_max: piMax
         };
 
         const classesNormalizadas = (formClasses || []).map((c) => {
@@ -152,6 +165,21 @@ export function useCharacterSheetActions({
               habilidades: habs,
               arcanos_vinculados: arcanos,
               arcano_vinculado: arcanos[0] || null
+            };
+          }
+          if (norm.includes('quimerista')) {
+            const magias = extrairMagiasQuimerista(c);
+            const attr = extrairAtributoQuimerista(c);
+            const habs = sincronizarQuimeristaNaHabilidade(c.habilidades, {
+              magias_imitadas: magias,
+              atributo_quimerista: attr
+            });
+            return {
+              ...c,
+              habilidades: habs,
+              magias_imitadas: magias,
+              atributo_quimerista: attr,
+              dados_quimerista: { magias_imitadas: magias, atributo_quimerista: attr }
             };
           }
           return c;

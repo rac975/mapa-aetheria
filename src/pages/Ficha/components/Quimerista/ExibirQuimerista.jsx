@@ -1,13 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaDragon, FaPlus, FaTrash } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
+import {
+  extrairMagiasQuimerista,
+  extrairAtributoQuimerista,
+  sincronizarQuimeristaNaHabilidade
+} from '../../../../domain/fabula/coreClassRules';
 import { Button } from '../../../../components/ui';
 import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
 import styles from './ExibirQuimerista.module.css';
 
-export default function ExibirQuimerista({ fichaId, ficha, classe, classes, handleAjustarRecurso }) {
-  const [magiasImitadas, setMagiasImitadas] = useState(() => classe?.magias_imitadas || ficha?.magias_imitadas || []);
-  const [atributoEscolhido, setAtributoEscolhido] = useState(() => classe?.atributo_quimerista || ficha?.atributo_quimerista || 'AST + VON');
+export default function ExibirQuimerista({
+  fichaId,
+  ficha,
+  classe,
+  classes,
+  handleAjustarRecurso,
+  onAtualizarDadosClasse
+}) {
+  const [magiasLocais, setMagiasLocais] = useState(null);
+  const [atributoLocal, setAtributoLocal] = useState(null);
+  const [prevProps, setPrevProps] = useState({ classe, ficha });
+
+  if (classe !== prevProps.classe || ficha !== prevProps.ficha) {
+    setPrevProps({ classe, ficha });
+    setMagiasLocais(null);
+    setAtributoLocal(null);
+  }
+
+  const magiasFromProps = useMemo(() => extrairMagiasQuimerista(classe, ficha), [classe, ficha]);
+  const magiasImitadas = magiasLocais !== null ? magiasLocais : magiasFromProps;
+
+  const atributoFromProps = useMemo(() => extrairAtributoQuimerista(classe, ficha), [classe, ficha]);
+  const atributoEscolhido = atributoLocal !== null ? atributoLocal : atributoFromProps;
+
   const [mostrarForm, setMostrarForm] = useState(false);
   const [novaMagia, setNovaMagia] = useState({ nome: '', custo_mp: '', especie: 'fera', descricao: '' });
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
@@ -29,21 +55,39 @@ export default function ExibirQuimerista({ fichaId, ficha, classe, classes, hand
   const fecharAlerta = () => setAlerta({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
   const salvarNoBanco = async (novasMagias, novoAtributo) => {
-    setMagiasImitadas(novasMagias);
+    const attrFinal = novoAtributo !== undefined ? novoAtributo : atributoEscolhido;
+    setMagiasLocais(novasMagias);
+    if (novoAtributo !== undefined) setAtributoLocal(novoAtributo);
+
     const idReal = fichaId || ficha?.id;
-    if (!idReal || !classes) return;
-    const classesAtualizadas = classes.map((c) =>
-      (c.nome_classe || '').toLowerCase().includes('quimerista')
-        ? { ...c, magias_imitadas: novasMagias, atributo_quimerista: novoAtributo !== undefined ? novoAtributo : atributoEscolhido }
-        : c
+    if (!idReal) return;
+
+    if (onAtualizarDadosClasse) {
+      onAtualizarDadosClasse(
+        (c) => (c.nome_classe || '').toLowerCase().includes('quimerista'),
+        (c) => {
+          const dados = { magias_imitadas: novasMagias, atributo_quimerista: attrFinal };
+          return {
+            ...c,
+            magias_imitadas: novasMagias,
+            atributo_quimerista: attrFinal,
+            dados_quimerista: dados,
+            habilidades: sincronizarQuimeristaNaHabilidade(c.habilidades, dados)
+          };
+        }
+      );
+    }
+
+    const { error } = await fichaService.salvarDadosQuimerista(
+      idReal,
+      { magiasImitadas: novasMagias, atributoEscolhido: attrFinal },
+      classes
     );
-    const { error } = await fichaService.atualizarClassesPersonagem(idReal, classesAtualizadas);
     if (error) console.error('Erro ao salvar dados do Quimerista:', error.message);
   };
 
   const alterarAtributo = (e) => {
     const val = e.target.value;
-    setAtributoEscolhido(val);
     salvarNoBanco(magiasImitadas, val);
   };
 
@@ -51,7 +95,12 @@ export default function ExibirQuimerista({ fichaId, ficha, classe, classes, hand
     e.preventDefault();
     if (!novaMagia.nome.trim()) return;
     if (magiasImitadas.length >= limiteFeiticos) {
-      setAlerta({ isOpen: true, type: 'warning', title: 'Limite de Feitiços', message: `Limite de ${limiteFeiticos} feitiços memorizados (NP + 2) atingido.` });
+      setAlerta({
+        isOpen: true,
+        type: 'warning',
+        title: 'Limite de Feitiços',
+        message: `Limite de ${limiteFeiticos} feitiços memorizados (NP + 2) atingido.`
+      });
       return;
     }
     salvarNoBanco([...magiasImitadas, { ...novaMagia, id: `quim-${Date.now()}` }]);

@@ -613,3 +613,122 @@ export function sincronizarArcanosNaHabilidade(habilidades = [], arcanos = []) {
 
   return atualizadas;
 }
+
+/**
+ * Extrai a lista normalizada de magias imitadas (feitiços aprendidos) do Quimerista.
+ * Suporta leitura a partir de classe.magias_imitadas, classe.dados_quimerista.magias_imitadas,
+ * habilidade "Imitação Mágica", classe.magias, ou ficha.magias_imitadas.
+ * @param {Object} [classe]
+ * @param {Object} [ficha]
+ * @returns {Array<Object>} Lista de feitiços imitados normalizados
+ */
+export function extrairMagiasQuimerista(classe = {}, ficha = {}) {
+  if (Array.isArray(classe?.magias_imitadas) && classe.magias_imitadas.length > 0) {
+    return classe.magias_imitadas.filter(Boolean);
+  }
+
+  if (Array.isArray(classe?.dados_quimerista?.magias_imitadas) && classe.dados_quimerista.magias_imitadas.length > 0) {
+    return classe.dados_quimerista.magias_imitadas.filter(Boolean);
+  }
+
+  const habs = Array.isArray(classe?.habilidades)
+    ? classe.habilidades
+    : (Array.isArray(ficha?.habilidades) ? ficha.habilidades : []);
+
+  const habImitacao = habs.find((h) => {
+    const n = (h?.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return n.includes('imitacao') && n.includes('magica');
+  });
+
+  if (habImitacao) {
+    if (Array.isArray(habImitacao.magias_imitadas) && habImitacao.magias_imitadas.length > 0) {
+      return habImitacao.magias_imitadas.filter(Boolean);
+    }
+    if (Array.isArray(habImitacao.dados_quimerista?.magias_imitadas) && habImitacao.dados_quimerista.magias_imitadas.length > 0) {
+      return habImitacao.dados_quimerista.magias_imitadas.filter(Boolean);
+    }
+  }
+
+  if (Array.isArray(ficha?.magias_imitadas) && ficha.magias_imitadas.length > 0) {
+    return ficha.magias_imitadas.filter(Boolean);
+  }
+
+  if (Array.isArray(ficha?.dados_quimerista?.magias_imitadas) && ficha.dados_quimerista.magias_imitadas.length > 0) {
+    return ficha.dados_quimerista.magias_imitadas.filter(Boolean);
+  }
+
+  return [];
+}
+
+/**
+ * Extrai a configuração de atributos do Quimerista (ex.: "AST + VON" ou "VIG + VON").
+ * @param {Object} [classe]
+ * @param {Object} [ficha]
+ * @returns {string}
+ */
+export function extrairAtributoQuimerista(classe = {}, ficha = {}) {
+  if (classe?.atributo_quimerista) return classe.atributo_quimerista;
+  if (classe?.dados_quimerista?.atributo_quimerista) return classe.dados_quimerista.atributo_quimerista;
+
+  const habs = Array.isArray(classe?.habilidades)
+    ? classe.habilidades
+    : (Array.isArray(ficha?.habilidades) ? ficha.habilidades : []);
+
+  const habImitacao = habs.find((h) => {
+    const n = (h?.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return n.includes('imitacao') && n.includes('magica');
+  });
+
+  if (habImitacao?.atributo_quimerista) return habImitacao.atributo_quimerista;
+  if (habImitacao?.dados_quimerista?.atributo_quimerista) return habImitacao.dados_quimerista.atributo_quimerista;
+
+  if (ficha?.atributo_quimerista) return ficha.atributo_quimerista;
+  if (ficha?.dados_quimerista?.atributo_quimerista) return ficha.dados_quimerista.atributo_quimerista;
+
+  return 'AST + VON';
+}
+
+/**
+ * Atualiza ou insere as magias imitadas e atributo na habilidade "Imitação Mágica" dentro do array de habilidades.
+ * Retorna um novo array de habilidades sem mutar o original (função pura).
+ * @param {Array<Object>} habilidades
+ * @param {Object} dadosQuimerista
+ * @returns {Array<Object>}
+ */
+export function sincronizarQuimeristaNaHabilidade(habilidades = [], dadosQuimerista = {}) {
+  const magias = Array.isArray(dadosQuimerista?.magias_imitadas)
+    ? dadosQuimerista.magias_imitadas
+    : (Array.isArray(dadosQuimerista?.magiasImitadas) ? dadosQuimerista.magiasImitadas : []);
+  const atributo = dadosQuimerista?.atributo_quimerista || dadosQuimerista?.atributoEscolhido || 'AST + VON';
+  const dados = { magias_imitadas: magias, atributo_quimerista: atributo };
+
+  const base = Array.isArray(habilidades) ? [...habilidades] : [];
+  let encontrou = false;
+
+  const atualizadas = base.map((h) => {
+    const n = (h?.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    if (n.includes('imitacao') && n.includes('magica')) {
+      encontrou = true;
+      return {
+        ...h,
+        magias_imitadas: magias,
+        atributo_quimerista: atributo,
+        dados_quimerista: dados
+      };
+    }
+    return h;
+  });
+
+  if (!encontrou && magias.length > 0) {
+    atualizadas.push({
+      nome: 'Imitação Mágica',
+      nivel: 1,
+      descricao: 'Você pode aprender feitiços de certas espécies de criaturas (feras, monstros, plantas).',
+      magias_imitadas: magias,
+      atributo_quimerista: atributo,
+      dados_quimerista: dados
+    });
+  }
+
+  return atualizadas;
+}

@@ -5,7 +5,10 @@ import {
 } from '../domain/fabula/characterProgression.js';
 import {
   extrairArcanosVinculados,
-  sincronizarArcanosNaHabilidade
+  sincronizarArcanosNaHabilidade,
+  extrairMagiasQuimerista,
+  extrairAtributoQuimerista,
+  sincronizarQuimeristaNaHabilidade
 } from '../domain/fabula/coreClassRules.js';
 
 export { sanitizarPayloadFicha, normalizarFichaPersonagem };
@@ -176,6 +179,21 @@ export const fichaService = {
           habilidades: habsSincronizadas,
           arcanos_vinculados: arcanos,
           arcano_vinculado: arcanoPrincipal
+        };
+      }
+      if (normClasse.includes('quimerista')) {
+        const magias = extrairMagiasQuimerista(c);
+        const attr = extrairAtributoQuimerista(c);
+        const habsSincronizadas = sincronizarQuimeristaNaHabilidade(c.habilidades, {
+          magias_imitadas: magias,
+          atributo_quimerista: attr
+        });
+        return {
+          ...c,
+          habilidades: habsSincronizadas,
+          magias_imitadas: magias,
+          atributo_quimerista: attr,
+          dados_quimerista: { magias_imitadas: magias, atributo_quimerista: attr }
         };
       }
       return c;
@@ -685,6 +703,14 @@ export const fichaService = {
           const arcanos = extrairArcanosVinculados(c);
           habs = sincronizarArcanosNaHabilidade(habs, arcanos);
         }
+        if (normClasse.includes('quimerista')) {
+          const magias = extrairMagiasQuimerista(c);
+          const attr = extrairAtributoQuimerista(c);
+          habs = sincronizarQuimeristaNaHabilidade(habs, {
+            magias_imitadas: magias,
+            atributo_quimerista: attr
+          });
+        }
         return {
           ficha_id: fichaId,
           nome_classe: c.nome_classe,
@@ -919,6 +945,14 @@ export const fichaService = {
           if (normClasse.includes('arcanista')) {
             const arcanos = extrairArcanosVinculados(c);
             habs = sincronizarArcanosNaHabilidade(habs, arcanos);
+          }
+          if (normClasse.includes('quimerista')) {
+            const magias = extrairMagiasQuimerista(c);
+            const attr = extrairAtributoQuimerista(c);
+            habs = sincronizarQuimeristaNaHabilidade(habs, {
+              magias_imitadas: magias,
+              atributo_quimerista: attr
+            });
           }
           return await supabase
             .from('fichas_classes')
@@ -1295,6 +1329,10 @@ export const fichaService = {
         if (dadosProp === 'arcanos_vinculados') {
           extraProp.arcano_vinculado = (Array.isArray(dadosValor) ? dadosValor[0] : dadosValor) || null;
         }
+        if (dadosProp === 'dados_quimerista' && dadosValor) {
+          extraProp.magias_imitadas = dadosValor.magias_imitadas || [];
+          extraProp.atributo_quimerista = dadosValor.atributo_quimerista || 'AST + VON';
+        }
 
         const habsAtualizadas = habsBase.map((h) => {
           if (matchSkill(h.nome || '')) {
@@ -1340,6 +1378,10 @@ export const fichaService = {
             c[dadosProp] = dadosValor;
             if (dadosProp === 'arcanos_vinculados') {
               c.arcano_vinculado = (Array.isArray(dadosValor) ? dadosValor[0] : dadosValor) || null;
+            }
+            if (dadosProp === 'dados_quimerista' && dadosValor) {
+              c.magias_imitadas = dadosValor.magias_imitadas || [];
+              c.atributo_quimerista = dadosValor.atributo_quimerista || 'AST + VON';
             }
             if (beneficiosTexto) c.beneficios = beneficiosTexto;
             const payload = aplicarAtualizacaoClasse(c);
@@ -1560,6 +1602,34 @@ export const fichaService = {
       dadosValor: lista,
       classes,
       erroLabel: 'Arcanista'
+    });
+  },
+
+  /**
+   * Salva os dados específicos da classe Quimerista no Supabase (fichas_classes)
+   * garantindo persistência na habilidade "Imitação Mágica" e sincronização em memória.
+   * @param {string|number} fichaId
+   * @param {Object} params
+   * @param {Array<Object>} [params.magiasImitadas=[]]
+   * @param {string} [params.atributoEscolhido='AST + VON']
+   * @param {Array<Object>} [classes=[]]
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarDadosQuimerista(fichaId, { magiasImitadas = [], atributoEscolhido = 'AST + VON' } = {}, classes = []) {
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const dados = {
+      magias_imitadas: Array.isArray(magiasImitadas) ? magiasImitadas : [],
+      atributo_quimerista: atributoEscolhido || 'AST + VON'
+    };
+
+    return this._salvarDadosClasseEspecial(fichaId, {
+      matchClass: (n) => norm(n).includes('quimerista'),
+      matchSkill: (n) => norm(n).includes('imitacao') && norm(n).includes('magica'),
+      defaultSkillName: 'Imitação Mágica',
+      dadosProp: 'dados_quimerista',
+      dadosValor: dados,
+      classes,
+      erroLabel: 'Quimerista'
     });
   }
 };

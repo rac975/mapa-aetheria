@@ -7,6 +7,9 @@ import {
   extrairArcanosVinculados,
   extrairArcanoVinculadoPrincipal,
   sincronizarArcanosNaHabilidade,
+  extrairMagiasQuimerista,
+  extrairAtributoQuimerista,
+  sincronizarQuimeristaNaHabilidade,
   calcularResultadoRouboDeAlma,
   calcularDadosOrador,
   calcularCustoVismagus,
@@ -188,6 +191,33 @@ assert(habsAtualizadas[0].arcanos_vinculados[0].nome === 'Arcano da Forja', 'Sin
 
 const habsCriadas = sincronizarArcanosNaHabilidade([], [arcanoMock1]);
 assert(habsCriadas.length === 1 && habsCriadas[0].nome === 'Vincular e Invocar' && habsCriadas[0].arcano_vinculado.nome === 'Arcano da Espada', 'Cria habilidade Vincular e Invocar se não existir');
+
+// Testes de persistência e normalização de magias imitadas do Quimerista
+const magiaQuim1 = { id: 'quim-1', nome: 'Sopro Gélido', custo_mp: '10', especie: 'monstro', descricao: 'Dano de gelo' };
+const magiaQuim2 = { id: 'quim-2', nome: 'Esporos Venenosos', custo_mp: '5', especie: 'planta', descricao: 'Envenena' };
+
+const classeQuimArray = { nome_classe: 'Quimerista', magias_imitadas: [magiaQuim1, magiaQuim2], atributo_quimerista: 'VIG + VON' };
+assert(extrairMagiasQuimerista(classeQuimArray).length === 2, 'Extrai magias imitadas de classe.magias_imitadas');
+assert(extrairAtributoQuimerista(classeQuimArray) === 'VIG + VON', 'Extrai atributo_quimerista de classe');
+
+const classeQuimHab = {
+  nome_classe: 'Quimerista',
+  habilidades: [
+    { nome: 'Imitação Mágica', nivel: 1, magias_imitadas: [magiaQuim1], atributo_quimerista: 'AST + VON' }
+  ]
+};
+assert(extrairMagiasQuimerista(classeQuimHab).length === 1 && extrairMagiasQuimerista(classeQuimHab)[0].nome === 'Sopro Gélido', 'Extrai magias da habilidade Imitação Mágica');
+assert(extrairAtributoQuimerista(classeQuimHab) === 'AST + VON', 'Extrai atributo da habilidade Imitação Mágica');
+
+const habsQuimAtualizadas = sincronizarQuimeristaNaHabilidade(
+  [{ nome: 'Imitação Mágica', nivel: 1, descricao: 'desc' }],
+  { magias_imitadas: [magiaQuim2], atributo_quimerista: 'VIG + VON' }
+);
+assert(habsQuimAtualizadas[0].magias_imitadas[0].nome === 'Esporos Venenosos', 'Sincroniza magias_imitadas na habilidade Imitação Mágica');
+assert(habsQuimAtualizadas[0].atributo_quimerista === 'VIG + VON', 'Sincroniza atributo_quimerista na habilidade Imitação Mágica');
+
+const habsQuimCriadas = sincronizarQuimeristaNaHabilidade([], { magias_imitadas: [magiaQuim1] });
+assert(habsQuimCriadas.length === 1 && habsQuimCriadas[0].nome === 'Imitação Mágica' && habsQuimCriadas[0].magias_imitadas[0].nome === 'Sopro Gélido', 'Cria habilidade Imitação Mágica se não existir');
 
 const dadosOrador = calcularDadosOrador(classesMock);
 assert(dadosOrador.perdaPmCondenar === 20 && dadosOrador.curaPvEncorajar === 15 && dadosOrador.curaPmConfioComLaco === 20, 'Orador usa NP individual de Condenar (20 PM), Encorajar (15 PV) e Confio em Você (20 PM)');
