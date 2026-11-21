@@ -83,7 +83,7 @@ export default function ActionFeedPanel({
                         Total: <strong>{rolagem.total}</strong>
                       </span>
                       <span className={styles.feedHrChip}>
-                        HR: <strong>{rolagem.hr}</strong>
+                        RA: <strong>{rolagem.hr}</strong>
                       </span>
                       {rolagem.calcularDano && rolagem.danoTotal !== null && (
                         <span className={styles.feedDmgChip}>
