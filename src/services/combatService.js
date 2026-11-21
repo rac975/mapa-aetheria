@@ -2,6 +2,7 @@ import { supabase } from './supabase.js';
 import { sanitizarPayloadIniciativa } from '../domain/fabula/combatRules.js';
 import { sanitizarPayloadNpcMestre, normalizarNpcLeitura } from '../domain/fabula/npcRules.js';
 import { calcularStatusPersonagem } from '../utils/calculosFicha.js';
+import { sanitizarPayloadFicha } from '../domain/fabula/characterProgression.js';
 
 export { sanitizarPayloadIniciativa };
 
@@ -162,42 +163,66 @@ export const combatService = {
 
   /**
    * Sincroniza HP/MP/IP/PF de um participante para sua ficha ligada em fichas_personagens.
+   * Se o campo for 'condicoes', sincroniza com a tabela iniciativa_combate.
    */
   async updateRecursoFicha(fichaId, campo, valor) {
     if (!fichaId) return { data: null, error: null };
-    let campoFicha = campo;
-    if (campo === 'pontos_fabula') campoFicha = 'fabula';
-    if (campo === 'ip' || campo === 'ip_atual' || campo === 'pi') campoFicha = 'pi_atual';
 
-    return await supabase
-      .from('fichas_personagens')
-      .update({ [campoFicha]: valor })
-      .eq('id', fichaId);
-  },
+    if (campo === 'condicoes') {
+      return await this.updateIniciativaFromFicha(fichaId, { condicoes: valor });
+    }
 
-  /**
-   * Sincroniza um conjunto de recursos (PV, PM, PI, Fábula, Condições) de um herói
-   * de volta para sua ficha original na tabela fichas_personagens.
-   */
-  async updateFichaPersonagemFromCombat(fichaId, updates = {}) {
-    if (!fichaId) return { data: null, error: null };
-    const payloadFicha = {};
-    if (updates.hp_atual !== undefined) payloadFicha.hp_atual = Number(updates.hp_atual);
-    if (updates.hp_max !== undefined) payloadFicha.hp_max = Number(updates.hp_max);
-    if (updates.mp_atual !== undefined) payloadFicha.mp_atual = Number(updates.mp_atual);
-    if (updates.mp_max !== undefined) payloadFicha.mp_max = Number(updates.mp_max);
-    if (updates.ip !== undefined) payloadFicha.pi_atual = Number(updates.ip);
-    if (updates.pi_atual !== undefined) payloadFicha.pi_atual = Number(updates.pi_atual);
-    if (updates.pontos_fabula !== undefined) payloadFicha.fabula = Number(updates.pontos_fabula);
-    if (updates.fabula !== undefined) payloadFicha.fabula = Number(updates.fabula);
-    if (updates.condicoes !== undefined) payloadFicha.condicoes = Array.isArray(updates.condicoes) ? updates.condicoes : [];
-
+    const payloadBruto = { [campo]: valor };
+    const payloadFicha = sanitizarPayloadFicha(payloadBruto, { incluirId: false });
     if (Object.keys(payloadFicha).length === 0) return { data: null, error: null };
 
-    return await supabase
+    const { data, error } = await supabase
       .from('fichas_personagens')
       .update(payloadFicha)
       .eq('id', fichaId);
+
+    if (error) {
+      console.error('Erro ao atualizar recurso da ficha em combatService:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        fichaId,
+        payloadFicha
+      });
+    }
+    return { data, error };
+  },
+
+  /**
+   * Sincroniza um conjunto de recursos (PV, PM, PI, Fábula) de um herói
+   * de volta para sua ficha original na tabela fichas_personagens.
+   * Se houver condições, sincroniza na tabela iniciativa_combate.
+   */
+  async updateFichaPersonagemFromCombat(fichaId, updates = {}) {
+    if (!fichaId) return { data: null, error: null };
+
+    if (updates.condicoes !== undefined) {
+      await this.updateIniciativaFromFicha(fichaId, { condicoes: updates.condicoes });
+    }
+
+    const payloadFicha = sanitizarPayloadFicha(updates, { incluirId: false });
+    if (Object.keys(payloadFicha).length === 0) return { data: null, error: null };
+
+    const { data, error } = await supabase
+      .from('fichas_personagens')
+      .update(payloadFicha)
+      .eq('id', fichaId);
+
+    if (error) {
+      console.error('Erro ao sincronizar combate com ficha em combatService:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        fichaId,
+        payloadFicha
+      });
+    }
+    return { data, error };
   },
 
   /**
@@ -206,20 +231,58 @@ export const combatService = {
   async updateIniciativaFromFicha(fichaId, updates = {}) {
     if (!fichaId) return { data: null, error: null };
     const payloadIniciativa = {};
-    if (updates.hp_atual !== undefined) payloadIniciativa.hp_atual = Number(updates.hp_atual);
-    if (updates.hp_max !== undefined) payloadIniciativa.hp_max = Number(updates.hp_max);
-    if (updates.mp_atual !== undefined) payloadIniciativa.mp_atual = Number(updates.mp_atual);
-    if (updates.mp_max !== undefined) payloadIniciativa.mp_max = Number(updates.mp_max);
-    if (updates.pi_atual !== undefined) payloadIniciativa.ip = Number(updates.pi_atual);
-    if (updates.fabula !== undefined) payloadIniciativa.pontos_fabula = Number(updates.fabula);
-    if (updates.condicoes !== undefined) payloadIniciativa.condicoes = Array.isArray(updates.condicoes) ? updates.condicoes : [];
+
+    if (updates.hp_atual !== undefined) {
+      const n = Number(updates.hp_atual);
+      if (Number.isFinite(n)) payloadIniciativa.hp_atual = Math.floor(n);
+    }
+    if (updates.hp_max !== undefined) {
+      const n = Number(updates.hp_max);
+      if (Number.isFinite(n)) payloadIniciativa.hp_max = Math.floor(n);
+    }
+    if (updates.mp_atual !== undefined) {
+      const n = Number(updates.mp_atual);
+      if (Number.isFinite(n)) payloadIniciativa.mp_atual = Math.floor(n);
+    }
+    if (updates.mp_max !== undefined) {
+      const n = Number(updates.mp_max);
+      if (Number.isFinite(n)) payloadIniciativa.mp_max = Math.floor(n);
+    }
+    if (updates.pi_atual !== undefined) {
+      const n = Number(updates.pi_atual);
+      if (Number.isFinite(n)) payloadIniciativa.ip = Math.floor(n);
+    } else if (updates.ip !== undefined) {
+      const n = Number(updates.ip);
+      if (Number.isFinite(n)) payloadIniciativa.ip = Math.floor(n);
+    }
+    if (updates.fabula !== undefined) {
+      const n = Number(updates.fabula);
+      if (Number.isFinite(n)) payloadIniciativa.pontos_fabula = Math.floor(n);
+    } else if (updates.pontos_fabula !== undefined) {
+      const n = Number(updates.pontos_fabula);
+      if (Number.isFinite(n)) payloadIniciativa.pontos_fabula = Math.floor(n);
+    }
+    if (updates.condicoes !== undefined) {
+      payloadIniciativa.condicoes = Array.isArray(updates.condicoes) ? updates.condicoes : [];
+    }
 
     if (Object.keys(payloadIniciativa).length === 0) return { data: null, error: null };
 
-    return await supabase
+    const { data, error } = await supabase
       .from('iniciativa_combate')
       .update(payloadIniciativa)
       .eq('ficha_id', fichaId);
+
+    if (error) {
+      console.error('Erro ao sincronizar iniciativa_combate a partir da ficha:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        fichaId,
+        payloadIniciativa
+      });
+    }
+    return { data, error };
   },
 
   /**

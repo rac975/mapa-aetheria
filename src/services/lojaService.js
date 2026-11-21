@@ -157,9 +157,11 @@ export const lojaService = {
      * @returns {Promise<{error: any}>}
      */
     async venderItemFicha({ fichaId, itemId, novoZenit }) {
+        const zenitNum = Number(novoZenit);
+        const zenitLimpo = Number.isFinite(zenitNum) ? Math.max(0, Math.floor(zenitNum)) : 0;
         const { error: erroFicha } = await supabase
             .from('fichas_personagens')
-            .update({ zenit: novoZenit })
+            .update({ zenit: zenitLimpo })
             .eq('id', fichaId);
         if (erroFicha) return { error: erroFicha };
 
@@ -188,9 +190,11 @@ export const lojaService = {
      * @returns {Promise<{data: any, error: any}>}
      */
     async comprarItemLoja({ fichaId, novoZenit, slotFinal, itemCatalogo, deveEquipar, statsPersonalizados }) {
+        const zenitNum = Number(novoZenit);
+        const zenitLimpo = Number.isFinite(zenitNum) ? Math.max(0, Math.floor(zenitNum)) : 0;
         const { error: erroFicha } = await supabase
             .from('fichas_personagens')
-            .update({ zenit: novoZenit })
+            .update({ zenit: zenitLimpo })
             .eq('id', fichaId);
 
         if (erroFicha) return { data: null, error: erroFicha };

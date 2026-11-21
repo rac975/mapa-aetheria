@@ -96,6 +96,7 @@ export default function CombatantArsenalActions({
                     )}
                     {arma.atingeVoadores && <Badge variant="gold" size="sm">🦅</Badge>}
                     {arma.ehSegundaForma && <Badge variant="core" size="sm">2ª Forma</Badge>}
+                    {arma.isModuloVeicular && <Badge variant="gold" size="sm">Veicular</Badge>}
                   </div>
                 </div>
                 <div className={styles.itemSubLine}>

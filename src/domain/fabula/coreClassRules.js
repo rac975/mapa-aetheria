@@ -110,6 +110,16 @@ export function obterNivelHabilidade(classes = [], termoClasse = null, termoHabi
   return maxNivel;
 }
 
+export const ALIAS_CONDICOES_OFICIAIS = {
+  enfraquecido: 'fraco',
+  weak: 'fraco',
+  shaken: 'abalado',
+  dazed: 'atordoado',
+  enraged: 'enfurecido',
+  poisoned: 'envenenado',
+  slow: 'lento'
+};
+
 /**
  * Calcula modificadores de passos de atributos causados pelas condições ativas oficiais
  * respeitando eventuais imunidades a condições.
@@ -122,13 +132,22 @@ export function calcularModificadoresCondicoesOficiais(condicoes = [], imunidade
   if (!Array.isArray(condicoes) || condicoes.length === 0) return mods;
 
   const imunes = new Set(
-    (Array.isArray(imunidades) ? imunidades : []).map((c) => normalizarTextoCore(c))
+    (Array.isArray(imunidades) ? imunidades : []).map((c) => {
+      const norm = normalizarTextoCore(c);
+      return ALIAS_CONDICOES_OFICIAIS[norm] || norm;
+    })
   );
-  const unicas = new Set(condicoes.map((c) => normalizarTextoCore(c)));
+  const unicas = new Set(
+    condicoes.map((c) => {
+      const norm = normalizarTextoCore(c);
+      return ALIAS_CONDICOES_OFICIAIS[norm] || norm;
+    })
+  );
 
   unicas.forEach((condId) => {
     if (imunes.has(condId)) return;
-    const regra = CONDICOES_OFICIAIS[condId];
+    const chaveResolvida = ALIAS_CONDICOES_OFICIAIS[condId] || condId;
+    const regra = CONDICOES_OFICIAIS[chaveResolvida];
     if (!regra) return;
     regra.atributosAfetados.forEach((attr) => {
       mods[attr] = (mods[attr] || 0) - 1;

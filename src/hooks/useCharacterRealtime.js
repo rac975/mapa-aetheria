@@ -26,6 +26,13 @@ export function useCharacterRealtime(fichaId, {
         canalFicha = fichaService.subscribeFichaById(fichaId, (payload) => {
           if (payload?.eventType === 'UPDATE' && payload?.new) {
             setFicha((prev) => (prev ? { ...prev, ...payload.new } : payload.new));
+            if (payload.new.condicoes !== undefined && setCondicoesAtivas) {
+              const novasConds = Array.isArray(payload.new.condicoes) ? payload.new.condicoes : [];
+              setCondicoesAtivas(novasConds);
+              if (setModificadoresTemporarios) {
+                setModificadoresTemporarios(calcularModificadoresCondicoes(novasConds));
+              }
+            }
           }
         });
       }

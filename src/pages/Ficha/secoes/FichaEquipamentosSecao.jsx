@@ -105,7 +105,16 @@ export default function FichaEquipamentosSecao({
 
             if (!itemEquipado && ehSlotMao) {
               const itemMaoDom = getItemNoSlot(SLOTS_EQUIPAMENTO.MAO_DOMINANTE);
+              const itemMaoSec = getItemNoSlot(SLOTS_EQUIPAMENTO.MAO_SECUNDARIA);
               const ocupadoPor2H = slot.id === SLOTS_EQUIPAMENTO.MAO_SECUNDARIA && itemMaoDom && isArmaDuasMaos(itemMaoDom);
+
+              const temArmaEquipada = Boolean(itemMaoDom || itemMaoSec);
+              const temArmasVeiculoAtivas = Boolean(
+                statusFicha?.veiculoAtivo &&
+                (statusFicha?.dadosVeiculo?.armasInstaladas || []).length > 0
+              );
+              const ocultarDesarmado = temArmaEquipada || temArmasVeiculoAtivas;
+
               return (
                 <FichaSlotMaoVazia
                   key={slot.id}
@@ -113,9 +122,12 @@ export default function FichaEquipamentosSecao({
                   slotLabel={slot.label}
                   slotIcon={slot.icone}
                   isOcupadoPor2H={ocupadoPor2H}
+                  ocultarDesarmado={ocultarDesarmado}
+                  temArmasVeiculoAtivas={temArmasVeiculoAtivas}
+                  nomeVeiculo={statusFicha?.dadosVeiculo?.nome || 'Veículo Pessoal'}
                   classes={classes}
                   onAbrirModalEquipar={() => setModalSlotAberto(slot.id)}
-                  onExecutarRolagem={(itemVirtual, slotId) => executarRolagemArma(itemVirtual, slotId)}
+                  onExecutarRolagem={(itemVirtual, sId) => executarRolagemArma(itemVirtual, sId)}
                   ultimaRolagem={resultadosRolagem[slot.id]}
                   modoAtaque={modoAtaqueState[slot.id] || 'normal'}
                   setModoAtaque={(modo) => setModoAtaqueState((prev) => ({ ...prev, [slot.id]: modo }))}

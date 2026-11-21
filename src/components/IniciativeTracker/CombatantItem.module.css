@@ -188,6 +188,12 @@
 
 .statPillGold { color: var(--color-text-gold); border-color: rgba(var(--color-border-gold-rgb), 0.45); }
 .statPillVillain { color: var(--color-villain-bright); border-color: var(--color-villain-border); background: var(--color-villain-surface); }
+.statPillReduced {
+  color: var(--color-crise, #ef4444);
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.12);
+  font-weight: 700;
+}
 
 @media (max-width: 768px) {
   .itemCard { padding: var(--space-3); }

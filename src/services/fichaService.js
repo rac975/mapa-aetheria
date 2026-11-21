@@ -313,15 +313,24 @@ export const fichaService = {
    * @returns {Promise<any>}
    */
   async atualizarZenit(fichaId, novoZenit) {
+    if (!fichaId) return null;
+    const zenitNum = Number(novoZenit);
+    const zenitLimpo = Number.isFinite(zenitNum) ? Math.max(0, Math.floor(zenitNum)) : 0;
     const { data, error } = await supabase
       .from('fichas_personagens')
-      .update({ zenit: novoZenit })
+      .update({ zenit: zenitLimpo })
       .eq('id', fichaId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.error('Erro ao atualizar zênites da ficha:', error);
+      console.error('Erro ao atualizar zênites da ficha:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        fichaId,
+        zenitLimpo
+      });
       throw error;
     }
     return data;
@@ -334,31 +343,49 @@ export const fichaService = {
    * @returns {Promise<any>}
    */
   async atualizarFicha(fichaId, dados) {
-    const payloadSanitizado = sanitizarPayloadFicha(dados);
+    if (!fichaId) {
+      console.warn('fichaService.atualizarFicha chamado sem fichaId válido.');
+      return null;
+    }
+    const payloadSanitizado = sanitizarPayloadFicha(dados, { incluirId: false });
+    if (Object.keys(payloadSanitizado).length === 0) {
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('fichas_personagens')
       .update(payloadSanitizado)
       .eq('id', fichaId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
+      console.error('Erro ao atualizar ficha:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        fichaId,
+        payloadSanitizado
+      });
+
       // Fallback caso alguma coluna opcional JSONB (ex: peculiaridade) ainda não exista no schema do banco
       if (error.code === 'PGRST204' && payloadSanitizado && typeof payloadSanitizado === 'object') {
         const dadosCompat = { ...payloadSanitizado };
         delete dadosCompat.peculiaridade;
-        const retry = await supabase
-          .from('fichas_personagens')
-          .update(dadosCompat)
-          .eq('id', fichaId)
-          .select()
-          .single();
+        if (Object.keys(dadosCompat).length > 0) {
+          const retry = await supabase
+            .from('fichas_personagens')
+            .update(dadosCompat)
+            .eq('id', fichaId)
+            .select()
+            .maybeSingle();
 
-        if (!retry.error) {
-          return normalizarFichaPersonagem(retry.data);
+          if (!retry.error) {
+            return normalizarFichaPersonagem(retry.data);
+          }
         }
       }
-      console.error('Erro ao atualizar ficha:', error);
       throw error;
     }
     return normalizarFichaPersonagem(data);
@@ -900,7 +927,7 @@ export const fichaService = {
    * @returns {Promise<{data: any, error: any}>}
    */
   async criarFicha(ficha) {
-    const payloadSanitizado = sanitizarPayloadFicha(ficha);
+    const payloadSanitizado = sanitizarPayloadFicha(ficha, { incluirId: true });
     return await supabase
       .from('fichas_personagens')
       .insert([payloadSanitizado]);

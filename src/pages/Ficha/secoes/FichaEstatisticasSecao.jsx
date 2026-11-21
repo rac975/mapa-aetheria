@@ -59,6 +59,9 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                 <div className={styles.statBox}>
                     <span className={styles.statLabel}>DEFESA (DEF)</span>
                     <strong className={`${styles.statValor} ${styles.valDefesa}`}>{defFinal}</strong>
+                    {statusFicha.defesaReduzida && (
+                        <span className={styles.statSubReduced}>Reduzida (Condição) ↓</span>
+                    )}
                     {statusFicha.defesaPlacophoraAtiva && (
                         <span className={styles.statSub}>Placófora ({statusFicha.defesaPlacophoraAtiva})</span>
                     )}
@@ -69,6 +72,9 @@ export default function FichaEstatisticasSecao({ statusFicha }) {
                 <div className={styles.statBox}>
                     <span className={styles.statLabel}>DEF. MÁGICA (MDEF)</span>
                     <strong className={`${styles.statValor} ${styles.valMdef}`}>{mdefFinal}</strong>
+                    {statusFicha.mdefReduzida && (
+                        <span className={styles.statSubReduced}>Reduzida (Condição) ↓</span>
+                    )}
                 </div>
                 <div className={styles.statBox}>
                     <span className={styles.statLabel}>INICIATIVA</span>

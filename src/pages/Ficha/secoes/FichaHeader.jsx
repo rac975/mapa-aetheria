@@ -18,7 +18,8 @@ export default function FichaHeader({
     statusCalculados = null,
     setFicha,
     onLogoutJogador,
-    handleAjustarRecurso
+    handleAjustarRecurso,
+    onToggleCondicao
 }) {
     const navigate = useNavigate();
     const modoMestreAtivo = Boolean(isMestre || playerSessionService.isGodModeAtivo());
@@ -173,20 +174,41 @@ export default function FichaHeader({
                 )}
             </div>
 
-            {condicoesAtivas.length > 0 && (
-                <div className={styles.condicoesStrip}>
-                    {condicoesAtivas.map(cId => {
-                        const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
-                        const ehImune = imunidadesHeader.includes(cId);
-                        return (
-                            <Badge key={cId} variant={ehImune ? 'core' : 'crise'} size="sm">
+            <div className={styles.condicoesStrip}>
+                {condicoesAtivas.map(cId => {
+                    const condObj = CONDICOES_DISPONIVEIS.find(item => item.id === cId);
+                    const ehImune = imunidadesHeader.includes(cId);
+                    return (
+                        <button
+                            key={cId}
+                            type="button"
+                            className={styles.condicaoBtn}
+                            onClick={() => onToggleCondicao?.(cId)}
+                            title={`Condição ativa: ${condObj?.label || cId}. Clique para curar/remover.`}
+                        >
+                            <Badge variant={ehImune ? 'core' : 'crise'} size="sm">
                                 {getCondicaoIcon(cId)}
-                                <span>{condObj?.label || cId}{ehImune ? ' (Imune)' : ''}</span>
+                                <span>{condObj?.label || cId}{ehImune ? ' (Imune)' : ''} ×</span>
                             </Badge>
-                        );
-                    })}
-                </div>
-            )}
+                        </button>
+                    );
+                })}
+                <select
+                    className={styles.addCondSelect}
+                    value=""
+                    onChange={(e) => {
+                        if (e.target.value) onToggleCondicao?.(e.target.value);
+                    }}
+                    aria-label="Adicionar Condição"
+                >
+                    <option value="">+ Condição</option>
+                    {CONDICOES_DISPONIVEIS.map((c) => (
+                        <option key={c.id} value={c.id} disabled={condicoesAtivas.includes(c.id)}>
+                            {c.label} {condicoesAtivas.includes(c.id) ? '(Ativo)' : ''}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             <ModalZenit
                 isOpen={modalZenitAberto}

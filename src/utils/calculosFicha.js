@@ -645,6 +645,18 @@ export function calcularStatusPersonagem(
     );
   });
 
+  const desBaseNum = converterAtributoParaNumero(ficha?.destreza || 8);
+  const astBaseNum = converterAtributoParaNumero(ficha?.astucia || 8);
+  const vigBaseNum = converterAtributoParaNumero(ficha?.vigor || 8);
+  const vonBaseNum = converterAtributoParaNumero(ficha?.vontade || 8);
+
+  const desReduzida = des < desBaseNum;
+  const astReduzida = ast < astBaseNum;
+  const vigReduzida = vig < vigBaseNum;
+  const vonReduzida = von < vonBaseNum;
+  const defesaReduzida = !temArmaduraMarcial && desReduzida;
+  const mdefReduzida = astReduzida;
+
   return {
     nivelTotal: Number(nivelTotal) || 1,
     pvMax: Number(pvMax) || 10,
@@ -652,6 +664,12 @@ export function calcularStatusPersonagem(
     piMax: Number(piMax) || 6,
     defesaTotal: Number(defesaTotal) || 0,
     mdefTotal: Number(mdefTotal) || 0,
+    defesaReduzida,
+    mdefReduzida,
+    desReduzida,
+    astReduzida,
+    vigReduzida,
+    vonReduzida,
     iniciativaTotal: Number(iniciativaTotal) || 0,
     precisaoBonus: Number(precisaoBonus) || 0,
     reducaoDano: Number(reducaoDano) || 0,

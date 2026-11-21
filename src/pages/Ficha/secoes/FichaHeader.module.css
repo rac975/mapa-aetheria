@@ -183,6 +183,30 @@
   gap: var(--space-2);
 }
 
+.condicaoBtn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.addCondSelect {
+  background: rgba(6, 13, 23, 0.72);
+  border: 1px dashed var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.addCondSelect:hover {
+  border-color: var(--color-gold-bright);
+  color: var(--color-text-gold);
+}
+
 /* =====================================================
    ERGONOMIA TOUCH & RESPONSIVIDADE MOBILE
    ===================================================== */

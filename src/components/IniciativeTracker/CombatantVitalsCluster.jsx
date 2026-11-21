@@ -30,8 +30,18 @@ export default function CombatantVitalsCluster({
 
       {p.tipo === 'heroi' ? (
         <div className={styles.pillsInline}>
-          <span className={styles.statPill} title="Defesa Física"><FaShieldAlt /> DEF {defesaHeroi}</span>
-          <span className={styles.statPill} title="Defesa Mágica"><FaMagic /> M.DEF {mdefHeroi}</span>
+          <span
+            className={`${styles.statPill} ${perfilRolagem?.defesaReduzida ? styles.statPillReduced : ''}`}
+            title={perfilRolagem?.defesaReduzida ? 'Defesa Física Reduzida por Condição' : 'Defesa Física'}
+          >
+            <FaShieldAlt /> DEF {defesaHeroi} {perfilRolagem?.defesaReduzida && '↓'}
+          </span>
+          <span
+            className={`${styles.statPill} ${perfilRolagem?.mdefReduzida ? styles.statPillReduced : ''}`}
+            title={perfilRolagem?.mdefReduzida ? 'Defesa Mágica Reduzida por Condição' : 'Defesa Mágica'}
+          >
+            <FaMagic /> M.DEF {mdefHeroi} {perfilRolagem?.mdefReduzida && '↓'}
+          </span>
           <span className={styles.statPill} title="Pontos de Inventário"><FaBoxOpen /> IP {p.ip}</span>
           <span className={`${styles.statPill} ${styles.statPillGold}`} title="Pontos de Fábula"><FaStar /> PF {p.pontos_fabula}</span>
         </div>
@@ -39,8 +49,18 @@ export default function CombatantVitalsCluster({
         <div className={styles.pillsInline}>
           {isMestre && perfilRolagem && (
             <>
-              <span className={styles.statPill} title="Defesa Física"><FaShieldAlt /> DEF {perfilRolagem.defesa}</span>
-              <span className={styles.statPill} title="Defesa Mágica"><FaMagic /> M.DEF {perfilRolagem.mdef}</span>
+              <span
+                className={`${styles.statPill} ${perfilRolagem.defesaReduzida ? styles.statPillReduced : ''}`}
+                title={perfilRolagem.defesaReduzida ? 'Defesa Física Reduzida por Condição' : 'Defesa Física'}
+              >
+                <FaShieldAlt /> DEF {perfilRolagem.defesa} {perfilRolagem.defesaReduzida && '↓'}
+              </span>
+              <span
+                className={`${styles.statPill} ${perfilRolagem.mdefReduzida ? styles.statPillReduced : ''}`}
+                title={perfilRolagem.mdefReduzida ? 'Defesa Mágica Reduzida por Condição' : 'Defesa Mágica'}
+              >
+                <FaMagic /> M.DEF {perfilRolagem.mdef} {perfilRolagem.mdefReduzida && '↓'}
+              </span>
             </>
           )}
           {isMestre && (ehChefeOuVilao || pontosVilao > 0) && (

@@ -87,6 +87,13 @@
   font-family: var(--font-family-sans);
 }
 
+.statSubReduced {
+  font-size: var(--font-size-2xs, 0.75rem);
+  color: var(--color-crise, #ef4444);
+  font-family: var(--font-family-sans);
+  font-weight: 700;
+}
+
 .headerRow {
   display: flex;
   align-items: center;

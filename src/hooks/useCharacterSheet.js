@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fichaService } from '../services/fichaService';
+import { combatService } from '../services/combatService';
 import { playerSessionService } from '../services/playerSessionService';
 import { useCharacterStats, calcularModificadoresCondicoes } from './useCharacterStats';
 import { useCharacterRealtime } from './useCharacterRealtime';
@@ -142,12 +143,16 @@ export function useCharacterSheet(id, navigate, isMestre = false) {
         fichaService.getCatalogoFloralistaMagiseeds().catch(() => [])
       ]);
 
+      const condicoesIniciais = Array.isArray(fichaData.condicoes) && fichaData.condicoes.length > 0
+        ? fichaData.condicoes
+        : (condicoesData || []);
+
       setFicha(fichaData);
       setClasses(classesData || []);
       setMagias(magiasData || []);
       setItensInventario(itensData || []);
-      setCondicoesAtivas(condicoesData || []);
-      setModificadoresTemporarios(calcularModificadoresCondicoes(condicoesData || []));
+      setCondicoesAtivas(condicoesIniciais);
+      setModificadoresTemporarios(calcularModificadoresCondicoes(condicoesIniciais));
     } catch (err) {
       console.error('Erro ao carregar dados da ficha:', err);
       setErro('Erro ao carregar dados do banco.');
@@ -162,67 +167,45 @@ export function useCharacterSheet(id, navigate, isMestre = false) {
 
   // 2. Subscriptions em tempo real desacopladas
   useCharacterRealtime(ficha?.id, {
-    setFicha,
-    setItensInventario,
-    setCondicoesAtivas,
-    setModificadoresTemporarios,
-    setClasses
+    setFicha, setItensInventario, setCondicoesAtivas, setModificadoresTemporarios, setClasses
   });
 
   // 3. Cálculos de atributos, status derivados e condições de regras desacoplados
-  const {
-    itensEquipados,
-    statusFicha,
-    atributosAtuaisParaCalculo,
-    emCriseGlobal
-  } = useCharacterStats({
-    ficha,
-    classes,
-    itensInventario,
-    condicoesAtivas,
-    modificadoresTemporarios,
-    setModificadoresTemporarios
+  const { itensEquipados, statusFicha, atributosAtuaisParaCalculo, emCriseGlobal } = useCharacterStats({
+    ficha, classes, itensInventario, condicoesAtivas, modificadoresTemporarios, setModificadoresTemporarios
   });
 
   // 4. Mutações, ajustes de recursos e persistência desacoplados
   const {
-    salvando,
-    ajustarRecurso,
-    salvarEdicaoCompleta,
-    atualizarDadosMutante,
-    atualizarDadosClasseLocal
-  } = useCharacterSheetActions({
-    ficha,
-    setFicha,
-    setClasses,
-    setMagias,
-    statusFicha,
-    isMestre
-  });
+    salvando, ajustarRecurso, salvarEdicaoCompleta, atualizarDadosMutante, atualizarDadosClasseLocal
+  } = useCharacterSheetActions({ ficha, setFicha, setClasses, setMagias, statusFicha, isMestre });
+
+  const toggleCondicaoFicha = useCallback(
+    async (condId) => {
+      if (!ficha?.id) return;
+      const cNorm = (condId || '').toLowerCase().trim();
+      const novas = condicoesAtivas.includes(cNorm)
+        ? condicoesAtivas.filter((c) => c !== cNorm)
+        : [...condicoesAtivas, cNorm];
+      setCondicoesAtivas(novas);
+      setModificadoresTemporarios(calcularModificadoresCondicoes(novas));
+      setFicha((prev) => (prev ? { ...prev, condicoes: novas } : prev));
+      try {
+        await combatService.updateIniciativaFromFicha(ficha.id, { condicoes: novas });
+      } catch (err) {
+        console.error('Erro ao alternar condição:', err);
+      }
+    },
+    [ficha?.id, condicoesAtivas, setFicha]
+  );
 
   return {
-    ficha,
-    setFicha,
-    classes,
-    setClasses,
-    magias,
-    setMagias,
-    itensInventario,
-    setItensInventario,
-    itensEquipados,
-    condicoesAtivas,
-    modificadoresTemporarios,
-    setModificadoresTemporarios,
-    atributosAtuaisParaCalculo,
-    statusFicha,
-    emCriseGlobal,
-    carregando,
-    salvando,
-    erro,
-    recarregar: carregarDadosCompletos,
-    ajustarRecurso,
-    atualizarDadosMutante,
-    atualizarDadosClasseLocal,
-    salvarEdicaoCompleta
+    ficha, setFicha, classes, setClasses, magias, setMagias,
+    itensInventario, setItensInventario, itensEquipados, condicoesAtivas,
+    modificadoresTemporarios, setModificadoresTemporarios,
+    atributosAtuaisParaCalculo, statusFicha, emCriseGlobal,
+    carregando, salvando, erro, recarregar: carregarDadosCompletos,
+    ajustarRecurso, atualizarDadosMutante, atualizarDadosClasseLocal,
+    salvarEdicaoCompleta, toggleCondicaoFicha
   };
 }

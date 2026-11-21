@@ -10,8 +10,10 @@ import {
 } from './coreClassRules.js';
 import {
   armaAtingeVoadores,
-  extrairResumoCaracteristicasEquipamento
+  extrairResumoCaracteristicasEquipamento,
+  extrairStatsArmadura
 } from './equipmentRules.js';
+import { obterModuloPorId } from './technoFantasyRules.js';
 import { obterItemFormaAtivaArmaMutavel } from './weaponForge.js';
 import { calcularBonusPassivosPoderesHeroicos } from './heroicAndQuirksRules.js';
 import {
@@ -1244,7 +1246,74 @@ export function extrairPerfilRolagemCombatente({
       }
     });
 
-    // Golpe Desarmado só é exibido se o personagem NÃO possuir nenhuma arma equipada
+    // Módulos de Arma do Veículo Pessoal do Piloto (Atlas Tecno-Fantasia)
+    const pilotoClass = classesFicha.find((c) => normalizarTextoCore(c?.nome_classe).includes('pilot'));
+    const habVeiculo = (pilotoClass?.habilidades || []).find((h) => normalizarTextoCore(h?.nome).includes('veiculo'));
+    const habPulsoFirme = (pilotoClass?.habilidades || []).find((h) => normalizarTextoCore(h?.nome).includes('pulso firme'));
+    const temPulsoFirme = Boolean(habPulsoFirme && (parseInt(habPulsoFirme.nivel, 10) || 0) > 0);
+
+    const dadosVeiculo =
+      ficha.dados_veiculo ||
+      ficha.statusCalculados?.dadosVeiculo ||
+      pilotoClass?.veiculo ||
+      habVeiculo?.veiculo ||
+      ficha.veiculo ||
+      null;
+
+    const veiculoAtivo = Boolean(dadosVeiculo && typeof dadosVeiculo === 'object' && dadosVeiculo.veiculoInvocado !== false);
+
+    if (veiculoAtivo) {
+      const modulosAtivosIds = Array.isArray(dadosVeiculo.modulosAtivos)
+        ? dadosVeiculo.modulosAtivos
+        : (Array.isArray(dadosVeiculo.modulos_ativos) ? dadosVeiculo.modulos_ativos : []);
+
+      let bonusMiraVeiculo = 0;
+      modulosAtivosIds.forEach((mId) => {
+        const mObj = obterModuloPorId(mId);
+        if (mObj && mObj.tipo === 'suporte') {
+          bonusMiraVeiculo += (Number(mObj.precisao_bonus) || Number(mObj.bonus_precisao) || 0);
+        }
+      });
+
+      modulosAtivosIds.forEach((mId, mIdx) => {
+        const mObj = obterModuloPorId(mId);
+        if (!mObj || mObj.tipo !== 'arma') return;
+
+        let atr1 = normalizarChaveAtributo(mObj.atributos_precisao?.[0] || 'des', 'des');
+        let atr2 = normalizarChaveAtributo(mObj.atributos_precisao?.[1] || 'ast', 'ast');
+
+        if (temPulsoFirme || dadosVeiculo.customizacoes?.usarPulsoFirme) {
+          const val1 = atributosAtuais[atr1] || 8;
+          const val2 = atributosAtuais[atr2] || 8;
+          if (val1 <= val2) {
+            atr1 = 'vig';
+          } else {
+            atr2 = 'vig';
+          }
+        }
+
+        const bonusArma = (Number(mObj.precisao_bonus) || Number(mObj.bonus_precisao) || 0) + bonusMiraVeiculo;
+        const danoArma = Number(mObj.dano_bonus ?? 8);
+        const ehDistancia = mObj.alcance === 'distancia';
+
+        armas.push({
+          id: `veiculo_${mObj.id || mObj.key || mIdx}`,
+          nome: `${mObj.nome || 'Arma Veicular'} (${dadosVeiculo.nome || 'Veículo'})`,
+          attr1: atr1,
+          attr2: atr2,
+          bonusPrecisao: bonusArma,
+          bonusDano: danoArma + passivosCore.bonusDanoAdrenalinaCrise + decretoDanoExtra,
+          tipoDano: normalizarTextoCore(mObj.tipo_dano || 'fisico') || 'fisico',
+          alcance: ehDistancia ? 'distancia' : 'corpo_a_corpo',
+          isPadrao: false,
+          isModuloVeicular: true,
+          atingeVoadores: ehDistancia || Boolean(mObj.atingeVoadores || mObj.atinge_voadores),
+          efeito: mObj.descricao || mObj.propriedades || ''
+        });
+      });
+    }
+
+    // Golpe Desarmado só é exibido se o personagem NÃO possuir nenhuma arma equipada ou módulo veicular ativo
     if (armas.length === 0) {
       armas.push({
         id: 'desarmado',
@@ -1424,14 +1493,83 @@ export function extrairPerfilRolagemCombatente({
     ? npc.poderes.map(formatarPoderNpcParaExibicao)
     : [];
 
+  // 3. Recálculo dinâmico de Defesa e Defesa Mágica sob efeitos de condições ativas
+  const deltaDes = atributosAtuais.des - atributosBase.des;
+  const deltaAst = atributosAtuais.ast - atributosBase.ast;
+
+  let defesaFinal = Number(ficha?.defesa ?? npc?.defesa ?? atributosAtuais.des);
+  let mdefFinal = Number(ficha?.mdef ?? npc?.defesa_magica ?? atributosAtuais.ast);
+  let defesaReduzida = false;
+  let mdefReduzida = false;
+
+  if (ficha) {
+    const todosItens = Array.isArray(ficha.itens) ? ficha.itens : [];
+    const itensEquipados = todosItens.filter((i) => i.equipado || i.stats_personalizados?.slot);
+    const itemArmadura = itensEquipados.find((i) => {
+      const slot = i.stats_personalizados?.slot || i.slot || '';
+      const tipo = normalizarTextoCore(i.tipo || '');
+      return slot === 'armadura' || tipo.includes('armadura');
+    });
+    const statsArm = extrairStatsArmadura(itemArmadura, atributosBase.des);
+
+    let armaduraVeicularFixa = false;
+    const classesFicha = Array.isArray(ficha.classes) ? ficha.classes : (Array.isArray(ficha.fichas_classes) ? ficha.fichas_classes : []);
+    const pilotoClass = classesFicha.find((c) => normalizarTextoCore(c?.nome_classe).includes('pilot'));
+    const habVeiculo = (pilotoClass?.habilidades || []).find((h) => normalizarTextoCore(h?.nome).includes('veiculo'));
+    const dadosVeiculo = ficha.dados_veiculo || ficha.statusCalculados?.dadosVeiculo || pilotoClass?.veiculo || habVeiculo?.veiculo || ficha.veiculo || null;
+
+    if (dadosVeiculo && dadosVeiculo.veiculoInvocado !== false) {
+      const modulosIds = Array.isArray(dadosVeiculo.modulosAtivos)
+        ? dadosVeiculo.modulosAtivos
+        : (Array.isArray(dadosVeiculo.modulos_ativos) ? dadosVeiculo.modulos_ativos : []);
+      const modArmadura = modulosIds.find((m) => {
+        const obj = obterModuloPorId(m);
+        return obj?.tipo === 'armadura' && (obj.def_fixa !== undefined || obj.defesa_fixa !== undefined);
+      });
+      if (modArmadura) armaduraVeicularFixa = true;
+    }
+
+    if (!statsArm.ehMarcial && !armaduraVeicularFixa && deltaDes !== 0) {
+      defesaFinal = Math.max(0, defesaFinal + deltaDes);
+      if (deltaDes < 0) defesaReduzida = true;
+    }
+
+    if (deltaAst !== 0) {
+      mdefFinal = Math.max(0, mdefFinal + deltaAst);
+      if (deltaAst < 0) mdefReduzida = true;
+    }
+  } else if (npc) {
+    if (deltaDes !== 0) {
+      defesaFinal = Math.max(0, defesaFinal + deltaDes);
+      if (deltaDes < 0) defesaReduzida = true;
+    }
+    if (deltaAst !== 0) {
+      mdefFinal = Math.max(0, mdefFinal + deltaAst);
+      if (deltaAst < 0) mdefReduzida = true;
+    }
+  }
+
+  const desReduzida = atributosAtuais.des < atributosBase.des;
+  const astReduzida = atributosAtuais.ast < atributosBase.ast;
+  const vigReduzida = atributosAtuais.vig < atributosBase.vig;
+  const vonReduzida = atributosAtuais.von < atributosBase.von;
+
   return {
     possuiFichaVinculada: Boolean(ficha || npc),
     origemNome: ficha?.nome_personagem || npc?.nome || combatente?.nome || 'Combatente',
     atributosBase,
     atributosAtuais,
     modsCondicoes,
-    defesa: Number(ficha?.defesa ?? npc?.defesa ?? atributosAtuais.des),
-    mdef: Number(ficha?.mdef ?? npc?.defesa_magica ?? atributosAtuais.ast),
+    defesa: defesaFinal,
+    mdef: mdefFinal,
+    defesaReduzida,
+    mdefReduzida,
+    desReduzida,
+    astReduzida,
+    vigReduzida,
+    vonReduzida,
+    deltaDes,
+    deltaAst,
     iniciativaMod: Number(npc?.iniciativa ?? 0),
     bonusGuardaOposto: guardando ? 2 : 0,
     emCrise,

@@ -36,7 +36,8 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
     ajustarRecurso,
     atualizarDadosMutante,
     atualizarDadosClasseLocal,
-    salvarEdicaoCompleta
+    salvarEdicaoCompleta,
+    toggleCondicaoFicha
   } = useCharacterSheet(id, navigate, modoMestreAtivo);
 
   const [editando, setEditando] = useState(false);
@@ -143,6 +144,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
           if (setFichaGlobal) setFichaGlobal(null);
         }}
         handleAjustarRecurso={ajustarRecurso}
+        onToggleCondicao={toggleCondicaoFicha}
         onToggleEdit={handleToggleEdit}
       />
 

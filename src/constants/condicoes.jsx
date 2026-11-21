@@ -16,11 +16,12 @@ export const CONDICOES_DISPONIVEIS = [
   { id: "atordoado", label: "Atordoado (AST-1)", icon: <FaBolt /> },
   { id: "enfurecido", label: "Enfurecido (DES/AST-1)", icon: <FaFire /> },
   { id: "envenenado", label: "Envenenado (VIG/VON-1)", icon: <FaSpider /> },
-  { id: "fraco", label: "Fraco (VIG-1)", icon: <FaSkull /> },
+  { id: "fraco", label: "Enfraquecido / Fraco (VIG-1)", icon: <FaSkull /> },
   { id: "lento", label: "Lento (DES-1)", icon: <FaWeightHanging /> },
 ];
 
 export const getCondicaoIcon = (id) => {
-  const cond = CONDICOES_DISPONIVEIS.find((c) => c.id === id);
+  const chave = id === 'enfraquecido' ? 'fraco' : id;
+  const cond = CONDICOES_DISPONIVEIS.find((c) => c.id === chave);
   return cond ? cond.icon : <FaExclamationTriangle />;
 };
