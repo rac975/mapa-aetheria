@@ -1,0 +1,106 @@
+.preBarContainer {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+}
+
+.toggleHeaderBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: linear-gradient(90deg, rgba(197, 160, 89, 0.14) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: none;
+  color: var(--color-text-gold);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.toggleHeaderBtn:hover {
+  background: rgba(197, 160, 89, 0.22);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.boltIcon {
+  color: var(--color-border-gold-bright);
+}
+
+.barTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.chevron {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+}
+
+.panelBody {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.controlsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: var(--space-2);
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.selectInput {
+  background: rgba(10, 18, 32, 0.9);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  padding: 6px 8px;
+  font-size: var(--font-size-xs);
+}
+
+.actionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  border-top: 1px dashed var(--color-border-subtle);
+  padding-top: var(--space-2);
+}
+
+.ruleHint {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+@media print {
+  .preBarContainer {
+    display: none !important;
+  }
+}

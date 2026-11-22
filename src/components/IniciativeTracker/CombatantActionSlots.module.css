@@ -1,0 +1,170 @@
+.slotsBarContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding-top: var(--space-2);
+  border-top: 1px dashed rgba(var(--color-border-gold-rgb, 197, 160, 89), 0.25);
+  margin-top: 2px;
+}
+
+.slotsHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.slotsTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-border-gold-bright);
+  letter-spacing: 0.03em;
+}
+
+.slotsCounter {
+  font-size: 0.7rem;
+  font-family: var(--font-family-mono, monospace);
+  color: var(--color-text-dim);
+}
+
+.tokensRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.actionSlotToken {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--color-border-gold-muted);
+  background: rgba(var(--color-bg-base-rgb, 10, 22, 40), 0.75);
+  color: var(--color-text-dim);
+  cursor: default;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.actionSlotToken.clickable {
+  cursor: pointer;
+}
+
+.actionSlotToken.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Estado: Concluída */
+.actionSlotToken.concluida {
+  background: rgba(46, 125, 74, 0.22);
+  border-color: rgba(62, 178, 101, 0.55);
+  color: var(--color-core-green);
+  opacity: 0.85;
+}
+
+.actionSlotToken.concluida:hover {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 10px var(--color-core-green-glow);
+}
+
+/* Estado: Próxima Ação Prevista */
+.actionSlotToken.proxima {
+  background: linear-gradient(135deg, rgba(197, 160, 89, 0.28) 0%, rgba(13, 31, 58, 0.95) 100%);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-border-gold-bright);
+  box-shadow: 0 0 0 1px var(--color-border-gold), 0 0 14px var(--color-border-gold-glow);
+  animation: pulseGlow 2.4s infinite ease-in-out;
+}
+
+.actionSlotToken.proxima:hover {
+  background: linear-gradient(135deg, rgba(197, 160, 89, 0.4) 0%, rgba(16, 36, 66, 0.98) 100%);
+  box-shadow: 0 0 0 1px var(--color-border-gold-bright), 0 0 18px var(--color-border-gold-glow);
+}
+
+/* Estado: Pendente */
+.actionSlotToken.pendente {
+  background: rgba(13, 31, 58, 0.45);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-dim);
+}
+
+.actionSlotToken.pendente:hover {
+  border-color: var(--color-border-gold-muted);
+  color: var(--color-text-main);
+}
+
+.slotStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.badgeProxima {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: 0 0 6px var(--color-border-gold-glow);
+}
+
+.badgeConcluida {
+  background: rgba(62, 178, 101, 0.3);
+  color: var(--color-core-green);
+}
+
+.badgePendente {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-dim);
+}
+
+.quickAdvanceBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(197, 160, 89, 0.18);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-border-gold-bright);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quickAdvanceBtn:hover {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: 0 0 8px var(--color-border-gold-glow);
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px var(--color-border-gold), 0 0 10px var(--color-border-gold-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 1px var(--color-border-gold-bright), 0 0 18px var(--color-border-gold-glow);
+  }
+}
+
+@media print {
+  .quickAdvanceBtn {
+    display: none !important;
+  }
+}

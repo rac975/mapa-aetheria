@@ -1,0 +1,165 @@
+.initiativeCluster {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 6px;
+  background: rgba(var(--color-bg-base-rgb, 10, 22, 40), 0.85);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  user-select: none;
+}
+
+.initiativeCluster:hover {
+  border-color: var(--color-border-gold);
+}
+
+.initiativeCluster.heroi {
+  border-color: rgba(62, 178, 101, 0.4);
+}
+
+.initiativeCluster.heroi:hover {
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 8px var(--color-core-green-glow);
+}
+
+.initiativeCluster.inimigo {
+  border-color: rgba(224, 86, 36, 0.4);
+}
+
+.initiativeCluster.inimigo:hover {
+  border-color: var(--color-crise);
+  box-shadow: 0 0 8px var(--color-crise-glow);
+}
+
+.iniLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-border-gold-bright);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.iniIcon {
+  font-size: 0.75rem;
+  color: var(--color-gold);
+}
+
+.iniValueBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-main);
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.iniValueBtn:hover:not(:disabled) {
+  background: rgba(197, 160, 89, 0.2);
+  color: var(--color-gold);
+  text-decoration: underline;
+}
+
+.iniValueBtn:disabled {
+  cursor: default;
+}
+
+.iniValueStatic {
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  padding: 0 2px;
+}
+
+.iniInput {
+  width: 44px;
+  height: 22px;
+  padding: 0 4px;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-main);
+  font-family: var(--font-family-mono, monospace);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 0 6px var(--color-border-gold-glow);
+}
+
+.iniInput:focus {
+  border-color: var(--color-border-gold-bright);
+}
+
+.rollBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: rgba(197, 160, 89, 0.15);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-border-gold-bright);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rollBtn:hover:not(:disabled) {
+  background: var(--color-border-gold);
+  color: var(--color-text-inverse);
+  box-shadow: 0 0 8px var(--color-border-gold-glow);
+  transform: translateY(-1px);
+}
+
+.rollBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.rollBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.editActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-core-green);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.editActionBtn:hover {
+  color: var(--color-text-main);
+}
+
+.editActionBtnCancel {
+  color: var(--color-crise);
+}
+
+@media print {
+  .rollBtn,
+  .editActionBtn {
+    display: none !important;
+  }
+}

@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  FaShieldAlt, FaSkull, FaCrown, FaBolt, FaFire, FaPlay
-} from 'react-icons/fa';
+import { FaShieldAlt, FaSkull, FaCrown, FaBolt, FaFire, FaPlay } from 'react-icons/fa';
 import { Badge, Button, Input } from '../ui';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../constants/condicoes';
 import {
@@ -13,6 +11,8 @@ import VillainCombatDrawer from './VillainCombatDrawer';
 import CombatantActionButtons from './CombatantActionButtons';
 import CombatantTurnActionArea from './CombatantTurnActionArea';
 import CombatantVitalsCluster from './CombatantVitalsCluster';
+import CombatantInitiativeControl from './CombatantInitiativeControl';
+import CombatantActionSlotsBar from './CombatantActionSlotsBar';
 import styles from './CombatantItem.module.css';
 import actionStyles from './CombatantItemActions.module.css';
 
@@ -23,7 +23,8 @@ export default function CombatantItem({
   onSelecionarCombatente, onSelecionarAlvo, onToggleMultiAlvo, onLimparAlvo, onToggleAlvoMulti,
   onExecutarAcao, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
   onIniciarExclusao, onAlterarRecurso, onGastarPontoVilao, onTransicionarFase,
-  onAjustarAcaoTurno, onToggleCondicao, onRolarDados, isDragging, isDragOver,
+  onAjustarAcaoTurno, onAjustarAcaoSlot, onToggleCondicao, onRolarDados,
+  onAtualizarIniciativa, onRolarIniciativa, isDragging, isDragOver, dragDropPos = null,
   onDragHandleDown, onDragHandleMove, onDragHandleUp, onDragHandleCancel
 }) {
   const [painelAberto, setPainelAberto] = useState(null);
@@ -87,7 +88,7 @@ export default function CombatantItem({
     isAtorSelecionado && styles.actorSelectedCard,
     isAlvoSelecionado && styles.targetSelectedCard,
     isDragging && styles.itemDragging,
-    isDragOver && styles.itemDragOver
+    isDragOver && (dragDropPos === 'bottom' ? styles.itemDragOverBottom : styles.itemDragOver)
   ].filter(Boolean).join(' ');
 
   return (
@@ -115,6 +116,10 @@ export default function CombatantItem({
             <div className={styles.nameAndBadges}>
               <div className={styles.nameLine}>
                 <span className={styles.nome}>{p.nome}</span>
+                <CombatantInitiativeControl
+                  p={p} isMestre={isMestre} ehMeuPersonagem={ehMeuPersonagem} perfilRolagem={perfilRolagem}
+                  onAtualizarIniciativa={onAtualizarIniciativa} onRolarIniciativa={onRolarIniciativa}
+                />
                 {ehMeuPersonagem && <Badge variant="gold" size="sm">★ Meu Herói</Badge>}
                 {isAlvoSelecionado && <Badge variant="crise" size="sm">🎯 ALVO</Badge>}
                 <Badge variant={p.tipo === 'heroi' ? 'core' : ehChefeOuVilao ? 'villain' : 'crise'} size="sm">
@@ -193,6 +198,10 @@ export default function CombatantItem({
           onDragHandleCancel={onDragHandleCancel}
         />
       </div>
+
+      {isInimigo && acoesPorTurno > 1 && !estaDerrotado && (
+        <CombatantActionSlotsBar p={p} isMestre={isMestre} onAjustarAcaoSlot={onAjustarAcaoSlot || onAjustarAcaoTurno} />
+      )}
 
       {isMestre && statusFase.gatilhoAtivo && statusFase.proximaFaseObj && (
         <div className={`${actionStyles.bossPhaseBanner} ${actionStyles.noPrint}`} onClick={(e) => e.stopPropagation()}>

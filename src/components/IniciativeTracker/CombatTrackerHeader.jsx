@@ -1,5 +1,5 @@
 import {
-  FaUndoAlt, FaRedo, FaBroadcastTower, FaUserPlus, FaSlidersH
+  FaUndoAlt, FaRedo, FaBroadcastTower, FaUserPlus, FaSlidersH, FaSortAmountDown
 } from 'react-icons/fa';
 import { Button, Badge } from '../ui';
 import styles from './InitiativeTracker.module.css';
@@ -10,14 +10,18 @@ export default function CombatTrackerHeader({
   jogadorNome,
   pendentesTurno = 0,
   totalVivos = 0,
+  totalAcoesRodada = 0,
   mostrarModsCena,
   temModGlobalAtivo,
   setMostrarModsCena,
   exibirPainelAdicao,
   setMostrarFormAdicao,
   restaurarTudoCena,
-  resetRodada
+  resetRodada,
+  onOrdenarPorIniciativa
 }) {
+  const temMultiAcoes = totalAcoesRodada > totalVivos;
+
   return (
     <header className={styles.boxHeader}>
       <div className={styles.titleGroup}>
@@ -29,20 +33,28 @@ export default function CombatTrackerHeader({
             <Badge variant="ether" size="sm">Jogador: {jogadorNome}</Badge>
           )}
           {totalVivos > 0 && (
-            <Badge variant="default" size="sm">
-              {pendentesTurno}/{totalVivos} Turnos Pendentes
+            <Badge variant="default" size="sm" title={temMultiAcoes ? `${pendentesTurno} de ${totalAcoesRodada} ações pendentes na rodada` : undefined}>
+              {pendentesTurno}/{temMultiAcoes ? totalAcoesRodada : totalVivos} {temMultiAcoes ? 'Ações Pendentes' : 'Turnos Pendentes'}
             </Badge>
           )}
         </div>
         <p className={styles.boxHint}>
           {isMestre
-            ? 'Clique em um card para selecioná-lo na Central de Ações. Use o checkbox de turno e os controles rápidos de Vilão, PV/PM e Status.'
+            ? 'Clique em um card para selecioná-lo na Central de Ações. Use os controles de Iniciativa (INI), Vilão, PV/PM, Status e reordene a fila como desejar.'
             : 'Clique no seu card para preparar sua ação, ou clique em um inimigo/aliado para defini-lo como alvo da sua ação.'}
         </p>
       </div>
 
       {isMestre && (
         <div className={`${styles.headerActions} ${styles.noPrint}`}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onOrdenarPorIniciativa}
+            title="Ordenar combatentes por Iniciativa (maior para menor, Heróis primeiro em empate)"
+          >
+            <FaSortAmountDown className={styles.btnIcon} /> Por Iniciativa
+          </Button>
           <Button
             variant={mostrarModsCena || temModGlobalAtivo ? 'core' : 'ghost'}
             size="sm"

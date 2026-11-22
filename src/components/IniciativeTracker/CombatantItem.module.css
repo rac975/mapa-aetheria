@@ -57,8 +57,9 @@
   box-shadow: 0 0 0 1px var(--color-core-green), 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-.itemCard.itemDragging { opacity: 0.5; border-style: dashed; transform: scale(0.99); }
-.itemCard.itemDragOver { border-color: var(--color-border-gold-bright) !important; box-shadow: 0 0 14px var(--color-border-gold-glow) !important; }
+.itemCard.itemDragging { opacity: 0.48; border-style: dashed; border-color: var(--color-border-gold-bright) !important; }
+.itemCard.itemDragOver { border-color: var(--color-border-gold-bright) !important; box-shadow: 0 -3px 0 0 var(--color-border-gold-bright), 0 -6px 16px var(--color-border-gold-glow) !important; }
+.itemCard.itemDragOverBottom { border-color: var(--color-border-gold-bright) !important; box-shadow: 0 3px 0 0 var(--color-border-gold-bright), 0 6px 16px var(--color-border-gold-glow) !important; }
 
 .itemMainRow {
   display: flex;
