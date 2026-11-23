@@ -1,0 +1,120 @@
+.presetsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  margin-bottom: var(--space-3, 12px);
+  padding: var(--space-2, 8px);
+  background: rgba(var(--color-bg-dark-rgb, 10, 14, 26), 0.65);
+  border: 1px solid var(--border-gold-glow, rgba(212, 175, 55, 0.3));
+  border-radius: var(--radius-md, 8px);
+}
+
+.presetsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+}
+
+.headerTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 6px);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gold, #d4af37);
+}
+
+.abilitiesSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.switcherBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-text-secondary, #a0aec0);
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.switcherBtn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--color-gold, #d4af37);
+  color: #fff;
+}
+
+.switcherBtnActive {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: var(--color-gold, #d4af37);
+  color: var(--color-gold, #d4af37);
+  font-weight: 700;
+}
+
+.presetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-2, 6px);
+}
+
+.presetCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.presetCard:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: translateY(-1px);
+}
+
+.presetCardActive {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--color-gold, #d4af37);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+.presetTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.presetTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.presetDesc {
+  font-size: 0.65rem;
+  color: var(--color-text-muted, #718096);
+  line-height: 1.25;
+}
+
+.activeCheck {
+  color: var(--color-gold, #d4af37);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}

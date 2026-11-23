@@ -99,7 +99,12 @@ export function obterNivelHabilidade(classes = [], termoClasse = null, termoHabi
   classes.forEach((c) => {
     const nomeClasse = normalizarTextoCore(c?.nome_classe || '');
     if (termoClasseNorm && !nomeClasse.includes(termoClasseNorm)) return;
-    (c?.habilidades || []).forEach((h) => {
+    const habs = Array.isArray(c?.habilidades)
+      ? c.habilidades
+      : (c?.habilidades && typeof c.habilidades === 'object'
+          ? Object.entries(c.habilidades).map(([nome, nivel]) => ({ nome, nivel }))
+          : []);
+    habs.forEach((h) => {
       const nomeHab = normalizarTextoCore(h?.nome || '');
       if (nomeHab.includes(termoHabNorm)) {
         const nv = parseInt(h?.nivel, 10) || 0;

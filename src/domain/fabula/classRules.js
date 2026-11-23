@@ -24,11 +24,11 @@ export const extrairValorDado = (dadoStr) => {
  * @param {number} nivelPersonagem Nível total somado do personagem
  * @returns {number}
  */
-export function calcularPvMaximoCompanheiro(nivelNP, dadoVigor, nivelPersonagem) {
+export function calcularPvMaximoCompanheiro(nivelNP, dadoVigor, nivelPersonagem, bonusPoderes = 0) {
   const np = parseInt(nivelNP, 10) || 0;
   const nvPersonagem = parseInt(nivelPersonagem, 10) || 0;
   const valorVigor = extrairValorDado(dadoVigor);
-  return (np * valorVigor) + Math.floor(nvPersonagem / 2);
+  return (np * valorVigor) + Math.floor(nvPersonagem / 2) + (Number(bonusPoderes) || 0);
 }
 
 /**
