@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { FaDice, FaHeart, FaDragon } from 'react-icons/fa';
+import { FaDice, FaDragon } from 'react-icons/fa';
 import { npcService } from '../../../../services/npcService';
 import {
   dadoParaNumero, calcularPoderesPermitidos, recalcularEstatisticasNpc, extrairBonusPoderes,
   calcularPvMaxNpc, calcularPmMaxNpc, calcularIniciativaNpc, calcularDefesaNpc,
-  calcularDefesaMagicaNpc, clampRecursoNpc
+  calcularDefesaMagicaNpc, clampRecursoNpc, ajustarPoderesNpc
 } from '../../../../domain/fabula/npcRules';
 import { Card, Badge } from '../../../../components/ui';
 import { useAlert } from '../../../../contexts/useAlert';
 import NPCVillainEditorSection from './NPCVillainEditorSection';
+import NPCEstatisticasCalculadasCard from './NPCEstatisticasCalculadasCard';
 import NPCCombatCatalogsEditor from './NPCCombatCatalogsEditor';
 import styles from './NPCEditor.module.css';
 
@@ -52,11 +53,19 @@ export default function NPCEditor({
       onUpdate({ ...npc, especie: valor, afinidades: novaEspObj.afinidades_padrao || {} });
     } else if (campo === 'pv_max' || campo === 'pm_max') {
       const isPv = campo === 'pv_max';
-      const novoMax = Math.max(0, parseInt(valor, 10) || 0);
+      if (valor === '') {
+        onUpdate({ ...npc, [campo]: '' });
+        return;
+      }
+      const parsed = parseInt(valor, 10);
+      const novoMax = isNaN(parsed) ? (isPv ? 1 : 0) : Math.max(isPv ? 1 : 0, parsed);
       const updates = isPv ? { pv_max: novoMax } : { pm_max: novoMax };
       if (isPv) {
-        const atual = npc.pv_atual !== undefined ? npc.pv_atual : (npc.hp_atual !== undefined ? npc.hp_atual : novoMax);
-        updates.pv_atual = clampRecursoNpc(atual, novoMax, 0);
+        const antigoMax = Number(npc.pv_max) || minPv;
+        const delta = novoMax - antigoMax;
+        const atual = npc.pv_atual !== undefined ? Number(npc.pv_atual) : (npc.hp_atual !== undefined ? Number(npc.hp_atual) : novoMax);
+        const novoAtual = delta > 0 ? atual + delta : Math.min(atual, novoMax);
+        updates.pv_atual = clampRecursoNpc(novoAtual, novoMax, 0);
       } else {
         const atual = npc.pm_atual !== undefined ? npc.pm_atual : (npc.mp_atual !== undefined ? npc.mp_atual : novoMax);
         updates.pm_atual = clampRecursoNpc(atual, novoMax, 0);
@@ -72,7 +81,17 @@ export default function NPCEditor({
       showAlert('⚠️ Companheiros Fiéis podem ter no máximo dois ataques básicos.');
       return;
     }
-    const novoAtaque = { nome: 'Ataque Básico', atributo_dado1: 'des', atributo_dado2: 'vig', bonus_precisao: 0, bonus_dano: 5, tipo_dano: 'fisico', condicao: '', efeito: '' };
+    const novoAtaque = {
+      nome: 'Ataque Básico',
+      alcance: 'corpo_a_corpo',
+      atributo_dado1: 'des',
+      atributo_dado2: 'vig',
+      bonus_precisao: 0,
+      bonus_dano: 5,
+      tipo_dano: 'fisico',
+      condicao: '',
+      efeito: ''
+    };
     onUpdate({ ...npc, ataques_basicos: [...(npc.ataques_basicos || []), novoAtaque] });
   }
 
@@ -187,36 +206,17 @@ export default function NPCEditor({
         </div>
       </Card>
 
-      <Card variant="default">
-        <div className={styles.sectionHeaderFlex}>
-          <h3><FaHeart /> Estatísticas Calculadas</h3>
-          <span className={styles.sectionSubtext}>
-            {isCompanheiro ? `Precisão & Magia: +${nivelNP}` : 'Ajustadas pelo Nível, Atributos e Patente'}
-          </span>
-        </div>
-        <div className={styles.statsGrid}>
-          <div className={styles.fieldWrapper}>
-            <label className={styles.label}>PV Máx (Mín: {minPv})</label>
-            <input type="number" min={minPv} className={styles.input} value={npc.pv_max ?? minPv} onChange={(e) => handleChange('pv_max', Math.max(minPv, parseInt(e.target.value, 10) || minPv))} />
-          </div>
-          <div className={styles.fieldWrapper}>
-            <label className={styles.label}>PM Máx (Mín: {minPm})</label>
-            <input type="number" min={minPm} className={styles.input} value={npc.pm_max ?? minPm} onChange={(e) => handleChange('pm_max', Math.max(minPm, parseInt(e.target.value, 10) || minPm))} />
-          </div>
-          <div className={styles.fieldWrapper}>
-            <label className={styles.label}>Defesa (Mín: {minDefesa})</label>
-            <input type="number" min={minDefesa} className={styles.input} value={npc.defesa ?? minDefesa} onChange={(e) => handleChange('defesa', Math.max(minDefesa, parseInt(e.target.value, 10) || minDefesa))} />
-          </div>
-          <div className={styles.fieldWrapper}>
-            <label className={styles.label}>Def. Mágica (Mín: {minDefMagica})</label>
-            <input type="number" min={minDefMagica} className={styles.input} value={npc.defesa_magica ?? minDefMagica} onChange={(e) => handleChange('defesa_magica', Math.max(minDefMagica, parseInt(e.target.value, 10) || minDefMagica))} />
-          </div>
-          <div className={styles.fieldWrapper}>
-            <label className={styles.label}>Iniciativa (Mín: {minIniciativa})</label>
-            <input type="number" min={minIniciativa} disabled={isCompanheiro} className={`${styles.input} ${isCompanheiro ? styles.inputDisabled : ''}`} value={isCompanheiro ? 0 : (npc.iniciativa ?? minIniciativa)} onChange={(e) => handleChange('iniciativa', Math.max(minIniciativa, parseInt(e.target.value, 10) || minIniciativa))} />
-          </div>
-        </div>
-      </Card>
+      <NPCEstatisticasCalculadasCard
+        npc={npc}
+        minPv={minPv}
+        minPm={minPm}
+        minDefesa={minDefesa}
+        minDefMagica={minDefMagica}
+        minIniciativa={minIniciativa}
+        isCompanheiro={isCompanheiro}
+        nivelNP={nivelNP}
+        onChangeCampo={handleChange}
+      />
 
       <NPCCombatCatalogsEditor
         npc={npc}
@@ -234,9 +234,9 @@ export default function NPCEditor({
           onUpdate({ ...npc, ataques_basicos: atualizados });
         }}
         onRemoverAtaque={(idx) => onUpdate({ ...npc, ataques_basicos: (npc.ataques_basicos || []).filter((_, i) => i !== idx) })}
-        onAdicionarPoder={(p) => { const np = [...(npc.poderes || []), p]; onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
-        onAtualizarPoder={(idx, p) => { const np = [...(npc.poderes || [])]; np[idx] = p; onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
-        onRemoverPoder={(idx) => { const np = (npc.poderes || []).filter((_, i) => i !== idx); onUpdate({ ...recalcularEstatisticasNpc({ npc: { ...npc, poderes: np }, isCompanheiro, nivelNP, nivelPersonagem }), poderes: np }); }}
+        onAdicionarPoder={(p) => onUpdate(ajustarPoderesNpc({ npc, novosPoderes: [...(npc.poderes || []), p], isCompanheiro, nivelNP, nivelPersonagem }))}
+        onAtualizarPoder={(idx, p) => { const np = [...(npc.poderes || [])]; np[idx] = p; onUpdate(ajustarPoderesNpc({ npc, novosPoderes: np, isCompanheiro, nivelNP, nivelPersonagem })); }}
+        onRemoverPoder={(idx) => onUpdate(ajustarPoderesNpc({ npc, novosPoderes: (npc.poderes || []).filter((_, i) => i !== idx), isCompanheiro, nivelNP, nivelPersonagem }))}
         onAdicionarFeitico={(f) => onUpdate({ ...npc, feiticos: [...(npc.feiticos || []), f] })}
         onRemoverFeitico={(idx) => onUpdate({ ...npc, feiticos: (npc.feiticos || []).filter((_, i) => i !== idx) })}
       />

@@ -3,6 +3,7 @@ import { combatService } from '../../services/combatService';
 import {
   criarEventoOportunidade,
   registrarVotoOportunidade,
+  resolverEfeitoOportunidade,
   construirLogOportunidadeAplicada
 } from '../../domain/fabula/combatOpportunitiesRules';
 
@@ -18,7 +19,11 @@ export function useCombatOpportunities({
   setEstadoCombate,
   setAcoesFeed,
   jogadorFichaId,
-  jogadorNome
+  jogadorNome,
+  participantes = [],
+  setParticipantes,
+  relogios = [],
+  setRelogios
 }) {
   const oportunidadeAtiva = estadoCombate?.modificadores_globais?.oportunidade_ativa || null;
 
@@ -48,9 +53,43 @@ export function useCombatOpportunities({
     await combatService.updateEstadoCombate({ modificadores_globais: novosMods });
   }, [oportunidadeAtiva, jogadorNome, jogadorFichaId, isMestre, estadoCombate?.modificadores_globais, setEstadoCombate]);
 
-  const confirmarOportunidadeCombate = useCallback(async (codigoEscolhido = null, detalheExtra = '') => {
+  const confirmarOportunidadeCombate = useCallback(async (
+    codigoEscolhido = null,
+    detalheExtra = '',
+    dadosEfeito = {}
+  ) => {
     if (!oportunidadeAtiva) return;
-    const logEntry = construirLogOportunidadeAplicada(oportunidadeAtiva, codigoEscolhido, detalheExtra);
+
+    const efeitoResolvido = resolverEfeitoOportunidade({
+      codigo: codigoEscolhido,
+      dadosEfeito,
+      participantes,
+      relogios
+    });
+
+    if (efeitoResolvido?.updatesParticipante && setParticipantes) {
+      const { id, ...updates } = efeitoResolvido.updatesParticipante;
+      setParticipantes((prev) =>
+        prev.map((p) => (String(p.id) === String(id) ? { ...p, ...updates } : p))
+      );
+      await combatService.updateParticipante(id, updates);
+    }
+
+    if (efeitoResolvido?.updatesRelogio && setRelogios) {
+      const { id, ...updates } = efeitoResolvido.updatesRelogio;
+      const novasFatias = Number(updates.fatias_atuais ?? updates.secoes_preenchidas);
+      setRelogios((prev) =>
+        prev.map((r) => (String(r.id) === String(id) ? { ...r, fatias_atuais: novasFatias } : r))
+      );
+      await combatService.avancarRelogioCombate(id, novasFatias);
+    }
+
+    const logEntry = construirLogOportunidadeAplicada(
+      oportunidadeAtiva,
+      codigoEscolhido,
+      detalheExtra,
+      efeitoResolvido
+    );
 
     const novosMods = {
       ...(estadoCombate?.modificadores_globais || {}),
@@ -65,7 +104,16 @@ export function useCombatOpportunities({
     } else {
       setAcoesFeed((prev) => [{ id: `local_${Date.now()}`, ...logEntry }, ...prev].slice(0, 30));
     }
-  }, [oportunidadeAtiva, estadoCombate?.modificadores_globais, setEstadoCombate, setAcoesFeed]);
+  }, [
+    oportunidadeAtiva,
+    participantes,
+    setParticipantes,
+    relogios,
+    setRelogios,
+    estadoCombate?.modificadores_globais,
+    setEstadoCombate,
+    setAcoesFeed
+  ]);
 
   const descartarOportunidadeCombate = useCallback(async () => {
     const novosMods = {

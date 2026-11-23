@@ -1,0 +1,203 @@
+.companionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 10px;
+  background: rgba(14, 28, 48, 0.7);
+  border: 1px solid rgba(0, 245, 160, 0.35);
+  border-radius: var(--radius-sm);
+}
+
+.companionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.companionTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-core-green);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.companionStatsLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-text-dim);
+}
+
+.statPill strong {
+  color: var(--color-text-bright);
+}
+
+.toggleAcoesBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-bright);
+  cursor: pointer;
+  font-size: 10px;
+  transition: all 0.2s ease;
+}
+
+.toggleAcoesBtn:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-core-green);
+  color: var(--color-core-green);
+}
+
+.companionSubSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.subSectionLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-border-gold-bright);
+}
+
+.companionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-2);
+}
+
+.companionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(10, 25, 47, 0.85);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-bright);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.companionBtn:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-core-green);
+  box-shadow: 0 0 8px var(--color-core-green-glow);
+  transform: translateY(-1px);
+}
+
+.companionBtnTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+}
+
+.companionBtnName {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.companionBtnFormula {
+  font-size: 10px;
+  color: var(--color-border-gold);
+  font-weight: 600;
+}
+
+.companionBtnDesc {
+  font-size: 10px;
+  color: var(--color-text-dim);
+  line-height: 1.25;
+}
+
+.powersContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  background: rgba(10, 25, 47, 0.5);
+  border: 1px solid rgba(140, 160, 185, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.powersTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-core-green);
+}
+
+.powersChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.powerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: rgba(140, 160, 185, 0.12);
+  border: 1px solid rgba(140, 160, 185, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  cursor: help;
+  transition: all 0.15s ease;
+}
+
+.powerChip:hover {
+  background: rgba(140, 160, 185, 0.22);
+  border-color: var(--color-border-gold-muted);
+}
+
+.powerChipBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: rgba(0, 245, 160, 0.1);
+  border: 1px solid rgba(0, 245, 160, 0.35);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.powerChipBtn:hover {
+  background: rgba(0, 245, 160, 0.22);
+  border-color: var(--color-core-green);
+  transform: translateY(-1px);
+}

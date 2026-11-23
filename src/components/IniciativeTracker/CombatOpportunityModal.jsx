@@ -5,6 +5,7 @@ import {
   CATALOGO_OPORTUNIDADES_FABULA,
   obterOportunidadeVencedora
 } from '../../domain/fabula/combatOpportunitiesRules';
+import CombatOpportunityEffectFields from './CombatOpportunityEffectFields';
 import styles from './CombatOpportunityModal.module.css';
 
 /**
@@ -17,6 +18,8 @@ export default function CombatOpportunityModal({
   isMestre,
   jogadorNome,
   jogadorFichaId,
+  participantes = [],
+  relogios = [],
   onVotarOportunidade,
   onConfirmarOportunidade,
   onDescartarOportunidade
@@ -25,6 +28,7 @@ export default function CombatOpportunityModal({
     CATALOGO_OPORTUNIDADES_FABULA[0].codigo
   );
   const [detalheExtra, setDetalheExtra] = useState('');
+  const [dadosEfeito, setDadosEfeito] = useState({});
 
   if (!oportunidadeAtiva) return null;
 
@@ -37,6 +41,9 @@ export default function CombatOpportunityModal({
 
   const minhaChaveVoto = String(jogadorNome || jogadorFichaId || (isMestre ? 'Mestre' : 'Herói'));
   const meuVotoAtual = oportunidadeAtiva.votos?.[minhaChaveVoto] || null;
+  const codigoAtivo = ehEscolhaDoMestre
+    ? codigoSelecionado
+    : (meuVotoAtual || codigoVencedor || codigoSelecionado);
 
   const handleSelecionarOpcao = (codigo) => {
     setCodigoSelecionado(codigo);
@@ -46,11 +53,9 @@ export default function CombatOpportunityModal({
   };
 
   const handleConfirmar = () => {
-    const codigoFinal = ehEscolhaDoMestre
-      ? codigoSelecionado
-      : (meuVotoAtual || codigoVencedor || codigoSelecionado);
-    onConfirmarOportunidade?.(codigoFinal, detalheExtra);
+    onConfirmarOportunidade?.(codigoAtivo, detalheExtra, dadosEfeito);
     setDetalheExtra('');
+    setDadosEfeito({});
   };
 
   return (
@@ -104,9 +109,7 @@ export default function CombatOpportunityModal({
             <div className={styles.optionsGrid}>
               {CATALOGO_OPORTUNIDADES_FABULA.map((op) => {
                 const votosOp = contagemPorCodigo[op.codigo] || 0;
-                const isAtiva = ehEscolhaDoMestre
-                  ? codigoSelecionado === op.codigo
-                  : (meuVotoAtual === op.codigo || (!meuVotoAtual && codigoVencedor === op.codigo));
+                const isAtiva = codigoAtivo === op.codigo;
 
                 return (
                   <button
@@ -130,6 +133,14 @@ export default function CombatOpportunityModal({
                 );
               })}
             </div>
+
+            <CombatOpportunityEffectFields
+              codigo={codigoAtivo}
+              dadosEfeito={dadosEfeito}
+              onChange={setDadosEfeito}
+              participantes={participantes}
+              relogios={relogios}
+            />
 
             <div className={styles.detailRow}>
               <Input

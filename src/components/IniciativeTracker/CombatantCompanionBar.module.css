@@ -1,0 +1,192 @@
+.companionBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(8, 28, 21, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border-top: 1px dashed rgba(0, 245, 160, 0.35);
+  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.identityGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pawIcon {
+  color: var(--color-core-green);
+  font-size: 13px;
+}
+
+.companionName {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-bright);
+  display: inline-flex;
+}
+
+.statusBadges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vitalsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.resourceBlock {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(10, 25, 47, 0.65);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(197, 160, 89, 0.2);
+}
+
+.resourceBlockPv {
+  border-color: rgba(0, 245, 160, 0.3);
+}
+
+.resourceBlockPm {
+  border-color: rgba(56, 239, 239, 0.3);
+}
+
+.resourceLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-dim);
+}
+
+.resourceLabelPv {
+  color: var(--color-core-green);
+}
+
+.resourceLabelPm {
+  color: var(--color-ether-cyan);
+}
+
+.resourceValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.resourceMax {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  font-weight: normal;
+}
+
+.btnAdjustGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.btnStep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  color: var(--color-text-bright);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnStep:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-border-gold-bright);
+}
+
+.btnStep:active {
+  transform: scale(0.92);
+}
+
+.inputQuickEdit {
+  width: 44px;
+  height: 20px;
+  padding: 0 4px;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-gold);
+  border-radius: 2px;
+  color: var(--color-text-bright);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.defenseStat {
+  font-size: 11px;
+  color: var(--color-text-dim);
+}
+
+.defenseStat strong {
+  color: var(--color-text-bright);
+  font-weight: 700;
+}
+
+.powersStrip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.powersLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.powerChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: rgba(140, 160, 185, 0.12);
+  border: 1px solid rgba(140, 160, 185, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  cursor: help;
+  transition: all 0.15s ease;
+}
+
+.powerChip:hover {
+  background: rgba(140, 160, 185, 0.22);
+  border-color: var(--color-border-gold-muted);
+}

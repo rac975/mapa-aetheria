@@ -313,6 +313,41 @@ export function recalcularEstatisticasNpc({
 }
 
 /**
+ * Atualiza a lista de poderes de um NPC ou Companheiro ajustando PV máximo e PV atual
+ * proporcionalmente a qualquer bônus conferido (como o poder "Mais Pontos de Vida").
+ *
+ * @param {Object} params
+ * @param {Object} params.npc
+ * @param {Array<Object>} params.novosPoderes
+ * @param {boolean} [params.isCompanheiro=false]
+ * @param {number} [params.nivelNP=1]
+ * @param {number} [params.nivelPersonagem=1]
+ * @returns {Object}
+ */
+export function ajustarPoderesNpc({
+  npc = {},
+  novosPoderes = [],
+  isCompanheiro = false,
+  nivelNP = 1,
+  nivelPersonagem = 1
+} = {}) {
+  const rec = recalcularEstatisticasNpc({ npc: { ...npc, poderes: novosPoderes }, isCompanheiro, nivelNP, nivelPersonagem });
+  const bonusAntigo = extrairBonusPoderes(npc.poderes || []).bonusPv;
+  const bonusNovo = extrairBonusPoderes(novosPoderes).bonusPv;
+  const delta = bonusNovo - bonusAntigo;
+  const basePvMax = npc.pv_max !== undefined ? Number(npc.pv_max) : rec.pv_max;
+  const novoPvMax = Math.max(1, basePvMax + delta);
+  const basePvAtual = npc.pv_atual !== undefined ? Number(npc.pv_atual) : novoPvMax;
+  const novoPvAtual = delta > 0 ? basePvAtual + delta : Math.min(basePvAtual, novoPvMax);
+  return {
+    ...rec,
+    poderes: novosPoderes,
+    pv_max: novoPvMax,
+    pv_atual: clampRecursoNpc(novoPvAtual, novoPvMax, 0)
+  };
+}
+
+/**
  * Conjunto oficial de colunas existentes na tabela public.npcs_mestre.
  * Impede que campos espúrios (como hp_atual, hp_max, maxHp, stats, etc.)
  * sejam passados nas operações de INSERT ou UPDATE/PATCH.
@@ -559,18 +594,18 @@ export function isNpcCombatente(combatente) {
  */
 export function extrairHpMax(combatente) {
   if (!combatente) return 0;
-  return Math.max(0, Number(combatente.hp_max ?? combatente.maxHp ?? combatente.pv_max) || 0);
+  return Math.max(0, Number(combatente.pv_max ?? combatente.hp_max ?? combatente.maxHp) || 0);
 }
 
 /**
  * Extrai o limite máximo de PM de um combatente (NPC ou Herói),
- * suportando variações de nomenclatura (mp_max, maxMp, pm_max).
+ * suportando variações de nomenclatura (pm_max, mp_max, maxMp).
  * @param {Object} combatente
  * @returns {number}
  */
 export function extrairMpMax(combatente) {
   if (!combatente) return 0;
-  return Math.max(0, Number(combatente.mp_max ?? combatente.maxMp ?? combatente.pm_max) || 0);
+  return Math.max(0, Number(combatente.pm_max ?? combatente.mp_max ?? combatente.maxMp) || 0);
 }
 
 /**
@@ -1289,15 +1324,21 @@ export function formatarPoderNpcParaExibicao(poder) {
   ].join(', ');
 
   const resumoCurto = sufixoCurto ? `${nome} (${sufixoCurto})` : nome;
+  const custoPm = Number(poder.custoPm || poder.custo_pm || poder.pm_custo || params.custo_pm || params.pm_custo) || 0;
 
   return {
+    ...poder,
+    id: poder.id || `poder_${nome}`,
     nome,
     descricao,
+    efeito: descricao,
     tiposDano,
     especieAlvo,
     condicaoAlvo,
     tagsParametros,
-    resumoCurto
+    resumoCurto,
+    custoPm,
+    passiva: poder.passiva !== undefined ? poder.passiva : undefined
   };
 }
 
@@ -1324,6 +1365,11 @@ export function formatarAtaqueBasicoNpc(atk = {}) {
   const condicao = (atk.condicao || '').trim();
   const efeito = (atk.efeito || '').trim();
 
+  const alcanceBruto = String(atk.alcance || atk.tipo_alcance || atk.tipo_ataque || 'corpo_a_corpo').toLowerCase();
+  const ehDistancia = alcanceBruto.includes('distancia') || alcanceBruto.includes('ranged');
+  const alcance = ehDistancia ? 'distancia' : 'corpo_a_corpo';
+  const alcanceTexto = ehDistancia ? 'À Distância' : 'Corpo a Corpo';
+
   const partesEfeito = [];
   if (condicao) {
     const jaContemCond = normalizarTextoNpc(efeito).includes(normalizarTextoNpc(condicao));
@@ -1341,6 +1387,9 @@ export function formatarAtaqueBasicoNpc(atk = {}) {
     modPrecisaoTexto,
     bonusDano,
     tipoDano,
+    alcance,
+    ehDistancia,
+    alcanceTexto,
     condicao,
     efeito,
     resumoEfeito: partesEfeito.join(' • ')

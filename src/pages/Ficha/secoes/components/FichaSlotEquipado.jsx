@@ -4,7 +4,8 @@ import { Badge, Button } from '../../../../components/ui';
 import {
   SLOTS_EQUIPAMENTO,
   armaAtingeVoadores,
-  extrairResumoCaracteristicasEquipamento
+  extrairResumoCaracteristicasEquipamento,
+  isArmaDuasMaos
 } from '../../../../domain/fabula/equipmentRules';
 import { obterItemFormaAtivaArmaMutavel } from '../../../../domain/fabula/weaponForge';
 import ResultadoRolagemArma from './ResultadoRolagemArma';
@@ -118,7 +119,7 @@ export default function FichaSlotEquipado({
               onClick={() => setModoAtual('multi')}
               className={`${styles.modoAtaqueBtn} ${modoAtual === 'multi' ? styles.modoAtaqueBtnActiveMulti : ''}`}
             >
-              Multiataque / 2ª Arma
+              {isArmaDuasMaos(itemEquipado) ? 'Ataque Multi (Múltiplos Alvos)' : 'Multiataque / 2ª Arma'}
             </button>
           </div>
 

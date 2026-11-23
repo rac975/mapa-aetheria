@@ -44,19 +44,11 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
       if (feiticosData) setCatalogoFeiticos(feiticosData);
 
       if (compData) {
-        const pvCalculado = calcularPvMaximoCompanheiro(nivelNP, compData.atributos?.vig, nivelPersonagem);
-        if (compData.pv_max !== pvCalculado) {
-          const compSincronizado = { ...compData, pv_max: pvCalculado };
-          setCompanheiro(compSincronizado);
-          const { id, ...resto } = compSincronizado;
-          await npcService.updateNpc(id, resto);
-        } else {
-          setCompanheiro(compData);
-        }
+        setCompanheiro(compData);
       } else {
         setCompanheiro(null);
       }
-    }
+    };
 
     carregarDados();
     return () => { active = false; };
@@ -112,10 +104,12 @@ export default function CompanheiroFielCard({ fichaId, classes = [] }) {
   };
 
   const salvarNoBanco = async (novoEstado) => {
-    const pvRecalculado = calcularPvMaximoCompanheiro(nivelNP, novoEstado.atributos?.vig, nivelPersonagem);
+    const maxPv = Math.max(1, parseInt(novoEstado.pv_max, 10) || 1);
+    const atualPv = Math.max(0, Math.min(maxPv, parseInt(novoEstado.pv_atual !== undefined ? novoEstado.pv_atual : maxPv, 10)));
     const estadoAtualizado = {
       ...novoEstado,
-      pv_max: pvRecalculado
+      pv_max: maxPv,
+      pv_atual: atualPv
     };
 
     setCompanheiro(estadoAtualizado);

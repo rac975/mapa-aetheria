@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FaPaw, FaMagic } from 'react-icons/fa';
+import { LuSparkles } from 'react-icons/lu';
 import { extrairValorDado } from '../../../../domain/fabula/classRules';
+import { formatarPoderNpcParaExibicao } from '../../../../domain/fabula/npcRules';
 import { Button, Badge } from '../../../../components/ui';
 import CompanheiroStats from './CompanheiroStats';
 import CompanheiroAtaqueItem from './CompanheiroAtaqueItem';
@@ -11,6 +13,21 @@ const rolarDado = (faces) => Math.floor(Math.random() * faces) + 1;
 export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurso }) {
   const [modoAtaqueState, setModoAtaqueState] = useState({});
   const [resultadosRolagem, setResultadosRolagem] = useState({});
+
+  const poderesFormatados = useMemo(() => {
+    const lista = Array.isArray(companheiro?.poderes) ? companheiro.poderes : [];
+    const vistos = new Set();
+    const res = [];
+    for (const p of lista) {
+      if (!p) continue;
+      const chave = String(p.nome || p.id || p).toLowerCase().trim();
+      if (!vistos.has(chave)) {
+        vistos.add(chave);
+        res.push(formatarPoderNpcParaExibicao(p));
+      }
+    }
+    return res;
+  }, [companheiro]);
 
   const conjurarFeiticoCompanheiro = (feitico) => {
     const custo = parseInt(feitico.pm_custo || 0, 10);
@@ -167,6 +184,30 @@ export default function ExibirCompanheiroFiel({ companheiro, handleAjustarRecurs
                     ✨ Conjurar (Gastar {f.pm_custo || 0} PM)
                   </Button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Poderes Especiais do Companheiro */}
+      {poderesFormatados.length > 0 && (
+        <div className={styles.sectionBox}>
+          <div className={styles.sectionTitle}>
+            <LuSparkles /> Poderes Especiais ({poderesFormatados.length})
+          </div>
+          <div className={styles.powersList}>
+            {poderesFormatados.map((pod, pIdx) => (
+              <div key={pIdx} className={styles.powerCard}>
+                <div className={styles.powerHeader}>
+                  <strong className={styles.powerName}>{pod.nome}</strong>
+                  <div className={styles.powerBadges}>
+                    {pod.tagsParametros.map((tag, tIdx) => (
+                      <Badge key={tIdx} variant="ether" size="sm">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+                {pod.descricao && <div className={styles.powerDesc}>{pod.descricao}</div>}
               </div>
             ))}
           </div>

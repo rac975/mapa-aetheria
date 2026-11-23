@@ -1,8 +1,9 @@
 import React from 'react';
-import { FaPlus, FaTrash, FaFistRaised, FaMagic, FaShieldAlt } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaFistRaised, FaShieldAlt } from 'react-icons/fa';
 import { CONDICOES_APLICAVEIS_NPC } from '../../../../domain/fabula/npcRules';
 import { Card, Button } from '../../../../components/ui';
 import NPCPoderesEspeciaisEditor from './NPCPoderesEspeciaisEditor';
+import NPCFeiticosEditor from './NPCFeiticosEditor';
 import styles from './NPCEditor.module.css';
 
 const TIPOS_DANO = ['fisico', 'fogo', 'gelo', 'raio', 'sombrio', 'luz', 'veneno', 'terra'];
@@ -98,6 +99,17 @@ export default function NPCCombatCatalogsEditor({
                   />
                 </div>
                 <div className={styles.fieldWrapper}>
+                  <label className={styles.label}>Alcance</label>
+                  <select
+                    className={styles.select}
+                    value={atk.alcance || 'corpo_a_corpo'}
+                    onChange={(e) => onAtualizarAtaque(index, 'alcance', e.target.value)}
+                  >
+                    <option value="corpo_a_corpo">⚔️ Corpo a Corpo</option>
+                    <option value="distancia">🏹 À Distância</option>
+                  </select>
+                </div>
+                <div className={styles.fieldWrapper}>
                   <label className={styles.label}>Atributo 1</label>
                   <select
                     className={styles.select}
@@ -139,7 +151,7 @@ export default function NPCCombatCatalogsEditor({
 
               <div className={styles.ataqueLinhaDetalhes}>
                 <div className={styles.fieldWrapper}>
-                  <label className={styles.label}>Mod. Precisão (ex: +2, -1, 0)</label>
+                  <label className={styles.label}>Mod. Precisão</label>
                   <input
                     type="number"
                     className={styles.input}
@@ -148,7 +160,7 @@ export default function NPCCombatCatalogsEditor({
                   />
                 </div>
                 <div className={styles.fieldWrapper}>
-                  <label className={styles.label}>Bônus de Dano (ex: +10, +6, 0)</label>
+                  <label className={styles.label}>Bônus Dano</label>
                   <input
                     type="number"
                     className={styles.input}
@@ -173,11 +185,11 @@ export default function NPCCombatCatalogsEditor({
                   </select>
                 </div>
                 <div className={styles.fieldWrapper}>
-                  <label className={styles.label}>Efeito Especial / Texto Livre Curto (Opcional)</label>
+                  <label className={styles.label}>Efeito Especial</label>
                   <input
                     type="text"
                     className={styles.input}
-                    placeholder="Ex: Aplica Lento, Multi (2), drena 10 PM..."
+                    placeholder="Ex: Aplica Lento, Multi (2)..."
                     value={atk.efeito || ''}
                     onChange={(e) => onAtualizarAtaque(index, 'efeito', e.target.value)}
                   />
@@ -200,34 +212,12 @@ export default function NPCCombatCatalogsEditor({
           onRemoverPoder={onRemoverPoder}
         />
 
-        <Card variant="default">
-          <h3 className={styles.sectionTitle}><FaMagic /> Feitiços e Magias</h3>
-          <select
-            className={styles.select}
-            onChange={(e) => {
-              const f = catalogoFeiticos.find((item) => String(item.id) === e.target.value);
-              if (f) onAdicionarFeitico(f);
-              e.target.value = '';
-            }}
-            defaultValue=""
-          >
-            <option value="" disabled>Selecionar feitiço...</option>
-            {catalogoFeiticos.map((f) => <option key={f.id} value={f.id}>{f.nome} ({f.pm_custo} PM)</option>)}
-          </select>
-          <div className={styles.listaScroll}>
-            {npc.feiticos?.map((f, i) => (
-              <div key={i} className={styles.itemCatalogo}>
-                <div className={styles.itemInfo}>
-                  <span className={styles.itemTitle}>{f.nome} ({f.pm_custo} PM)</span>
-                  <p className={styles.itemDesc}>{f.descricao}</p>
-                </div>
-                <Button type="button" variant="danger" size="sm" onClick={() => onRemoverFeitico(i)} title="Remover feitiço">
-                  <FaTrash />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <NPCFeiticosEditor
+          feiticos={npc.feiticos || []}
+          catalogoFeiticos={catalogoFeiticos}
+          onAdicionarFeitico={onAdicionarFeitico}
+          onRemoverFeitico={onRemoverFeitico}
+        />
       </div>
     </>
   );

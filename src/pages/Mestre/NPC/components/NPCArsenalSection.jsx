@@ -87,8 +87,11 @@ export default function NPCArsenalSection({ npc }) {
               return (
                 <div key={i} className={styles.ataqueItem}>
                   <div className={styles.ataqueMainLine}>
-                    <div>
+                    <div className={styles.ataqueTituloBloco}>
                       <span className={styles.ataqueName}>{info.nome}</span>
+                      <Badge variant={info.ehDistancia ? 'ether' : 'default'} size="sm">
+                        {info.ehDistancia ? '🏹 À Distância' : '⚔️ Corpo a Corpo'}
+                      </Badge>
                       <span className={styles.ataqueDado}>
                         【{info.attr1} + {info.attr2}】{info.modPrecisaoTexto}
                       </span>
@@ -144,21 +147,54 @@ export default function NPCArsenalSection({ npc }) {
         </Card>
 
         <Card variant="default">
-          <h3 className={styles.sectionTitle}>Feitiços e Magias</h3>
+          <h3 className={styles.sectionTitle}>Feitiços & Magias de Classe</h3>
           {(!npc.feiticos || npc.feiticos.length === 0) ? (
             <p className={styles.emptyText}>Nenhum feitiço conhecido.</p>
           ) : (
-            <ul className={styles.viewList}>
-              {npc.feiticos.map((f, i) => (
-                <li key={i} className={styles.viewItem}>
-                  <div className={styles.itemHeading}>
-                    <strong className={styles.feiticoName}>{f.nome}</strong>
-                    <Badge variant="pm" size="sm">{f.pm_custo} PM</Badge>
-                  </div>
-                  <p>{f.descricao}</p>
-                </li>
-              ))}
-            </ul>
+            <div className={styles.feiticosDivididos}>
+              {/* Magias de Classe */}
+              {npc.feiticos.some((f) => f.classe || f.isMagiaClasse) && (
+                <div className={styles.grupoFeiticos}>
+                  <span className={styles.subTituloFeiticos}>✨ Magias de Classe</span>
+                  <ul className={styles.viewList}>
+                    {npc.feiticos
+                      .filter((f) => f.classe || f.isMagiaClasse)
+                      .map((f, i) => (
+                        <li key={`mc_${i}`} className={styles.viewItem}>
+                          <div className={styles.itemHeading}>
+                            <strong className={styles.feiticoName}>{f.nome}</strong>
+                            <div className={styles.feiticoBadgesRow}>
+                              {f.classe && <Badge variant="ether" size="sm">{f.classe}</Badge>}
+                              <Badge variant="pm" size="sm">{f.pm_custo} PM</Badge>
+                            </div>
+                          </div>
+                          <p>{f.descricao}</p>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Feitiços Comuns de Criatura */}
+              {npc.feiticos.some((f) => !f.classe && !f.isMagiaClasse) && (
+                <div className={styles.grupoFeiticos}>
+                  <span className={styles.subTituloFeiticos}>📖 Feitiços Comuns</span>
+                  <ul className={styles.viewList}>
+                    {npc.feiticos
+                      .filter((f) => !f.classe && !f.isMagiaClasse)
+                      .map((f, i) => (
+                        <li key={`fc_${i}`} className={styles.viewItem}>
+                          <div className={styles.itemHeading}>
+                            <strong className={styles.feiticoName}>{f.nome}</strong>
+                            <Badge variant="pm" size="sm">{f.pm_custo} PM</Badge>
+                          </div>
+                          <p>{f.descricao}</p>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
         </Card>
       </div>

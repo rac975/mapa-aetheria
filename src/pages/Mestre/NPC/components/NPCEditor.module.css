@@ -331,6 +331,34 @@
   margin: 0;
 }
 
+.filtroFeiticosRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+.itemHeaderFlex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.feiticoBadgesRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.emptyText {
+  color: var(--color-text-dim, #64748b);
+  font-style: italic;
+  font-size: var(--font-size-xs);
+  margin: var(--space-2) 0;
+}
+
 /* RESPONSIVIDADE */
 @media (max-width: 900px) {
   .formGrid,

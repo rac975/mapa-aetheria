@@ -324,4 +324,13 @@ assert(!Object.prototype.propertyIsEnumerable.call(recalculadoSemHp, 'hp_atual')
 assert(!Object.prototype.propertyIsEnumerable.call(recalculadoSemHp, 'hp_max'), 'recalcularEstatisticasNpc não polui objeto com hp_max enumerável');
 assert(recalculadoSemHp.pv_max > 0 && recalculadoSemHp.pv_atual > 0, 'recalcularEstatisticasNpc mantém pv_max e pv_atual');
 
+// 8.5 - formatarAtaqueBasicoNpc: Alcance Corpo a Corpo vs À Distância
+const atMelee = formatarAtaqueBasicoNpc({ nome: 'Mordida', alcance: 'corpo_a_corpo' });
+assert(atMelee.alcance === 'corpo_a_corpo' && atMelee.ehDistancia === false, 'Detecta ataque corpo a corpo');
+assert(atMelee.alcanceTexto === 'Corpo a Corpo', 'Rótulo legível Corpo a Corpo');
+
+const atRanged = formatarAtaqueBasicoNpc({ nome: 'Espinho de Gelo', alcance: 'distancia' });
+assert(atRanged.alcance === 'distancia' && atRanged.ehDistancia === true, 'Detecta ataque a distancia');
+assert(atRanged.alcanceTexto === 'À Distância', 'Rótulo legível À Distância');
+
 console.log('TODOS OS TESTES DE REGRAS DE NPC PASSARAM COM SUCESSO!');
