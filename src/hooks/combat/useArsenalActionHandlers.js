@@ -1,5 +1,6 @@
 import { calcularDanoGolpeBaixo, calcularResolucaoRouboDeAlma } from '../../domain/fabula/rogueRules';
 import { extrairValorCuraMagia, extrairDadosOfensivosMagia } from '../../domain/fabula/combatSpellResolutionRules';
+import { obterAfinidadeAlvoPorTipoDano } from '../../domain/fabula/combatMultiAttackRules';
 import { useCombatMultiAttackExecutor } from './useCombatMultiAttackExecutor';
 import { useCombatSpellExecutor } from './useCombatSpellExecutor';
 
@@ -37,15 +38,14 @@ export function useArsenalActionHandlers({
     setDanoAplicado, setCuraAplicada, setTipoDano, setCustoPm, setNotaLivre
   });
 
-  const handleRolarArma = async (arma) => {
-    return executarAtaqueArma(arma);
-  };
+  const handleRolarArma = async (arma) => executarAtaqueArma(arma);
 
   const handleInvocarArcano = async (magia) => {
     const custo = Number(magia.custoPm) || 40, curaReg = Number(magia.curaRegeneracao) || 0;
     setCustoPm?.(custo);
     if (curaReg > 0) setCuraAplicada?.(curaReg);
-    const nota = `Invocar Arcano: ${magia.nomeArcano || magia.nome} (${custo} PM) • Sem Teste • ${magia.efeitoInvocacao || magia.descricao || ''}${curaReg > 0 ? ` (Regeneração: +${curaReg} PV)` : ''}`;
+    const domStr = magia.dominios ? ` [${magia.dominios}]` : '';
+    const nota = `🔮 Invocar & Fundir: ${magia.nomeArcano || magia.nome}${domStr} (${custo} PM) • Sem Teste • ${magia.efeitoInvocacao || magia.descricao || ''}${curaReg > 0 ? ` (Regeneração: +${curaReg} PV)` : ''}`;
     setNotaLivre?.(nota);
     await onExecutarAcao?.({
       acaoCodigo: 'INVOCAR_ARCANO', atorId: combatente.id, alvoId: alvoId || null,
@@ -54,30 +54,61 @@ export function useArsenalActionHandlers({
   };
 
   const handleDispensarArcano = async (magia) => {
-    const dano = Number(magia.danoTotal) || 0, tipo = magia.tipoDano || 'luz';
+    if (magia.isGolpeFundirEspada) {
+      const armaBase = (perfil?.armas || [])[0] || {
+        id: 'espada_arcana_golpe', nome: 'Lâmina Soberana (Arcano da Espada)',
+        attr1: 'des', attr2: 'vig', bonusPrecisao: 0, bonusDano: 5, tipoDano: 'sem_tipo'
+      };
+      return executarAtaqueArma({
+        ...armaBase,
+        nome: `${armaBase.nome} (Lâmina Soberana • Dispensa Espada)`,
+        bonusDano: (Number(armaBase.bonusDano) || 0) + 5,
+        jaIncluiBonusEspada: true,
+        tipoDano: 'sem_tipo',
+        isGolpeFundirEspada: true,
+        ignoraAfinidades: true,
+        propriedadeMulti: 'Multi Total (Espada)'
+      });
+    }
+
+    const dano = Number(magia.danoTotal) || 0, cura = Number(magia.curaTotal) || 0, tipo = magia.tipoDano || 'luz';
     if (dano > 0) { setDanoAplicado?.(dano); setTipoDano?.(tipo); }
-    const nota = `Dispensar Arcano: ${magia.nomeArcano || magia.nome} • ${magia.descricao || ''}${magia.circuloArcanoTexto ? ` • ${magia.circuloArcanoTexto}` : ''}`;
-    setNotaLivre?.(nota);
-    await onExecutarAcao?.({
-      acaoCodigo: 'DISPENSAR_ARCANO', atorId: combatente.id, alvoId: alvoId || null,
-      danoAplicado: dano, tipoDano: tipo, notaLivre: nota, marcarTurnoConcluido
-    });
+    if (cura > 0) setCuraAplicada?.(cura);
+
+    const alvosIdsDisp = multiAlvoAtivo && alvosIds.length > 0
+      ? [...new Set(alvosIds)]
+      : [alvoId || (cura > 0 ? combatente.id : null)];
+
+    const notaBase = `✨ Dispensar Arcano: ${magia.nomeArcano || magia.nome} • ${magia.descricao || ''}${magia.circuloArcanoTexto ? ` • ${magia.circuloArcanoTexto}` : ''}`;
+    setNotaLivre?.(notaBase);
+
+    for (let i = 0; i < alvosIdsDisp.length; i += 1) {
+      const curId = alvosIdsDisp[i];
+      const alvoObj = curId ? participantes.find((p) => String(p.id) === String(curId)) : null;
+      let af = alvoObj && dano > 0 ? obterAfinidadeAlvoPorTipoDano(alvoObj, tipo) : 'normal';
+      if (magia.ignoraResistencia && af === 'resistente') af = 'normal';
+
+      const jaLento = Boolean(magia.reduzAcaoSeJaLento && Array.isArray(alvoObj?.condicoes) && alvoObj.condicoes.includes('lento'));
+      const notaAlvo = jaLento ? `${notaBase} • ⏳ ${alvoObj.nome} já estava Lento e perde 1 ação no próximo turno!` : notaBase;
+
+      await onExecutarAcao?.({
+        acaoCodigo: 'DISPENSAR_ARCANO', atorId: combatente.id, alvoId: curId,
+        danoAplicado: dano, curaAplicada: cura, recursoCura: 'pv', tipoDano: tipo,
+        afinidadeAlvo: af, condicaoAlvo: magia.condicaoAlvo || null,
+        removerCondicaoAlvo: magia.removerCondicaoAlvo || null,
+        notaLivre: notaAlvo, marcarTurnoConcluido: i === 0 ? marcarTurnoConcluido : false
+      });
+    }
   };
 
   const handleRolarMagia = async (magia) => {
-    if (magia.isArcano) return handleInvocarArcano(magia);
+    if (magia.isArcano) return magia.isDispensaArcano ? handleDispensarArcano(magia) : handleInvocarArcano(magia);
     return executarMagia(magia);
   };
 
   const handleExecutarRouboDeAlma = async (hab) => {
-    if (!alvo) {
-      setNotaLivre?.('⚠️ Selecione um alvo para executar Roubo de Alma.');
-      return;
-    }
-    if (alvo.modificadores?.alma_roubada) {
-      setNotaLivre?.(`⚠️ A alma de ${alvo.nome} já foi roubada nesta cena!`);
-      return;
-    }
+    if (!alvo) { setNotaLivre?.('⚠️ Selecione um alvo para executar Roubo de Alma.'); return; }
+    if (alvo.modificadores?.alma_roubada) { setNotaLivre?.(`⚠️ A alma de ${alvo.nome} já foi roubada nesta cena!`); return; }
     const mdefAlvo = Number(alvo.mdef || alvo.defesa_magica) || 10;
     const res = await onRolarDados({
       combatente, perfil, categoria: 'atributo', titulo: `Roubo de Alma (ND ${mdefAlvo})`,
@@ -135,35 +166,18 @@ export function useArsenalActionHandlers({
       }
       return;
     }
-    if (cod === 'QUEBRA_OSSOS') {
-      setDanoAplicado?.(0); setNotaLivre?.(`🦴 Quebra-Ossos (Nv ${hab.nivel}): Dano 0 para aplicar Atordoado, Fraco ou drenar até ${hab.nivel * 10} PM.`); return;
-    }
-    if (cod === 'TIRO_DE_AVISO') {
-      setDanoAplicado?.(0); setNotaLivre?.(`⚠️ Tiro de Aviso (Nv ${hab.nivel || 1}): Dano 0 para aplicar Abalado, Lento ou drenar até ${(hab.nivel || 1) * 10} PM.`); return;
-    }
-    if (cod === 'BARRAGEM') {
-      setCustoPm?.(10); setNotaLivre?.('🎯 Barragem (10 PM): Ataque à distância recebe Multi(2) ou +1 em Multi (máx 3).'); return;
-    }
+    if (cod === 'QUEBRA_OSSOS') { setDanoAplicado?.(0); setNotaLivre?.(`🦴 Quebra-Ossos (Nv ${hab.nivel}): Dano 0 para aplicar Atordoado, Fraco ou drenar até ${hab.nivel * 10} PM.`); return; }
+    if (cod === 'TIRO_DE_AVISO') { setDanoAplicado?.(0); setNotaLivre?.(`⚠️ Tiro de Aviso (Nv ${hab.nivel || 1}): Dano 0 para aplicar Abalado, Lento ou drenar até ${(hab.nivel || 1) * 10} PM.`); return; }
+    if (cod === 'BARRAGEM') { setCustoPm?.(10); setNotaLivre?.('🎯 Barragem (10 PM): Ataque à distância recebe Multi(2) ou +1 em Multi (máx 3).'); return; }
     if (cod === 'OLHOS_DE_AGUIA_DANO' || cod === 'OLHOS_DE_AGUIA') {
       const bonus = hab.bonusDanoProximoAtaque || ((hab.nivel || 1) * 3);
       setDanoAplicado?.(bonus); setNotaLivre?.(`🦅 Olhos de Águia (+${bonus} dano): Mira Concentrada no próximo ataque.`); return;
     }
-    if (cod === 'TRESPASSAR') {
-      setCustoPm?.(5); setNotaLivre?.(`💥 Trespassar (5 PM): Causa dano normal e ${hab.danoSecundario || 5} de dano físico a outra criatura.`); return;
-    }
-    if (cod === 'CHUVA_DE_LAMINAS') {
-      setCustoPm?.(10); setNotaLivre?.('⚔️ Chuva de Lâminas (10 PM): Ataque corpo a corpo recebe Multi(2) ou +1 em Multi (máx 3).'); return;
-    }
-    if (cod === 'CORACAO_NO_MOTOR') {
-      setCustoPm?.(10); setNotaLivre?.(`⚙️ Coração no Motor (10 PM • Nv ${hab.nivel || 1}): Escolha um preset na área de efeito (+Dano, -Dano Sofrido ou Curar Lento/Fraco).`); return;
-    }
-    if (cod === 'CONFIGURACAO_FLEXIVEL') {
-      setCustoPm?.(0); setNotaLivre?.(`🔧 Configuração Flexível: Troca de até ${hab.nivel || 1} módulo(s) ou arma(s) do veículo pessoal.`); return;
-    }
-    if (hab.danoAplicado) {
-      setDanoAplicado?.(hab.danoAplicado);
-      if (hab.tipoDano) setTipoDano?.(hab.tipoDano);
-    }
+    if (cod === 'TRESPASSAR') { setCustoPm?.(5); setNotaLivre?.(`💥 Trespassar (5 PM): Causa dano normal e ${hab.danoSecundario || 5} de dano físico a outra criatura.`); return; }
+    if (cod === 'CHUVA_DE_LAMINAS') { setCustoPm?.(10); setNotaLivre?.('⚔️ Chuva de Lâminas (10 PM): Ataque corpo a corpo recebe Multi(2) ou +1 em Multi (máx 3).'); return; }
+    if (cod === 'CORACAO_NO_MOTOR') { setCustoPm?.(10); setNotaLivre?.(`⚙️ Coração no Motor (10 PM • Nv ${hab.nivel || 1}): Escolha um preset na área de efeito (+Dano, -Dano Sofrido ou Curar Lento/Fraco).`); return; }
+    if (cod === 'CONFIGURACAO_FLEXIVEL') { setCustoPm?.(0); setNotaLivre?.(`🔧 Configuração Flexível: Troca de até ${hab.nivel || 1} módulo(s) ou arma(s) do veículo pessoal.`); return; }
+    if (hab.danoAplicado) { setDanoAplicado?.(hab.danoAplicado); if (hab.tipoDano) setTipoDano?.(hab.tipoDano); }
     const tagCusto = [custo > 0 ? `${custo} PM` : null, hab.custoPi > 0 ? `${hab.custoPi} PI` : null, hab.custoPf > 0 ? `${hab.custoPf} PF` : null].filter(Boolean).join(' • ');
     setNotaLivre?.(`Habilidade: ${hab.nome}${tagCusto ? ` (${tagCusto})` : ''} • ${hab.efeito || hab.descricao || ''}`);
   };
@@ -185,8 +199,7 @@ export function useArsenalActionHandlers({
 
   const handleUsarFeiticoCompanheiro = async (feit, comp) => {
     const custo = Number(feit.custoPm) || 0;
-    const curaInfo = extrairValorCuraMagia(feit);
-    const ofInfo = extrairDadosOfensivosMagia(feit);
+    const curaInfo = extrairValorCuraMagia(feit), ofInfo = extrairDadosOfensivosMagia(feit);
     const curaFinal = Number(feit.curaTotal) || curaInfo.valorPv || curaInfo.valorPm || 0;
     const recCura = (Number(feit.curaTotal) || curaInfo.valorPv > 0) ? 'pv' : (curaInfo.valorPm > 0 ? 'pm' : 'pv');
     const danoFinal = Number(feit.danoTotal) || ofInfo.bonusDanoDescricao || 0;
@@ -213,14 +226,8 @@ export function useArsenalActionHandlers({
   };
 
   return {
-    handleRolarArma,
-    handleRolarMagia,
-    handleInvocarArcano,
-    handleDispensarArcano,
-    handleAtivarHabilidadeDireta,
-    handleSelecionarHabilidade,
-    handleRolarAtaqueCompanheiro,
-    handleUsarFeiticoCompanheiro,
-    handleUsarPoderCompanheiro
+    handleRolarArma, handleRolarMagia, handleInvocarArcano, handleDispensarArcano,
+    handleAtivarHabilidadeDireta, handleSelecionarHabilidade,
+    handleRolarAtaqueCompanheiro, handleUsarFeiticoCompanheiro, handleUsarPoderCompanheiro
   };
 }

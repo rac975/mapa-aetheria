@@ -26,19 +26,39 @@ export default function CombatantSpellsArcanaSection({
                   type="button"
                   className={`${styles.itemBtn} ${styles.itemBtnArcano}`}
                   onClick={() => onDispensarArcano?.(magia)}
-                  title={`Dispensar ${magia.nomeArcano || magia.nome}: ativa efeito de descarte (${magia.danoTotal > 0 ? `${magia.danoTotal} dano ${magia.tipoDano}` : 'Efeito especial'})`}
+                  title={`${magia.nome}: ${magia.descricao || ''}`}
                 >
                   <div className={styles.itemTopLine}>
                     <span className={styles.itemTitle}>{magia.nome}</span>
                     <div className={styles.itemBadges}>
-                      <Badge variant="crise" size="sm">Dispensa</Badge>
+                      <Badge variant={magia.isGolpeFundirEspada ? 'gold' : 'crise'} size="sm">
+                        {magia.isGolpeFundirEspada ? 'Fundir + Dispensar' : 'Dispensa'}
+                      </Badge>
+                      {magia.isGolpeFundirEspada && (
+                        <Badge variant="ether" size="sm">Multi Total • +5 Sem Tipo</Badge>
+                      )}
                       {magia.danoTotal > 0 && (
                         <Badge variant="gold" size="sm">+{magia.danoTotal} Dano ({magia.tipoDano})</Badge>
+                      )}
+                      {magia.curaTotal > 0 && (
+                        <Badge variant="ether" size="sm">+{magia.curaTotal} PV</Badge>
+                      )}
+                      {magia.condicaoAlvo && (
+                        <Badge variant="danger" size="sm">{magia.condicaoAlvo.toUpperCase()}</Badge>
+                      )}
+                      {magia.removerCondicaoAlvo && (
+                        <Badge variant="core" size="sm">Cura {magia.removerCondicaoAlvo}</Badge>
+                      )}
+                      {magia.ignoraResistencia && (
+                        <Badge variant="core" size="sm">Ignora RE</Badge>
                       )}
                     </div>
                   </div>
                   <div className={styles.arcanoAutoNotice}>
-                    <FaGem className={styles.arcanoIcon} /> Efeito de Descarte (Escala Nv)
+                    <FaGem className={styles.arcanoIcon} />{' '}
+                    {magia.isGolpeFundirEspada
+                      ? 'Ataque Multi Ilimitado (Ignora Afinidades)'
+                      : 'Efeito de Descarte (Escala Nv • Sem Teste)'}
                   </div>
                   {magia.descricao && (
                     <div className={styles.itemDesc}>{magia.descricao}</div>
@@ -58,12 +78,12 @@ export default function CombatantSpellsArcanaSection({
                 type="button"
                 className={`${styles.itemBtn} ${styles.itemBtnArcano}`}
                 onClick={() => onInvocarArcano?.(magia)}
-                title={`Invocar ${magia.nomeArcano || magia.nome} sem teste de atributo (Consome ${magia.custoPm} PM)`}
+                title={`Invocar e Fundir ${magia.nomeArcano || magia.nome} sem teste (Consome ${magia.custoPm} PM)`}
               >
                 <div className={styles.itemTopLine}>
                   <span className={styles.itemTitle}>{magia.nome}</span>
                   <div className={styles.itemBadges}>
-                    <Badge variant="core" size="sm">Arcano</Badge>
+                    <Badge variant="core" size="sm">Fundir Arcano</Badge>
                     <Badge variant="gold" size="sm">{magia.custoPm} PM</Badge>
                     {magia.curaRegeneracao > 0 && (
                       <Badge variant="ether" size="sm">+{magia.curaRegeneracao} PV</Badge>
@@ -71,7 +91,8 @@ export default function CombatantSpellsArcanaSection({
                   </div>
                 </div>
                 <div className={styles.arcanoAutoNotice}>
-                  <FaGem className={styles.arcanoIcon} /> Invocação Automática (Sem Teste)
+                  <FaGem className={styles.arcanoIcon} /> Fusão Automática (Sem Teste)
+                  {magia.dominios ? ` • ${magia.dominios}` : ''}
                 </div>
                 {(magia.efeitoInvocacao || magia.descricao) && (
                   <div className={styles.itemDesc}>

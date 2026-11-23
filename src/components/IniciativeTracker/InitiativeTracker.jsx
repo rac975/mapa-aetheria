@@ -59,36 +59,37 @@ export default function InitiativeTracker({ isMestre }) {
     handlePointerUp: handleDragEnd, handlePointerCancel: handleDragCancel
   } = useCombatantDrag({ onReorder: moverItemFila, totalItems: fila.length });
 
-  const toggleAlvoId = (idStr) => {
-    setAlvosIds((prev) => (prev.includes(idStr) ? prev.filter((id) => id !== idStr) : [...prev, idStr]));
+  const toggleAlvoId = (idStr, modo = 'toggle') => {
+    setAlvosIds((prev) => {
+      if (modo === 'add') return [...prev, idStr];
+      if (modo === 'remove_one') {
+        const idx = prev.lastIndexOf(idStr);
+        return idx >= 0 ? prev.filter((_, i) => i !== idx) : prev;
+      }
+      return prev.includes(idStr) ? prev.filter((id) => id !== idStr) : [...prev, idStr];
+    });
+  };
+  const handleToggleModoMulti = (forcarMulti = null) => {
+    setMultiAlvoAtivo((atual) => {
+      const novo = typeof forcarMulti === 'boolean' ? forcarMulti : !atual;
+      if (novo && !atual && alvoFocoId && alvosIds.length === 0) setAlvosIds([String(alvoFocoId)]);
+      else if (!novo && atual && alvosIds.length > 0 && !alvoFocoId) setAlvoFocoId(String(alvosIds[0]));
+      return novo;
+    });
   };
 
   const handleSelecionarCombatente = (combatente) => {
     const idStr = String(combatente.id);
     if (isMestre) {
-      if (!atorFocoId) {
-        setAtorFocoId(combatente.id);
-        setSidebarRecolhida(false);
-      } else if (String(atorFocoId) === idStr) {
-        setSidebarRecolhida((v) => !v);
-      } else if (multiAlvoAtivo) {
-        toggleAlvoId(idStr);
-      } else {
-        setAlvoFocoId(idStr);
-      }
+      if (!atorFocoId) { setAtorFocoId(combatente.id); setSidebarRecolhida(false); }
+      else if (String(atorFocoId) === idStr) setSidebarRecolhida((v) => !v);
+      else if (multiAlvoAtivo) toggleAlvoId(idStr);
+      else setAlvoFocoId(idStr);
     } else {
-      const ehMeu = Boolean(
-        (jogadorFichaId && String(combatente.ficha_id) === String(jogadorFichaId)) ||
-        (jogadorNome && combatente.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
-      );
-      if (ehMeu) {
-        setAtorFocoId(combatente.id);
-        setSidebarRecolhida(false);
-      } else if (multiAlvoAtivo) {
-        toggleAlvoId(idStr);
-      } else {
-        setAlvoFocoId(idStr);
-      }
+      const ehMeu = Boolean((jogadorFichaId && String(combatente.ficha_id) === String(jogadorFichaId)) || (jogadorNome && combatente.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase()));
+      if (ehMeu) { setAtorFocoId(combatente.id); setSidebarRecolhida(false); }
+      else if (multiAlvoAtivo) toggleAlvoId(idStr);
+      else setAlvoFocoId(idStr);
     }
   };
 
@@ -179,7 +180,7 @@ export default function InitiativeTracker({ isMestre }) {
                   isAtorSelecionado={isAtor} isAlvoSelecionado={isAlvo}
                   alvoId={alvoFocoId} alvosIds={alvosIds} multiAlvoAtivo={multiAlvoAtivo}
                   onSelecionarCombatente={handleSelecionarCombatente} onSelecionarAlvo={setAlvoFocoId}
-                  onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
+                  onToggleMultiAlvo={handleToggleModoMulti}
                   onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }}
                   onToggleAlvoMulti={toggleAlvoId} onExecutarAcao={executarAcaoRapida}
                   isEditando={editandoId === p.id} editForm={editForm} setEditForm={setEditForm}
@@ -208,7 +209,7 @@ export default function InitiativeTracker({ isMestre }) {
             participantes={lista}
             companheiros={companheirosCena}
             relogios={relogios} alvoId={alvoFocoId} alvosIds={alvosIds} multiAlvoAtivo={multiAlvoAtivo}
-            onSelecionarAlvo={setAlvoFocoId} onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
+            onSelecionarAlvo={setAlvoFocoId} onToggleMultiAlvo={handleToggleModoMulti}
             onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }} onToggleAlvoMulti={toggleAlvoId}
             onExecutarAcao={executarAcaoRapida} onRolarDados={rolarDadosNoCombate}
             isRecolhida={sidebarRecolhida} onToggleRecolher={() => setSidebarRecolhida((v) => !v)}
