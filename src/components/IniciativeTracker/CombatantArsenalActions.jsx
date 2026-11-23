@@ -8,7 +8,9 @@ import styles from './CombatantArsenalActions.module.css';
 export default function CombatantArsenalActions({
   combatente,
   perfil,
+  participantes = [],
   alvoId,
+  alvosIds = [],
   alvo = null,
   multiAlvoAtivo = false,
   marcarTurnoConcluido = true,
@@ -34,7 +36,9 @@ export default function CombatantArsenalActions({
   } = useArsenalActionHandlers({
     combatente,
     perfil,
+    participantes,
     alvoId,
+    alvosIds,
     alvo,
     multiAlvoAtivo,
     marcarTurnoConcluido,

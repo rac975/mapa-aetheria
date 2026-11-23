@@ -17,7 +17,6 @@ export const lojaService = {
         const { data, error } = await supabase.from('itens_personagem').insert([{
             ficha_id: fichaId,
             nome: nomeItem,
-            nome_item: nomeItem,
             tipo,
             stats_personalizados: statsPersonalizados
         }]);

@@ -1,5 +1,6 @@
 import { FaMagic, FaGem } from 'react-icons/fa';
 import { Badge } from '../ui';
+import { classificarTipoMagia } from '../../domain/fabula/combatSpellResolutionRules';
 import styles from './CombatantArsenalActions.module.css';
 
 export default function CombatantSpellsArcanaSection({
@@ -81,6 +82,9 @@ export default function CombatantSpellsArcanaSection({
             );
           }
 
+          const tipo = classificarTipoMagia(magia);
+          const isOfensiva = tipo === 'ofensiva';
+
           return (
             <button
               key={magia.id}
@@ -94,15 +98,26 @@ export default function CombatantSpellsArcanaSection({
                 <div className={styles.itemBadges}>
                   {magia.isQuimerista && <Badge variant="ether" size="sm">Quimerista</Badge>}
                   {magia.especie && <Badge variant="core" size="sm">{magia.especie}</Badge>}
+                  {isOfensiva ? (
+                    <Badge variant="crise" size="sm">Ofensiva</Badge>
+                  ) : (
+                    <Badge variant="ether" size="sm">Suporte</Badge>
+                  )}
                   {magia.condicao && <Badge variant="danger" size="sm">{magia.condicao}</Badge>}
                   <Badge variant="gold" size="sm">{magia.custoPm} PM</Badge>
                 </div>
               </div>
               <div className={styles.itemSubLine}>
-                <span className={styles.itemFormula}>
-                  [{(magia.attr1 || 'ast').toUpperCase()}+{(magia.attr2 || 'von').toUpperCase()}
-                  {magia.bonusPrecisao ? `+${magia.bonusPrecisao}` : ''}]
-                </span>
+                {isOfensiva ? (
+                  <span className={styles.itemFormula}>
+                    [{(magia.attr1 || 'ast').toUpperCase()}+{(magia.attr2 || 'von').toUpperCase()}
+                    {magia.bonusPrecisao ? `+${magia.bonusPrecisao}` : ''}] vs DEF.M
+                  </span>
+                ) : (
+                  <span className={styles.itemFormula}>
+                    ✨ Automático (Sem Teste)
+                  </span>
+                )}
                 {Number(magia.bonusDano) > 0 && (
                   <span className={styles.itemDmg}>+{magia.bonusDano} Dano</span>
                 )}

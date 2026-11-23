@@ -85,7 +85,9 @@ export default function CombatantTurnActionArea({
       return;
     }
 
-    const alvosFinais = multiAlvoAtivo ? (alvosIds.length > 0 ? alvosIds : [null]) : [alvoId || null];
+    const alvosFinais = multiAlvoAtivo
+      ? (alvosIds.length > 0 ? alvosIds : [alvoId || (Number(curaAplicada) > 0 ? combatente.id : null)])
+      : [alvoId || (Number(curaAplicada) > 0 ? combatente.id : null)];
     let sucessoTotal = false;
 
     for (let i = 0; i < alvosFinais.length; i += 1) {
@@ -144,7 +146,8 @@ export default function CombatantTurnActionArea({
       />
 
       <CombatantArsenalActions
-        combatente={combatente} perfil={perfil} alvoId={alvoId} alvo={alvoAtual}
+        combatente={combatente} perfil={perfil} participantes={participantes}
+        alvoId={alvoId} alvosIds={alvosIds} alvo={alvoAtual}
         multiAlvoAtivo={multiAlvoAtivo} marcarTurnoConcluido={marcarTurnoConcluido}
         onExecutarAcao={onExecutarAcao} onRolarDados={onRolarDados}
         setDanoAplicado={setDanoAplicado} setCuraAplicada={setCuraAplicada}

@@ -1,4 +1,6 @@
 import { calcularDanoGolpeBaixo, calcularResolucaoRouboDeAlma } from '../../domain/fabula/rogueRules';
+import { useCombatMultiAttackExecutor } from './useCombatMultiAttackExecutor';
+import { useCombatSpellExecutor } from './useCombatSpellExecutor';
 
 /**
  * Hook para centralizar os handlers de ações do arsenal do combatente (armas, magias, arcanos, companheiro e habilidades).
@@ -7,7 +9,9 @@ import { calcularDanoGolpeBaixo, calcularResolucaoRouboDeAlma } from '../../doma
 export function useArsenalActionHandlers({
   combatente,
   perfil,
+  participantes = [],
   alvoId,
+  alvosIds = [],
   alvo = null,
   multiAlvoAtivo = false,
   marcarTurnoConcluido = true,
@@ -20,38 +24,20 @@ export function useArsenalActionHandlers({
   setNotaLivre,
   onHabilidadeSelecionada
 }) {
+  const { executarAtaqueArma } = useCombatMultiAttackExecutor({
+    combatente, perfil, participantes, alvoId, alvosIds,
+    multiAlvoAtivo, marcarTurnoConcluido, onExecutarAcao, onRolarDados,
+    setDanoAplicado, setTipoDano, setNotaLivre
+  });
+
+  const { executarMagia } = useCombatSpellExecutor({
+    combatente, perfil, participantes, alvoId, alvosIds,
+    multiAlvoAtivo, marcarTurnoConcluido, onExecutarAcao, onRolarDados,
+    setDanoAplicado, setCuraAplicada, setTipoDano, setCustoPm, setNotaLivre
+  });
+
   const handleRolarArma = async (arma) => {
-    if (!onRolarDados) return;
-    const habGolpe = perfil.dadosLadino?.habilidades?.golpeBaixo;
-    const condicoesAlvo = Array.isArray(alvo?.condicoes) ? alvo.condicoes : [];
-    const bonusGolpe = (!multiAlvoAtivo && !arma.isDuasArmas && habGolpe?.ativo && condicoesAlvo.length > 0)
-      ? calcularDanoGolpeBaixo({ nivelGolpeBaixo: habGolpe.nivel, condicoesAlvo, isAlvoUnico: true })
-      : 0;
-    const tagGolpe = bonusGolpe > 0 ? ` • 🗡️ Golpe Baixo (+${bonusGolpe} dano)` : '';
-    const isMultiEfetivo = Boolean(multiAlvoAtivo || arma.propriedadeMulti || arma.isMulti);
-
-    const res = await onRolarDados({
-      combatente, perfil, arma, categoria: 'arma', titulo: `Ataque: ${arma.nome}`,
-      attr1: arma.attr1, attr2: arma.attr2,
-      bonusTeste: Number(arma.bonusPrecisao) || 0,
-      bonusDano: (Number(arma.bonusDano) || 0) + bonusGolpe,
-      calcularDano: true, tipoDano: arma.tipoDano || 'fisico',
-      isMulti: isMultiEfetivo
-    });
-
-    if (res) {
-      if (res.danoTotal !== null) setDanoAplicado?.(res.danoTotal);
-      if (arma.tipoDano) setTipoDano?.(arma.tipoDano);
-      const tagVoador = arma.atingeVoadores ? ' • 🦅 Atinge Voadores' : '';
-      const tagMulti = isMultiEfetivo ? ' (Multi: RA puro)' : '';
-      const tagCond = arma.condicao ? ` • Condição: ${arma.condicao}` : '';
-      const tagEf = arma.efeito ? ` • ${arma.efeito}` : '';
-      if (arma.isDuasArmas) {
-        setNotaLivre?.(`Multiataque: Precisão ${res.total} ${res.formulaDados} • 1º: ${res.danoGolpe1} (${arma.tipoDano}) • 2º (RA=0): ${res.danoGolpe2} (${arma.tipoDanoSecundario})${tagVoador}`);
-      } else {
-        setNotaLivre?.(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${tagMulti}${tagGolpe}${res.statusCritico ? ` • ${res.statusCritico}` : ''}${tagVoador}${tagCond}${tagEf}`);
-      }
-    }
+    return executarAtaqueArma(arma);
   };
 
   const handleInvocarArcano = async (magia) => {
@@ -79,19 +65,7 @@ export function useArsenalActionHandlers({
 
   const handleRolarMagia = async (magia) => {
     if (magia.isArcano) return handleInvocarArcano(magia);
-    if (!onRolarDados) return;
-    const custo = Number(magia.custoPm) || 0;
-    const res = await onRolarDados({
-      combatente, perfil, categoria: 'magia', titulo: `Conjurar: ${magia.nome}`,
-      attr1: magia.attr1 || 'ast', attr2: magia.attr2 || 'von',
-      bonusTeste: Number(magia.bonusPrecisao) || 0, bonusDano: Number(magia.bonusDano) || 0,
-      calcularDano: Boolean(magia.ofensiva), tipoDano: magia.tipoDano || 'magico', custoPm: custo
-    });
-    if (res) {
-      setCustoPm?.(custo);
-      if (res.danoTotal !== null) setDanoAplicado?.(res.danoTotal);
-      setNotaLivre?.(`${magia.nome}: ${res.total} ${res.formulaDados} • RA ${res.hr}`);
-    }
+    return executarMagia(magia);
   };
 
   const handleExecutarRouboDeAlma = async (hab) => {

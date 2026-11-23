@@ -49,7 +49,9 @@ export default function CombatantWeaponsSection({
               <span className={styles.itemDmg}>
                 {arma.isDuasArmas
                   ? `1º RA+${arma.bonusDano} • 2º (RA=0)+${arma.bonusDanoSecundario}`
-                  : `+${arma.bonusDano} (${arma.tipoDano})`}
+                  : (arma.propriedadeMulti
+                      ? `Multi: +${arma.bonusDano} (${arma.tipoDano || 'físico'})`
+                      : `[RA+${arma.bonusDano}] (${arma.tipoDano || 'físico'})`)}
               </span>
             </div>
             {(arma.resumoEfeito || arma.efeito) && (

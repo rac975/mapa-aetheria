@@ -221,3 +221,20 @@
   box-shadow: none;
   transform: none;
 }
+
+@media (max-width: 480px) {
+  .itemsGrid,
+  .abilitiesScrollableGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .itemBtn {
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  .abilityFastTriggerBtn {
+    min-height: 32px;
+    padding: 6px 10px;
+  }
+}
