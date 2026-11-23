@@ -116,3 +116,36 @@ export function processarGolpeDasSombras(ficha, classes, valorMaximoVigor = 8) {
     mensagem: `Golpe das Sombras preparado! Perda de ${resultadoVigorRolado} PV. Dano adicional de Trevas: +${danoAdicional} (NP ${nivelPoder} + ${resultadoVigorRolado} do dVigor).`,
   };
 }
+
+/**
+ * Gera o molde padrão estruturado de um Companheiro Fiel para persistência.
+ * @param {Object} params
+ * @param {string|number} params.personagemId
+ * @param {string|null} [params.userId]
+ * @param {number} [params.pvInicial=20]
+ * @returns {Object}
+ */
+export function gerarMoldePadraoCompanheiro({ personagemId, userId = null, pvInicial = 20 }) {
+  return {
+    user_id: userId || null,
+    nome: 'Meu Companheiro',
+    especie: 'fera',
+    nivel: 5,
+    rank: 'soldado',
+    atributos: { des: 'd8', ast: 'd8', vig: 'd8', von: 'd8' },
+    pv_max: pvInicial,
+    pv_atual: pvInicial,
+    pm_max: 20,
+    pm_atual: 20,
+    defesa: 8,
+    defesa_magica: 6,
+    iniciativa: 0,
+    afinidades: { veneno: 'vul' },
+    tracos: ['', '', '', ''],
+    ataques_basicos: [],
+    poderes: [],
+    feiticos: [],
+    personagem_id: personagemId,
+    tipo_registro: 'companheiro'
+  };
+}

@@ -20,6 +20,7 @@ export default function FichaClassesSecao({
   temArmaduraMarcial = false,
   reducaoCustoPi = 0,
   nivelTotal = 5,
+  isMestre = false,
   onAtualizarMutante,
   onAtualizarDadosClasse,
   onElevarAtributoTemporario,
@@ -46,7 +47,12 @@ export default function FichaClassesSecao({
         return;
       }
       try {
-        const { data, error } = await npcService.getCompanheiroFielPorPersonagemId(fichaId);
+        const { data: userData } = await npcService.getAuthUser();
+        const currentUserId = userData?.user?.id || null;
+        const { data, error } = await npcService.getCompanheiroFielPorPersonagemId(
+          fichaId,
+          { userId: currentUserId }
+        );
         if (active) setCompanheiro(!error && data ? data : null);
       } catch (err) {
         console.error("Erro ao carregar companheiro:", err);
@@ -54,7 +60,20 @@ export default function FichaClassesSecao({
       }
     }
     carregarCompanheiro();
-    return () => { active = false; };
+
+    const sub = npcService.subscribeCompanheiroFiel(fichaId, (payload) => {
+      if (!active) return;
+      if (payload?.eventType === 'DELETE') {
+        setCompanheiro(null);
+      } else if (payload?.new) {
+        setCompanheiro(payload.new);
+      }
+    });
+
+    return () => {
+      active = false;
+      if (sub?.unsubscribe) sub.unsubscribe();
+    };
   }, [fichaId, temCompanheiroFiel]);
 
   // 2. Carregar Magias Normalizadas do Supabase via Service Layer
@@ -169,6 +188,10 @@ export default function FichaClassesSecao({
                             companheiro={companheiro}
                             handleAjustarRecurso={handleAjustarRecurso}
                             fichaId={fichaId}
+                            classes={classes}
+                            isMestre={isMestre}
+                            podeEditar={true}
+                            onAtualizarCompanheiro={(novo) => setCompanheiro(novo)}
                           />
                         )}
                       </div>

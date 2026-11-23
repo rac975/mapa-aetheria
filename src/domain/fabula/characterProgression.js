@@ -130,7 +130,7 @@ export const COLUNAS_JSONB_FICHAS = new Set([
 export const COLUNAS_TEXTO_FICHAS = new Set([
   'jogador_token', 'nome_personagem', 'identidade', 'tema',
   'titulo_pecularidade', 'descricao_peculiaridade', 'descricao_pecularidade',
-  'criado_em', 'nome_jogador', 'notas', 'avatar_url'
+  'criado_em', 'nome_jogador', 'notas', 'avatar_url', 'user_id'
 ]);
 
 export const COLUNAS_VALIDAS_FICHAS_PERSONAGENS = new Set([

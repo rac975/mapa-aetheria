@@ -176,6 +176,7 @@ export default function FichaPage({ isMestre, setFichaGlobal }) {
           ajustarRecurso={ajustarRecurso}
           atualizarDadosMutante={atualizarDadosMutante}
           atualizarDadosClasseLocal={atualizarDadosClasseLocal}
+          isMestre={modoMestreAtivo}
           onRolarDado={(sigla, valor) => {
             showAlert({
               title: `Atributo ${sigla}`,

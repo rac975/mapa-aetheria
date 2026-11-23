@@ -35,6 +35,7 @@ export default function FichaViewGrid({
   ajustarRecurso,
   atualizarDadosMutante,
   atualizarDadosClasseLocal,
+  isMestre = false,
   onRolarDado,
   onAtivarGolpe
 }) {
@@ -165,6 +166,7 @@ export default function FichaViewGrid({
             temArmaduraMarcial={statusFicha?.temArmaduraMarcial}
             reducaoCustoPi={statusFicha?.reducaoCustoPi}
             nivelTotal={statusFicha?.nivelTotal}
+            isMestre={isMestre}
             onAtualizarMutante={atualizarDadosMutante}
             onAtualizarDadosClasse={atualizarDadosClasseLocal}
             onAtivarGolpe={onAtivarGolpe}

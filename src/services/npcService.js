@@ -118,17 +118,32 @@ export const npcService = {
   },
 
   /**
-   * Busca o companheiro fiel associado a um personagem
+   * Busca o companheiro fiel associado a um personagem ou criador
    * @param {string|number} personagemId
+   * @param {Object|string} [options] - Opções ou userId alternativo
+   * @param {string} [options.userId] - ID do usuário criador para fallback/vínculo
    * @returns {Promise<{data: any, error: any}>}
    */
-  async getCompanheiroFielPorPersonagemId(personagemId) {
-    const res = await supabase
+  async getCompanheiroFielPorPersonagemId(personagemId, options = {}) {
+    const userId = typeof options === 'string' ? options : options?.userId;
+    if (!personagemId && !userId) {
+      return { data: null, error: null };
+    }
+
+    let query = supabase
       .from('npcs_mestre')
       .select('*')
-      .eq('personagem_id', personagemId)
-      .eq('tipo_registro', 'companheiro')
-      .maybeSingle();
+      .eq('tipo_registro', 'companheiro');
+
+    if (personagemId && userId) {
+      query = query.or(`personagem_id.eq.${personagemId},and(user_id.eq.${userId},personagem_id.is.null)`);
+    } else if (personagemId) {
+      query = query.eq('personagem_id', personagemId);
+    } else {
+      query = query.eq('user_id', userId);
+    }
+
+    const res = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
 
     if (res.data) {
       return { ...res, data: normalizarNpcLeitura(res.data) };
@@ -143,6 +158,18 @@ export const npcService = {
    */
   async createCompanheiroFiel(companheiroData) {
     const payload = sanitizarPayloadNpcMestre(companheiroData);
+
+    // Se já existir um companheiro cadastrado para este personagem, atualiza em vez de duplicar
+    if (payload.personagem_id) {
+      const existente = await this.getCompanheiroFielPorPersonagemId(payload.personagem_id);
+      if (existente?.data?.id) {
+        const updateRes = await this.updateNpc(existente.data.id, payload);
+        if (!updateRes.error) {
+          return { data: { ...existente.data, ...payload }, error: null };
+        }
+      }
+    }
+
     const res = await supabase
       .from('npcs_mestre')
       .insert([payload])
@@ -153,6 +180,38 @@ export const npcService = {
       return { ...res, data: normalizarNpcLeitura(res.data) };
     }
     return res;
+  },
+
+  /**
+   * Inscreve para alterações em tempo real do Companheiro Fiel vinculado à ficha
+   * @param {string|number} personagemId
+   * @param {Function} onMudanca
+   * @returns {{ unsubscribe: Function }}
+   */
+  subscribeCompanheiroFiel(personagemId, onMudanca) {
+    if (!personagemId) return { unsubscribe: () => {} };
+    const channelName = `realtime_comp_${personagemId}_${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'npcs_mestre',
+          filter: `personagem_id=eq.${personagemId}`
+        },
+        (payload) => {
+          if (onMudanca) onMudanca(payload);
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      }
+    };
   },
 
   /**
