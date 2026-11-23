@@ -52,7 +52,9 @@ export function useCombatParticipantCrud({
   setAlerta,
   jogadorFichaId,
   jogadorNome,
-  coldDelete
+  coldDelete,
+  npcsDisponiveis = [],
+  setNpcsDisponiveis = null
 }) {
   const [editandoId, setEditandoId] = useState(null);
   const [editForm, setEditForm] = useState({ nome: '', hp_max: 0, mp_max: 0, ip: 0, pontos_fabula: 0 });
@@ -206,8 +208,37 @@ export function useCombatParticipantCrud({
     }
   }, [isMestre, participantes, jogadorFichaId, jogadorNome, setAlerta, setParticipantes]);
 
+  const alterarRecursoCompanheiro = useCallback(async (compId, campo, valorOuDelta, ehDelta = false, maximo = null) => {
+    const listaNpcs = npcsDisponiveis || [];
+    const compAtual = listaNpcs.find((n) => String(n.id) === String(compId));
+    if (!compAtual) return;
+
+    if (!isMestre) {
+      const fichaDona = (fichasDisponiveis || []).find((f) => String(f.id) === String(compAtual.personagem_id));
+      const ehDono = fichaDona && (
+        (jogadorFichaId && String(fichaDona.id) === String(jogadorFichaId)) ||
+        (jogadorNome && fichaDona.nome_personagem?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
+      );
+      if (!ehDono) return;
+    }
+
+    const campoNorm = campo === 'pv' || campo === 'hp' ? 'pv_atual' : (campo === 'pm' || campo === 'mp' ? 'pm_atual' : campo);
+    const maxVal = maximo !== null ? Number(maximo) : (campoNorm === 'pv_atual' ? compAtual.pv_max : compAtual.pm_max);
+    const atual = Number(compAtual[campoNorm]) || 0;
+    const novoValor = ehDelta ? atual + Number(valorOuDelta) : Number(valorOuDelta);
+    const valorClamp = Math.max(0, Math.min(Number(maxVal) || 999, novoValor));
+
+    if (setNpcsDisponiveis) {
+      setNpcsDisponiveis((prev) =>
+        prev.map((n) => (String(n.id) === String(compId) ? { ...n, [campoNorm]: valorClamp } : n))
+      );
+    }
+    await combatService.updateNpcMestreFromCombat(compId, { [campoNorm]: valorClamp });
+  }, [npcsDisponiveis, setNpcsDisponiveis, isMestre, fichasDisponiveis, jogadorFichaId, jogadorNome]);
+
   return {
     editandoId, setEditandoId, editForm, setEditForm,
-    addParticipante, iniciarExclusao, salvarEdicao, cancelarEdicao, alterarRecurso
+    addParticipante, iniciarExclusao, salvarEdicao, cancelarEdicao, alterarRecurso,
+    alterarRecursoCompanheiro
   };
 }

@@ -39,6 +39,7 @@ export default function Sidebar({ isMestre, onOpenLogin, onLogout, onOpenSetting
   }, [recolhida]);
 
   const isRotaAtiva = (path, exact = true) => {
+    if (path === '/combate' && (location.pathname === '/combate' || location.pathname === '/conflito')) return true;
     if (exact) return location.pathname === path;
     if (path === '/ficha' && location.pathname.startsWith('/mestre/editar')) return true;
     return location.pathname.startsWith(path);

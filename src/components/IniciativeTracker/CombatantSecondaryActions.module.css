@@ -3,6 +3,7 @@
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
+  position: relative;
 }
 
 .secActionBtn {
@@ -60,4 +61,82 @@
 .secActionBtnSurrender:hover {
   background: rgba(231, 76, 60, 0.15);
   border-color: var(--color-crise);
+}
+
+.invDropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.invDropdownMenu {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  min-width: 260px;
+  background-color: var(--color-surface, #0f172a);
+  border: 1px solid var(--color-ether-border, rgba(128, 208, 255, 0.3));
+  border-radius: var(--border-radius-sm, 6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  padding: var(--spacing-xs, 4px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.invMenuHeader {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #94a3b8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.invMenuDivider {
+  padding: 4px 8px;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-ether, #80d0ff);
+  border-top: 1px solid rgba(128, 208, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.invMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-primary, #f8fafc);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.invMenuItem:hover {
+  background-color: var(--color-surface-hover, rgba(255, 255, 255, 0.08));
+  color: var(--color-ether, #80d0ff);
+}
+
+.invMenuItemSphere {
+  color: var(--color-ether, #80d0ff);
+}
+
+.sphereDotIcon {
+  font-size: 0.6rem;
+  color: var(--color-ether, #80d0ff);
+}
+
+.invMenuCost {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--color-text-muted, #94a3b8);
+  font-weight: 600;
 }

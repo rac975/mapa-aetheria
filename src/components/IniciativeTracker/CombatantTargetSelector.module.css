@@ -33,9 +33,81 @@
   flex-wrap: wrap;
 }
 
+.quickTargetsScroll {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: 2px 0 4px 0;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quickTargetsScroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.quickTargetsScroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-gold-muted);
+  border-radius: 2px;
+}
+
+.quickTargetChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-gold-muted);
+  background: rgba(10, 25, 47, 0.85);
+  color: var(--color-text-dim);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.quickTargetChip:hover {
+  border-color: var(--color-border-gold);
+  color: var(--color-text-bright);
+  background: rgba(15, 35, 65, 0.95);
+}
+
+.quickTargetChipSelected {
+  background: rgba(231, 76, 60, 0.25);
+  border-color: var(--color-crise-bright);
+  color: var(--color-text-bright);
+  box-shadow: 0 0 10px var(--color-crise-glow);
+}
+
+.chipIcon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.chipNome {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipPv {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--color-text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .selectAlvo {
   flex: 1;
   min-width: 180px;
+  min-height: 38px;
   background: var(--color-bg-input);
   color: var(--color-text-bright);
   border: 1px solid var(--color-border-gold-muted);
@@ -53,8 +125,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 32px;
   font-size: var(--font-size-xs);
-  padding: 4px 8px;
+  padding: 4px 10px;
   background: rgba(10, 25, 47, 0.8);
   border: 1px solid var(--color-border-gold-muted);
   color: var(--color-text-dim);
@@ -79,8 +152,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 32px;
   font-size: var(--font-size-xs);
-  padding: 4px 8px;
+  padding: 4px 10px;
   background: rgba(231, 76, 60, 0.15);
   border: 1px solid var(--color-crise);
   color: var(--color-crise-bright);
@@ -93,35 +167,25 @@
   background: rgba(231, 76, 60, 0.3);
 }
 
-.multiTargetsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
-}
+@media (max-width: 768px) {
+  .targetHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.multiTargetChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border-gold-muted);
-  background: rgba(10, 25, 47, 0.7);
-  color: var(--color-text-dim);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+  .targetControlsRow {
+    width: 100%;
+    justify-content: flex-start;
+  }
 
-.multiTargetChip:hover {
-  border-color: var(--color-border-gold);
-  color: var(--color-text-bright);
-}
+  .quickTargetChip {
+    min-height: 40px;
+    padding: 6px 12px;
+  }
 
-.multiTargetChipSelected {
-  background: rgba(231, 76, 60, 0.25);
-  border-color: var(--color-crise-bright);
-  color: var(--color-text-bright);
-  box-shadow: 0 0 8px var(--color-crise-glow);
+  .btnMultiToggle,
+  .btnClearTarget {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
 }

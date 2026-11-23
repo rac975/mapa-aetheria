@@ -140,6 +140,25 @@
   width: 100%;
 }
 
+.combatMainLayout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.combatMainLayout > .participantesList {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 1023px) {
+  .combatMainLayout {
+    flex-direction: column;
+  }
+}
+
 .emptyText {
   text-align: center;
   color: var(--color-text-dim);

@@ -9,21 +9,20 @@ import {
 import CombatantDrawers from './CombatantDrawers';
 import VillainCombatDrawer from './VillainCombatDrawer';
 import CombatantActionButtons from './CombatantActionButtons';
-import CombatantTurnActionArea from './CombatantTurnActionArea';
 import CombatantVitalsCluster from './CombatantVitalsCluster';
 import CombatantInitiativeControl from './CombatantInitiativeControl';
 import CombatantActionSlotsBar from './CombatantActionSlotsBar';
+import CombatantCompanionBar from './CombatantCompanionBar';
 import styles from './CombatantItem.module.css';
 import actionStyles from './CombatantItemActions.module.css';
 
 export default function CombatantItem({
-  p, index, participantes = [], relogios = [], isMestre, jogadorFichaId, jogadorNome,
+  p, index, participantes = [], isMestre, jogadorFichaId, jogadorNome,
   isEditando, editForm, setEditForm, fichasDisponiveis, perfilRolagem,
-  isAtorSelecionado, isAlvoSelecionado, alvoId, alvosIds = [], multiAlvoAtivo = false,
-  onSelecionarCombatente, onSelecionarAlvo, onToggleMultiAlvo, onLimparAlvo, onToggleAlvoMulti,
-  onExecutarAcao, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
-  onIniciarExclusao, onAlterarRecurso, onGastarPontoVilao, onTransicionarFase,
-  onAjustarAcaoTurno, onAjustarAcaoSlot, onToggleCondicao, onRolarDados,
+  isAtorSelecionado, isAlvoSelecionado,
+  onSelecionarCombatente, onAtivarTurno, onSalvarEdicao, onCancelarEdicao,
+  onIniciarExclusao, onAlterarRecurso, onAlterarRecursoCompanheiro, onGastarPontoVilao, onTransicionarFase,
+  onAjustarAcaoTurno, onAjustarAcaoSlot, onToggleCondicao,
   onAtualizarIniciativa, onRolarIniciativa, isDragging, isDragOver, dragDropPos = null,
   onDragHandleDown, onDragHandleMove, onDragHandleUp, onDragHandleCancel
 }) {
@@ -51,6 +50,7 @@ export default function CombatantItem({
   const acoesRealizadas = isInimigo ? Math.max(0, Number(p.modificadores?.acoes_realizadas_rodada) || 0) : 0;
   const ehChefeOuVilao = isInimigo && isVilaoOuChefe(p);
   const ehVoador = Boolean(p.voador || p.modificadores?.voador);
+  const rankInimigo = isInimigo ? (p.rank || perfilRolagem?.rank || null) : null;
 
   const statusFase = isInimigo
     ? verificarGatilhoTransicaoFase({ hpAtual: p.hp_atual, hpMax: maxHp, faseAtual: p.fase_atual || 1, fasesChefao: p.fases_chefao || [] })
@@ -71,11 +71,6 @@ export default function CombatantItem({
   const mdefHeroi = perfilRolagem?.mdef || fichaCorrespondente?.mdef || 10;
   const alvoProtegido = p.protegendo_id ? participantes.find((item) => String(item.id) === String(p.protegendo_id)) : null;
   const alternarPainel = (tipo) => setPainelAberto((atual) => (atual === tipo ? null : tipo));
-
-  const deveExibirAreaAcoes = !isEditando && !estaDerrotado && (
-    (ehMeuPersonagem && (isAtorSelecionado || !isMestre)) ||
-    (isMestre && isAtorSelecionado)
-  );
 
   const itemClasses = [
     styles.itemCard,
@@ -125,6 +120,11 @@ export default function CombatantItem({
                 <Badge variant={p.tipo === 'heroi' ? 'core' : ehChefeOuVilao ? 'villain' : 'crise'} size="sm">
                   {p.tipo === 'heroi' ? 'Herói' : tipoVilaoKey !== 'padrao' ? infoVilao.badgeLabel : 'Inimigo'}
                 </Badge>
+                {isInimigo && (rankInimigo === 'elite' || rankInimigo === 'campeao') && (
+                  <Badge variant={rankInimigo === 'campeao' ? 'villain' : 'gold'} size="sm">
+                    {rankInimigo === 'campeao' ? '👑 Campeão' : '⚔️ Elite'}
+                  </Badge>
+                )}
                 {ehVoador && <Badge variant="ether" size="sm" title="Criatura Voadora">🦅 Voador</Badge>}
                 {isInimigo && acoesPorTurno > 1 && (
                   <Badge variant="gold" size="sm" title="Multi-Ações"><FaBolt /> {acoesRealizadas}/{acoesPorTurno} Ações</Badge>
@@ -134,6 +134,8 @@ export default function CombatantItem({
                 {p.guardando && !estaDerrotado && (
                   <Badge variant="ether" size="sm"><FaShieldAlt /> {alvoProtegido ? `Cobre ${alvoProtegido.nome}` : 'Em Guarda'}</Badge>
                 )}
+                {p.fugiu && <Badge variant="ether" size="sm">💨 FUGIU</Badge>}
+                {p.modificadores?.invisivel && <Badge variant="ether" size="sm">🌫️ INVISÍVEL</Badge>}
                 {p.agiu && <Badge variant="default" size="sm">AGIU</Badge>}
                 {estaDerrotado && !statusFase.gatilhoAtivo && <Badge variant="default" size="sm">CAÍDO</Badge>}
                 {emCrise && !estaDerrotado && <Badge variant="crise" size="sm">CRISE</Badge>}
@@ -199,6 +201,14 @@ export default function CombatantItem({
         />
       </div>
 
+      {perfilRolagem?.companheiro && (
+        <CombatantCompanionBar
+          companheiro={perfilRolagem.companheiro}
+          podeEditar={podeAlterarTurno}
+          onAlterarRecurso={onAlterarRecursoCompanheiro}
+        />
+      )}
+
       {isInimigo && acoesPorTurno > 1 && !estaDerrotado && (
         <CombatantActionSlotsBar p={p} isMestre={isMestre} onAjustarAcaoSlot={onAjustarAcaoSlot || onAjustarAcaoTurno} />
       )}
@@ -213,24 +223,6 @@ export default function CombatantItem({
             <FaFire /> Transicionar para {statusFase.proximaFaseObj.nome}
           </Button>
         </div>
-      )}
-
-      {deveExibirAreaAcoes && (
-        <CombatantTurnActionArea
-          combatente={p}
-          perfil={perfilRolagem}
-          participantes={participantes}
-          relogios={relogios}
-          alvoId={alvoId}
-          alvosIds={alvosIds}
-          multiAlvoAtivo={multiAlvoAtivo}
-          onSelecionarAlvo={onSelecionarAlvo}
-          onToggleMultiAlvo={onToggleMultiAlvo}
-          onLimparAlvo={onLimparAlvo}
-          onToggleAlvoMulti={onToggleAlvoMulti}
-          onExecutarAcao={onExecutarAcao}
-          onRolarDados={onRolarDados}
-        />
       )}
 
       {isMestre && !isEditando && painelAberto === 'vilao' && isInimigo && (

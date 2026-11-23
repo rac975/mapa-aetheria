@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FaSlidersH, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { AFINIDADES_DANO } from '../../domain/fabula/combatRules';
 import { CONDICOES_DISPONIVEIS } from '../../constants/condicoes';
+import CombatantAbilityPresets from './CombatantAbilityPresets';
 import styles from './CombatantEffectAccordion.module.css';
 
 const LISTA_TIPOS_DANO = ['fisico', 'magico', 'fogo', 'gelo', 'raio', 'ar', 'terra', 'luz', 'sombra', 'veneno'];
@@ -23,8 +24,17 @@ export default function CombatantEffectAccordion({
   setCustoPm,
   custoPi,
   setCustoPi,
+  perdaPmAlvo = 0,
+  setPerdaPmAlvo,
   notaLivre,
-  setNotaLivre
+  setNotaLivre,
+  habilidadeAtiva = null,
+  habilidadesEleitas = [],
+  onSelecionarHabilidade,
+  alvo = null,
+  combatente = null,
+  presetAtivoId = '',
+  onAplicarPreset
 }) {
   const [aberto, setAberto] = useState(false);
 
@@ -33,9 +43,11 @@ export default function CombatantEffectAccordion({
     Number(curaAplicada) > 0 ||
     Number(custoPm) > 0 ||
     Number(custoPi) > 0 ||
+    Number(perdaPmAlvo) > 0 ||
     afinidadeAlvo !== AFINIDADES_DANO.NORMAL ||
     Boolean(condicaoAlvo) ||
-    Boolean(notaLivre);
+    Boolean(notaLivre) ||
+    Boolean(presetAtivoId);
 
   return (
     <div className={styles.accordionWrap} onClick={(e) => e.stopPropagation()}>
@@ -52,6 +64,16 @@ export default function CombatantEffectAccordion({
 
       {aberto && (
         <div className={styles.accordionBody}>
+          <CombatantAbilityPresets
+            habilidadeAtiva={habilidadeAtiva}
+            habilidadesEleitas={habilidadesEleitas}
+            onSelecionarHabilidade={onSelecionarHabilidade}
+            alvo={alvo}
+            combatente={combatente}
+            presetAtivoId={presetAtivoId}
+            onAplicarPreset={onAplicarPreset}
+          />
+
           <div className={styles.fieldsGrid}>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Dano Bruto</label>
@@ -125,6 +147,17 @@ export default function CombatantEffectAccordion({
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>Drenar PM Alvo</label>
+              <input
+                type="number"
+                min="0"
+                className={styles.fieldInput}
+                value={perdaPmAlvo}
+                onChange={(e) => setPerdaPmAlvo?.(Math.max(0, parseInt(e.target.value, 10) || 0))}
+              />
             </div>
 
             <div className={styles.fieldGroup}>

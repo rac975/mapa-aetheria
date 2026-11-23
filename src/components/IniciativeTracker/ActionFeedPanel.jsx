@@ -11,7 +11,7 @@ export default function ActionFeedPanel({
     <aside className={styles.feedCard}>
       <header className={styles.feedHeader}>
         <div className={styles.headerTitleWrap}>
-          <h3 className={styles.feedTitle}><FaHistory /> Feed de Ações & Dados</h3>
+          <h3 className={styles.feedTitle}><FaHistory /> Histórico</h3>
           <Badge variant="ether" size="sm">{acoesFeed.length}</Badge>
         </div>
         {isMestre && acoesFeed.length > 0 && (

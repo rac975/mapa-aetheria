@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaCog, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaUser, FaArrowLeft, FaEdit, FaTimes, FaSignOutAlt, FaCoins, FaCog, FaPlus, FaMinus, FaDraftingCompass } from 'react-icons/fa';
+import { LuSwords } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 import { CONDICOES_DISPONIVEIS, getCondicaoIcon } from '../../../constants/condicoes';
 import { playerSessionService } from '../../../services/playerSessionService';
@@ -66,6 +67,26 @@ export default function FichaHeader({
                 </div>
 
                 <div className={styles.topNavRight}>
+                    <Button
+                        type="button"
+                        variant="gold"
+                        size="sm"
+                        onClick={() => navigate('/combate')}
+                        title="Ir para o Painel de Conflito & Relógios"
+                    >
+                        <LuSwords /> Conflito
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => navigate('/projetos')}
+                        title="Ir para a Oficina de Projetos"
+                    >
+                        <FaDraftingCompass /> Projetos
+                    </Button>
+
                     <Button
                         type="button"
                         variant={editando ? 'danger' : 'primary'}

@@ -33,10 +33,8 @@ export default function QuickActionPanel({
   const [atorIdInput, setAtorIdInput] = useState('');
   const [alvoId, setAlvoId] = useState('');
   const [relogioId, setRelogioId] = useState('');
-  const [custoPm, setCustoPm] = useState(0);
-  const [custoPi, setCustoPi] = useState(0);
-  const [danoAplicado, setDanoAplicado] = useState(0);
-  const [curaAplicada, setCuraAplicada] = useState(0);
+  const [custoPm, setCustoPm] = useState(0); const [custoPi, setCustoPi] = useState(0);
+  const [danoAplicado, setDanoAplicado] = useState(0); const [curaAplicada, setCuraAplicada] = useState(0);
   const [afinidadeAlvo, setAfinidadeAlvo] = useState(AFINIDADES_DANO.NORMAL);
   const [condicaoAlvo, setCondicaoAlvo] = useState('');
   const [avancoRelogio, setAvancoRelogio] = useState(1);
@@ -112,7 +110,14 @@ export default function QuickActionPanel({
   };
 
   const handleRolarMagia = async (magia) => {
-    if (!onRolarDados || !atorSelecionado) return;
+    if (!atorSelecionado) return;
+    if (magia.isArcano) {
+      const custo = Number(magia.custoPm) || 40;
+      setCustoPm(custo);
+      setNotaLivre(`Invocar Arcano: ${magia.nomeArcano || magia.nome} (${custo} PM) • Sem Teste • ${magia.efeitoInvocacao || magia.descricao || ''}`);
+      return;
+    }
+    if (!onRolarDados) return;
     const res = await onRolarDados({
       combatente: atorSelecionado, perfil: perfilAtor, categoria: 'magia',
       titulo: `Conjurar: ${magia.nome}`, attr1: magia.attr1 || 'ast', attr2: magia.attr2 || 'von',

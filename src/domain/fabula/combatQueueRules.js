@@ -7,9 +7,10 @@ import { obterSlotsAcoesInimigo, extrairIniciativaCombatente } from './combatIni
  */
 
 function gerarChavesAlternadasPorTurnos(herois = [], inimigos = [], heroisAgemPrimeiro = true) {
-  const heroisVivos = herois.filter((h) => Number(h.hp_atual) > 0);
-  const inimigosVivos = inimigos.filter((i) => Number(i.hp_atual) > 0);
-  const derrotados = [...herois, ...inimigos].filter((p) => Number(p.hp_atual) <= 0);
+  const naoFugiu = (p) => !p.fugiu && !p.modificadores?.fugiu;
+  const heroisVivos = herois.filter((h) => Number(h.hp_atual) > 0 && naoFugiu(h));
+  const inimigosVivos = inimigos.filter((i) => Number(i.hp_atual) > 0 && naoFugiu(i));
+  const derrotados = [...herois, ...inimigos].filter((p) => Number(p.hp_atual) <= 0 && naoFugiu(p));
 
   const turnosHerois = heroisVivos.map((h) => `card:${h.id}`);
 
@@ -56,9 +57,11 @@ function gerarChavesAlternadasPorTurnos(herois = [], inimigos = [], heroisAgemPr
  */
 export function construirFilaUnificadaCombate(participantes = [], ordemFilaSalva = []) {
   if (!Array.isArray(participantes) || participantes.length === 0) return [];
+  const listaAtiva = participantes.filter((p) => !p.fugiu && !p.modificadores?.fugiu);
+  if (listaAtiva.length === 0) return [];
 
   const mapaItens = new Map();
-  participantes.forEach((p) => {
+  listaAtiva.forEach((p) => {
     const chaveCard = `card:${p.id}`;
     mapaItens.set(chaveCard, {
       chaveFila: chaveCard,
@@ -82,9 +85,9 @@ export function construirFilaUnificadaCombate(participantes = [], ordemFilaSalva
     }
   });
 
-  const heroisNaOrdem = participantes.filter((p) => p.tipo === 'heroi');
-  const inimigosNaOrdem = participantes.filter((p) => p.tipo !== 'heroi');
-  const primeiroEhHeroi = participantes[0]?.tipo !== 'inimigo';
+  const heroisNaOrdem = listaAtiva.filter((p) => p.tipo === 'heroi');
+  const inimigosNaOrdem = listaAtiva.filter((p) => p.tipo !== 'heroi');
+  const primeiroEhHeroi = listaAtiva[0]?.tipo !== 'inimigo';
   const ordemPadrao = gerarChavesAlternadasPorTurnos(heroisNaOrdem, inimigosNaOrdem, primeiroEhHeroi);
 
   const chavesOrdenadas = [];
@@ -190,18 +193,19 @@ export function moverItemFilaUnificada(filaUnificada = [], indexOuPayload, desti
  * como turno próprio e deixando participantes/ações excedentes no final da rodada.
  */
 export function gerarOrdemIntercaladaIniciativa(participantes = [], heroisAgemPrimeiro = true) {
+  const listaAtiva = (participantes || []).filter((p) => !p.fugiu && !p.modificadores?.fugiu);
   const ordenarPorIniEOrdem = (a, b) => {
     const diffIni = extrairIniciativaCombatente(b) - extrairIniciativaCombatente(a);
     if (diffIni !== 0) return diffIni;
     return (Number(a.ordem) || 0) - (Number(b.ordem) || 0);
   };
 
-  const herois = participantes.filter((p) => p.tipo === 'heroi').sort(ordenarPorIniEOrdem);
-  const inimigos = participantes.filter((p) => p.tipo !== 'heroi').sort(ordenarPorIniEOrdem);
+  const herois = listaAtiva.filter((p) => p.tipo === 'heroi').sort(ordenarPorIniEOrdem);
+  const inimigos = listaAtiva.filter((p) => p.tipo !== 'heroi').sort(ordenarPorIniEOrdem);
 
   const ordemChavesFila = gerarChavesAlternadasPorTurnos(herois, inimigos, heroisAgemPrimeiro);
 
-  const mapaParticipantes = new Map(participantes.map((p) => [`card:${p.id}`, p]));
+  const mapaParticipantes = new Map(listaAtiva.map((p) => [`card:${p.id}`, p]));
   const participantesOrdenados = [];
 
   ordemChavesFila.forEach((chave) => {

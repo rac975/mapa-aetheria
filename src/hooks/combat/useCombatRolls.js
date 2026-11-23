@@ -9,6 +9,7 @@ import {
   extrairIniciativaFixaInimigo
 } from '../../domain/fabula/combatInitiativeRules';
 import { detectarHabilidadePreConflito } from '../../domain/fabula/combatPreConflictRules';
+import { extrairNivelCompanheiroFiel } from '../../domain/fabula/classRules';
 
 /**
  * useCombatRolls
@@ -20,6 +21,7 @@ export function useCombatRolls({
   participantes,
   fichasDisponiveis,
   npcsDisponiveis,
+  catalogoModulos = [],
   estadoCombate,
   setAcoesFeed,
   setAlerta,
@@ -40,6 +42,16 @@ export function useCombatRolls({
         )
       : null;
 
+    const classesHeroi = fichaCorrespondente?.classes || fichaCorrespondente?.fichas_classes || [];
+    const nvCompFiel = extrairNivelCompanheiroFiel(classesHeroi);
+    const companheiroFiel = combatente.tipo === 'heroi' && fichaCorrespondente && nvCompFiel > 0
+      ? listaNpcs.find(
+          (n) =>
+            n.tipo_registro === 'companheiro' &&
+            String(n.personagem_id) === String(fichaCorrespondente.id)
+        )
+      : null;
+
     const npcIdVinculado = combatente.modificadores?.npc_id;
     const npcCorrespondente = combatente.tipo !== 'heroi'
       ? listaNpcs.find(
@@ -53,6 +65,8 @@ export function useCombatRolls({
       combatente,
       ficha: fichaCorrespondente || null,
       npc: npcCorrespondente || null,
+      companheiroFiel: companheiroFiel || null,
+      catalogoModulos: catalogoModulos || [],
       modificadoresCena: estadoCombate?.modificadores_globais || {}
     });
 
@@ -62,6 +76,7 @@ export function useCombatRolls({
       return {
         ...perfilBase,
         ficha: fichaCorrespondente || null,
+        companheiroFiel: companheiroFiel || null,
         iniciativaMod: modHeroi,
         lacos: Array.isArray(fichaCorrespondente?.lacos) ? fichaCorrespondente.lacos : [],
         habilidadePreConflito: habPre
@@ -75,7 +90,7 @@ export function useCombatRolls({
       iniciativaMod: iniFixaNpc,
       iniciativaFixaNpc: iniFixaNpc
     };
-  }, [fichasDisponiveis, npcsDisponiveis, estadoCombate?.modificadores_globais]);
+  }, [fichasDisponiveis, npcsDisponiveis, catalogoModulos, estadoCombate?.modificadores_globais]);
 
   const rolarDadosNoCombate = useCallback(async (opcoes = {}) => {
     const {
@@ -118,6 +133,12 @@ export function useCombatRolls({
       } else {
         setAcoesFeed((prev) => [{ id: `local_${Date.now()}`, ...resultado.logEntry }, ...prev].slice(0, 30));
       }
+    }
+
+    if (combatenteAlvo?.modificadores?.bonus_proximo_teste) {
+      const novosMods = { ...combatenteAlvo.modificadores };
+      delete novosMods.bonus_proximo_teste;
+      combatService.updateParticipante(combatenteAlvo.id, { modificadores: novosMods }).catch(() => {});
     }
 
     if ((resultado.isCritico || resultado.isFumble) && onDispararOportunidade) {

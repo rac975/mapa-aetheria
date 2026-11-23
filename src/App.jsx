@@ -143,6 +143,7 @@ function App() {
                 <Route path="/cronicas" element={<CronicasPage isMestre={isMestre} />} />
                 <Route path="/journal" element={<JournalPage isMestre={isMestre} />} />
                 <Route path="/combate" element={<CombatPage isMestre={isMestre} />} />
+                <Route path="/conflito" element={<CombatPage isMestre={isMestre} />} />
                 <Route path="/projetos" element={<ProjetosPage isMestre={isMestre} />} />
                 <Route path="/mestre/fichas" element={<MestreFichasPage isMestre={isMestre} />} />
 

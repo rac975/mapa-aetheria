@@ -12,13 +12,21 @@ export default function CombatantArsenalRollSection({
   onRolarArma,
   onRolarMagia
 }) {
+  const armasFiltradas = (armas || []).filter(
+    (arma) =>
+      arma.id !== 'desarmado' &&
+      arma.id !== 'ataque_desarmado' &&
+      !arma.ehDesarmado &&
+      !arma.nome?.toLowerCase().includes('desarmad')
+  );
+
   return (
     <>
-      {armas.length > 0 && (
+      {armasFiltradas.length > 0 && (
         <div className={styles.sectionBlock}>
           <span className={styles.subTitle}><FaCrosshairs /> Armas & Ataques da Ficha</span>
           <div className={styles.itemsRollGrid}>
-            {armas.map((arma) => {
+            {armasFiltradas.map((arma) => {
               const s1 = ATRIBUTOS_CONFLITO[arma.attr1]?.sigla || 'DES';
               const s2 = ATRIBUTOS_CONFLITO[arma.attr2]?.sigla || 'VIG';
               const f1 = atributosAtuais[arma.attr1] || 8;
@@ -70,6 +78,34 @@ export default function CombatantArsenalRollSection({
           <span className={styles.subTitle}><FaMagic /> Magias & Feitiços da Ficha</span>
           <div className={styles.itemsRollGrid}>
             {magias.map((magia) => {
+              if (magia.isArcano) {
+                return (
+                  <button
+                    key={magia.id}
+                    type="button"
+                    className={styles.spellRollBtn}
+                    onClick={() => onRolarMagia(magia)}
+                    title={`Invocar ${magia.nomeArcano || magia.nome} (${magia.custoPm} PM)`}
+                  >
+                    <div className={styles.weaponTop}>
+                      <strong className={styles.weaponName}>{magia.nome}</strong>
+                      <div className={styles.weaponBadgesGroup}>
+                        <Badge variant="core" size="sm">Arcano</Badge>
+                        <Badge variant="ether" size="sm">{magia.custoPm} PM</Badge>
+                      </div>
+                    </div>
+                    <span className={styles.weaponFormula}>
+                      ✦ Invocação Automática (Sem Teste)
+                    </span>
+                    {(magia.efeitoInvocacao || magia.descricao) && (
+                      <span className={styles.weaponEffectNote}>
+                        {magia.efeitoInvocacao || magia.descricao}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+
               const fAst = atributosAtuais.ast || 8;
               const fVon = atributosAtuais.von || 8;
               return (

@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import {
-  FaUndoAlt, FaRedo, FaBroadcastTower, FaUserPlus, FaSlidersH, FaSortAmountDown
+  FaUndoAlt, FaRedo, FaBroadcastTower, FaUserPlus, FaSlidersH, FaSortAmountDown, FaIdCard
 } from 'react-icons/fa';
 import { Button, Badge } from '../ui';
 import styles from './InitiativeTracker.module.css';
@@ -20,6 +21,7 @@ export default function CombatTrackerHeader({
   resetRodada,
   onOrdenarPorIniciativa
 }) {
+  const navigate = useNavigate();
   const temMultiAcoes = totalAcoesRodada > totalVivos;
 
   return (
@@ -45,40 +47,51 @@ export default function CombatTrackerHeader({
         </p>
       </div>
 
-      {isMestre && (
-        <div className={`${styles.headerActions} ${styles.noPrint}`}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onOrdenarPorIniciativa}
-            title="Ordenar combatentes por Iniciativa (maior para menor, Heróis primeiro em empate)"
-          >
-            <FaSortAmountDown className={styles.btnIcon} /> Por Iniciativa
-          </Button>
-          <Button
-            variant={mostrarModsCena || temModGlobalAtivo ? 'core' : 'ghost'}
-            size="sm"
-            onClick={() => setMostrarModsCena((v) => !v)}
-            title="Alternar modificadores globais da cena"
-          >
-            <FaSlidersH className={styles.btnIcon} /> Efeitos de Cena
-          </Button>
-          <Button
-            variant={exibirPainelAdicao ? 'core' : 'ghost'}
-            size="sm"
-            onClick={() => setMostrarFormAdicao((v) => !v)}
-            title="Adicionar herói ou inimigo ao combate"
-          >
-            <FaUserPlus className={styles.btnIcon} /> Combatente
-          </Button>
-          <Button variant="secondary" size="sm" onClick={restaurarTudoCena} title="Cura total e limpa turnos">
-            <FaUndoAlt className={styles.btnIcon} /> Restaurar
-          </Button>
-          <Button variant="primary" size="sm" onClick={resetRodada} title="Avança rodada e limpa turnos">
-            <FaRedo className={styles.btnIcon} /> Nova Rodada
-          </Button>
-        </div>
-      )}
+      <div className={`${styles.headerActions} ${styles.noPrint}`}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => navigate('/ficha')}
+          title="Ir para a Ficha do Personagem"
+        >
+          <FaIdCard className={styles.btnIcon} /> Ficha
+        </Button>
+
+        {isMestre && (
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onOrdenarPorIniciativa}
+              title="Ordenar combatentes por Iniciativa (maior para menor, Heróis primeiro em empate)"
+            >
+              <FaSortAmountDown className={styles.btnIcon} /> Por Iniciativa
+            </Button>
+            <Button
+              variant={mostrarModsCena || temModGlobalAtivo ? 'core' : 'ghost'}
+              size="sm"
+              onClick={() => setMostrarModsCena((v) => !v)}
+              title="Alternar modificadores globais da cena"
+            >
+              <FaSlidersH className={styles.btnIcon} /> Efeitos de Cena
+            </Button>
+            <Button
+              variant={exibirPainelAdicao ? 'core' : 'ghost'}
+              size="sm"
+              onClick={() => setMostrarFormAdicao((v) => !v)}
+              title="Adicionar herói ou inimigo ao combate"
+            >
+              <FaUserPlus className={styles.btnIcon} /> Combatente
+            </Button>
+            <Button variant="secondary" size="sm" onClick={restaurarTudoCena} title="Cura total e limpa turnos">
+              <FaUndoAlt className={styles.btnIcon} /> Restaurar
+            </Button>
+            <Button variant="primary" size="sm" onClick={resetRodada} title="Avança rodada e limpa turnos">
+              <FaRedo className={styles.btnIcon} /> Nova Rodada
+            </Button>
+          </>
+        )}
+      </div>
     </header>
   );
 }

@@ -11,6 +11,7 @@ import CombatTrackerHeader from './CombatTrackerHeader';
 import PreConflictActionsBar from './PreConflictActionsBar';
 import GroupInitiativeModal from './GroupInitiativeModal';
 import CombatOpportunityModal from './CombatOpportunityModal';
+import CombatantTurnSidebar from './CombatantTurnSidebar';
 import { useCombatantDrag } from './useCombatantDrag';
 import { useCombatTracker } from '../../hooks/useCombatTracker';
 import styles from './InitiativeTracker.module.css';
@@ -23,7 +24,7 @@ export default function InitiativeTracker({ isMestre }) {
     toggleTurno, ativarTurnoParticipante, resetRodada, restaurarTudoCena,
     atualizarModificadorGlobal, executarAcaoRapida, limparHistoricoAcoes,
     addParticipante, iniciarExclusao, salvarEdicao, cancelarEdicao,
-    alterarRecurso, gastarPontoVilaoCombate, transicionarFaseChefeCombate,
+    alterarRecurso, alterarRecursoCompanheiro, gastarPontoVilaoCombate, transicionarFaseChefeCombate,
     ajustarAcaoTurnoVilao, ajustarAcaoSlotInimigo, toggleCondicao, moverItemFila,
     obterPerfilRolagem, rolarDadosNoCombate, atualizarIniciativa,
     rolarIniciativaCombatente, ordenarPorIniciativa, contadoresAcoes,
@@ -32,7 +33,7 @@ export default function InitiativeTracker({ isMestre }) {
     confirmarOportunidadeCombate, descartarOportunidadeCombate
   } = useCombatTracker(isMestre);
 
-  const lista = useMemo(() => participantes || [], [participantes]);
+  const lista = useMemo(() => (participantes || []).filter((p) => !p.fugiu && !p.modificadores?.fugiu), [participantes]);
   const fila = useMemo(() => filaUnificada || [], [filaUnificada]);
 
   const [atorFocoId, setAtorFocoId] = useState('');
@@ -40,22 +41,17 @@ export default function InitiativeTracker({ isMestre }) {
   const [alvosIds, setAlvosIds] = useState([]);
   const [multiAlvoAtivo, setMultiAlvoAtivo] = useState(false);
   const [mostrarFormAdicao, setMostrarFormAdicao] = useState(false);
+  const [sidebarRecolhida, setSidebarRecolhida] = useState(false);
   const [mostrarModsCena, setMostrarModsCena] = useState(false);
 
   const modsCena = estadoCombate?.modificadores_globais || {};
-  const temModGlobalAtivo = Boolean(
-    modsCena.decretoDobrarPm || modsCena.roqueBloquearCura || (modsCena.decretoDanoExtra > 0)
-  );
+  const temModGlobalAtivo = Boolean(modsCena.decretoDobrarPm || modsCena.roqueBloquearCura || modsCena.decretoDanoExtra > 0);
 
-  const meuHeroi = useMemo(() => {
-    if (isMestre) return null;
-    return lista.find(
-      (p) => p.tipo === 'heroi' && (
-        (jogadorFichaId && String(p.ficha_id) === String(jogadorFichaId)) ||
-        (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
-      )
-    ) || null;
-  }, [isMestre, lista, jogadorFichaId, jogadorNome]);
+  const meuHeroi = useMemo(() => (!isMestre ? lista.find((p) => p.tipo === 'heroi' && ((jogadorFichaId && String(p.ficha_id) === String(jogadorFichaId)) || (jogadorNome && p.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase()))) || null : null), [isMestre, lista, jogadorFichaId, jogadorNome]);
+
+  const combatenteAtivo = useMemo(() => (atorFocoId ? lista.find((p) => String(p.id) === String(atorFocoId)) : (!isMestre && meuHeroi ? meuHeroi : lista.find((p) => p.turno_atual))) || null, [atorFocoId, lista, isMestre, meuHeroi]);
+
+  const perfilCombatenteAtivo = useMemo(() => (combatenteAtivo ? obterPerfilRolagem(combatenteAtivo) : null), [combatenteAtivo, obterPerfilRolagem]);
 
   const {
     draggedIndex, targetIndex,
@@ -70,20 +66,42 @@ export default function InitiativeTracker({ isMestre }) {
   const handleSelecionarCombatente = (combatente) => {
     const idStr = String(combatente.id);
     if (isMestre) {
-      if (!atorFocoId) setAtorFocoId(combatente.id);
-      else if (String(atorFocoId) === idStr) return;
-      else if (multiAlvoAtivo) toggleAlvoId(idStr);
-      else setAlvoFocoId(idStr);
+      if (!atorFocoId) {
+        setAtorFocoId(combatente.id);
+        setSidebarRecolhida(false);
+      } else if (String(atorFocoId) === idStr) {
+        setSidebarRecolhida((v) => !v);
+      } else if (multiAlvoAtivo) {
+        toggleAlvoId(idStr);
+      } else {
+        setAlvoFocoId(idStr);
+      }
     } else {
       const ehMeu = Boolean(
         (jogadorFichaId && String(combatente.ficha_id) === String(jogadorFichaId)) ||
         (jogadorNome && combatente.nome?.trim().toLowerCase() === jogadorNome?.trim().toLowerCase())
       );
-      if (ehMeu) setAtorFocoId(combatente.id);
-      else if (multiAlvoAtivo) toggleAlvoId(idStr);
-      else setAlvoFocoId(idStr);
+      if (ehMeu) {
+        setAtorFocoId(combatente.id);
+        setSidebarRecolhida(false);
+      } else if (multiAlvoAtivo) {
+        toggleAlvoId(idStr);
+      } else {
+        setAlvoFocoId(idStr);
+      }
     }
   };
+
+  const companheirosCena = useMemo(() => {
+    return lista.filter((p) => p.tipo === 'heroi').flatMap((p) => {
+      const c = obterPerfilRolagem ? obterPerfilRolagem(p)?.companheiro : null;
+      return c ? [{
+        ...c, id: `comp_${c.id}`, heroiId: p.id, heroiNome: p.nome,
+        nome: `${c.nome} (Companheiro de ${p.nome})`,
+        hp_atual: c.pv_atual, hp_max: c.pv_max, tipo: 'companheiro'
+      }] : [];
+    });
+  }, [lista, obterPerfilRolagem]);
 
   const exibirPainelAdicao = isMestre && (mostrarFormAdicao || lista.length === 0);
 
@@ -123,62 +141,79 @@ export default function InitiativeTracker({ isMestre }) {
         fichasDisponiveis={fichasDisponiveis} npcsDisponiveis={npcsDisponiveis} onAddParticipante={addParticipante}
       />
 
-      <div className={styles.participantesList}>
-        {fila.length === 0 ? (
-          <p className={styles.emptyText}>Nenhum combatente ativo na cena.</p>
-        ) : (
-          fila.map((itemFila, idxFila) => {
-            const p = itemFila.participante;
-            const isAtor = isMestre
-              ? String(p.id) === String(atorFocoId)
-              : Boolean(meuHeroi && String(p.id) === String(meuHeroi.id));
-            const isOver = targetIndex === idxFila && draggedIndex !== null && draggedIndex !== idxFila;
-            const dropPos = isOver ? (draggedIndex < idxFila ? 'bottom' : 'top') : null;
+      <div className={styles.combatMainLayout}>
+        <div className={styles.participantesList}>
+          {fila.length === 0 ? (
+            <p className={styles.emptyText}>Nenhum combatente ativo na cena.</p>
+          ) : (
+            fila.map((itemFila, idxFila) => {
+              const p = itemFila.participante;
+              const isAtor = isMestre
+                ? String(p.id) === String(atorFocoId)
+                : Boolean(meuHeroi && String(p.id) === String(meuHeroi.id));
+              const isOver = targetIndex === idxFila && draggedIndex !== null && draggedIndex !== idxFila;
+              const dropPos = isOver ? (draggedIndex < idxFila ? 'bottom' : 'top') : null;
 
-            if (itemFila.tipoItem === 'token_acao') {
+              if (itemFila.tipoItem === 'token_acao') {
+                return (
+                  <CombatantActionTokenMarker
+                    key={itemFila.chaveFila} p={p} slot={itemFila.slot} totalAcoes={itemFila.totalAcoes}
+                    indexFila={idxFila} isMestre={isMestre} isAtorSelecionado={isAtor}
+                    isDragging={draggedIndex === idxFila} isDragOver={isOver} dragDropPos={dropPos}
+                    onSelecionarCombatente={handleSelecionarCombatente}
+                    onAtivarTurno={(c) => { ativarTurnoParticipante(c); setAtorFocoId(c.id); }}
+                    onAjustarAcaoSlot={ajustarAcaoSlotInimigo}
+                    onDragHandleDown={handleDragStart} onDragHandleMove={handleDragMove}
+                    onDragHandleUp={handleDragEnd} onDragHandleCancel={handleDragCancel}
+                  />
+                );
+              }
+
+              const isAlvo = multiAlvoAtivo ? alvosIds.includes(String(p.id)) : String(p.id) === String(alvoFocoId);
+
               return (
-                <CombatantActionTokenMarker
-                  key={itemFila.chaveFila} p={p} slot={itemFila.slot} totalAcoes={itemFila.totalAcoes}
-                  indexFila={idxFila} isMestre={isMestre} isAtorSelecionado={isAtor}
-                  isDragging={draggedIndex === idxFila} isDragOver={isOver} dragDropPos={dropPos}
-                  onSelecionarCombatente={handleSelecionarCombatente}
+                <CombatantItem
+                  key={itemFila.chaveFila} p={p} index={idxFila} totalParticipantes={fila.length}
+                  participantes={lista} relogios={relogios} isMestre={isMestre}
+                  jogadorFichaId={jogadorFichaId} jogadorNome={jogadorNome}
+                  isAtorSelecionado={isAtor} isAlvoSelecionado={isAlvo}
+                  alvoId={alvoFocoId} alvosIds={alvosIds} multiAlvoAtivo={multiAlvoAtivo}
+                  onSelecionarCombatente={handleSelecionarCombatente} onSelecionarAlvo={setAlvoFocoId}
+                  onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
+                  onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }}
+                  onToggleAlvoMulti={toggleAlvoId} onExecutarAcao={executarAcaoRapida}
+                  isEditando={editandoId === p.id} editForm={editForm} setEditForm={setEditForm}
+                  fichasDisponiveis={fichasDisponiveis} perfilRolagem={obterPerfilRolagem(p)}
+                  onToggleTurno={toggleTurno}
                   onAtivarTurno={(c) => { ativarTurnoParticipante(c); setAtorFocoId(c.id); }}
-                  onAjustarAcaoSlot={ajustarAcaoSlotInimigo}
+                  onSalvarEdicao={salvarEdicao} onCancelarEdicao={cancelarEdicao}
+                  onIniciarExclusao={iniciarExclusao} onAlterarRecurso={alterarRecurso} onAlterarRecursoCompanheiro={alterarRecursoCompanheiro}
+                  onGastarPontoVilao={gastarPontoVilaoCombate} onTransicionarFase={transicionarFaseChefeCombate}
+                  onAjustarAcaoTurno={ajustarAcaoTurnoVilao} onAjustarAcaoSlot={ajustarAcaoSlotInimigo}
+                  onAtualizarIniciativa={atualizarIniciativa} onRolarIniciativa={rolarIniciativaCombatente}
+                  onToggleCondicao={toggleCondicao} onRolarDados={rolarDadosNoCombate}
+                  isDragging={draggedIndex === idxFila} isDragOver={isOver} dragDropPos={dropPos}
                   onDragHandleDown={handleDragStart} onDragHandleMove={handleDragMove}
                   onDragHandleUp={handleDragEnd} onDragHandleCancel={handleDragCancel}
                 />
               );
-            }
+            })
+          )}
+        </div>
 
-            const isAlvo = multiAlvoAtivo ? alvosIds.includes(String(p.id)) : String(p.id) === String(alvoFocoId);
-
-            return (
-              <CombatantItem
-                key={itemFila.chaveFila} p={p} index={idxFila} totalParticipantes={fila.length}
-                participantes={lista} relogios={relogios} isMestre={isMestre}
-                jogadorFichaId={jogadorFichaId} jogadorNome={jogadorNome}
-                isAtorSelecionado={isAtor} isAlvoSelecionado={isAlvo}
-                alvoId={alvoFocoId} alvosIds={alvosIds} multiAlvoAtivo={multiAlvoAtivo}
-                onSelecionarCombatente={handleSelecionarCombatente} onSelecionarAlvo={setAlvoFocoId}
-                onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
-                onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }}
-                onToggleAlvoMulti={toggleAlvoId} onExecutarAcao={executarAcaoRapida}
-                isEditando={editandoId === p.id} editForm={editForm} setEditForm={setEditForm}
-                fichasDisponiveis={fichasDisponiveis} perfilRolagem={obterPerfilRolagem(p)}
-                onToggleTurno={toggleTurno}
-                onAtivarTurno={(c) => { ativarTurnoParticipante(c); setAtorFocoId(c.id); }}
-                onSalvarEdicao={salvarEdicao} onCancelarEdicao={cancelarEdicao}
-                onIniciarExclusao={iniciarExclusao} onAlterarRecurso={alterarRecurso}
-                onGastarPontoVilao={gastarPontoVilaoCombate} onTransicionarFase={transicionarFaseChefeCombate}
-                onAjustarAcaoTurno={ajustarAcaoTurnoVilao} onAjustarAcaoSlot={ajustarAcaoSlotInimigo}
-                onAtualizarIniciativa={atualizarIniciativa} onRolarIniciativa={rolarIniciativaCombatente}
-                onToggleCondicao={toggleCondicao} onRolarDados={rolarDadosNoCombate}
-                isDragging={draggedIndex === idxFila} isDragOver={isOver} dragDropPos={dropPos}
-                onDragHandleDown={handleDragStart} onDragHandleMove={handleDragMove}
-                onDragHandleUp={handleDragEnd} onDragHandleCancel={handleDragCancel}
-              />
-            );
-          })
+        {combatenteAtivo && (
+          <CombatantTurnSidebar
+            combatente={combatenteAtivo}
+            perfil={perfilCombatenteAtivo}
+            participantes={lista}
+            companheiros={companheirosCena}
+            relogios={relogios} alvoId={alvoFocoId} alvosIds={alvosIds} multiAlvoAtivo={multiAlvoAtivo}
+            onSelecionarAlvo={setAlvoFocoId} onToggleMultiAlvo={() => setMultiAlvoAtivo((v) => !v)}
+            onLimparAlvo={() => { setAlvoFocoId(''); setAlvosIds([]); }} onToggleAlvoMulti={toggleAlvoId}
+            onExecutarAcao={executarAcaoRapida} onRolarDados={rolarDadosNoCombate}
+            isRecolhida={sidebarRecolhida} onToggleRecolher={() => setSidebarRecolhida((v) => !v)}
+            onFechar={() => setAtorFocoId(null)}
+          />
         )}
       </div>
 
@@ -193,6 +228,7 @@ export default function InitiativeTracker({ isMestre }) {
       <CombatOpportunityModal
         oportunidadeAtiva={oportunidadeAtiva} isMestre={isMestre}
         jogadorNome={jogadorNome} jogadorFichaId={jogadorFichaId}
+        participantes={lista} relogios={relogios}
         onVotarOportunidade={votarOportunidadeCombate}
         onConfirmarOportunidade={confirmarOportunidadeCombate}
         onDescartarOportunidade={descartarOportunidadeCombate}

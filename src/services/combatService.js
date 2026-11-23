@@ -92,14 +92,29 @@ export const combatService = {
   },
 
   /**
-   * Busca todos os NPCs/adversários do catálogo do Mestre para combate e rolagem de dados.
+   * Busca todos os NPCs/adversários do catálogo do Mestre e companheiros fiéis para combate e rolagem de dados.
    */
   async getNpcsCombate() {
     const res = await supabase
       .from('npcs_mestre')
       .select('*')
-      .eq('tipo_registro', 'npc_mestre')
+      .in('tipo_registro', ['npc_mestre', 'companheiro'])
       .order('created_at', { ascending: false });
+
+    if (res.data && Array.isArray(res.data)) {
+      return { ...res, data: res.data.map(normalizarNpcLeitura) };
+    }
+    return res;
+  },
+
+  /**
+   * Busca especificamente os NPCs do tipo Companheiro Fiel associados a heróis.
+   */
+  async getCompanheirosFieis() {
+    const res = await supabase
+      .from('npcs_mestre')
+      .select('*')
+      .eq('tipo_registro', 'companheiro');
 
     if (res.data && Array.isArray(res.data)) {
       return { ...res, data: res.data.map(normalizarNpcLeitura) };

@@ -18,25 +18,11 @@ export function useCombatTracker(isMestre) {
   const { coldDelete } = useToast();
 
   const {
-    participantes,
-    setParticipantes,
-    fichasDisponiveis,
-    npcsDisponiveis,
-    estadoCombate,
-    setEstadoCombate,
-    relogios,
-    setRelogios,
-    acoesFeed,
-    setAcoesFeed,
-    isLoading,
-    alerta,
-    setAlerta,
-    fecharAlerta,
-    sessaoJogador,
-    jogadorFichaId,
-    jogadorNome,
-    recarregarFichas,
-    recarregarParticipantes
+    participantes, setParticipantes, fichasDisponiveis, npcsDisponiveis,
+    setNpcsDisponiveis, catalogoModulos, estadoCombate, setEstadoCombate,
+    relogios, setRelogios, acoesFeed, setAcoesFeed, isLoading, alerta,
+    setAlerta, fecharAlerta, sessaoJogador, jogadorFichaId, jogadorNome,
+    recarregarFichas, recarregarParticipantes
   } = useCombatRealtimeState();
 
   const {
@@ -51,7 +37,11 @@ export function useCombatTracker(isMestre) {
     setEstadoCombate,
     setAcoesFeed,
     jogadorFichaId,
-    jogadorNome
+    jogadorNome,
+    participantes,
+    setParticipantes,
+    relogios,
+    setRelogios
   });
 
   const {
@@ -62,6 +52,8 @@ export function useCombatTracker(isMestre) {
     participantes,
     fichasDisponiveis,
     npcsDisponiveis,
+    setNpcsDisponiveis,
+    catalogoModulos,
     estadoCombate,
     setAcoesFeed,
     setAlerta,
@@ -139,7 +131,8 @@ export function useCombatTracker(isMestre) {
     iniciarExclusao,
     salvarEdicao,
     cancelarEdicao,
-    alterarRecurso
+    alterarRecurso,
+    alterarRecursoCompanheiro
   } = useCombatParticipantCrud({
     isMestre,
     participantes,
@@ -148,7 +141,9 @@ export function useCombatTracker(isMestre) {
     setAlerta,
     jogadorFichaId,
     jogadorNome,
-    coldDelete
+    coldDelete,
+    npcsDisponiveis,
+    setNpcsDisponiveis
   });
 
   const {
@@ -159,6 +154,8 @@ export function useCombatTracker(isMestre) {
     isMestre,
     participantes,
     setParticipantes,
+    npcsDisponiveis,
+    setNpcsDisponiveis,
     estadoCombate,
     setEstadoCombate,
     relogios,
@@ -186,6 +183,8 @@ export function useCombatTracker(isMestre) {
     filaUnificada: filaUnificada || [],
     fichasDisponiveis,
     npcsDisponiveis,
+    setNpcsDisponiveis,
+    catalogoModulos,
     estadoCombate,
     relogios,
     acoesFeed,
@@ -213,6 +212,7 @@ export function useCombatTracker(isMestre) {
     salvarEdicao,
     cancelarEdicao,
     alterarRecurso,
+    alterarRecursoCompanheiro,
     gastarPontoVilaoCombate,
     transicionarFaseChefeCombate,
     ajustarAcaoTurnoVilao,

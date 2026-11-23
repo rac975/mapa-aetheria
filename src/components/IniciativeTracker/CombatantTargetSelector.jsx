@@ -3,6 +3,7 @@ import styles from './CombatantTargetSelector.module.css';
 
 export default function CombatantTargetSelector({
   participantes = [],
+  companheiros = [],
   atorId,
   alvoId = '',
   alvosIds = [],
@@ -12,7 +13,10 @@ export default function CombatantTargetSelector({
   onLimparAlvo,
   onToggleAlvoMulti
 }) {
-  const alvosPossiveis = participantes.filter((p) => String(p.id) !== String(atorId));
+  const alvosPossiveis = [
+    ...participantes.filter((p) => String(p.id) !== String(atorId) && !p.fugiu && !p.modificadores?.fugiu),
+    ...(companheiros || []).filter((c) => String(c.heroiId) !== String(atorId))
+  ];
 
   const temAlvo = multiAlvoAtivo ? alvosIds.length > 0 : Boolean(alvoId);
 
@@ -44,7 +48,42 @@ export default function CombatantTargetSelector({
         </div>
       </div>
 
-      {!multiAlvoAtivo ? (
+      <div className={styles.quickTargetsScroll} role="group" aria-label="Alvos rápidos para toque único">
+        {alvosPossiveis.map((p) => {
+          const isSelected = multiAlvoAtivo
+            ? alvosIds.includes(String(p.id))
+            : String(alvoId) === String(p.id);
+          const icon = p.tipo === 'companheiro' ? '🐾' : (p.tipo === 'heroi' ? '🛡️' : '⚔️');
+          const pvAtual = p.hp_atual ?? p.pv_atual;
+          const pvMax = p.hp_max ?? p.pv_max;
+
+          const handleClick = () => {
+            if (multiAlvoAtivo) {
+              onToggleAlvoMulti?.(String(p.id));
+            } else {
+              onSelecionarAlvo?.(isSelected ? '' : String(p.id));
+            }
+          };
+
+          return (
+            <button
+              key={p.id}
+              type="button"
+              className={`${styles.quickTargetChip} ${isSelected ? styles.quickTargetChipSelected : ''}`}
+              onClick={handleClick}
+              title={`${p.nome} (${p.tipo}) • PV ${pvAtual}/${pvMax}`}
+            >
+              <span className={styles.chipIcon}>{icon}</span>
+              <span className={styles.chipNome}>{p.nome}</span>
+              {pvAtual !== undefined && pvMax !== undefined && (
+                <span className={styles.chipPv}>{pvAtual}/{pvMax}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {!multiAlvoAtivo && (
         <select
           className={styles.selectAlvo}
           value={alvoId || ''}
@@ -52,29 +91,15 @@ export default function CombatantTargetSelector({
           aria-label="Selecionar Alvo do Ataque ou Ação"
         >
           <option value="">-- Nenhum Alvo (Ação Livre / Em Si Mesmo) --</option>
-          {alvosPossiveis.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nome} ({p.tipo === 'heroi' ? 'Herói' : 'Inimigo'} • PV {p.hp_atual}/{p.hp_max})
-            </option>
-          ))}
-        </select>
-      ) : (
-        <div className={styles.multiTargetsGrid}>
           {alvosPossiveis.map((p) => {
-            const isSelected = alvosIds.includes(String(p.id));
+            const rotuloTipo = p.tipo === 'companheiro' ? '🐾 Companheiro' : (p.tipo === 'heroi' ? 'Herói' : 'Inimigo');
             return (
-              <button
-                key={p.id}
-                type="button"
-                className={`${styles.multiTargetChip} ${isSelected ? styles.multiTargetChipSelected : ''}`}
-                onClick={() => onToggleAlvoMulti?.(String(p.id))}
-              >
-                <span>{isSelected ? '🎯' : '○'}</span>
-                <span>{p.nome}</span>
-              </button>
+              <option key={p.id} value={p.id}>
+                {p.nome} ({rotuloTipo} • PV {p.hp_atual ?? p.pv_atual}/{p.hp_max ?? p.pv_max})
+              </option>
             );
           })}
-        </div>
+        </select>
       )}
     </div>
   );

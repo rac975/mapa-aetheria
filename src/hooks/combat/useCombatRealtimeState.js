@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { combatService } from '../../services/combatService';
+import { fichaService } from '../../services/fichaService';
 import { playerSessionService } from '../../services/playerSessionService';
 
 /**
@@ -10,6 +11,7 @@ export function useCombatRealtimeState() {
   const [participantes, setParticipantes] = useState([]);
   const [fichasDisponiveis, setFichasDisponiveis] = useState([]);
   const [npcsDisponiveis, setNpcsDisponiveis] = useState([]);
+  const [catalogoModulos, setCatalogoModulos] = useState([]);
   const [estadoCombate, setEstadoCombate] = useState({
     id: 1,
     rodada: 1,
@@ -50,18 +52,20 @@ export function useCombatRealtimeState() {
 
     async function inicializarCombate() {
       try {
-        const [fichasRes, npcsRes, iniciativaRes, estadoRes, relogiosRes, acoesRes] = await Promise.all([
+        const [fichasRes, npcsRes, iniciativaRes, estadoRes, relogiosRes, acoesRes, modulosData] = await Promise.all([
           combatService.getFichasPersonagens(),
           combatService.getNpcsCombate(),
           combatService.getParticipantes(),
           combatService.getEstadoCombate(),
           combatService.getRelogiosCombate(),
-          combatService.getAcoesCombate(30)
+          combatService.getAcoesCombate(30),
+          fichaService.getCatalogoVeiculosModulos().catch(() => [])
         ]);
 
         if (!ativo) return;
         if (fichasRes.data) setFichasDisponiveis(fichasRes.data);
         if (npcsRes.data) setNpcsDisponiveis(npcsRes.data);
+        if (Array.isArray(modulosData)) setCatalogoModulos(modulosData);
         if (iniciativaRes.data) setParticipantes(iniciativaRes.data);
         if (estadoRes.data) setEstadoCombate(estadoRes.data);
         if (relogiosRes.data) setRelogios(relogiosRes.data);
@@ -127,6 +131,8 @@ export function useCombatRealtimeState() {
     setParticipantes,
     fichasDisponiveis,
     npcsDisponiveis,
+    setNpcsDisponiveis,
+    catalogoModulos,
     estadoCombate,
     setEstadoCombate,
     relogios,

@@ -1,0 +1,210 @@
+.sidebarContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+/* --- DESKTOP (>= 1024px): SIDEBAR LATERAL FIXA / RETRÁTIL À DIREITA --- */
+@media (min-width: 1024px) {
+  .sidebarContainer {
+    width: 420px;
+    min-width: 380px;
+    max-width: 460px;
+    align-self: flex-start;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+  }
+
+  .sidebarContainer.collapsed {
+    width: 48px;
+    min-width: 48px;
+  }
+}
+
+.sidebarCard {
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 25, 47, 0.94);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(197, 160, 89, 0.15);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  max-height: calc(100vh - 32px);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(20, 45, 80, 0.8), rgba(10, 25, 47, 0.95));
+  border-bottom: 1px solid var(--color-border-gold-muted);
+  gap: 8px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.headerTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-border-gold-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collapseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-bright);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapseBtn:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-border-gold-bright);
+  color: var(--color-border-gold-bright);
+}
+
+.sidebarBody {
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-gold-muted) transparent;
+}
+
+/* --- ABA RETRÁTIL QUANDO COLAPSADA NO DESKTOP --- */
+.collapsedTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 8px;
+  background: rgba(10, 25, 47, 0.9);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-md);
+  color: var(--color-border-gold-bright);
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(197, 160, 89, 0.25);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  min-height: 220px;
+}
+
+.collapsedTab:hover {
+  background: var(--color-bg-surface-hover);
+  border-color: var(--color-ether-cyan);
+  box-shadow: 0 0 15px var(--color-ether-cyan-glow);
+  color: var(--color-text-bright);
+}
+
+.tabIcon {
+  font-size: 14px;
+}
+
+/* No desktop, o gatilho flutuante do mobile fica sempre oculto */
+.floatingTriggerMobile {
+  display: none;
+}
+
+/* --- MOBILE & TABLET (< 1024px): GAVETA / DRAWER RESPONSIVA --- */
+@media (max-width: 1023px) {
+  .collapsedTab {
+    display: none;
+  }
+
+  .sidebarContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(3, 8, 16, 0.75);
+    backdrop-filter: blur(4px);
+  }
+
+  .sidebarCard {
+    position: relative;
+    width: min(94vw, 440px);
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+    animation: slideInRight 0.25s ease-out;
+  }
+
+  .sidebarContainer.collapsed {
+    display: none;
+  }
+
+  .floatingTriggerMobile {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 990;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(20, 50, 90, 0.95), rgba(10, 25, 47, 0.98));
+    border: 1px solid var(--color-border-gold-bright);
+    border-radius: var(--radius-full, 9999px);
+    color: var(--color-text-bright);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px var(--color-border-gold-glow);
+    cursor: pointer;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

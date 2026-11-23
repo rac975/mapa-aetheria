@@ -61,6 +61,19 @@ export default function CombatantDiceDrawer({
   };
 
   const handleRolarMagia = async (magia) => {
+    if (magia.isArcano) {
+      setUltimaRolagem({
+        titulo: `Invocar: ${magia.nomeArcano || magia.nome}`,
+        formulaDados: 'Invocação Automática (Sem Teste)',
+        total: `${magia.custoPm || 40} PM`,
+        hr: '-',
+        calcularDano: false,
+        danoTotal: null,
+        tipoDano: 'arcano',
+        efeito: magia.efeitoInvocacao || magia.descricao || 'Efeito do Arcano ativado na cena'
+      });
+      return;
+    }
     const res = await onRolarDados({
       combatente, perfil, categoria: 'magia', titulo: `Feitiço: ${magia.nome}`,
       attr1: magia.attr1 || 'ast', attr2: magia.attr2 || 'von',

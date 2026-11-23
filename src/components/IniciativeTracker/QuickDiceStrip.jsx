@@ -20,9 +20,17 @@ export default function QuickDiceStrip({
   if (!atorSelecionado || !perfilAtor) return null;
 
   const { atributosAtuais, armas = [], magias = [] } = perfilAtor;
+  const armasFiltradas = (armas || []).filter(
+    (arma) =>
+      arma.id !== 'desarmado' &&
+      arma.id !== 'ataque_desarmado' &&
+      !arma.ehDesarmado &&
+      !arma.nome?.toLowerCase().includes('desarmad')
+  );
   const mostrarArmas =
-    ['ATAQUE', 'CONTRA_ATAQUE', 'MULTI_ATAQUE', 'DUAS_ARMAS', 'TIRO_AVISO_QUEBRA_OSSOS'].includes(acaoCodigo) ||
-    armas.length > 0;
+    (['ATAQUE', 'CONTRA_ATAQUE', 'MULTI_ATAQUE', 'DUAS_ARMAS', 'TIRO_AVISO_QUEBRA_OSSOS'].includes(acaoCodigo) ||
+    armasFiltradas.length > 0) &&
+    armasFiltradas.length > 0;
   const mostrarMagias = acaoCodigo === 'CONJURAR' && magias.length > 0;
 
   return (
@@ -81,16 +89,19 @@ export default function QuickDiceStrip({
               type="button"
               className={styles.quickSpellRollChip}
               onClick={() => onRolarMagia(m)}
-              title={`Rolar feitiço ${m.nome} e preencher PM/Dano automaticamente`}
+              title={m.isArcano
+                ? `Invocar ${m.nomeArcano || m.nome} sem teste de atributo (${m.custoPm} PM)`
+                : `Rolar feitiço ${m.nome} e preencher PM/Dano automaticamente`}
             >
               <FaMagic />
               <span>{m.nome}</span>
+              {m.isArcano && <Badge variant="core" size="sm">Arcano</Badge>}
               <Badge variant="ether" size="sm">{m.custoPm} PM</Badge>
             </button>
           ))
         ) : (
           mostrarArmas &&
-          armas.map((arma) => {
+          armasFiltradas.map((arma) => {
             const s1 = ATRIBUTOS_CONFLITO[arma.attr1]?.sigla || 'DES';
             const s2 = ATRIBUTOS_CONFLITO[arma.attr2]?.sigla || 'VIG';
             return (

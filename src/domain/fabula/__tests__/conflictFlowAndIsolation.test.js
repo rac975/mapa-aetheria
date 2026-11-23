@@ -86,14 +86,14 @@ assert.strictEqual(perfil.magias.some(m => m.nome === 'Invocar: Ifrit'), true, '
 assert.strictEqual(perfil.habilidades.some(h => h.nome === 'Proteger'), true, 'Habilidade ativa Proteger deve ser extraída');
 assert.strictEqual(perfil.habilidades.some(h => h.nome === 'Aumento de PV'), false, 'Passivo de estatística Aumento de PV deve ser ignorado');
 
-// Ficha sem armas: Golpe Desarmado deve aparecer
-const perfilDesarmado = extrairPerfilRolagemCombatente({
+// Ficha sem armas e sem habilidades aplicáveis: módulo de armas vazio e sem Golpe Desarmado
+const perfilSemArmas = extrairPerfilRolagemCombatente({
   combatente: combatenteHeroi,
   ficha: { ...fichaEnriquecida, itens: [] }
 });
-assert.strictEqual(perfilDesarmado.armas.length, 1);
-assert.strictEqual(perfilDesarmado.armas[0].id, 'desarmado');
-console.log('PASSED: Perfil de conflito sincronizado com status derivados da ficha');
+assert.strictEqual(perfilSemArmas.armas.length, 0, 'Sem armas equipadas ou módulos veiculares aplicáveis, a lista deve estar vazia');
+assert.strictEqual(perfilSemArmas.armas.some(a => a.id === 'desarmado'), false, 'Golpe Desarmado nunca deve ser exibido');
+console.log('PASSED: Perfil de conflito sincronizado com status derivados da ficha (módulo de armas oculto sem armas aplicáveis)');
 
 console.log('--- 2. Testando Sanitização e Sincronização Bidirecional Ficha <-> Combate ---');
 
@@ -283,6 +283,22 @@ assert.strictEqual(canhao.bonusDano, 8, 'Dano base da arma veicular é 8');
 
 console.log('PASSED: Módulos de arma do Piloto reconhecidos e Golpe Desarmado oculto');
 
+// Herói sem habilidade aplicável de Veículo Pessoal: NÃO deve receber módulos de arma veiculares
+const perfilSemHabilidadeVeiculo = extrairPerfilRolagemCombatente({
+  combatente: combatenteHeroi,
+  ficha: {
+    classes: [{ nome_classe: 'Guerreiro', habilidades: [] }],
+    dados_veiculo: {
+      nome: 'Meca Teste',
+      veiculoInvocado: true,
+      modulosAtivos: ['arma_veicular_canhao']
+    },
+    itens: []
+  }
+});
+assert.strictEqual(perfilSemHabilidadeVeiculo.armas.length, 0, 'Herói sem a habilidade aplicável não deve receber módulos de arma');
+console.log('PASSED: Herói sem a habilidade de Piloto não recebe módulos de armas veiculares');
+
 console.log('--- 6. Testando Condições Oficiais, Recálculo Dinâmico de Defesas e Aliases ---');
 
 // 1. Alias enfraquecido -> fraco (reduz Vigor)
@@ -369,4 +385,167 @@ assert.strictEqual(perfilAtordoado.mdef, 6, 'M.DEF baseada em AST cai de 8 para 
 assert.strictEqual(perfilAtordoado.mdefReduzida, true, 'Flag mdefReduzida deve ser true');
 
 console.log('PASSED: Recálculo dinâmico de Defesa e M.DEF sob condições e regras oficiais');
+
+// 5. Cruzamento de Catálogo Veicular do Piloto (Cyrus) e Companheiro Fiel (Remo)
+const catalogoTeste = [
+  {
+    id: 'feixe_energia_luz_cyrus',
+    key: 'feixe_energia_luz_cyrus',
+    nome: 'Feixe de Energia (Luz)',
+    tipo: 'arma',
+    categoria: 'Módulo de energia',
+    alcance: 'distancia',
+    atributos_precisao: ['des', 'ast'],
+    precisao_bonus: 3,
+    dano_formula: '【RA + 8】',
+    dano_bonus: 8,
+    tipo_dano: 'luz',
+    slot_cost: 1
+  }
+];
+
+const fichaCyrus = {
+  id: 'cyrus-1',
+  nome_personagem: 'Dr. Cyrus Strider',
+  destreza: 10,
+  astucia: 8,
+  vigor: 8,
+  vontade: 8,
+  classes: [
+    {
+      nome_classe: 'Piloto',
+      nivel: 3,
+      habilidades: [
+        {
+          nome: 'Veículo Pessoal',
+          nivel: 3,
+          veiculo: {
+            nome: 'Traje de Exploração Modelo M1',
+            frameKey: 'exoesqueleto',
+            modulosAtivos: ['feixe_energia_luz_cyrus'],
+            veiculoInvocado: true
+          }
+        }
+      ]
+    }
+  ],
+  itens: []
+};
+
+const perfilCyrus = extrairPerfilRolagemCombatente({
+  combatente: { id: 201, tipo: 'heroi', ficha_id: 'cyrus-1' },
+  ficha: fichaCyrus,
+  catalogoModulos: catalogoTeste
+});
+
+assert.strictEqual(perfilCyrus.armas.length, 1, 'Cyrus deve possuir exatamente 1 arma (Feixe de Energia)');
+assert.strictEqual(perfilCyrus.armas[0].nome, 'Feixe de Energia (Luz) (Traje de Exploração Modelo M1)');
+assert.strictEqual(perfilCyrus.armas[0].tipoDano, 'luz');
+assert.strictEqual(perfilCyrus.armas[0].alcance, 'distancia');
+assert.strictEqual(perfilCyrus.armas[0].isModuloVeicular, true);
+assert.strictEqual(perfilCyrus.armas.some(a => a.id === 'desarmado'), false, 'Não deve exibir golpe desarmado');
+
+// Companheiro Fiel
+const compFielRemo = {
+  id: 'comp-1',
+  nome: 'Companheiro Leal de Remo',
+  tipo_registro: 'companheiro',
+  personagem_id: 'remo-1',
+  ataques_basicos: [
+    { nome: 'Mordida', atributo_dado1: 'des', atributo_dado2: 'vig', bonus_precisao: 1, bonus_dano: 2, tipo_dano: 'fisico' }
+  ],
+  feiticos: [
+    { id: 'feit-1', nome: 'Sopro', pm_custo: 5, ofensivo: true, descricao: 'Causa RA+10 de dano' }
+  ]
+};
+
+const fichaRemo = {
+  id: 'remo-1',
+  nome_personagem: 'Remo de Orez',
+  destreza: 6,
+  astucia: 8,
+  vigor: 8,
+  vontade: 10,
+  classes: [
+    {
+      nome_classe: 'Andarilho',
+      nivel: 3,
+      habilidades: [{ nome: 'Companheiro Fiel', nivel: 2 }]
+    },
+    {
+      nome_classe: 'Quimerista',
+      nivel: 4,
+      habilidades: [
+        {
+          nome: 'Imitação Mágica',
+          nivel: 3,
+          magias_imitadas: [{ nome: 'Sopro Tóxico', custo_pm: 10, descricao: 'Envenena o alvo' }]
+        }
+      ]
+    }
+  ]
+};
+
+const perfilRemo = extrairPerfilRolagemCombatente({
+  combatente: { id: 202, tipo: 'heroi', ficha_id: 'remo-1' },
+  ficha: fichaRemo,
+  companheiroFiel: compFielRemo
+});
+
+assert.strictEqual(Boolean(perfilRemo.companheiro), true, 'Perfil de Remo deve conter o Companheiro Fiel');
+assert.strictEqual(perfilRemo.companheiro.nome, 'Companheiro Leal de Remo');
+assert.strictEqual(perfilRemo.companheiro.ataques.length, 1);
+assert.strictEqual(perfilRemo.companheiro.ataques[0].bonusPrecisao, 3, 'Precisão do companheiro = 1 + NP 2 = 3');
+assert.strictEqual(perfilRemo.magias.some(m => m.nome === 'Sopro Tóxico'), true, 'Deve conter a magia imitada Sopro Tóxico');
+assert.strictEqual(perfilRemo.habilidades.some(h => h.nome === 'Companheiro Fiel'), false, 'Companheiro Fiel não deve ser duplicado em habilidades genéricas');
+
+// Remo com Lado a Lado, Cochilo Poderoso e Prático
+const fichaRemoAvancado = {
+  ...fichaRemo,
+  nivel: 20,
+  poderes_heroicos: [{ key: 'lado_a_lado', nome: 'Lado a Lado' }, { key: 'cochilo_poderoso', nome: 'Cochilo Poderoso' }],
+  classes: [
+    {
+      nome_classe: 'Andarilho',
+      nivel: 5,
+      habilidades: [
+        { nome: 'Companheiro Fiel', nivel: 3 },
+        { nome: 'Prático', nivel: 2 }
+      ]
+    }
+  ]
+};
+
+const perfilRemoAvancado = extrairPerfilRolagemCombatente({
+  combatente: { id: 202, tipo: 'heroi', ficha_id: 'remo-1', nivel: 20 },
+  ficha: fichaRemoAvancado,
+  companheiroFiel: compFielRemo
+});
+
+assert.strictEqual(perfilRemoAvancado.companheiro.ataques[0].bonusDano, 7, 'Dano do companheiro deve somar +5 do Lado a Lado (2 + 5 = 7)');
+assert.strictEqual(perfilRemoAvancado.habilidades.some(h => h.codigo === 'COCHILO_PODEROSO'), true, 'Cochilo Poderoso deve estar nas habilidades');
+assert.strictEqual(perfilRemoAvancado.habilidades.some(h => h.codigo === 'LADO_A_LADO_PM'), true, 'Lado a Lado deve estar nas habilidades');
+assert.strictEqual(perfilRemoAvancado.habilidades.some(h => h.codigo === 'PRATICO_SUPORTE'), true, 'Suporte Prático deve estar nas habilidades');
+
+// Resolução de Cochilo Poderoso em combate
+const resCochilo = resolverAcaoCombate({
+  acaoCodigo: 'COCHILO_PODEROSO',
+  ator: { id: 202, nome: 'Remo', hp_atual: 10, hp_max: 50, mp_atual: 5, mp_max: 40, nivel: 20, condicoes: ['lento', 'envenenado'] }
+});
+assert.strictEqual(resCochilo.valido, true);
+assert.strictEqual(resCochilo.updatesAtor.hp_atual, 40, 'Recupera 30 PV (10 + 30 = 40)');
+assert.strictEqual(resCochilo.updatesAtor.mp_atual, 35, 'Recupera 30 PM (5 + 30 = 35)');
+assert.deepStrictEqual(resCochilo.updatesAtor.condicoes, [], 'Cura todas as condições');
+assert.strictEqual(resCochilo.updatesAtor.agiu, true, 'Encerra o turno');
+
+// Resolução de Lado a Lado (Recuperar PM) em combate
+const resLadoALado = resolverAcaoCombate({
+  acaoCodigo: 'LADO_A_LADO_PM',
+  ator: { id: 202, nome: 'Remo', mp_atual: 15, mp_max: 40 }
+});
+assert.strictEqual(resLadoALado.valido, true);
+assert.strictEqual(resLadoALado.updatesAtor.mp_atual, 25, 'Herói recupera 10 PM (15 + 10 = 25)');
+
+console.log('PASSED: Módulos de veículo com catálogo, Quimerista e Companheiro Fiel validados!');
+console.log('PASSED: Ações e Poderes Heroicos de Andarilho validados com sucesso!');
 console.log('TODOS OS TESTES DE CONFLITO E ISOLAMENTO PASSARAM!');

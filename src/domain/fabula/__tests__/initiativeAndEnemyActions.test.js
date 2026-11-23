@@ -194,10 +194,10 @@ test('--- 6. Modal/Votação de Oportunidades (Herói -> Mestre; Inimigo -> Her�
   });
   assert.equal(oppInimigo.responsavelEscolha, 'herois');
 
-  oppInimigo = registrarVotoOportunidade(oppInimigo, 'Yuna', 'FAVORECER');
-  oppInimigo = registrarVotoOportunidade(oppInimigo, 'Auron', 'FAVORECER');
+  oppInimigo = registrarVotoOportunidade(oppInimigo, 'Yuna', 'VANTAGEM');
+  oppInimigo = registrarVotoOportunidade(oppInimigo, 'Auron', 'VANTAGEM');
   const vencedora = obterOportunidadeVencedora(oppInimigo);
-  assert.equal(vencedora.codigoVencedor, 'FAVORECER');
+  assert.equal(vencedora.codigoVencedor, 'VANTAGEM');
   assert.equal(vencedora.totalVotos, 2);
 
   assert.equal(obterSlotsAcoesInimigo({ tipo: 'inimigo', acoes_por_turno: 2 }).length, 2);

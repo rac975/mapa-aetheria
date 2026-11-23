@@ -65,10 +65,40 @@
   gap: var(--space-2);
 }
 
+.btnPassarTurno {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 8px 14px;
+  background: rgba(30, 41, 59, 0.85);
+  color: var(--color-text-bright);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border-gold-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnPassarTurno:hover {
+  background: rgba(51, 65, 85, 0.95);
+  border-color: var(--color-border-gold);
+  color: var(--color-border-gold-bright);
+  transform: translateY(-1px);
+}
+
+.btnPassarTurno:active {
+  transform: translateY(0);
+}
+
 .btnDisparar {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
+  min-height: 40px;
   padding: 8px 20px;
   background: linear-gradient(135deg, var(--color-border-gold) 0%, var(--color-border-gold-bright) 100%);
   color: var(--color-bg-base);
@@ -89,4 +119,44 @@
 
 .btnDisparar:active {
   transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .turnActionArea {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .triggerBar {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    background: rgba(10, 25, 47, 0.97);
+    backdrop-filter: blur(8px);
+    padding: var(--space-2) 0;
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--color-border-gold);
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+
+  .concluirTurnoLabel {
+    min-height: 38px;
+    justify-content: center;
+  }
+
+  .triggerBtnGroup {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+
+  .btnPassarTurno,
+  .btnDisparar {
+    flex: 1;
+    min-height: 44px;
+    padding: 10px var(--space-2);
+    font-size: var(--font-size-xs);
+  }
 }
