@@ -205,6 +205,8 @@ export default function ExibirInventor({ classes, ficha, classe, fichaId, handle
           temSuperiorTecnomagia={temSuperiorTecnomagia}
           onCriarMagicanhao={criarMagicanhão}
           criandoCanhao={criandoCanhao}
+          classes={classes}
+          fichaId={fichaId || ficha?.id}
         />
       )}
 

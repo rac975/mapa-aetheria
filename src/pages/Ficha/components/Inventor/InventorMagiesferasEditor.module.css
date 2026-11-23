@@ -1,0 +1,149 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm, 8px);
+  margin-top: var(--spacing-sm, 8px);
+  padding: var(--spacing-md, 12px);
+  background-color: var(--color-surface-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--border-radius-md, 8px);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 4px);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ether, #80d0ff);
+}
+
+.sphereIcon {
+  color: var(--color-ether, #80d0ff);
+}
+
+.ruleInfo {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #94a3b8);
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xs, 6px);
+}
+
+.emptyCard {
+  padding: var(--spacing-md, 12px);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #94a3b8);
+  background-color: var(--color-surface, rgba(0, 0, 0, 0.2));
+  border: 1px dashed var(--color-border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: var(--border-radius-sm, 6px);
+}
+
+.spheresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--spacing-sm, 8px);
+}
+
+.sphereCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 6px);
+  padding: var(--spacing-sm, 10px);
+  background-color: var(--color-surface, rgba(0, 0, 0, 0.3));
+  border: 1px solid var(--color-ether-border, rgba(128, 208, 255, 0.3));
+  border-radius: var(--border-radius-sm, 6px);
+}
+
+.sphereCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs, 6px);
+}
+
+.sphereCardTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+  font-size: 0.88rem;
+  color: var(--color-text-primary, #f8fafc);
+}
+
+.sphereSmallDot {
+  font-size: 0.65rem;
+  color: var(--color-ether, #80d0ff);
+}
+
+.sphereBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 4px);
+}
+
+.removeBtn {
+  padding: 4px 6px;
+  line-height: 1;
+}
+
+.sphereDesc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #94a3b8);
+  line-height: 1.35;
+}
+
+.addSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 6px);
+  padding: var(--spacing-sm, 10px);
+  background-color: var(--color-surface-hover, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: var(--border-radius-sm, 6px);
+}
+
+.addTitle {
+  font-size: 0.82rem;
+  color: var(--color-text-primary, #f8fafc);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.controlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs, 6px);
+}
+
+.select {
+  flex: 1;
+  min-width: 140px;
+  padding: 6px 10px;
+  background-color: var(--color-surface, #0f172a);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.15));
+  border-radius: var(--border-radius-sm, 4px);
+  color: var(--color-text-primary, #f8fafc);
+  font-size: 0.82rem;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-ether, #80d0ff);
+}

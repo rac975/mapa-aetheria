@@ -1,13 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { FaDragon, FaPlus, FaTrash } from 'react-icons/fa';
+import { useState, useMemo } from 'react';
+import { FaDragon, FaPlus } from 'react-icons/fa';
 import { fichaService } from '../../../../services/fichaService';
 import {
   extrairMagiasQuimerista,
   extrairAtributoQuimerista,
   sincronizarQuimeristaNaHabilidade
 } from '../../../../domain/fabula/coreClassRules';
+import { normalizarFeiticoQuimerista } from '../../../../domain/fabula/chimeristRules';
 import { Button } from '../../../../components/ui';
 import CustomAlert from '../../../../components/CustomAlert/CustomAlert';
+import QuimeristaSpellForm from './QuimeristaSpellForm';
+import QuimeristaSpellCard from './QuimeristaSpellCard';
 import styles from './ExibirQuimerista.module.css';
 
 export default function ExibirQuimerista({
@@ -34,8 +37,7 @@ export default function ExibirQuimerista({
   const atributoFromProps = useMemo(() => extrairAtributoQuimerista(classe, ficha), [classe, ficha]);
   const atributoEscolhido = atributoLocal !== null ? atributoLocal : atributoFromProps;
 
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [novaMagia, setNovaMagia] = useState({ nome: '', custo_mp: '', especie: 'fera', descricao: '' });
+  const [modoEdicao, setModoEdicao] = useState({ aberto: false, magia: null, index: null });
   const [alerta, setAlerta] = useState({ isOpen: false, title: '', message: '', type: 'alert', onConfirm: null });
 
   const habs = classe?.habilidades || ficha?.habilidades || [];
@@ -87,33 +89,40 @@ export default function ExibirQuimerista({
   };
 
   const alterarAtributo = (e) => {
-    const val = e.target.value;
-    salvarNoBanco(magiasImitadas, val);
+    salvarNoBanco(magiasImitadas, e.target.value);
   };
 
-  const adicionarMagia = (e) => {
-    e.preventDefault();
-    if (!novaMagia.nome.trim()) return;
-    if (magiasImitadas.length >= limiteFeiticos) {
-      setAlerta({
-        isOpen: true,
-        type: 'warning',
-        title: 'Limite de Feitiços',
-        message: `Limite de ${limiteFeiticos} feitiços memorizados (NP + 2) atingido.`
-      });
-      return;
+  const handleSalvarFeitico = (dadosFeitico) => {
+    if (modoEdicao.index !== null && modoEdicao.index >= 0) {
+      // Modo Edição
+      const atualizadas = [...magiasImitadas];
+      atualizadas[modoEdicao.index] = normalizarFeiticoQuimerista(dadosFeitico, modoEdicao.index);
+      salvarNoBanco(atualizadas);
+      setModoEdicao({ aberto: false, magia: null, index: null });
+    } else {
+      // Modo Criação
+      if (magiasImitadas.length >= limiteFeiticos) {
+        setAlerta({
+          isOpen: true,
+          type: 'warning',
+          title: 'Limite de Feitiços',
+          message: `Limite de ${limiteFeiticos} feitiços memorizados (NP + 2) atingido.`
+        });
+        return;
+      }
+      const nova = normalizarFeiticoQuimerista(dadosFeitico, magiasImitadas.length);
+      salvarNoBanco([...magiasImitadas, nova]);
+      setModoEdicao({ aberto: false, magia: null, index: null });
     }
-    salvarNoBanco([...magiasImitadas, { ...novaMagia, id: `quim-${Date.now()}` }]);
-    setNovaMagia({ nome: '', custo_mp: '', especie: 'fera', descricao: '' });
-    setMostrarForm(false);
   };
 
-  const removerMagia = (idx) => {
+  const handleRemoverFeitico = (idx) => {
+    const magiaParaRemover = magiasImitadas[idx];
     setAlerta({
       isOpen: true,
       type: 'confirm',
       title: 'Esquecer Feitiço',
-      message: 'Esquecer este feitiço memorizado pelo Quimerista?',
+      message: `Deseja realmente esquecer o feitiço "${magiaParaRemover?.nome || 'Imitado'}"?`,
       onConfirm: () => salvarNoBanco(magiasImitadas.filter((_, i) => i !== idx))
     });
   };
@@ -134,7 +143,25 @@ export default function ExibirQuimerista({
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.title}><FaDragon /> Grimório Quimérico</div>
-        <Button type="button" variant="secondary" size="sm" onClick={() => setMostrarForm(!mostrarForm)}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => {
+            if (modoEdicao.aberto) {
+              setModoEdicao({ aberto: false, magia: null, index: null });
+            } else if (magiasImitadas.length >= limiteFeiticos) {
+              setAlerta({
+                isOpen: true,
+                type: 'warning',
+                title: 'Limite de Feitiços',
+                message: `Limite de ${limiteFeiticos} feitiços memorizados atingido.`
+              });
+            } else {
+              setModoEdicao({ aberto: true, magia: null, index: null });
+            }
+          }}
+        >
           <FaPlus size={10} /> Imitar Feitiço ({magiasImitadas.length}/{limiteFeiticos})
         </Button>
       </div>
@@ -157,23 +184,12 @@ export default function ExibirQuimerista({
         {nvLingua > 0 && <span className={styles.passivaLingua}>🗣️ Língua das Feras</span>}
       </div>
 
-      {mostrarForm && (
-        <form onSubmit={adicionarMagia} className={styles.formBox}>
-          <div className={styles.formRow}>
-            <input type="text" placeholder="Nome do Feitiço Imitado" value={novaMagia.nome} onChange={(e) => setNovaMagia({ ...novaMagia, nome: e.target.value })} required className={styles.inputName} />
-            <input type="number" placeholder="MP" value={novaMagia.custo_mp} onChange={(e) => setNovaMagia({ ...novaMagia, custo_mp: e.target.value })} className={styles.inputMp} />
-            <select value={novaMagia.especie} onChange={(e) => setNovaMagia({ ...novaMagia, especie: e.target.value })} className={styles.selectEspecie}>
-              <option value="fera">Fera</option>
-              <option value="monstro">Monstro</option>
-              <option value="planta">Planta</option>
-            </select>
-          </div>
-          <input type="text" placeholder="Descrição / Efeito do feitiço" value={novaMagia.descricao} onChange={(e) => setNovaMagia({ ...novaMagia, descricao: e.target.value })} className={styles.inputDesc} />
-          <div className={styles.formActions}>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setMostrarForm(false)}>Cancelar</Button>
-            <Button type="submit" variant="primary" size="sm">Memorizar</Button>
-          </div>
-        </form>
+      {modoEdicao.aberto && (
+        <QuimeristaSpellForm
+          feiticoInicial={modoEdicao.magia}
+          onSalvar={handleSalvarFeitico}
+          onCancelar={() => setModoEdicao({ aberto: false, magia: null, index: null })}
+        />
       )}
 
       {magiasImitadas.length === 0 ? (
@@ -183,24 +199,25 @@ export default function ExibirQuimerista({
       ) : (
         <div className={styles.spellsList}>
           {magiasImitadas.map((mag, idx) => (
-            <div key={mag.id || idx} className={styles.spellCard}>
-              <div className={styles.spellHeader}>
-                <div>
-                  <strong className={styles.spellName}>{mag.nome}</strong>{' '}
-                  <span className={styles.spellMp}>(MP: {mag.custo_mp || '—'})</span>{' '}
-                  <span className={styles.spellSpecies}>[{mag.especie}]</span>
-                </div>
-                <button type="button" onClick={() => removerMagia(idx)} className={styles.deleteBtn} title="Esquecer feitiço">
-                  <FaTrash size={11} />
-                </button>
-              </div>
-              {mag.descricao && <div className={styles.spellDesc}>{mag.descricao}</div>}
-            </div>
+            <QuimeristaSpellCard
+              key={mag.id || idx}
+              magia={mag}
+              index={idx}
+              onEditar={(m, i) => setModoEdicao({ aberto: true, magia: m, index: i })}
+              onRemover={handleRemoverFeitico}
+            />
           ))}
         </div>
       )}
 
-      <CustomAlert isOpen={alerta.isOpen} type={alerta.type} title={alerta.title} message={alerta.message} onConfirm={alerta.onConfirm} onClose={fecharAlerta} />
+      <CustomAlert
+        isOpen={alerta.isOpen}
+        type={alerta.type}
+        title={alerta.title}
+        message={alerta.message}
+        onConfirm={alerta.onConfirm}
+        onClose={fecharAlerta}
+      />
     </div>
   );
 }

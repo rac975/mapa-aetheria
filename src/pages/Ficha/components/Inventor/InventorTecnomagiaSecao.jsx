@@ -2,6 +2,7 @@ import React from 'react';
 import { FaMagic } from 'react-icons/fa';
 import { Button } from '../../../../components/ui';
 import { useAlert } from '../../../../contexts/useAlert';
+import InventorMagiesferasEditor from './InventorMagiesferasEditor';
 import styles from './InventorTecnomagiaSecao.module.css';
 
 export default function InventorTecnomagiaSecao({
@@ -10,7 +11,10 @@ export default function InventorTecnomagiaSecao({
   temAvancadoTecnomagia,
   temSuperiorTecnomagia,
   onCriarMagicanhao,
-  criandoCanhao
+  criandoCanhao,
+  classes = [],
+  fichaId = null,
+  onAtualizarClasses = null
 }) {
   const { showAlert } = useAlert();
   return (
@@ -62,11 +66,14 @@ export default function InventorTecnomagiaSecao({
           </div>
         )}
 
-        {/* Magisferas */}
+        {/* Magiesferas */}
         {temSuperiorTecnomagia && (
-          <div className={styles.card}>
-            <strong className={styles.highlightRed}>Magisferas (Superior):</strong> Cria magisferas de feitiços (Elementalista, Entropista, Espiritualista). Ação Inventário + 2 PI para lançar o feitiço instantaneamente pagando seus custos normais de MP.
-          </div>
+          <InventorMagiesferasEditor
+            fichaId={fichaId || ficha?.id}
+            classes={classes}
+            nivelPersonagem={ficha?.nivel || 5}
+            onAtualizarClasses={onAtualizarClasses}
+          />
         )}
       </div>
     </div>

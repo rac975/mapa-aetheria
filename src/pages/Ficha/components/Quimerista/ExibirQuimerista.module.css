@@ -41,11 +41,13 @@
   flex-wrap: wrap;
 }
 
-.attributeLabel {
-  color: var(--color-text-dim);
-}
+.attributeLabel { color: var(--color-text-dim); }
 
-.attributeSelect {
+.attributeSelect,
+.inputName,
+.inputMp,
+.selectField,
+.inputTextarea {
   background: var(--color-bg-surface);
   color: var(--color-text-main);
   border: 1px solid var(--color-border-gold-muted);
@@ -55,7 +57,11 @@
   outline: none;
 }
 
-.attributeSelect:focus {
+.attributeSelect:focus,
+.inputName:focus,
+.inputMp:focus,
+.selectField:focus,
+.inputTextarea:focus {
   border-color: var(--color-pv);
 }
 
@@ -67,28 +73,29 @@
   margin-bottom: var(--space-3);
 }
 
-.passivaConsumir {
-  background: rgba(46, 204, 113, 0.1);
+.passivaConsumir,
+.passivaPatogenese,
+.passivaLingua {
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.passivaConsumir {
+  background: rgba(46, 204, 113, 0.1);
   border: 1px solid var(--color-pv);
   color: var(--color-pv);
   cursor: pointer;
-  font-size: var(--font-size-xs);
 }
 
 .passivaPatogenese {
   background: rgba(197, 160, 89, 0.1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-gold);
   color: var(--color-text-gold);
 }
 
 .passivaLingua {
   background: rgba(0, 180, 255, 0.1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
   border: 1px solid var(--color-pm);
   color: var(--color-pm);
 }
@@ -104,58 +111,33 @@
   border: 1px solid var(--color-border-gold-muted);
 }
 
+.formTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-border-gold-bright);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
 .formRow {
   display: flex;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.inputName {
-  flex: 2;
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  font-size: var(--font-size-sm);
-  outline: none;
-}
-
-.inputMp {
-  flex: 0.6;
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  font-size: var(--font-size-sm);
-  outline: none;
-}
-
-.selectEspecie {
-  flex: 1;
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  font-size: var(--font-size-sm);
-  outline: none;
-}
-
-.inputDesc {
-  background: var(--color-bg-surface);
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-gold-muted);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
-  font-size: var(--font-size-sm);
-  outline: none;
-}
+.inputGroupGrow { flex: 2; min-width: 150px; display: flex; flex-direction: column; gap: 2px; }
+.inputGroupSmall { flex: 0.6; min-width: 80px; display: flex; flex-direction: column; gap: 2px; }
+.inputGroupMed { flex: 1.2; min-width: 130px; display: flex; flex-direction: column; gap: 2px; }
+.inputGroupFull { width: 100%; display: flex; flex-direction: column; gap: 2px; }
+.inputLabel { font-size: var(--font-size-xs); color: var(--color-text-dim); font-weight: 600; }
+.inputTextarea { resize: vertical; line-height: 1.4; padding: var(--space-2); }
 
 .formActions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 
 .emptyState {
@@ -177,36 +159,36 @@
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: var(--font-size-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .spellHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.spellName {
-  color: var(--color-text-main);
-  font-weight: 600;
+.spellHeaderInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-.spellMp {
-  font-size: var(--font-size-xs);
-  color: var(--color-pv);
-  margin-left: var(--space-2);
-}
+.spellName { color: var(--color-text-main); font-weight: 600; }
+.spellMp { font-size: var(--font-size-xs); color: var(--color-pv); }
+.spellSpecies { font-size: var(--font-size-xs); color: var(--color-text-gold); text-transform: uppercase; }
 
-.spellSpecies {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-gold);
-  margin-left: var(--space-2);
-  text-transform: uppercase;
-}
+.spellActions { display: flex; align-items: center; gap: var(--space-1); }
 
+.editBtn,
 .deleteBtn {
   background: transparent;
   border: none;
-  color: var(--color-crise);
   cursor: pointer;
   padding: var(--space-1);
   display: flex;
@@ -216,14 +198,20 @@
   transition: opacity var(--transition-fast);
 }
 
-.deleteBtn:hover {
-  opacity: 1;
+.editBtn { color: var(--color-border-gold-bright); }
+.deleteBtn { color: var(--color-crise); }
+.editBtn:hover, .deleteBtn:hover { opacity: 1; }
+
+.spellTacticalBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
 }
 
 .spellDesc {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  margin-top: 2px;
   line-height: 1.4;
 }
 
@@ -236,34 +224,15 @@
     page-break-inside: avoid;
   }
 
-  .title,
-  .attributeLabel,
-  .passivaConsumir,
-  .passivaPatogenese,
-  .passivaLingua,
-  .spellName,
-  .spellMp,
-  .spellSpecies,
-  .spellDesc {
+  .title, .attributeLabel, .passivaConsumir, .passivaPatogenese,
+  .passivaLingua, .spellName, .spellMp, .spellSpecies, .spellDesc {
     color: #000000 !important;
   }
 
-  .attributeConfig,
-  .spellCard {
+  .attributeConfig, .spellCard {
     background: transparent !important;
     border: 1px solid #666666 !important;
   }
 
-  .passivaConsumir,
-  .passivaPatogenese,
-  .passivaLingua {
-    background: transparent !important;
-    border: 1px solid #333333 !important;
-  }
-
-  button,
-  .formBox,
-  .deleteBtn {
-    display: none !important;
-  }
+  button, .formBox, .spellActions { display: none !important; }
 }

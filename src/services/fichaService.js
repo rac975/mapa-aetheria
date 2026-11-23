@@ -1041,6 +1041,61 @@ export const fichaService = {
   },
 
   /**
+   * Busca feitiços de disciplinas elegíveis para Magiesferas (Elementalista, Entropista, Espiritualista).
+   * @returns {Promise<{data: any, error: any}>}
+   */
+  async getCatalogoFeiticosMagiesferas() {
+    return await supabase
+      .from('catalogo_feiticos')
+      .select('*')
+      .in('classe', ['Elementalista', 'Entropista', 'Espiritualista'])
+      .order('nome', { ascending: true });
+  },
+
+  /**
+   * Salva as magiesferas da Tecnomagia Superior (Inventor) na tabela fichas_classes.
+   * @param {string|number} fichaId
+   * @param {Array} magiesferas
+   * @returns {Promise<{sucesso: boolean, error?: any}>}
+   */
+  async salvarMagiesferasInventor(fichaId, magiesferas = []) {
+    if (!fichaId) return { sucesso: false, error: new Error('fichaId é obrigatório') };
+    try {
+      const { data: classesData, error: errBusca } = await supabase
+        .from('fichas_classes')
+        .select('*')
+        .eq('ficha_id', fichaId);
+
+      if (errBusca) throw errBusca;
+
+      const inventorClass = (classesData || []).find((c) =>
+        (c.nome_classe || '').toLowerCase().includes('inventor')
+      );
+
+      if (inventorClass) {
+        const habilidadesAtualizadas = (inventorClass.habilidades || []).map((h) => {
+          const nomeHab = (h.nome || '').toLowerCase();
+          if (nomeHab.includes('engenhocas')) {
+            return { ...h, magiesferas };
+          }
+          return h;
+        });
+
+        const { error: errUpdate } = await supabase
+          .from('fichas_classes')
+          .update({ habilidades: habilidadesAtualizadas })
+          .eq('id', inventorClass.id);
+
+        if (errUpdate) throw errUpdate;
+      }
+      return { sucesso: true };
+    } catch (err) {
+      console.error('Erro ao salvar magiesferas do Inventor:', err);
+      return { sucesso: false, error: err };
+    }
+  },
+
+  /**
    * Salva a configuração do veículo pessoal da classe Piloto no Supabase.
    * Padrão oficial do projeto: Atualiza o nó da habilidade "Veículo Pessoal" na tabela fichas_classes
    * (idêntico ao padrão de Engenhocas do Inventor e poderes do Arcanista).
