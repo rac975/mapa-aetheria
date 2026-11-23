@@ -1,7 +1,7 @@
 /**
- * Fabula Ultima - CatÃ¡logo de Presets TÃ¡ticos do Bloco D
- * Floralista, Gourmet, Invocador e Mercador (Atlas Fantasia BucÃ³lica).
- * Clean Architecture: FunÃ§Ãµes puras sem dependÃªncias de UI.
+ * Fabula Ultima - Catálogo de Presets Táticos do Bloco D
+ * Floralista, Gourmet, Invocador e Mercador (Atlas Fantasia Bucólica).
+ * Clean Architecture: Funções puras sem dependências de UI.
  */
 
 import { normalizarTextoCore } from './coreClassRules.js';
@@ -16,31 +16,31 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
       return [
         {
           id: 'cloromancia_espinhos',
-          titulo: 'Espinhos (FÃ­sico)',
+          titulo: 'Espinhos (Físico)',
           badge: '20 PM',
-          descricao: 'Planta Magissemente de Espinhos no jardim: Dano fÃ­sico e retaliaÃ§Ã£o.',
-          valores: { custoPm: 20, tipoDano: 'fisico', notaLivre: 'ðŸŒ± Cloromancia: Magissemente de Espinhos plantada!' }
+          descricao: 'Planta Magissemente de Espinhos no jardim: Dano físico e retaliação.',
+          valores: { custoPm: 20, tipoDano: 'fisico', notaLivre: '🌱 Cloromancia: Magissemente de Espinhos plantada!' }
         },
         {
           id: 'cloromancia_rosa_fogo',
           titulo: 'Rosa de Fogo',
           badge: '20 PM',
-          descricao: 'Planta Magissemente Rosa de Fogo: Dano contÃ­nuo de Fogo.',
-          valores: { custoPm: 20, tipoDano: 'fogo', notaLivre: 'ðŸŒ¹ Cloromancia: Rosa de Fogo plantada!' }
+          descricao: 'Planta Magissemente Rosa de Fogo: Dano contínuo de Fogo.',
+          valores: { custoPm: 20, tipoDano: 'fogo', notaLivre: '🌹 Cloromancia: Rosa de Fogo plantada!' }
         },
         {
           id: 'cloromancia_lirio',
-          titulo: 'LÃ­rio Restaurador',
+          titulo: 'Lírio Restaurador',
           badge: '20 PM',
-          descricao: 'Planta Magissemente LÃ­rio Restaurador: RestauraÃ§Ã£o progressiva de PV.',
-          valores: { custoPm: 20, curaAplicada: 20, recursoCura: 'pv', notaLivre: 'ðŸª· Cloromancia: LÃ­rio Restaurador plantado!' }
+          descricao: 'Planta Magissemente Lírio Restaurador: Restauração progressiva de PV.',
+          valores: { custoPm: 20, curaAplicada: 20, recursoCura: 'pv', notaLivre: '🪷 Cloromancia: Lírio Restaurador plantado!' }
         },
         {
           id: 'cloromancia_orquidea',
-          titulo: 'OrquÃ­dea Silenciosa',
+          titulo: 'Orquídea Silenciosa',
           badge: '20 PM',
-          descricao: 'Planta OrquÃ­dea Silenciosa: Dreno de PM e debuff Abalado/Atordoado.',
-          valores: { custoPm: 20, perdaPmAlvo: 10, notaLivre: 'ðŸ’œ Cloromancia: OrquÃ­dea Silenciosa plantada!' }
+          descricao: 'Planta Orquídea Silenciosa: Dreno de PM e debuff Abalado/Atordoado.',
+          valores: { custoPm: 20, perdaPmAlvo: 10, notaLivre: '💜 Cloromancia: Orquídea Silenciosa plantada!' }
         }
       ];
 
@@ -49,16 +49,16 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
         {
           id: 'jardinagem_ataque_livre',
           titulo: 'Ataque Livre (RA = 0)',
-          badge: 'Sem AÃ§Ã£o',
-          descricao: 'Ataque livre com arma equipada imediatamente apÃ³s plantar (RA = 0 no dano).',
-          valores: { danoAplicado: 0, custoPm: 0, notaLivre: `ðŸŒ¸ Jardinagem Marcial: Ataque livre imediato contra ${alvoNome} (RA = 0).` }
+          badge: 'Sem Ação',
+          descricao: 'Ataque livre com arma equipada imediatamente após plantar (RA = 0 no dano).',
+          valores: { danoAplicado: 0, custoPm: 0, notaLivre: `🌸 Jardinagem Marcial: Ataque livre imediato contra ${alvoNome} (RA = 0).` }
         },
         {
           id: 'jardinagem_feitico_livre',
-          titulo: `FeitiÃ§o (atÃ© ${5 + np * 5} PM)`,
-          badge: 'Sem AÃ§Ã£o',
-          descricao: `Conjura um feitiÃ§o conhecido de atÃ© ${5 + np * 5} PM sem gastar aÃ§Ã£o (RA = 0 no dano).`,
-          valores: { danoAplicado: 0, custoPm: 5 + np * 5, notaLivre: `ðŸŒ¸ Jardinagem Marcial: FeitiÃ§o sem aÃ§Ã£o lanÃ§ado (RA = 0).` }
+          titulo: `Feitiço (até ${5 + np * 5} PM)`,
+          badge: 'Sem Ação',
+          descricao: `Conjura um feitiço conhecido de até ${5 + np * 5} PM sem gastar ação (RA = 0 no dano).`,
+          valores: { danoAplicado: 0, custoPm: 5 + np * 5, notaLivre: '🌸 Jardinagem Marcial: Feitiço sem ação lançado (RA = 0).' }
         }
       ];
 
@@ -68,31 +68,31 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
           id: 'culinaria_vitalidade',
           titulo: 'Iguaria da Vitalidade',
           badge: 'Cura PV',
-          descricao: 'Doce + Salgado: Restaura PV e confere resistÃªncia em vocÃª e 1 aliado visÃ­vel.',
-          valores: { curaAplicada: 30, recursoCura: 'pv', notaLivre: `ðŸ µ CulinÃ¡ria: Iguaria da Vitalidade partilhada com ${alvoNome}.` }
+          descricao: 'Doce + Salgado: Restaura PV e confere resistência em você e 1 aliado visível.',
+          valores: { curaAplicada: 30, recursoCura: 'pv', notaLivre: `🥣 Culinária: Iguaria da Vitalidade partilhada com ${alvoNome}.` }
         },
         {
           id: 'culinaria_vigor_mental',
           titulo: 'Iguaria Mente Serena',
           badge: 'Cura PM',
-          descricao: 'Umami + Doce: Restaura 20 PM e cura status mental em vocÃª e 1 aliado.',
-          valores: { curaAplicada: 20, recursoCura: 'pm', notaLivre: `ðŸ µ CulinÃ¡ria: Mente Serena restaura 20 PM para vocÃª e ${alvoNome}.` }
+          descricao: 'Umami + Doce: Restaura 20 PM e cura status mental em você e 1 aliado.',
+          valores: { curaAplicada: 20, recursoCura: 'pm', notaLivre: `🥣 Culinária: Mente Serena restaura 20 PM para você e ${alvoNome}.` }
         },
         {
           id: 'culinaria_escudo_salgado',
           titulo: 'Iguaria Crosta de Sal',
           badge: 'Defesa',
-          descricao: 'Salgado + Salgado: +2 na Defesa fÃ­sica atÃ© o inÃ­cio do prÃ³ximo turno.',
-          valores: { danoAplicado: 0, notaLivre: `ðŸ µ CulinÃ¡ria: Crosta de Sal confere bÃ´nus de Defesa a vocÃª e ${alvoNome}.` }
+          descricao: 'Salgado + Salgado: +2 na Defesa física até o início do próximo turno.',
+          valores: { danoAplicado: 0, notaLivre: `🥣 Culinária: Crosta de Sal confere bônus de Defesa a você e ${alvoNome}.` }
         }
       ];
 
     case 'SAL_E_PIMENTA':
       return [
-        { id: 'sal_pimenta_amargo', titulo: 'Sabor Amargo', badge: '2 PI', descricao: 'Altera sabor para Amargo (Veneno / Debuff).', valores: { custoPi: 2, notaLivre: 'ðŸ§‚ Sal e Pimenta (2 PI): Sabor alterado para Amargo.' } },
-        { id: 'sal_pimenta_salgado', titulo: 'Sabor Salgado', badge: '2 PI', descricao: 'Altera sabor para Salgado (Defesa / ResistÃªncia).', valores: { custoPi: 2, notaLivre: 'ðŸ§‚ Sal e Pimenta (2 PI): Sabor alterado para Salgado.' } },
-        { id: 'sal_pimenta_doce', titulo: 'Sabor Doce', badge: '2 PI', descricao: 'Altera sabor para Doce (Cura PV / RegeneraÃ§Ã£o).', valores: { custoPi: 2, notaLivre: 'ðŸ§‚ Sal e Pimenta (2 PI): Sabor alterado para Doce.' } },
-        { id: 'sal_pimenta_umami', titulo: 'Sabor Umami', badge: '2 PI', descricao: 'Altera sabor para Umami (Cura PM / FeitiÃ§os).', valores: { custoPi: 2, notaLivre: 'ðŸ§‚ Sal e Pimenta (2 PI): Sabor alterado para Umami.' } }
+        { id: 'sal_pimenta_amargo', titulo: 'Sabor Amargo', badge: '2 PI', descricao: 'Altera sabor para Amargo (Veneno / Debuff).', valores: { custoPi: 2, notaLivre: '🧂 Sal e Pimenta (2 PI): Sabor alterado para Amargo.' } },
+        { id: 'sal_pimenta_salgado', titulo: 'Sabor Salgado', badge: '2 PI', descricao: 'Altera sabor para Salgado (Defesa / Resistência).', valores: { custoPi: 2, notaLivre: '🧂 Sal e Pimenta (2 PI): Sabor alterado para Salgado.' } },
+        { id: 'sal_pimenta_doce', titulo: 'Sabor Doce', badge: '2 PI', descricao: 'Altera sabor para Doce (Cura PV / Regeneração).', valores: { custoPi: 2, notaLivre: '🧂 Sal e Pimenta (2 PI): Sabor alterado para Doce.' } },
+        { id: 'sal_pimenta_umami', titulo: 'Sabor Umami', badge: '2 PI', descricao: 'Altera sabor para Umami (Cura PM / Feitiços).', valores: { custoPi: 2, notaLivre: '🧂 Sal e Pimenta (2 PI): Sabor alterado para Umami.' } }
       ];
 
     case 'INVOCACAO': {
@@ -103,31 +103,31 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
       return [
         {
           id: 'invocacao_explosao_fogo',
-          titulo: `ExplosÃ£o de Chamas (${danoBase} Dano)`,
+          titulo: `Explosão de Chamas (${danoBase} Dano)`,
           badge: '5 PM',
-          descricao: `Acerto automÃ¡tico: Causa ${danoBase} de dano de Fogo a ${alvoNome}.`,
-          valores: { custoPm: 5, danoAplicado: danoBase, tipoDano: 'fogo', notaLivre: `âš„ï¸  InvocaÃ§Ã£o: ExplosÃ£o de Chamas causa ${danoBase} dano de Fogo em ${alvoNome}.` }
+          descricao: `Acerto automático: Causa ${danoBase} de dano de Fogo a ${alvoNome}.`,
+          valores: { custoPm: 5, danoAplicado: danoBase, tipoDano: 'fogo', notaLivre: `☄️ Invocação: Explosão de Chamas causa ${danoBase} dano de Fogo em ${alvoNome}.` }
         },
         {
           id: 'invocacao_explosao_gelo',
-          titulo: `ExplosÃ£o Glacial (${danoBase} Dano)`,
+          titulo: `Explosão Glacial (${danoBase} Dano)`,
           badge: '5 PM',
-          descricao: `Acerto automÃ¡tico: Causa ${danoBase} de dano de Gelo a ${alvoNome}.`,
-          valores: { custoPm: 5, danoAplicado: danoBase, tipoDano: 'gelo', notaLivre: `âš„ï¸  InvocaÃ§Ã£o: ExplosÃ£o Glacial causa ${danoBase} dano de Gelo em ${alvoNome}.` }
+          descricao: `Acerto automático: Causa ${danoBase} de dano de Gelo a ${alvoNome}.`,
+          valores: { custoPm: 5, danoAplicado: danoBase, tipoDano: 'gelo', notaLivre: `☄️ Invocação: Explosão Glacial causa ${danoBase} dano de Gelo em ${alvoNome}.` }
         },
         {
           id: 'invocacao_praga_elemental',
           titulo: 'Praga Elemental (+5 Dano)',
           badge: '5 PM',
           descricao: `Afeta ${alvoNome} com Praga Elemental (+5 dano de fontes aliadas).`,
-          valores: { custoPm: 5, danoAplicado: 0, notaLivre: `âš„ï¸  InvocaÃ§Ã£o: Praga Elemental aplicada em ${alvoNome}.` }
+          valores: { custoPm: 5, danoAplicado: 0, notaLivre: `☄️ Invocação: Praga Elemental aplicada em ${alvoNome}.` }
         },
         {
           id: 'invocacao_bencao_vida',
-          titulo: `BÃªnÃ§Ã£o do Manancial (${curaBase} PV)`,
+          titulo: `Bênção do Manancial (${curaBase} PV)`,
           badge: '5 PM',
           descricao: `Restaura ${curaBase} PV de ${alvoNome} sem rolagem de dados.`,
-          valores: { custoPm: 5, curaAplicada: curaBase, recursoCura: 'pv', notaLivre: `âš„ï¸  InvocaÃ§Ã£o: BÃªnÃ§Ã£o do Manancial restaura ${curaBase} PV de ${alvoNome}.` }
+          valores: { custoPm: 5, curaAplicada: curaBase, recursoCura: 'pv', notaLivre: `☄️ Invocação: Bênção do Manancial restaura ${curaBase} PV de ${alvoNome}.` }
         }
       ];
     }
@@ -136,10 +136,10 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
       return [
         {
           id: 'estoque_pessoal_anular_pi',
-          titulo: `Anular atÃ© ${np + 2} PI`,
+          titulo: `Anular até ${np + 2} PI`,
           badge: '1 PC',
-          descricao: `Gasta 1 Ponto de ComÃ©rcio para anular custo de atÃ© ${np + 2} PI de ${alvoNome}.`,
-          valores: { custoPm: 0, notaLivre: `ðŸ“¦ Estoque Pessoal: 1 Ponto de ComÃ©rcio gasto para anular custo de PI de ${alvoNome}!` }
+          descricao: `Gasta 1 Ponto de Comércio para anular custo de até ${np + 2} PI de ${alvoNome}.`,
+          valores: { custoPm: 0, notaLivre: `📦 Estoque Pessoal: 1 Ponto de Comércio gasto para anular custo de PI de ${alvoNome}!` }
         }
       ];
 
@@ -149,8 +149,8 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
           id: 'ja_ouvi_falar_bonus',
           titulo: `+${np + 2} no Exame`,
           badge: '1 PC',
-          descricao: `Gasta 1 Ponto de ComÃ©rcio para conceder +${np + 2} no teste de exame/Estudo de ${alvoNome}.`,
-          valores: { bonusTeste: np + 2, notaLivre: `ðŸ—³ï¸  JÃ¡ Ouvi Falar: +${np + 2} no teste de exame de ${alvoNome} com 1 Ponto de ComÃ©rcio!` }
+          descricao: `Gasta 1 Ponto de Comércio para conceder +${np + 2} no teste de exame/Estudo de ${alvoNome}.`,
+          valores: { bonusTeste: np + 2, notaLivre: `🗳️ Já Ouvi Falar: +${np + 2} no teste de exame de ${alvoNome} com 1 Ponto de Comércio!` }
         }
       ];
 
@@ -161,8 +161,8 @@ export function obterPresetsBlocoD(codigo = '', np = 1, { alvo = null, combatent
           id: 'data_validade_veneno',
           titulo: `Converter em ${danoVeneno} Veneno`,
           badge: 'Veneno',
-          descricao: `Converte a cura da poÃ§Ã£o/iguaria em ${danoVeneno} de dano de veneno em ${alvoNome}.`,
-          valores: { danoAplicado: danoVeneno, tipoDano: 'veneno', curaAplicada: 0, notaLivre: `â˜  Data de Validade: Cura convertida em ${danoVeneno} dano de veneno contra ${alvoNome}!` }
+          descricao: `Converte a cura da poção/iguaria em ${danoVeneno} de dano de veneno em ${alvoNome}.`,
+          valores: { danoAplicado: danoVeneno, tipoDano: 'veneno', curaAplicada: 0, notaLivre: `☠️ Data de Validade: Cura convertida em ${danoVeneno} dano de veneno contra ${alvoNome}!` }
         }
       ];
     }

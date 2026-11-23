@@ -4,6 +4,50 @@
  */
 
 import { AFINIDADES_DANO, calcularDanoFinalComModificadores } from './combatRules.js';
+import { normalizarTextoCore } from './coreClassRules.js';
+
+const SINONIMOS_ELEMENTAIS = {
+  trevas: ['trevas', 'sombrio', 'sombra', 'dark'],
+  sombrio: ['trevas', 'sombrio', 'sombra', 'dark'],
+  sombra: ['trevas', 'sombrio', 'sombra', 'dark'],
+  ar: ['ar', 'vento', 'air', 'wind'],
+  vento: ['ar', 'vento', 'air', 'wind'],
+  raio: ['raio', 'trovao', 'eletrico', 'bolt'],
+  trovao: ['raio', 'trovao', 'eletrico', 'bolt'],
+  gelo: ['gelo', 'agua', 'ice'],
+  agua: ['gelo', 'agua', 'ice'],
+  fogo: ['fogo', 'chama', 'fire'],
+  terra: ['terra', 'earth'],
+  luz: ['luz', 'sagrado', 'light'],
+  veneno: ['veneno', 'poison'],
+  fisico: ['fisico', 'physical']
+};
+
+export function obterAfinidadeAlvoPorTipoDano(alvo = {}, tipoDano = 'fisico') {
+  const afs = alvo?.afinidades || alvo?.afinidades_elementais || {};
+  if (!afs || typeof afs !== 'object') return AFINIDADES_DANO.NORMAL;
+
+  const tipoNorm = normalizarTextoCore(tipoDano || 'fisico');
+  const candidatos = SINONIMOS_ELEMENTAIS[tipoNorm] || [tipoNorm];
+
+  let valorBruto = null;
+  for (const [k, v] of Object.entries(afs)) {
+    const kNorm = normalizarTextoCore(k);
+    if (candidatos.includes(kNorm)) {
+      valorBruto = v;
+      break;
+    }
+  }
+
+  if (!valorBruto) return AFINIDADES_DANO.NORMAL;
+
+  const vNorm = normalizarTextoCore(String(valorBruto));
+  if (vNorm === 'vul' || vNorm === 'vu' || vNorm === 'vulneravel') return AFINIDADES_DANO.VULNERAVEL;
+  if (vNorm === 'res' || vNorm === 'rs' || vNorm === 'resistente') return AFINIDADES_DANO.RESISTENTE;
+  if (vNorm === 'imu' || vNorm === 'im' || vNorm === 'imune') return AFINIDADES_DANO.IMUNE;
+  if (vNorm === 'abs' || vNorm === 'ab' || vNorm === 'absorve') return AFINIDADES_DANO.ABSORVE;
+  return AFINIDADES_DANO.NORMAL;
+}
 
 export function resolverAtaqueMultiAlvos({
   totalPrecisao = 0,
@@ -48,20 +92,9 @@ export function resolverAtaqueMultiAlvos({
     }
 
     totalAtingidos += 1;
-
-    let afinidadeEfetiva = AFINIDADES_DANO.NORMAL;
-    const afs = alvo.afinidades || alvo.afinidades_elementais || {};
-    const valAf = afs[tipoDano?.toLowerCase()];
-    if (valAf) {
-      const vNorm = String(valAf).toLowerCase();
-      if (vNorm === 'vul' || vNorm === 'vulneravel') afinidadeEfetiva = AFINIDADES_DANO.VULNERAVEL;
-      else if (vNorm === 'res' || vNorm === 'resistente') afinidadeEfetiva = AFINIDADES_DANO.RESISTENTE;
-      else if (vNorm === 'imu' || vNorm === 'imune') afinidadeEfetiva = AFINIDADES_DANO.IMUNE;
-      else if (vNorm === 'abs' || vNorm === 'absorve') afinidadeEfetiva = AFINIDADES_DANO.ABSORVE;
-    }
-
+    const afinidadeEfetiva = obterAfinidadeAlvoPorTipoDano(alvo, tipoDano);
     const estaGuardando = Boolean(alvo.guardando || alvo.modificadores?.guardando);
-    const bonusCondenar = Number(alvo.modificadores?.bonusDanoSofridoCondenar) || 0;
+    const bonusCondenar = Number(alvo.modificadores?.bonusDanoSofridoCondenar || alvo.modificadores?.bonusDanoCondenar) || 0;
 
     const resDano = calcularDanoFinalComModificadores({
       danoBruto: Number(danoBase) || 0,
@@ -90,8 +123,6 @@ export function resolverAtaqueMultiAlvos({
     });
   }
 
-  const resumoTexto = resultadosAlvos.map((r) => r.mensagem).join(' | ');
-
   return {
     isCritico,
     isFumble,
@@ -101,6 +132,6 @@ export function resolverAtaqueMultiAlvos({
     totalAtingidos,
     totalAlvos: alvosLista.length,
     resultadosAlvos,
-    resumoTexto
+    resumoTexto: resultadosAlvos.map((r) => r.mensagem).join(' | ')
   };
 }

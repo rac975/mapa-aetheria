@@ -1,4 +1,5 @@
 import { calcularDanoGolpeBaixo, calcularResolucaoRouboDeAlma } from '../../domain/fabula/rogueRules';
+import { extrairValorCuraMagia, extrairDadosOfensivosMagia } from '../../domain/fabula/combatSpellResolutionRules';
 import { useCombatMultiAttackExecutor } from './useCombatMultiAttackExecutor';
 import { useCombatSpellExecutor } from './useCombatSpellExecutor';
 
@@ -184,13 +185,19 @@ export function useArsenalActionHandlers({
 
   const handleUsarFeiticoCompanheiro = async (feit, comp) => {
     const custo = Number(feit.custoPm) || 0;
+    const curaInfo = extrairValorCuraMagia(feit);
+    const ofInfo = extrairDadosOfensivosMagia(feit);
+    const curaFinal = Number(feit.curaTotal) || curaInfo.valorPv || curaInfo.valorPm || 0;
+    const recCura = (Number(feit.curaTotal) || curaInfo.valorPv > 0) ? 'pv' : (curaInfo.valorPm > 0 ? 'pm' : 'pv');
+    const danoFinal = Number(feit.danoTotal) || ofInfo.bonusDanoDescricao || 0;
     const nota = `🐾 Companheiro (${comp.nome}): ${feit.nome} (${custo} PM) • ${feit.descricao || ''}`;
     setNotaLivre?.(nota);
     await onExecutarAcao?.({
       acaoCodigo: 'HABILIDADE', atorId: combatente.id, companheiroId: comp.id,
       custoPmCompanheiro: custo, custoPm: 0,
-      danoAplicado: Number(feit.danoTotal) || 0, curaAplicada: Number(feit.curaTotal) || 0,
-      alvoId: alvoId || null, notaLivre: nota, marcarTurnoConcluido
+      danoAplicado: danoFinal, tipoDano: ofInfo.tipoDano || 'magico',
+      curaAplicada: curaFinal, recursoCura: recCura,
+      alvoId: alvoId || (curaFinal > 0 ? combatente.id : null), notaLivre: nota, marcarTurnoConcluido
     });
   };
 

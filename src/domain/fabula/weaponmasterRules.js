@@ -91,7 +91,7 @@ export function calcularEfeitoQuebraOssos({ nivelHabilidade = 1, opcao = 'atordo
     const perdaPm = np * 10;
     return { danoAplicado: 0, condicao: null, perdaPm, descricao: `Zera o dano para drenar ${perdaPm} PM do alvo.` };
   }
-  return { danoAplicado: 0, condicao: 'atordoado', perdaPm: 0, descricao: 'Zera o dano para deixar o alvo Atordoado (DES ↓).' };
+  return { danoAplicado: 0, condicao: 'atordoado', perdaPm: 0, descricao: 'Zera o dano para deixar o alvo Atordoado (AST ↓).' };
 }
 
 /**

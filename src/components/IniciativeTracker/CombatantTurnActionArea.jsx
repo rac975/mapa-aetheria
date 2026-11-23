@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { FaBolt, FaCheck, FaForward } from 'react-icons/fa';
 import { Badge } from '../ui';
 import { AFINIDADES_DANO } from '../../domain/fabula/combatRules';
+import { obterAfinidadeAlvoPorTipoDano } from '../../domain/fabula/combatMultiAttackRules';
 import { extrairHabilidadesEleitasCombatente } from '../../domain/fabula/abilityPresetRules';
 import CombatantTargetSelector from './CombatantTargetSelector';
 import CombatantArsenalActions from './CombatantArsenalActions';
@@ -97,15 +98,7 @@ export default function CombatantTurnActionArea({
       let afinidadeEfetiva = afinidadeAlvo;
       if (afinidadeEfetiva === AFINIDADES_DANO.NORMAL && curAlvoId && tipoDano) {
         const curAlvo = participantes.find((p) => String(p.id) === String(curAlvoId));
-        const afs = curAlvo?.afinidades || curAlvo?.afinidades_elementais || {};
-        const valAf = afs[tipoDano?.toLowerCase()];
-        if (valAf) {
-          const vNorm = String(valAf).toLowerCase();
-          if (vNorm === 'vul' || vNorm === 'vulneravel') afinidadeEfetiva = AFINIDADES_DANO.VULNERAVEL;
-          else if (vNorm === 'res' || vNorm === 'resistente') afinidadeEfetiva = AFINIDADES_DANO.RESISTENTE;
-          else if (vNorm === 'imu' || vNorm === 'imune') afinidadeEfetiva = AFINIDADES_DANO.IMUNE;
-          else if (vNorm === 'abs' || vNorm === 'absorve') afinidadeEfetiva = AFINIDADES_DANO.ABSORVE;
-        }
+        if (curAlvo) afinidadeEfetiva = obterAfinidadeAlvoPorTipoDano(curAlvo, tipoDano);
       }
 
       const ok = await onExecutarAcao({

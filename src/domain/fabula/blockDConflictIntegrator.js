@@ -1,7 +1,7 @@
 /**
- * Fabula Ultima - Integrador de AÃ§Ãµes de Conflito do Bloco D
- * Floralista, Gourmet, Invocador e Mercador (Atlas Fantasia BucÃ³lica).
- * Clean Architecture: FunÃ§Ãµes puras sem dependÃªncias de React ou Supabase.
+ * Fabula Ultima - Integrador de Ações de Conflito do Bloco D
+ * Floralista, Gourmet, Invocador e Mercador (Atlas Fantasia Bucólica).
+ * Clean Architecture: Funções puras sem dependências de React ou Supabase.
  */
 
 import { gerarAcoesConflitoFloralista } from './floristRules.js';
@@ -13,48 +13,48 @@ export const ACOES_BLOCO_D_OFICIAIS = {
   // Floralista
   CLOROMANCIA: {
     codigo: 'CLOROMANCIA',
-    titulo: 'ðŸŒ± Cloromancia',
+    titulo: '🌱 Cloromancia',
     categoria: 'floralista',
     consomeTurno: true,
     custoBase: '20 PM',
-    resumo: 'Gasta 20 PM para plantar uma magissemente em seu jardim iniciando o relÃ³gio de germinaÃ§Ã£o (4 seÃ§Ãµes).'
+    resumo: 'Gasta 20 PM para plantar uma magissemente em seu jardim iniciando o relógio de germinação (4 seções).'
   },
   ENXERTO: {
     codigo: 'ENXERTO',
-    titulo: 'âœ‚ï¸  Enxerto',
+    titulo: '✂️ Enxerto',
     categoria: 'floralista',
     consomeTurno: true,
     custoBase: null,
-    resumo: 'Gasta 1 aÃ§Ã£o: Substitui a magissemente atual mantendo as seÃ§Ãµes preenchidas do relÃ³gio.'
+    resumo: 'Gasta 1 ação: Substitui a magissemente atual mantendo as seções preenchidas do relógio.'
   },
   JARDINAGEM_MARCIAL: {
     codigo: 'JARDINAGEM_MARCIAL',
-    titulo: 'ðŸŒ¸ Jardinagem Marcial',
+    titulo: '🌸 Jardinagem Marcial',
     categoria: 'floralista',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'ApÃ³s Cloromancia: Ataque livre com arma equipada OU lanÃ§a feitiÃ§o sem gastar aÃ§Ã£o (RA = 0 no dano).'
+    resumo: 'Após Cloromancia: Ataque livre com arma equipada OU lança feitiço sem gastar ação (RA = 0 no dano).'
   },
   ARVORE_DA_VIDA: {
     codigo: 'ARVORE_DA_VIDA',
-    titulo: 'ðŸŒ³ Ã rvore da Vida',
+    titulo: '🌳 Árvore da Vida',
     categoria: 'floralista',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'Ao remover semente: Criatura visÃ­vel em Crise recupera +[5 + NPÃ—5] PV.'
+    resumo: 'Ao remover semente: Criatura visível em Crise recupera +[5 + NP×5] PV.'
   },
   // Gourmet
   CULINARIA: {
     codigo: 'CULINARIA',
-    titulo: 'ðŸ µ CulinÃ¡ria: Banquete',
+    titulo: '🥣 Culinária: Banquete',
     categoria: 'gourmet',
     consomeTurno: true,
     custoBase: '2-3 Ingredientes',
-    resumo: 'Gasta 1 aÃ§Ã£o e 2 ou 3 ingredientes da reserva para preparar iguaria e conceder efeitos a si e 1 aliado visÃ­vel.'
+    resumo: 'Gasta 1 ação e 2 ou 3 ingredientes da reserva para preparar iguaria e conceder efeitos a si e 1 aliado visível.'
   },
   CULINARIA_OFENSIVA: {
     codigo: 'CULINARIA_OFENSIVA',
-    titulo: 'ðŸ ´ CulinÃ¡ria: Ataque',
+    titulo: '🍴 Culinária: Ataque',
     categoria: 'gourmet',
     consomeTurno: true,
     custoBase: '2-3 Ingredientes',
@@ -62,93 +62,93 @@ export const ACOES_BLOCO_D_OFICIAIS = {
   },
   FEITO_COM_AMOR: {
     codigo: 'FEITO_COM_AMOR',
-    titulo: 'â ¤ï¸  Feito com Amor',
+    titulo: '❤️ Feito com Amor',
     categoria: 'gourmet',
     consomeTurno: false,
     custoBase: '10 PM / alvo extra',
-    resumo: 'Ao usar CulinÃ¡ria de suporte: Gasta atÃ© NPÃ—10 PM (+10 PM por aliado adicional visÃ­vel para receber os efeitos).'
+    resumo: 'Ao usar Culinária de suporte: Gasta até NP×10 PM (+10 PM por aliado adicional visível para receber os efeitos).'
   },
   SAL_E_PIMENTA: {
     codigo: 'SAL_E_PIMENTA',
-    titulo: 'ðŸ§‚ Sal e Pimenta',
+    titulo: '🧂 Sal e Pimenta',
     categoria: 'gourmet',
     consomeTurno: false,
     custoBase: '2 PI',
-    resumo: 'Gasta 2 PI para transformar o sabor de um ingrediente em qualquer outro sabor Ã  sua escolha.'
+    resumo: 'Gasta 2 PI para transformar o sabor de um ingrediente em qualquer outro sabor à sua escolha.'
   },
   GARFO_E_FACA: {
     codigo: 'GARFO_E_FACA',
-    titulo: 'ðŸ ´ Garfo e Faca',
+    titulo: '🍴 Garfo e Faca',
     categoria: 'gourmet',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'Passiva: Se CulinÃ¡ria ofensiva tiver 2 ingredientes, seu ataque livre causa dano de arma normal (RA = 0).'
+    resumo: 'Passiva: Se Culinária ofensiva tiver 2 ingredientes, seu ataque livre causa dano de arma normal (RA = 0).'
   },
   // Invocador
   INVOCACAO: {
     codigo: 'INVOCACAO',
-    titulo: 'âš„ï¸  InvocaÃ§Ã£o Elemental',
+    titulo: '☄️ Invocação Elemental',
     categoria: 'invocador',
     consomeTurno: true,
     custoBase: '5 PM',
-    resumo: 'Gasta 5 PM: Canaliza manancial presente sem rolagem de dados (acerto automÃ¡tico!). Dano base 20, Praga +5 ou Cura 30 PV.'
+    resumo: 'Gasta 5 PM: Canaliza manancial presente sem rolagem de dados (acerto automático!). Dano base 20, Praga +5 ou Cura 30 PV.'
   },
   INVOCACOES_CONECTADAS: {
     codigo: 'INVOCACOES_CONECTADAS',
-    titulo: 'ðŸ”— InvocaÃ§Ãµes Conectadas',
+    titulo: '🔗 Invocações Conectadas',
     categoria: 'invocador',
     consomeTurno: false,
     custoBase: '10 PM / alvo extra',
-    resumo: 'Ao realizar InvocaÃ§Ã£o: Gasta atÃ© NPÃ—10 PM (+10 PM por criatura adicional visÃ­vel afetada).'
+    resumo: 'Ao realizar Invocação: Gasta até NP×10 PM (+10 PM por criatura adicional visível afetada).'
   },
   CASCATA: {
     codigo: 'CASCATA',
-    titulo: 'ðŸŒŠ Cascata',
+    titulo: '🌊 Cascata',
     categoria: 'invocador',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'ApÃ³s inimigo sofrer dano ampliado por Praga: Ataque livre com +NP PrecisÃ£o causando o mesmo elemento e dissipando pragas.'
+    resumo: 'Após inimigo sofrer dano ampliado por Praga: Ataque livre com +NP Precisão causando o mesmo elemento e dissipando pragas.'
   },
   EXPANDIR_MANANCIAL: {
     codigo: 'EXPANDIR_MANANCIAL',
-    titulo: 'âœ¨ Expandir Manancial',
+    titulo: '✨ Expandir Manancial',
     categoria: 'invocador',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'Passiva com arma leve/arcana: +NP de dano em ExplosÃµes e +NP no bÃ´nus de Pragas.'
+    resumo: 'Passiva com arma leve/arcana: +NP de dano em Explosões e +NP no bônus de Pragas.'
   },
   // Mercador
   ESTOQUE_PESSOAL: {
     codigo: 'ESTOQUE_PESSOAL',
-    titulo: 'ðŸ“¦ Estoque Pessoal',
+    titulo: '📦 Estoque Pessoal',
     categoria: 'mercador',
     consomeTurno: false,
-    custoBase: '1 Ponto de ComÃ©rcio',
-    resumo: 'Gasta 1 Ponto de ComÃ©rcio para anular totalmente o custo de atÃ© NP+2 PI seu ou de um aliado.'
+    custoBase: '1 Ponto de Comércio',
+    resumo: 'Gasta 1 Ponto de Comércio para anular totalmente o custo de até NP+2 PI seu ou de um aliado.'
   },
   JA_OUVI_FALAR: {
     codigo: 'JA_OUVI_FALAR',
-    titulo: 'ðŸ—³ï¸  JÃ¡ Ouvi Falar',
+    titulo: '🗳️ Já Ouvi Falar',
     categoria: 'mercador',
     consomeTurno: false,
-    custoBase: '1 Ponto de ComÃ©rcio',
-    resumo: 'Gasta 1 Ponto de ComÃ©rcio para conceder +[NP+2] em teste de exame/Estudo para vocÃª ou aliado audÃ­vel.'
+    custoBase: '1 Ponto de Comércio',
+    resumo: 'Gasta 1 Ponto de Comércio para conceder +[NP+2] em teste de exame/Estudo para você ou aliado audível.'
   },
   DATA_DE_VALIDADE: {
     codigo: 'DATA_DE_VALIDADE',
-    titulo: 'â˜  Data de Validade',
+    titulo: '☠️ Data de Validade',
     categoria: 'mercador',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'Ao usar poÃ§Ã£o ou iguaria curativa: Pode converter a cura em dano de veneno igual a [Nv/2 + NPÃ—10].'
+    resumo: 'Ao usar poção ou iguaria curativa: Pode converter a cura em dano de veneno igual a [Nv/2 + NP×10].'
   },
   VENTOS_DO_COMERCIO: {
     codigo: 'VENTOS_DO_COMERCIO',
-    titulo: 'ðŸ’¸ Ventos do ComÃ©rcio',
+    titulo: '💸 Ventos do Comércio',
     categoria: 'mercador',
     consomeTurno: false,
     custoBase: null,
-    resumo: 'Passiva: Gerencia atÃ© NP+3 Pontos de ComÃ©rcio para ativar Estoque Pessoal e JÃ¡ Ouvi Falar.'
+    resumo: 'Passiva: Gerencia até NP+3 Pontos de Comércio para ativar Estoque Pessoal e Já Ouvi Falar.'
   }
 };
 

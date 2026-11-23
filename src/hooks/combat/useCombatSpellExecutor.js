@@ -5,6 +5,7 @@
 
 import {
   classificarTipoMagia,
+  extrairDadosOfensivosMagia,
   calcularCustoEfetivoMagia,
   validarRecursoConjuracao,
   resolverFeiticoSuporteCura
@@ -35,12 +36,29 @@ export function useCombatSpellExecutor({
       : (alvoId ? participantes.filter((p) => String(p.id) === String(alvoId)) : []);
 
     const qtdAlvos = Math.max(1, alvosLista.length);
-    const custoInfo = calcularCustoEfetivoMagia({
+    const decretoDobrar = Boolean(perfil?.modificadoresCena?.decretoDobrarPm);
+
+    let custoInfo = calcularCustoEfetivoMagia({
       magia,
       quantidadeAlvos: qtdAlvos,
-      decretoDobrarPm: Boolean(perfil?.modificadoresCena?.decretoDobrarPm),
+      decretoDobrarPm: decretoDobrar,
       usarVismagus: false
     });
+
+    const mpAtual = Number(combatente?.mp_atual ?? combatente?.mp) || 0;
+    const temVismagus = Boolean(
+      perfil?.temVismagus ||
+      perfil?.habilidades?.some((h) => h.codigo === 'VISMAGUS' || h.id === 'espiritualista_vismagus')
+    );
+
+    if (custoInfo.custoPm > mpAtual && temVismagus) {
+      custoInfo = calcularCustoEfetivoMagia({
+        magia,
+        quantidadeAlvos: qtdAlvos,
+        decretoDobrarPm: decretoDobrar,
+        usarVismagus: true
+      });
+    }
 
     const validacao = validarRecursoConjuracao({
       combatente,
@@ -67,7 +85,9 @@ export function useCombatSpellExecutor({
       });
 
       setCustoPm?.(custoInfo.custoPm);
-      if (resolucao.curaPvFinal > 0) setCuraAplicada?.(resolucao.curaPvFinal);
+      const curaValor = resolucao.curaPvFinal > 0 ? resolucao.curaPvFinal : resolucao.curaPmFinal;
+      const recursoCura = resolucao.curaPvFinal > 0 ? 'pv' : (resolucao.curaPmFinal > 0 ? 'pm' : 'pv');
+      if (curaValor > 0) setCuraAplicada?.(curaValor);
       setNotaLivre?.(resolucao.detalhes);
 
       if (onExecutarAcao) {
@@ -81,8 +101,8 @@ export function useCombatSpellExecutor({
             alvoId: up.id,
             custoPm: ehPrimeiro ? custoInfo.custoPm : 0,
             custoPv: ehPrimeiro ? custoInfo.custoPv : 0,
-            curaAplicada: resolucao.curaPvFinal,
-            recursoCura: 'pv',
+            curaAplicada: curaValor,
+            recursoCura,
             limparCondicoes: Boolean(up.condicoes !== undefined),
             notaLivre: resolucao.detalhes,
             marcarTurnoConcluido: ehPrimeiro ? marcarTurnoConcluido : false
@@ -96,6 +116,10 @@ export function useCombatSpellExecutor({
     // Feitiço Ofensivo: Exige teste de Magia vs DEF.M
     if (!onRolarDados) return null;
 
+    const infoOfensiva = extrairDadosOfensivosMagia(magia);
+    const bonusDanoTotal = (Number(magia.bonusDano) || 0) + infoOfensiva.bonusDanoDescricao;
+    const tipoDanoFinal = infoOfensiva.tipoDano;
+
     const res = await onRolarDados({
       combatente,
       perfil,
@@ -104,27 +128,27 @@ export function useCombatSpellExecutor({
       attr1: magia.attr1 || 'ast',
       attr2: magia.attr2 || 'von',
       bonusTeste: Number(magia.bonusPrecisao) || 0,
-      bonusDano: Number(magia.bonusDano) || 0,
+      bonusDano: bonusDanoTotal,
       calcularDano: true,
-      tipoDano: magia.tipoDano || 'magico',
+      tipoDano: tipoDanoFinal,
       custoPm: custoInfo.custoPm,
-      isMulti: alvosLista.length > 1
+      isMulti: false
     });
 
     if (!res) return null;
 
     setCustoPm?.(custoInfo.custoPm);
-    if (magia.tipoDano) setTipoDano?.(magia.tipoDano);
+    if (tipoDanoFinal) setTipoDano?.(tipoDanoFinal);
+
+    const danoBaseFeitico = res.danoTotal ?? (res.hr + bonusDanoTotal);
 
     if (alvosLista.length > 0) {
-      const danoBaseFeitico = res.danoTotal || (res.hr + (Number(magia.bonusDano) || 0));
-
       const resolucao = resolverAtaqueMultiAlvos({
         totalPrecisao: res.total,
         d1: res.d1,
         d2: res.d2,
         danoBase: danoBaseFeitico,
-        tipoDano: magia.tipoDano || 'magico',
+        tipoDano: tipoDanoFinal,
         alvos: alvosLista,
         tipoDefesa: 'mdef',
         condicao: magia.condicao || ''
@@ -144,7 +168,7 @@ export function useCombatSpellExecutor({
             custoPm: ehPrimeiro ? custoInfo.custoPm : 0,
             custoPv: ehPrimeiro ? custoInfo.custoPv : 0,
             danoAplicado: item.danoFinal,
-            tipoDano: magia.tipoDano || 'magico',
+            tipoDano: tipoDanoFinal,
             afinidadeAlvo: item.afinidade,
             condicaoAlvo: item.condicaoAplicada,
             notaLivre: item.mensagem,
@@ -156,8 +180,8 @@ export function useCombatSpellExecutor({
       return res;
     }
 
-    if (res.danoTotal !== null) setDanoAplicado?.(res.danoTotal);
-    setNotaLivre?.(`${magia.nome}: ${res.total} ${res.formulaDados} • RA ${res.hr}${res.statusCritico ? ` • ${res.statusCritico}` : ''}`);
+    if (danoBaseFeitico !== null) setDanoAplicado?.(danoBaseFeitico);
+    setNotaLivre?.(`${magia.nome}: ${res.total} ${res.formulaDados} • RA ${res.hr} • Dano ${danoBaseFeitico} (${tipoDanoFinal})${res.statusCritico ? ` • ${res.statusCritico}` : ''}`);
 
     return res;
   };

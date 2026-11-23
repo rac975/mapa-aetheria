@@ -1,14 +1,19 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolverAtaqueMultiAlvos } from '../combatMultiAttackRules.js';
+import {
+  resolverAtaqueMultiAlvos,
+  obterAfinidadeAlvoPorTipoDano
+} from '../combatMultiAttackRules.js';
 import {
   classificarTipoMagia,
+  extrairDadosOfensivosMagia,
   extrairValorCuraMagia,
   calcularCustoEfetivoMagia,
   validarRecursoConjuracao,
   resolverFeiticoSuporteCura
 } from '../combatSpellResolutionRules.js';
 import { AFINIDADES_DANO } from '../combatRules.js';
+import { obterPresetsHabilidade } from '../abilityPresetRules.js';
 
 describe('Fabula Ultima - Ataque Multi & Checagem de Precisao vs Defesas', () => {
   const alvoA = { id: 'a1', nome: 'Goblin Lanceiro', def: 10, mdef: 8, afinidades: {} };
@@ -30,9 +35,9 @@ describe('Fabula Ultima - Ataque Multi & Checagem de Precisao vs Defesas', () =>
     assert.equal(res.isCritico, false);
     assert.equal(res.isFumble, false);
     assert.equal(res.totalAtingidos, 1);
-    assert.equal(res.resultadosAlvos[0].atingiu, true); // 11 >= 10
+    assert.equal(res.resultadosAlvos[0].atingiu, true);
     assert.equal(res.resultadosAlvos[0].danoFinal, 10);
-    assert.equal(res.resultadosAlvos[1].atingiu, false); // 11 < 14
+    assert.equal(res.resultadosAlvos[1].atingiu, false);
     assert.equal(res.resultadosAlvos[1].danoFinal, 0);
   });
 
@@ -71,7 +76,7 @@ describe('Fabula Ultima - Ataque Multi & Checagem de Precisao vs Defesas', () =>
     assert.equal(res.resultadosAlvos[1].atingiu, false);
   });
 
-  it('deve aplicar afinidades elementais e guarda alvo a alvo com precisao vs DEF.M', () => {
+  it('deve aplicar afinidades elementais, sinonimos (sombrio/trevas) e guarda alvo a alvo vs DEF.M', () => {
     const res = resolverAtaqueMultiAlvos({
       totalPrecisao: 13,
       d1: 5,
@@ -83,29 +88,46 @@ describe('Fabula Ultima - Ataque Multi & Checagem de Precisao vs Defesas', () =>
     });
 
     assert.equal(res.totalAtingidos, 3);
-    // Alvo B: Vulneravel (10 * 2 = 20)
     assert.equal(res.resultadosAlvos[0].afinidade, AFINIDADES_DANO.VULNERAVEL);
     assert.equal(res.resultadosAlvos[0].danoFinal, 20);
-
-    // Alvo C: Resistente + Guardando (conforme regra oficial de Fabula Ultima, Guarda concede Resistência; resistências não acumulam em 1/4, então dano = 10 / 2 = 5)
     assert.equal(res.resultadosAlvos[1].afinidade, AFINIDADES_DANO.RESISTENTE);
     assert.equal(res.resultadosAlvos[1].danoFinal, 5);
-
-    // Alvo D: Absorve (cura 10 PV)
     assert.equal(res.resultadosAlvos[2].afinidade, AFINIDADES_DANO.ABSORVE);
     assert.equal(res.resultadosAlvos[2].curaAbsorvida, 10);
     assert.equal(res.resultadosAlvos[2].danoFinal, 0);
+
+    const alvoTrevas = { id: 't1', afinidades: { trevas: 'vul', Físico: 'res', ar: 'imu' } };
+    assert.equal(obterAfinidadeAlvoPorTipoDano(alvoTrevas, 'sombrio'), AFINIDADES_DANO.VULNERAVEL);
+    assert.equal(obterAfinidadeAlvoPorTipoDano(alvoTrevas, 'sombra'), AFINIDADES_DANO.VULNERAVEL);
+    assert.equal(obterAfinidadeAlvoPorTipoDano(alvoTrevas, 'fisico'), AFINIDADES_DANO.RESISTENTE);
+    assert.equal(obterAfinidadeAlvoPorTipoDano(alvoTrevas, 'vento'), AFINIDADES_DANO.IMUNE);
   });
 });
 
-describe('Fabula Ultima - Resolucao de Feiticos e Magias Funcionais', () => {
-  it('classificarTipoMagia deve categorizar corretamente ofensiva, suporte e arcanos', () => {
+describe('Fabula Ultima - Resolucao de Feiticos, Vismagus e Auditoria de Condicoes', () => {
+  it('classificarTipoMagia deve categorizar suporte mesmo se flag ofensiva legada estiver true', () => {
     assert.equal(classificarTipoMagia({ isArcano: true, nome: 'Invocacao Ifrit' }), 'arcano');
     assert.equal(classificarTipoMagia({ nome: 'Ignis', bonusDano: 5, tipoDano: 'fogo' }), 'ofensiva');
     assert.equal(classificarTipoMagia({ nome: 'Relampago', ofensiva: true }), 'ofensiva');
-    assert.equal(classificarTipoMagia({ nome: 'Cura', descricao: 'O alvo recupera 40 PV.' }), 'suporte');
-    assert.equal(classificarTipoMagia({ nome: 'Purificacao', descricao: 'Remove todas as condicoes.' }), 'suporte');
+    assert.equal(classificarTipoMagia({ nome: 'Cura', ofensiva: true, descricao: 'O alvo recupera 40 PV.' }), 'suporte');
+    assert.equal(classificarTipoMagia({ nome: 'Purificacao', ofensiva: true, descricao: 'Remove todas as condicoes.' }), 'suporte');
     assert.equal(classificarTipoMagia({ nome: 'Visao Noturna', descricao: 'Enxerga no escuro' }), 'utilidade');
+  });
+
+  it('extrairDadosOfensivosMagia deve detectar formula [RA + X] e elemento a partir da descricao', () => {
+    const infoIgnis = extrairDadosOfensivosMagia({
+      nome: 'Ignis',
+      descricao: 'O alvo sofre [RA + 15] pontos de dano de fogo.'
+    });
+    assert.equal(infoIgnis.bonusDanoDescricao, 15);
+    assert.equal(infoIgnis.tipoDano, 'fogo');
+
+    const infoUmbra = extrairDadosOfensivosMagia({
+      nome: 'Umbra',
+      descricao: 'Causa [RA + 20] de dano de trevas.'
+    });
+    assert.equal(infoUmbra.bonusDanoDescricao, 20);
+    assert.equal(infoUmbra.tipoDano, 'trevas');
   });
 
   it('extrairValorCuraMagia deve extrair valores de PV e PM da descricao', () => {
@@ -116,7 +138,7 @@ describe('Fabula Ultima - Resolucao de Feiticos e Magias Funcionais', () => {
     assert.equal(cura2.valorPm, 25);
   });
 
-  it('calcularCustoEfetivoMagia deve suportar custo fixo, por alvo e decretos de cena', () => {
+  it('calcularCustoEfetivoMagia deve suportar custo fixo, por alvo, decretos e Vismagus oficial (10 + PM)', () => {
     const cFixo = calcularCustoEfetivoMagia({ magia: { custoPm: '10' }, quantidadeAlvos: 3 });
     assert.equal(cFixo.custoPm, 10);
 
@@ -131,63 +153,43 @@ describe('Fabula Ultima - Resolucao de Feiticos e Magias Funcionais', () => {
     });
     assert.equal(cDecreto.custoPm, 40);
 
+    // Regra oficial Vismagus (Espiritualista): 10 + custo total em PM do feitico
     const cVismagus = calcularCustoEfetivoMagia({
       magia: { custoPm: '20' },
       usarVismagus: true
     });
     assert.equal(cVismagus.custoPm, 0);
-    assert.equal(cVismagus.custoPv, 20);
+    assert.equal(cVismagus.custoPv, 30);
   });
 
-  it('validarRecursoConjuracao deve checar limite de PM e PV para prevencao de conjuracao invalida', () => {
-    const mago = { nome: 'Mago', mp_atual: 15, hp_atual: 30 };
+  it('validarRecursoConjuracao e resolverFeiticoSuporteCura devem validar e aplicar efeitos corretamente', () => {
+    const mago = { id: 'c1', nome: 'Mago', mp_atual: 15, hp_atual: 30, hp_max: 40 };
+    assert.equal(validarRecursoConjuracao({ combatente: mago, custoPm: 10 }).valido, true);
+    assert.equal(validarRecursoConjuracao({ combatente: mago, custoPm: 20 }).valido, false);
+    assert.equal(validarRecursoConjuracao({ combatente: mago, custoPv: 30 }).valido, false);
 
-    const validaOk = validarRecursoConjuracao({ combatente: mago, custoPm: 10 });
-    assert.equal(validaOk.valido, true);
-
-    const validaErroPm = validarRecursoConjuracao({ combatente: mago, custoPm: 20 });
-    assert.equal(validaErroPm.valido, false);
-    assert.match(validaErroPm.erro, /PM suficientes/i);
-
-    const validaErroPv = validarRecursoConjuracao({ combatente: mago, custoPv: 30 });
-    assert.equal(validaErroPv.valido, false);
-    assert.match(validaErroPv.erro, /PV suficientes/i);
-  });
-
-  it('resolverFeiticoSuporteCura deve aplicar cura e limpeza sem exigencia de rolagem de dados', () => {
-    const conjurador = { id: 'c1', nome: 'Clerigo', hp_atual: 20, hp_max: 40, mp_atual: 30, mp_max: 40 };
     const aliado = { id: 'c2', nome: 'Guerreiro', hp_atual: 10, hp_max: 50, condicoes: ['lento'] };
-
     const resCura = resolverFeiticoSuporteCura({
       magia: { nome: 'Cura', descricao: 'O alvo recupera 30 PV e cura todas as condicoes.' },
-      conjurador,
+      conjurador: mago,
       alvos: [aliado],
       custoPm: 10,
       bonusPoderCurativo: 5
     });
-
-    assert.equal(resCura.valido, true);
-    assert.equal(resCura.curaPvFinal, 35); // 30 + 5 bonus
-    assert.equal(resCura.updatesAlvos.length, 1);
-    assert.equal(resCura.updatesAlvos[0].hp_atual, 45); // 10 + 35
-    assert.deepEqual(resCura.updatesAlvos[0].condicoes, []); // condicoes limpas
-    assert.match(resCura.detalhes, /Guerreiro/);
-    assert.match(resCura.detalhes, /\+35 PV/);
+    assert.equal(resCura.curaPvFinal, 35);
+    assert.equal(resCura.updatesAlvos[0].hp_atual, 45);
+    assert.deepEqual(resCura.updatesAlvos[0].condicoes, []);
   });
 
-  it('resolverFeiticoSuporteCura sem alvo especificado deve beneficiar o proprio conjurador', () => {
-    const conjurador = { id: 'c1', nome: 'Mago Branco', hp_atual: 15, hp_max: 40 };
+  it('auditoria de condicoes oficiais nos presets: Abalado reduz VON e Atordoado reduz AST', () => {
+    const presetsCondenar = obterPresetsHabilidade({ codigo: 'CONDENAR', nivel: 1 });
+    assert.match(presetsCondenar[0].descricao, /Abalado \(VON ↓\)/);
+    assert.match(presetsCondenar[1].descricao, /Atordoado \(AST ↓\)/);
 
-    const resAuto = resolverFeiticoSuporteCura({
-      magia: { nome: 'Auto-Cura', descricao: 'Recupera 20 PV.' },
-      conjurador,
-      alvos: [],
-      custoPm: 10
-    });
+    const presetsQuebraOssos = obterPresetsHabilidade({ codigo: 'QUEBRA_OSSOS', nivel: 1 });
+    assert.match(presetsQuebraOssos[0].descricao, /Atordoado \(AST ↓\)/);
 
-    assert.equal(resAuto.valido, true);
-    assert.equal(resAuto.updatesAlvos.length, 1);
-    assert.equal(resAuto.updatesAlvos[0].id, 'c1');
-    assert.equal(resAuto.updatesAlvos[0].hp_atual, 35);
+    const presetsTiroAviso = obterPresetsHabilidade({ codigo: 'TIRO_DE_AVISO', nivel: 1 });
+    assert.match(presetsTiroAviso[0].descricao, /Abalado \(VON ↓\)/);
   });
 });

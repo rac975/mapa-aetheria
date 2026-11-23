@@ -1,6 +1,6 @@
 /**
  * Fabula Ultima - Regras da Classe Floralista (Florist)
- * Atlas Fantasia BucÃ³lica (Natural Fantasy) - Clean Architecture: FunÃ§Ãµes Puras.
+ * Atlas Fantasia Bucólica (Natural Fantasy) - Clean Architecture: Funções Puras.
  */
 
 import { obterNivelHabilidade, normalizarTextoCore } from './coreClassRules.js';
@@ -10,7 +10,7 @@ export const MAGISEEDS_CATALOGO = Object.freeze([
     chave: 'espinhos',
     nome: 'Magissemente de Espinhos',
     tipoDano: 'fisico',
-    resumo: 'Gera espinhos defensivos e causa dano fÃ­sico / retaliaÃ§Ã£o.'
+    resumo: 'Gera espinhos defensivos e causa dano físico / retaliação.'
   },
   {
     chave: 'rosa_de_fogo',
@@ -20,21 +20,21 @@ export const MAGISEEDS_CATALOGO = Object.freeze([
   },
   {
     chave: 'lirio_restaurador',
-    nome: 'Magissemente LÃ­rio Restaurador',
+    nome: 'Magissemente Lírio Restaurador',
     tipoDano: null,
-    resumo: 'Restaura PV de aliados em seÃ§Ãµes avanÃ§adas do relÃ³gio.'
+    resumo: 'Restaura PV de aliados em seções avançadas do relógio.'
   },
   {
     chave: 'orquidea_silenciosa',
-    nome: 'Magissemente OrquÃ­dea Silenciosa',
-    tipoDano: 'sombra',
+    nome: 'Magissemente Orquídea Silenciosa',
+    tipoDano: 'trevas',
     resumo: 'Drena PM e inflige status Abalado ou Atordoado aos inimigos.'
   },
   {
     chave: 'semente_trovao',
-    nome: 'Magissemente Semente do TrovÃ£o',
+    nome: 'Magissemente Semente do Trovão',
     tipoDano: 'raio',
-    resumo: 'Emana pulsos elÃ©tricos em todos os inimigos no fim do turno.'
+    resumo: 'Emana pulsos elétricos em todos os inimigos no fim do turno.'
   }
 ]);
 
@@ -70,7 +70,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
     acoes.push({
       id: 'floralista_cloromancia',
       codigo: 'CLOROMANCIA',
-      nome: 'ðŸŒ± Cloromancia (Plantar Magissemente)',
+      nome: '🌱 Cloromancia (Plantar Magissemente)',
       nomeCurto: 'Cloromancia',
       tipo: 'especial',
       classe: 'Floralista',
@@ -85,7 +85,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
       tipoDano: 'terra',
       isAcaoExtra: false,
       passiva: false,
-      descricao: `Gasta 20 PM para plantar uma magissemente em seu jardim vazio, iniciando o relÃ³gio de germinaÃ§Ã£o (4 seÃ§Ãµes).`
+      descricao: 'Gasta 20 PM para plantar uma magissemente em seu jardim vazio, iniciando o relógio de germinação (4 seções).'
     });
   }
 
@@ -94,7 +94,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
     acoes.push({
       id: 'floralista_enxerto',
       codigo: 'ENXERTO',
-      nome: 'âœ‚ï¸  Enxerto',
+      nome: '✂️ Enxerto',
       nomeCurto: 'Enxerto',
       tipo: 'especial',
       classe: 'Floralista',
@@ -110,7 +110,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
       isAcaoExtra: false,
       passiva: false,
       bloqueada: !disponivel,
-      descricao: `Gasta 1 aÃ§Ã£o para remover a magissemente atual e plantar outra mantendo as seÃ§Ãµes preenchidas do relÃ³gio (Requer â‰¥1 seÃ§Ã£o).`
+      descricao: 'Gasta 1 ação para remover a magissemente atual e plantar outra mantendo as seções preenchidas do relógio (Requer ≥1 seção).'
     });
   }
 
@@ -119,7 +119,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
     acoes.push({
       id: 'floralista_jardinagem_marcial',
       codigo: 'JARDINAGEM_MARCIAL',
-      nome: 'ðŸŒ¸ Jardinagem Marcial',
+      nome: '🌸 Jardinagem Marcial',
       nomeCurto: 'Jardinagem Marcial',
       tipo: 'reacao',
       classe: 'Floralista',
@@ -134,7 +134,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
       tipoDano: 'fisico',
       isAcaoExtra: true,
       passiva: false,
-      descricao: `ApÃ³s plantar com Cloromancia: Ataque livre com arma equipada OU conjura feitiÃ§o de atÃ© ${limitePmMagia} PM sem gastar aÃ§Ã£o (RA = 0 no dano).`
+      descricao: `Após plantar com Cloromancia: Ataque livre com arma equipada OU conjura feitiço de até ${limitePmMagia} PM sem gastar ação (RA = 0 no dano).`
     });
   }
 
@@ -143,8 +143,8 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
     acoes.push({
       id: 'floralista_arvore_da_vida',
       codigo: 'ARVORE_DA_VIDA',
-      nome: 'ðŸŒ³ Ã rvore da Vida',
-      nomeCurto: 'Ã rvore da Vida',
+      nome: '🌳 Árvore da Vida',
+      nomeCurto: 'Árvore da Vida',
       tipo: 'reacao',
       classe: 'Floralista',
       nivel: habs.arvoreDaVida,
@@ -158,7 +158,7 @@ export function gerarAcoesConflitoFloralista({ classes = [], relogioGerminacao =
       tipoDano: 'luz',
       isAcaoExtra: true,
       passiva: true,
-      descricao: `Ao remover magissemente do jardim: Alvo visÃ­vel em Crise recupera +${curaCrise} PV.`
+      descricao: `Ao remover magissemente do jardim: Alvo visível em Crise recupera +${curaCrise} PV.`
     });
   }
 

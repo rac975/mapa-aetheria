@@ -1,5 +1,5 @@
 /**
- * Hook puro para orquestração e execução de Ataques (Único e Multi-Alvos)
+ * Hook puro para orquestração e execução de Ataques (Único, Duas Armas e Multi-Alvos)
  * Fabula Ultima - Clean Architecture: Separação estrita de regras e orquestração.
  */
 
@@ -31,7 +31,9 @@ export function useCombatMultiAttackExecutor({
     const alvoUnico = alvosLista.length === 1 ? alvosLista[0] : null;
     const condicoesAlvo = Array.isArray(alvoUnico?.condicoes) ? alvoUnico.condicoes : [];
 
-    const isMultiEfetivo = Boolean(multiAlvoAtivo || arma.propriedadeMulti || arma.isMulti || alvosLista.length > 1);
+    const isMultiEfetivo = Boolean(
+      !arma.isDuasArmas && (multiAlvoAtivo || arma.propriedadeMulti || arma.isMulti || alvosLista.length > 1)
+    );
 
     const bonusGolpe = (!isMultiEfetivo && !arma.isDuasArmas && habGolpe?.ativo && condicoesAlvo.length > 0)
       ? calcularDanoGolpeBaixo({ nivelGolpeBaixo: habGolpe.nivel, condicoesAlvo, isAlvoUnico: true })
@@ -57,11 +59,12 @@ export function useCombatMultiAttackExecutor({
 
     if (arma.tipoDano) setTipoDano?.(arma.tipoDano);
 
-    // Se temos alvos declarados no momento do clique, resolve imediatamente
-    if (alvosLista.length > 0) {
-      // Regra Multi: se isMultiEfetivo, dano base é bônus da arma sem somar RA (conforme regra Multi)
-      const danoBaseAtaque = isMultiEfetivo ? ((Number(arma.bonusDano) || 0) + bonusGolpe) : (res.danoTotal || 0);
+    const danoBaseAtaque = isMultiEfetivo
+      ? ((Number(arma.bonusDano) || 0) + bonusGolpe)
+      : (res.danoTotal || 0);
 
+    // Se temos alvos declarados no momento do clique, resolve imediatamente contra DEF/DEF.M de cada alvo
+    if (alvosLista.length > 0) {
       const resolucao = resolverAtaqueMultiAlvos({
         totalPrecisao: res.total,
         d1: res.d1,
@@ -97,10 +100,17 @@ export function useCombatMultiAttackExecutor({
     }
 
     // Sem alvo declarado: preenche os campos na barra de ações para confirmação
-    if (res.danoTotal !== null) setDanoAplicado?.(res.danoTotal);
+    if (res.danoTotal !== null) setDanoAplicado?.(danoBaseAtaque);
     const tagVoador = arma.atingeVoadores ? ' • 🦅 Atinge Voadores' : '';
-    const tagMulti = isMultiEfetivo ? ' (Multi: RA puro)' : '';
-    setNotaLivre?.(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${tagMulti}${tagGolpe}${res.statusCritico ? ` • ${res.statusCritico}` : ''}${tagVoador}`);
+    const tagMulti = isMultiEfetivo ? ' (Multi)' : '';
+    const tagCond = arma.condicao ? ` • Condição: ${arma.condicao}` : '';
+    const tagEf = arma.efeito ? ` • ${arma.efeito}` : '';
+
+    if (arma.isDuasArmas) {
+      setNotaLivre?.(`Multiataque: Precisão ${res.total} ${res.formulaDados} • 1º: ${res.danoGolpe1} (${arma.tipoDano}) • 2º (RA=0): ${res.danoGolpe2} (${arma.tipoDanoSecundario})${tagVoador}`);
+    } else {
+      setNotaLivre?.(`${arma.nome}: Precisão ${res.total} ${res.formulaDados} • RA ${res.hr}${tagMulti}${tagGolpe}${res.statusCritico ? ` • ${res.statusCritico}` : ''}${tagVoador}${tagCond}${tagEf}`);
+    }
 
     return res;
   };

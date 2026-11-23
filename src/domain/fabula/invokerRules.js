@@ -1,13 +1,13 @@
 /**
  * Fabula Ultima - Regras da Classe Invocador (Invoker)
- * Atlas Fantasia BucÃ³lica (Natural Fantasy) - Clean Architecture: FunÃ§Ãµes Puras.
+ * Atlas Fantasia Bucólica (Natural Fantasy) - Clean Architecture: Funções Puras.
  */
 
 import { obterNivelHabilidade, normalizarTextoCore } from './coreClassRules.js';
 
 export const MANANCIAIS_CONFLITO = Object.freeze([
   { chave: 'fogo', nome: 'Manancial de Fogo', tipoDano: 'fogo', pragas: ['gelo', 'veneno'] },
-  { chave: 'agua', nome: 'Manancial de Ã gua', tipoDano: 'gelo', pragas: ['fogo', 'raio'] },
+  { chave: 'agua', nome: 'Manancial de Água', tipoDano: 'gelo', pragas: ['fogo', 'raio'] },
   { chave: 'ar', nome: 'Manancial de Ar', tipoDano: 'ar', pragas: ['terra', 'raio'] },
   { chave: 'terra', nome: 'Manancial de Terra', tipoDano: 'terra', pragas: ['ar', 'gelo'] },
   { chave: 'raio', nome: 'Manancial de Raio', tipoDano: 'raio', pragas: ['fogo', 'terra'] }
@@ -50,8 +50,8 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
     acoes.push({
       id: 'invocador_invocacao',
       codigo: 'INVOCACAO',
-      nome: 'âš„ï¸  Invocador: Canalizar InvocaÃ§Ã£o',
-      nomeCurto: 'InvocaÃ§Ã£o',
+      nome: '☄️ Invocador: Canalizar Invocação',
+      nomeCurto: 'Invocação',
       tipo: 'especial',
       classe: 'Invocador',
       nivel: habs.invocacao,
@@ -65,7 +65,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
       tipoDano: 'fogo',
       isAcaoExtra: false,
       passiva: false,
-      descricao: `Gasta 5 PM: Canaliza um manancial presente sem rolagem de dados (acerto automÃ¡tico!). OpÃ§Ãµes: ExplosÃ£o (${danoExplosao} de dano), Praga (+${5 + (habs.expandirManancial || 0)} dano elemental), BÃªnÃ§Ã£o (${curaBencao} PV) ou Dreno (${20 + bonusNivelCura} PM).`
+      descricao: `Gasta 5 PM: Canaliza um manancial presente sem rolagem de dados (acerto automático!). Opções: Explosão (${danoExplosao} de dano), Praga (+${5 + (habs.expandirManancial || 0)} dano elemental), Bênção (${curaBencao} PV) ou Dreno (${20 + bonusNivelCura} PM).`
     });
   }
 
@@ -74,8 +74,8 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
     acoes.push({
       id: 'invocador_invocacoes_conectadas',
       codigo: 'INVOCACOES_CONECTADAS',
-      nome: 'ðŸ”— InvocaÃ§Ãµes Conectadas',
-      nomeCurto: 'InvocaÃ§Ãµes Conectadas',
+      nome: '🔗 Invocações Conectadas',
+      nomeCurto: 'Invocações Conectadas',
       tipo: 'reacao',
       classe: 'Invocador',
       nivel: habs.invocacoesConectadas,
@@ -89,7 +89,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
       tipoDano: 'luz',
       isAcaoExtra: true,
       passiva: false,
-      descricao: `Ao realizar Invocador: Gaste atÃ© ${maxPmConexao} PM adicionais (10 PM por criatura adicional visÃ­vel afetada pela invocaÃ§Ã£o).`
+      descricao: `Ao realizar Invocação: Gaste até ${maxPmConexao} PM adicionais (10 PM por criatura adicional visível afetada pela invocação).`
     });
   }
 
@@ -97,7 +97,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
     acoes.push({
       id: 'invocador_cascata',
       codigo: 'CASCATA',
-      nome: 'ðŸŒŠ Cascata',
+      nome: '🌊 Cascata',
       nomeCurto: 'Cascata',
       tipo: 'reacao',
       classe: 'Invocador',
@@ -113,7 +113,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
       tipoDano: 'fisico',
       isAcaoExtra: true,
       passiva: false,
-      descricao: `ReaÃ§Ã£o: ApÃ³s inimigo sofrer dano ampliado por sua Praga, faÃ§a ataque livre com +${habs.cascata} na PrecisÃ£o, causando o mesmo elemento do aliado e dissipando as pragas.`
+      descricao: `Reação: Após inimigo sofrer dano ampliado por sua Praga, faça ataque livre com +${habs.cascata} na Precisão, causando o mesmo elemento do aliado e dissipando as pragas.`
     });
   }
 
@@ -121,7 +121,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
     acoes.push({
       id: 'invocador_expandir_manancial',
       codigo: 'EXPANDIR_MANANCIAL',
-      nome: 'âœ¨ Expandir Manancial',
+      nome: '✨ Expandir Manancial',
       nomeCurto: 'Expandir Manancial',
       tipo: 'reacao',
       classe: 'Invocador',
@@ -136,7 +136,7 @@ export function gerarAcoesConflitoInvocador({ classes = [], nivelPersonagem = 5 
       tipoDano: 'energia',
       isAcaoExtra: true,
       passiva: true,
-      descricao: `Passiva com arma leve/arcana: InvocaÃ§Ãµes de ExplosÃ£o causam +${habs.expandirManancial} de dano e Pragas recebem +${habs.expandirManancial} de bÃ´nus.`
+      descricao: `Passiva com arma leve/arcana: Invocações de Explosão causam +${habs.expandirManancial} de dano e Pragas recebem +${habs.expandirManancial} de bônus.`
     });
   }
 

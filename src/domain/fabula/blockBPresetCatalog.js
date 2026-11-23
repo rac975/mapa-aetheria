@@ -180,14 +180,14 @@ export function obterPresetsBlocoB(codigo, np = 1, { alvo = null, combatente = n
           id: 'dom_retaliacao_abalado',
           titulo: 'Retaliação (Abalado)',
           badge: 'Reação',
-          descricao: `Inimigo que o feriu perde PM e fica Abalado (AST ↓).`,
+          descricao: `Inimigo que o feriu perde PM e fica Abalado (VON ↓).`,
           valores: { condicaoAlvo: 'abalado', notaLivre: `🔮 Retaliação Psíquica: ${alvoNome} perde PM e fica Abalado!` }
         },
         {
           id: 'dom_retaliacao_atordoado',
           titulo: 'Retaliação (Atordoado)',
           badge: 'Reação',
-          descricao: `Inimigo que o feriu perde PM e fica Atordoado (DES ↓).`,
+          descricao: `Inimigo que o feriu perde PM e fica Atordoado (AST ↓).`,
           valores: { condicaoAlvo: 'atordoado', notaLivre: `🔮 Retaliação Psíquica: ${alvoNome} perde PM e fica Atordoado!` }
         },
         {

@@ -174,14 +174,14 @@ export function obterPresetsHabilidade(hab, { alvo = null, combatente = null } =
   switch (codigo) {
     case HABILIDADES_ELEITAS_PRESET.QUEBRA_OSSOS:
       return [
-        { id: 'quebra_ossos_atordoado', titulo: 'Atordoado', badge: 'Condição', descricao: 'Dano 0 para aplicar Atordoado (DES ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'atordoado', perdaPmAlvo: 0, notaLivre: `🦴 Quebra-Ossos: Dano 0 para aplicar Atordoado em ${alvoNome}.` } },
+        { id: 'quebra_ossos_atordoado', titulo: 'Atordoado', badge: 'Condição', descricao: 'Dano 0 para aplicar Atordoado (AST ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'atordoado', perdaPmAlvo: 0, notaLivre: `🦴 Quebra-Ossos: Dano 0 para aplicar Atordoado em ${alvoNome}.` } },
         { id: 'quebra_ossos_fraco', titulo: 'Fraco', badge: 'Condição', descricao: 'Dano 0 para aplicar Fraco (VIG ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'fraco', perdaPmAlvo: 0, notaLivre: `🦴 Quebra-Ossos: Dano 0 para aplicar Fraco em ${alvoNome}.` } },
         { id: 'quebra_ossos_drenar_pm', titulo: `Drenar ${np * 10} PM`, badge: 'Recurso', descricao: `Dano 0 para drenar até ${np * 10} PM do alvo.`, valores: { danoAplicado: 0, condicaoAlvo: '', perdaPmAlvo: np * 10, notaLivre: `🦴 Quebra-Ossos: Dano 0 para drenar ${np * 10} PM de ${alvoNome}.` } }
       ];
 
     case HABILIDADES_ELEITAS_PRESET.TIRO_DE_AVISO:
       return [
-        { id: 'tiro_aviso_abalado', titulo: 'Abalado', badge: 'Condição', descricao: 'Dano 0 para aplicar Abalado (AST ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'abalado', perdaPmAlvo: 0, notaLivre: `⚠️ Tiro de Aviso (Nv ${np}): Dano 0 para aplicar Abalado em ${alvoNome}.` } },
+        { id: 'tiro_aviso_abalado', titulo: 'Abalado', badge: 'Condição', descricao: 'Dano 0 para aplicar Abalado (VON ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'abalado', perdaPmAlvo: 0, notaLivre: `⚠️ Tiro de Aviso (Nv ${np}): Dano 0 para aplicar Abalado em ${alvoNome}.` } },
         { id: 'tiro_aviso_lento', titulo: 'Lento', badge: 'Condição', descricao: 'Dano 0 para aplicar Lento (DES ↓).', valores: { danoAplicado: 0, condicaoAlvo: 'lento', perdaPmAlvo: 0, notaLivre: `⚠️ Tiro de Aviso (Nv ${np}): Dano 0 para aplicar Lento em ${alvoNome}.` } },
         { id: 'tiro_aviso_drenar_pm', titulo: `Drenar ${np * 10} PM`, badge: 'Recurso', descricao: `Dano 0 para drenar até ${np * 10} PM do alvo.`, valores: { danoAplicado: 0, condicaoAlvo: '', perdaPmAlvo: np * 10, notaLivre: `⚠️ Tiro de Aviso (Nv ${np}): Dano 0 para drenar ${np * 10} PM de ${alvoNome}.` } }
       ];

@@ -15,7 +15,7 @@ export function obterPresetsBlocoA(codigo, np = 1, { alvo = null, combatente = n
           id: 'condenar_abalado',
           titulo: `Abalado (-${np * 10} PM)`,
           badge: '5 PM',
-          descricao: `Alvo perde ${np * 10} PM, fica Abalado (AST ↓) e sofre +${np} de dano de todas as fontes.`,
+          descricao: `Alvo perde ${np * 10} PM, fica Abalado (VON ↓) e sofre +${np} de dano de todas as fontes.`,
           valores: {
             custoPm: 5,
             perdaPmAlvo: np * 10,
@@ -27,7 +27,7 @@ export function obterPresetsBlocoA(codigo, np = 1, { alvo = null, combatente = n
           id: 'condenar_atordoado',
           titulo: `Atordoado (-${np * 10} PM)`,
           badge: '5 PM',
-          descricao: `Alvo perde ${np * 10} PM, fica Atordoado (DES ↓) e sofre +${np} de dano de todas as fontes.`,
+          descricao: `Alvo perde ${np * 10} PM, fica Atordoado (AST ↓) e sofre +${np} de dano de todas as fontes.`,
           valores: {
             custoPm: 5,
             perdaPmAlvo: np * 10,
